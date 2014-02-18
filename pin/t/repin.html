@@ -1,0 +1,12 @@
+$def with (pin, form)
+<h1>Repinning <a href='/pin/$pin.id'>$pin.name</a></h1>
+<form method='post' action='' autocomplete='off'>
+    $:form.render()
+</form>
+<br/>
+<br/>
+<h2>Image Preview</h2>
+$if pin.repin == 0:
+    <img src='/static/tmp/$(pin.id).png' alt='' class='left'/>
+$else:
+    <img src='/static/tmp/$(pin.repin).png' alt='' class='left'/>

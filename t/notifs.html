@@ -1,0 +1,37 @@
+$def with (notifs)
+<h1>Unread Notifications</h1>
+$if notifs:
+    $ ping = False
+    <div class='notifs'>
+        $for n in notifs:
+            <div class='notif'>
+                <a href='/notif/$n.id'>$:n.message</a>
+                $if n.fr:
+                    $ ping = True
+                    <a class='ping accept' data-id='$n.id' data-fr-id='$n.fr_id'>Accept</a>
+                    &nbsp;
+                    <a class='ping' data-id='$n.id' data-fr-id='$n.fr_id'>Ignore</a>
+                <hr/>
+            </div>
+    </div>
+    $if ping:
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script type='text/javascript'>
+            function ping(url) {
+                var img = new Image();
+                img.src = url;
+            }
+
+            $$('.ping').click(function(event) {
+                event.preventDefault();
+                if ($$(this).hasClass('accept'))
+                    ping('/acceptfr/' + $$(this).attr('data-fr-id'));
+                ping('/notif/' + $$(this).attr('data-id'));
+
+                $$(this).parent().remove();
+                if ($$('.notif').length == 0)
+                    $$('.notifs').html('<p>You have no notifications!</p>');
+            });
+        </script>
+$else:
+    <p>You have no notifications!</p>

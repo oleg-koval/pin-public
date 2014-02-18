@@ -1,0 +1,14 @@
+$def with (categories)
+<center>
+  <h1>Let's get started! Pick three categories you're passionate about.</h1>
+  <br/>
+  <div style='width: 500px'>
+      $for category in categories:
+          <button class='loldongs' style='margin-bottom: 10px;' data-id='$category.id'>$category.name</button>&nbsp;
+  </div>
+</center>
+<form method='get' id='wat' action='/after-signup/2' style='display: none'>
+    <input type='hidden' name='ids' id='lol'/>
+</form>
+<script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
+<script type='text/javascript' src='/static/asignup.js'></script>

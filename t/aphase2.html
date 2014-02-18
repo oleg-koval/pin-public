@@ -1,0 +1,24 @@
+$def with (users)
+<h1>We've chosen some cool people for you to follow. Click some to follow!</h1>
+
+$def usergrid(users):
+  <div class='pick-people clearfix'>
+    $for user in users:
+      <div class='user left clearfix' data-id='$user.id'>
+        $if user.pic:
+          <img class='left' src='/static/pics/$(user.pic).png' alt=''/>
+        $else:
+          <img class='left' src='/static/default-avatar.png' alt=''/>
+        <b class='left'><a target='_blank' href='/profile/$user.id'>$user.name</a></b>
+      </div>
+  </div>
+
+
+$:usergrid(users)
+<form method='post' action='/after-signup/2' class='no-back' id='herp'>
+  <input type='hidden' name='ids' id='derp'/>
+  <button>Follow these people</button>
+</form>
+
+<script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
+<script type='text/javascript' src='/static/aphase2.js'></script>

@@ -1,0 +1,31 @@
+$def with (user, boards, is_friends=None, is_following=None)
+<h1>Viewing user: $user.name</h1>
+<p>$user.about</p>
+<p><b>
+    $if 'logged_in' in sess and user.id != sess.user_id:
+        $if is_friends is not None:
+            $if is_friends:
+                You are friends
+            $else:
+                <a href='/addfriend/$user.id'>Add friend</a>
+            &middot;
+            $if is_following:
+                Following
+            $else:
+                <a href='/follow/$user.id'>Follow</a>
+            &middot;
+            <a href='/newconvo/$user.id'>Message</a>
+        $if user.show_views:
+            &middot;
+    $if user.show_views:
+        $if user.views == 0:
+            No views
+        $elif user.views == 1:
+            1 view
+        $else:
+            $user.views views
+</b></p>
+<hr/>
+<h2>Boards</h2>
+$for board in boards:
+    <p><a href='/board/$board.id'><b>$board.name</b></a> &mdash; $board.description</p>

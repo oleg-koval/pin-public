@@ -1,0 +1,81 @@
+$def with (user, hashed, friend_status=None, is_following=None)
+<div class='clearfix user-heading'
+  $if 'logged_in' in sess and sess.user_id == user.id:
+    id='lolbg'
+  $if user.bg:
+    style='background-image: url(/static/tmp/bg$(user.id).png?v=$hashed); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'
+  $else:
+    data-nobg='true'
+    style='background: #333842;'
+  >
+  <div class='back clearfix'>
+    <a
+      $if 'logged_in' in sess and sess.user_id == user.id:
+        id='lolimage' href='#'
+      $else:
+        href='/$user.username'
+    >
+      $if user.pic:
+        <img class='left avatar' src='/static/pics/userthumb$(user.pic).png' alt=''/>
+      $else:
+        <img class='left avatar' src='/static/default-avatar.png' alt=''/>
+    </a>
+    <div class='left'>
+      <h1>$user.name</h1>
+      <p class='faded'>
+        <b><a href='/followed-by/$user.id'>Followers ($user.follower_count)</a></b>
+        <b><a href='/following/$user.id'>Following ($user.follow_count)</a></b>
+        $if user.website:
+          <b>Website: <a href='$user.website'>$user.website</a></b>
+        $if user.country:
+          <b>$user.country</a></b>
+        $if user.show_views:
+          $if user.views == 0:
+            <b>No views</b>
+          $elif user.views == 1:
+            <b>1 view</b>
+          $else:
+            <b>$user.views views</b>
+        $if user.facebook:
+          <b><a href='http://facebook.com/$user.facebook'>Facebook</a></b>
+        $if user.twitter:
+
+          <b><a href='http://twitter.com/$user.twitter'>Twitter</a></b>
+        $if user.linkedin:
+          <b><a href='http://linkedin.com/in/$user.linkedin'>LinkedIn</a></b>
+        $if user.gplus:
+          <b><a href='https://plus.google.com/$user.gplus'>Google+</a></b>
+      </p>
+      <p>$user.about</p>
+      <p class='pad-top'>
+        <iframe src="//www.facebook.com/plugins/like.php?href=http%3A%2F%2Fmypinnings.com%2F$user.username&amp;width&amp;layout=button_count&amp;action=like&amp;show_faces=false&amp;share=false&amp;height=21" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width: 100px; height:21px;" allowTransparency="true"></iframe>
+        <a href="https://twitter.com/share" class="twitter-share-button">Tweet</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+      </p>
+    </div>
+  </div>
+  <p class='right'><b>
+    $if 'logged_in' in sess and user.id != sess.user_id:
+      $if friend_status is not None:
+        $if friend_status:
+          $if friend_status.id1 + friend_status.id2 == friend_status.accepted:
+            <a class='button' href='/unfriend/$user.id'>Unfriend</a>
+          $elif friend_status.accepted == sess.user_id:
+            <a class='button' href='/cancelfr/$user.id'>Cancel friend request</a>
+          $else:
+            <a class='button' href='/acceptfr/$user.id'>Accept friend request</a>
+        $else:
+          <a class='button' href='/addfriend/$user.id'>Add friend</a>
+        <br/>
+        $if is_following:
+          <a class='button' href='/unfollow/$user.id'>Unfollow</a>
+        $else:
+          <a class='button' href='/follow/$user.id'>Follow</a>
+        <br/>
+        <a class='button' href='/newconvo/$user.id'>Message</a>
+  </b></p>
+</div>
+<form id='form' method='post' class='invisform' enctype='multipart/form-data'>
+  <input type='file' name='file' id='file'/>
+</form>
+<script src='/static/profile.js'></script>

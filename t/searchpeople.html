@@ -1,0 +1,17 @@
+$def with (people, query)
+<h1>Search results for people: "$query"</h1>
+<hr>
+<div class='clearfix category-disp'>
+  <div class='left horz-pins'>
+    $ people = list(people)
+    $if people:
+      $:tpl('usergrid', people, {'show_follow': True})
+    $else:
+      <p>Sorry, no users fit that query.</p>
+  </div>
+  <div class='right categories bold'>
+    <h1>Search for..</h1>
+    <a href='/search/items?q=$query'>Pins</a>
+    <a href='/search/people?q=$query'>People</a>
+  </div>
+</div>

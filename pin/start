@@ -1,0 +1,4 @@
+#!/bin/bash
+sass --watch static &
+coffee -o static -cw static &
+python ser.py

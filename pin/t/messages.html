@@ -1,0 +1,6 @@
+$def with (convos)
+<h1>Messages</h1>
+$if not convos:
+    <p>You don't have any conversations started yet! Go on a friend's page and click <b>Message</b>.</p>
+$for c in convos:
+    <div><a href='/convo/$c.id'>$c.name</a></div>

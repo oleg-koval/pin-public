@@ -1,0 +1,9 @@
+$def with (friends)
+<h1>Friends</h1>
+$if not friends:
+    <p>You have no friends.</p>
+$else:
+    $for friend in friends:
+        $ user_id = friend.id1 if friend.id2 == sess.user_id else friend.id2
+        $ name = friend.u1name if friend.id2 == sess.user_id else friend.u2name
+        <div><b><a href='/profile/$user_id'>$name</a></b></div>

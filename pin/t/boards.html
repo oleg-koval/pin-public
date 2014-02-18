@@ -1,0 +1,11 @@
+$def with (boards)
+<h1>Boards</h1>
+<p><a href='/newboard'><b>New board</b></a></p>
+$if boards:
+    <ul>
+        $for board in boards:
+            <li><a href='/board/$board.id'><b>$board.name</b></a> &mdash; $board.description</li>
+    </ul>
+$else:
+    <p>You don't have any boards.</p>
+

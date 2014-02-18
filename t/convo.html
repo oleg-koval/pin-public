@@ -1,0 +1,12 @@
+$def with (convo, messages)
+<h1>Conversation with <a href='/profile/$convo.user_id'>$convo.name</a></h1>
+$for m in messages:
+    <hr/>
+    <h2><a href='/profile/$m.sender'>$m.name</a></h2>
+    <p class='with-newlines'>$m.content</p>
+<br/>
+<form class='new-message' method='post' action='' autocomplete='off'>
+    <p class='textarea'><textarea name='content' placeholder='Start typing a message...'></textarea></p>
+    <br/>
+    <p><button>Send</button></p>
+</div>

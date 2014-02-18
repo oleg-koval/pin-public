@@ -1,0 +1,9 @@
+$def with (form, user)
+<h1>Edit Profile (<a href='/profile/$sess.user_id'>View Profile</a>)</h1>
+<form method='post' action='' autocomplete='off' enctype='multipart/form-data'>
+    $if user.pic:
+        <img src='/static/pics/$(user.id).png' style='width: 300px; height: 300px;'/>
+        <br/>
+        <br/>
+    $:form.render()
+</form>

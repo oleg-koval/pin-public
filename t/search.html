@@ -1,0 +1,14 @@
+$def with (pins, query)
+<h1>Search results for items: "$query"</h1>
+<hr>
+<div class='clearfix category-disp'>
+  <div class='left horz-pins'>
+    $:tpl('pins', pins, 'horzpin')
+  </div>
+  <div class='left categories bold'>
+    <h1>Search for..</h1>
+    <a href='/search/items?q=$query'>Pins</a>
+    <a href='/search/people?q=$query'>People</a>
+  </div>
+</div>
+<script type='text/javascript' src='/static/category.js'></script>

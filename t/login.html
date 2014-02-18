@@ -1,0 +1,7 @@
+$def with (form, message=None)
+<h1>Login</h1>
+<form method='post' action=''>
+  $if message is not None:
+    <div class='notice'>$:message</div>
+  $:form.render()
+</form>

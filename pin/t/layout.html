@@ -1,0 +1,36 @@
+$def with (content)
+<!doctype html>
+<html>
+    <head>
+        <title>MyPinnings</title>
+        <link rel='stylesheet' type='text/css' href='/static/main.css'/>
+        <link rel='stylesheet' type='text/css' href='/static/main.css'/>
+        <link href='//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' rel='stylesheet'>
+    </head>
+    <body>
+        <div class='header'>
+            <h1><a href='/'>MyPinnings</a></h1>
+            <div class='nav'>
+                <a href='/'><i class='fa fa-home'></i> Home</a>
+                &middot;
+                $if sess and 'user_id' in sess:
+                    <a href='/addpin'><i class='fa fa-thumb-tack'></i> Upload Pin</a>
+                    <a href='/addpinurl'><i class='fa fa-cloud'></i> Add Pin From Website</a>
+                    &middot;
+
+                $if sess and 'user_id' in sess:
+                    <a href='/boards'><i class='fa fa-list'></i> Boards</a>
+                    <a href='/editprofile'><i class='fa fa-user'></i> Profile</a>
+                    <a href='/follows'><i class='fa fa-mail-forward'></i> Follows</a>
+                    <a href='/friends'><i class='fa fa-users'></i> Friends</a>
+                    <a href='/messages'><i class='fa fa-comment'></i> Messages</a>
+                    <a href='/logout'><i class='fa fa-power-off'></i> Logout</a>
+                $else:
+                    <a href='/login'><i class='fa fa-key'></i> Login</a>
+                    <a href='/register'><i class='fa fa-leaf'></i> Signup</a>
+                <a href='/users'><i class='fa fa-users'></i> Users</a>
+            </div>
+        </div>
+        <div class='content'>$:content</div>
+    </body>
+</html>

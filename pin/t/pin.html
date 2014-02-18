@@ -1,0 +1,47 @@
+$def with (pin, comments, rating)
+<div class='pin-display'>
+    <div class='display'>
+        <h1>$pin.description</h1>
+        <p class='faded'>Posted by <a href='/profile/$pin.user_id'>$pin.user_name</a> in <a href='/board/$pin.board_id'>$pin.board_name</a></p>
+        $if pin.repin == 0:
+            <img src='/static/tmp/$(pin.id).png' alt=''/>
+        $else:
+            <img src='/static/tmp/$(pin.repin).png' alt=''/>
+        <div class='comments'>
+            $ comments = list(comments)
+            <div class='clearfix'>
+                $if len(comments) > 0:
+                    <h1 class='left'>$len(comments) comments</h1>
+                $else:
+                    <h1 class='left'>No comments</h1>
+                $if 'logged_in' in sess:
+                <b class='right'>
+                    <span id='ratings'></span>
+                    <span id='rating'>
+                        $if not rating:
+                            This product has not yet been rated.
+                        $else:
+                            $if rating % 1 < 0.01:
+                                $ rating = int(rating)
+                            $(rating)/5
+                    </span>
+                </b>
+            </div>
+            <hr/>
+            $for comment in comments:
+                <div class='comment'>
+                    <div><a href='/user/$comment.user_id'>$comment.user_name</a></div>
+                    <div class='pre'>$comment.comment</div>
+                </div>
+            $if 'logged_in' in sess:
+                <form method='post' action='' autocomplete='off'>
+                    <p><textarea name='comment' placeholder='Write a comment...'></textarea></p>
+                    <p><button>Comment</button></p>
+                </form>
+        </div>
+    </div>
+</div>
+$if 'logged_in' in sess:
+    <script type='text/javascript'>window.pinId = $pin.id;</script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script type='text/javascript' src='/static/pin.js'></script>

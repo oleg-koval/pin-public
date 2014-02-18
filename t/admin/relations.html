@@ -1,0 +1,19 @@
+$def with (follows, friends)
+<h1>Relations Between Users</h1>
+<h2>Follows</h2>
+$for f in follows:
+    <div>
+        <a href='/$f.follower_username'><b>$f.follower_name</b></a>
+        <span class='faded'>following</span>
+        <a href='/$f.following_username'><b>$f.following_name</b></a>
+    </div>
+
+<hr/>
+
+<h2>Friendships</h2>
+$for f in friends:
+    <div>
+        <a href='/$f.u1_username'><b>$f.u1_name</b></a>
+        <span class='faded'>and</span>
+        <a href='/$f.u2_username'><b>$f.u2_name</b></a>
+    </div>

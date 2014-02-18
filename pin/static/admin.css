@@ -1,0 +1,17 @@
+body {
+  margin: 0;
+  background-color: white; }
+
+a {
+  color: #224466;
+  text-decoration: none; }
+  a:hover {
+    text-decoration: underline; }
+
+.wrap {
+  width: 600px;
+  margin: 20px auto; }
+
+form {
+  box-shadow: none;
+  padding: 0; }

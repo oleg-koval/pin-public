@@ -1,0 +1,26 @@
+$def with (pins)
+<div class='js-masonry pins'
+     data-masonry-options='{ "itemSelector": ".pin", "gutter": 20} '>
+    $for pin in pins:
+        <div class='pin'>
+            <div class='buttons'>
+                $if pin.repin == 0:
+                    <a href='/repin/$pin.id' class='button small-pad'><i class='fa fa-thumb-tack'></i> Repin</a>
+                $else:
+                    <a href='/repin/$pin.repin' class='button small-pad'><i class='fa fa-thumb-tack'></i> Repin</a>
+                <a href='/send/$pin.id' class='button small-pad'><i class='fa fa-share-square'></i> Share</a>
+            </div>
+            <a href='/pin/$pin.id'>
+                <img src='/static/tmp/$(pin.id if pin.repin == 0 else pin.repin).png' alt=''/>
+            </a>
+            <div class='info'>
+                $if pin.description:
+                    <p>$pin.description</p>
+                $if pin.repin_count > 0:
+                    <p class='faded'><i class='fa fa-thumb-tack'></i> <b>$pin.repin_count</b></p>
+                $if pin.description or pin.repin_count > 0:
+                    <hr/>
+                <p class='faded small'><a href='/profile/$pin.user_id'><b>$pin.user_name</b></a><br/>In <a href='/board/$pin.board_id'><b>$pin.board_name</b></a></p>
+            </div>
+        </div>
+</div>

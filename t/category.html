@@ -1,0 +1,18 @@
+$def with (pins, category, categories)
+$if category.id == 0:
+  <h1>Browsing <a href=''>Random Pins</a></h1>
+$else:
+  <h1>Browsing Category <a href=''>$category.name</a></h1>
+<hr>
+<div class='clearfix category-disp'>
+  <div class='left horz-pins'>
+    $:tpl('pins', pins, 'horzpin')
+  </div>
+  <div class='left categories'>
+    <p><a class='button' href='/followcategory/$category.id'>follow this category</a></p>
+    <hr>
+    <h1>Other Categories</h1>
+    $for cat in categories:
+      <a href='/category/$cat.url_name/$cat.id'>$cat.name</a>
+  </div>
+</div>

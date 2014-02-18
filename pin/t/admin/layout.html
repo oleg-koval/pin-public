@@ -1,0 +1,16 @@
+$def with (content)
+<!doctype html>
+<html>
+    <head>
+        <title>MyPinnings Admin</title>
+        <link rel='stylesheet' type='text/css' href='/static/main.css'/>
+        <link rel='stylesheet' type='text/css' href='/static/admin.css'/>
+    </head>
+    <body>
+        <div class='wrap'>
+            <h1><a href='/admin/'>MyPinnings Admin</a></h1>
+            <hr/>
+            $:content
+        </div>
+    </body>
+</html>

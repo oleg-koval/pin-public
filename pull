@@ -1,0 +1,2 @@
+#!/bin/bash
+rsync -arv --progress --delete root@mypinnings.com:/var/www/pin/ ~/programs/pin/

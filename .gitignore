@@ -1,0 +1,8 @@
+tmp/
+static/tmp/
+*.pyc
+sessions/
+static/pics
+*.out
+*.settings.py
+node_modules/

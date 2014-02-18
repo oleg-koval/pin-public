@@ -1,0 +1,4 @@
+$def with (user, results, hashed)
+$:tpl('profileheading', user, hashed)
+<h1 class='pad-top'><a href='/$user.username'>$user.name</a> is followed by&hellip;</h1>
+$:tpl('usergrid', results, {'show_follow': True})

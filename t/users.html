@@ -1,0 +1,11 @@
+$def with (user)
+<h1>All Users</h1>
+<p>Users that don't have a profile picture haven't uploaded one. I'll add in a default one as soon as I find one we can use without copyright issues.</p>
+$for user in user:
+    <hr/>
+    <a href='/$user.username'>
+        $if user.pic:
+            <img src='/static/pics/$(user.pic).png' style='width: 50px; height: 50px'/>
+            <br/>
+        <b>$user.name</b>
+    </a>

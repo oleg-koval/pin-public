@@ -1,0 +1,58 @@
+$def with (pin, categories)
+<!doctype html>
+<html>
+    <head>
+        <title>Sort</title>
+        <style type='text/css'>
+            body {
+                font: normal small sans-serif;
+                margin: 0;
+            }
+            .left {
+                float: left;
+                width: 700px;
+                margin-right: 20px;
+                line-height: 1.8em;
+                border-right: solid 1px #888;
+                padding: 20px;
+            }
+            .right {
+                float: left;
+                width: 250px;
+                padding: 20px 20px 20px 0;
+            }
+            img {
+                max-width: 100%;
+            } 
+            a {
+                color: #236;
+                text-decoration: none;
+                font-weight: bold;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+            .pre-wrap {
+                white-space: pre-wrap;
+            }
+        </style>
+    </head>
+    <body>
+        <div class='left'>
+            <img src='$pin.image' alt=''/>
+            <p><a href='$pin.link'><b>$pin.title</b></a></p>
+            <p class='pre-wrap'>$pin.description</p>
+        </div>
+        <div class='right'>
+            <a href='/sort/$(pin.id - 1)/back'>Back</a> &middot;
+            <a href='/sortdelete/$pin.id'>Delete</a>
+            <hr/>
+            <h3>Please click the right category:</h3>
+            $for c in categories:
+                $if pin.category == c.id:
+                    <font color="red">[x]</font> <a href='/sort/$pin.id/$c.id'>$c.name</a><br/>
+                $else:
+                    <a href='/sort/$pin.id/$c.id'>$c.name</a><br/>
+        </div>
+    </body>
+</html>

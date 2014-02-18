@@ -1,0 +1,68 @@
+$def with (pin, comments, rating)
+<div class='pin-display'>
+  <div class='display'>
+    <h1>$pin.description</h1>
+    <p class='faded'>Posted by <a href='/profile/$pin.user_id'>$pin.user_name</a> in <a href='/$pin.user_username/buy-list/$pin.category'>$pin.cat_name</a></p>
+    <p>
+      $if 'logged_in' in sess and sess.user_id == pin.user_id:
+        <a class='button' href='/setprivacy/$pin.id'>
+          <i class='fa fa-lock'></i>
+          $(['Default', 'Private', 'Public'][pin.privacy])
+        </a>
+      <a class='button' href='/add-to-your-own-getlist/$pin.id'><i class='fa fa-thumb-tack'></i> Add to Your Getlist</a>
+      $if pin.link:
+        <a class='button' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i> Visit Product</a>
+    </p>
+    $if pin.repin == 0:
+      <img src='/static/tmp/$(pin.id).png' alt=''/>
+    $else:
+      <img src='/static/tmp/$(pin.repin).png' alt=''/>
+    <div class='comments'>
+      $ comments = list(comments)
+      <div class='clearfix'>
+        <div class='links left'>
+          $if 'logged_in' in sess:
+            $if pin.liked:
+              <a href='/unlike/$pin.id'>Unlike</a> &middot;
+            $else:
+              <a href='/like/$pin.id'>Like</a> &middot;
+            <label for='input-comment'>Comment</label> &middot;
+          <span class='link' id='share'>Share</span>
+          $if pin.tags:
+            &middot; <span class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags.split(' ')]))</span>
+          <span class='invis' id='sharelinks'>
+            $ url = 'http://mypinnings.com/item/%d' % pin.id
+
+            <i class='fa fa-arrow-circle-right'></i>
+            <a href='http://www.facebook.com/sharer/sharer.php?s=100&p[url]=$url&p[title]=$pin.description'>Facebook</a> &middot;
+            <a href='http://twitter.com/home?status=$(pin.description)%20on%20MyPinnings:%20$url'>Twitter</a> &middot;
+            <a href='http://www.linkedin.com/shareArticle?mini=true&url=$url&title=$pin.description'>LinkedIn</a>
+          </span>
+        </div>
+        <div class='right'>
+          $if pin.likes > 0:
+            <b>$pin.likes like$('s' if pin.likes != 1 else '')</b>
+            &nbsp;
+          <b><i class='fa fa-thumb-tack'></i> $pin.repin_count</b>
+          &nbsp;
+          <b><i class='fa fa-eye'></i> $pin.views</b>
+        </div>
+      </div>
+      <hr/>
+      $for comment in comments:
+        <div class='comment'>
+          <div><a href='/profile/$comment.user_id'>$comment.user_name</a></div>
+          <div class='pre'>$comment.comment</div>
+        </div>
+      $if 'logged_in' in sess:
+        <form method='post' action='' autocomplete='off'>
+          <p><textarea id='input-comment' name='comment' placeholder='Write a comment...'></textarea></p>
+          <p><button>Comment</button></p>
+        </form>
+    </div>
+  </div>
+</div>
+$if 'logged_in' in sess:
+  <script type='text/javascript'>window.pinId = $pin.id;</script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script type='text/javascript' src='/static/pin.js'></script>

@@ -1,0 +1,15 @@
+$def with (follows, followers)
+<h1>Following</h1>
+$if not follows:
+    <p>You aren't following anyone.</p>
+$else:
+    $for user in follows:
+        <div><b><a href='/profile/$user.id'>$user.name</a></b></div>
+<hr/>
+<h1>Followers</h1>
+$if not followers:
+    <p>No one is following you.</p>
+$else:
+    $for user in followers:
+        <div><b><a href='/profile/$user.id'>$user.name</a></b></div>
+    <hr/>

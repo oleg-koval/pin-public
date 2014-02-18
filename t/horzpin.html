@@ -1,0 +1,26 @@
+$def with (pin)
+$if pin.id and pin.category:
+  <div class='pin horz-pin'>
+    <div class='buttons'>
+      $if pin.repin == 0:
+        <a href='/add-to-your-own-getlist/$pin.id' target='_blank' class='button small-pad'>Add to Getlist</a>
+      $else:
+        <a target='_blank' href='/add-to-your-own-getlist/$pin.repin' class='button small-pad'>Add to Getlist</a>
+      <a href='/share/$pin.id' class='button small-pad'><i class='fa fa-share-square'></i></a>
+      $if pin.link:
+        <a class='button small-pad' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i></a>
+    </div>
+    <a href='/pin/$pin.id'>
+      <img src='/static/tmp/pinthumb$(pin.id if pin.repin == 0 else pin.repin).png' alt=''/>
+    </a>
+    <div class='info'>
+      $if pin.description:
+        <h1>$pin.description</h1>
+      <p class='faded'>Posted by <a href='/$pin.user_username'><b>$pin.user_name</b></a> &middot; <span class='faded'>$tpllib.format_timestamp(pin.timestamp)</span></p> 
+      $if pin.link:
+        <p class='faded'>Source: <a href='$pin.link'>$tpllib.condense_link(pin.link)</a></p>
+      $if pin.tags:
+        <hr>
+        <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags.split(' ')]))</p>
+    </div>
+  </div>

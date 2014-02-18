@@ -1,0 +1,48 @@
+$def with (pin)
+$if pin.id and pin.category:
+  <div class='pin'>
+    <div class='buttons'>
+      $if pin.repin == 0:
+        <a href='/add-to-your-own-getlist/$pin.id' target='_blank' class='button small-pad'>Add to Getlist</a>
+      $else:
+        <a target='_blank' href='/add-to-your-own-getlist/$pin.repin' class='button small-pad'>Add to Getlist</a>
+      <a href='/share/$pin.id' class='button small-pad'><i class='fa fa-share-square'></i></a>
+      $if pin.link:
+        <a class='button small-pad' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i></a>
+    </div>
+    <a href='/pin/$pin.id'>
+      <img src='/static/tmp/pinthumb$(pin.id if pin.repin == 0 else pin.repin).png' alt=''/>
+    </a>
+    <div class='info'>
+      $if pin.description:
+        <p>$pin.description</p>
+      <p class='faded'>
+        <i class='fa fa-thumb-tack'></i> <b>$pin.repin_count</b>
+        &nbsp;
+        <i class='fa fa-eye'></i> <b>$pin.views</b>
+        $if pin.like_count > 0:
+          &nbsp;
+          <i class='fa fa-thumbs-up'></i> <b>$pin.like_count</b>
+      </p>
+      <hr>
+      <div class='user clearfix'>
+        $if 'user_id' in sess and sess.user_id == pin.user_id:
+          $ link = '/%s/photos' % pin.user_username
+        $else:
+          $ link = '/%s' % pin.user_username
+
+        <a href='$link'>
+          $if pin.user_pic:
+            <img class='left' src='/static/pics/userthumb$(pin.user_pic).png'/>
+          $else:
+            <img class='left' src='/static/default-avatar.png'/>
+        </a>
+        <div class='right'>
+          <p class='faded small'><a href='/profile/$pin.user_id'><b>$pin.user_name</b></a><br/>In <a href='/$pin.user_username/buy-list/$pin.category'><b>$pin.cat_name</b></a></p>
+        </div>
+      </div>
+      $if pin.tags:
+        <hr>
+        <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags.split(' ')]))</p>
+    </div>
+  </div>

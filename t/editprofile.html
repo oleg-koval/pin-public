@@ -1,0 +1,190 @@
+$def with (user, countries, name)
+
+<div class='settings clearfix'>
+  <div class='nav left'>
+    <a href='/settings/email'>Email</a>
+    <a href='/settings/profile'>Profile</a>
+    <a href='/$user.username/photos'>Photos</a>
+    <a href='/settings/password'>Change Password</a>
+    <a href='/settings/social-media'>Social Media</a>
+    <a href='/settings/privacy'>Privacy</a>
+    <a href='/settings/email-settings'>Email Settings</a>
+  </div>
+  <div class='right' id='box'>
+  </div>
+</div>
+
+<!--<div class='invis' id='box-photos'>
+  <h1>Photos</h1>
+  <hr/>
+  <h2>Profile Picture</h2>
+  $if user.pic:
+    <img src='/static/pics/$(user.id).png' style='width: 200px; height: 200px; vertical-align: top; margin-bottom: 30px'/>
+  $else:
+    <p>You haven't chosen a profile picture yet! Upload some photos, then pick one.</p>
+</div>-->
+
+<div class='invis' id='box-email'>
+  <h1>Email</h1>
+  <form method='post' class='inner-form' action='/changeemail' autocomplete='off'>
+    <table>
+      <tr>
+        <th>Email</th>
+        <td><input type='text' name='email' value='$user.email' /></td>
+      </tr>
+      <tr>
+        <th>&nbsp;</th>
+        <td><button>Save</button></td>
+      </tr>
+    </table>
+  </form>
+</div>
+
+
+<div class='invis' id='box-profile'>
+  <h1>Edit Profile (<a href='/profile/$sess.user_id'>View Profile</a>)</h1>
+  <form method='post' class='inner-form' action='' autocomplete='off'>
+    <table>
+      <tr>
+        <th>Name</th>
+        <td><input type='text' name='name' value='$user.name' /></td>
+      </tr>
+      <tr>
+        <th>Username</th>
+        <td>
+          <input type='text' name='username' value='$user.username'/>
+        </td>
+      </tr>
+      <tr>
+        <th>About Me</th>
+        <td>
+          <textarea name='about'>$user.about</textarea>
+        </td>
+      </tr>
+      <tr>
+        <th>Country</th>
+        <td>
+          <select name='country'>
+            $for cname in countries:
+              $if cname == user.country:
+                <option selected='selected' value='$cname'>$cname</option>
+              $else:
+                <option value='$cname'>$cname</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <th>Hometown</th>
+        <td>
+          <input type='text' name='hometown' value='$user.hometown'/>
+        </td>
+      </tr>
+      <tr>
+        <th>City</th>
+        <td>
+          <input type='text' name='city' value='$user.city'/>
+        </td>
+      </tr>
+      <tr>
+        <th>ZIP Code</th>
+        <td>
+          <input type='text' name='zip' value='$user.zip'/>
+        </td>
+      </tr>
+      <tr>
+        <th>Website</th>
+        <td>
+          <input type='text' name='website' value='$user.website'/>
+        </td>
+      </tr>
+      <tr>
+        <th>&nbsp;</th>
+        <td><button>Save</button></td>
+      </tr>
+    </table>
+  </form>
+</div>
+
+<div class='invis' id='box-password'>
+  <h1>Change Password</h1>
+  <form method='post' class='inner-form' action='/changepw' autocomplete='off' enctype='multipart/form-data'>
+    <table>
+      <tr>
+        <th>Old Password</th>
+        <td><input type='password' name='old'/></td>
+      </tr>
+      <tr>
+        <th>New Password</th>
+        <td><input type='password' name='new1'/></td>
+      </tr>
+      <tr>
+        <th>Repeat New Password</th>
+        <td><input type='password' name='new2'/></td>
+      </tr>
+      <tr>
+        <th>&nbsp;</th>
+        <td><button>Change Password</button></td>
+      </tr>
+    </table>
+  </form>
+</div>
+
+<div class='invis' id='box-social-media'>
+  <h1>Social Media</h1>
+  <p>Display your social media links on your MyPinnings profile.</p>
+  <form method='post' class='inner-form' action='/changesm' autocomplete='off' enctype='multipart/form-data'>
+    <table>
+      <tr>
+        <th>Facebook</th>
+        <td>facebook.com/ <input type='text' name='facebook' value='$user.facebook'/></td>
+      </tr>
+      <tr>
+        <th>Twitter</th>
+        <td>twitter.com/ <input type='text' name='twitter' value='$user.facebook'/></td>
+      </tr>
+      <tr>
+        <th>LinkedIn</th>
+        <td>linkedin.com/ <input type='text' name='linkedin' value='$user.linkedin'/></td>
+      </tr>
+      <tr>
+        <th>Google+</th>
+        <td>plus.google.com/ <input type='text' name='gplus' value='$user.gplus'/></td>
+      </tr>
+      <tr>
+        <th>&nbsp;</th>
+        <td><button>Save</button></td>
+      </tr>
+    </table>
+  </form>
+</div>
+
+
+<div class='invis' id='box-privacy'>
+  <h1>Privacy</h1>
+  <form method='post' class='inner-form' action='/changeprivacy' autocomplete='off'>
+    <table>
+      <tr>
+        <th>Make Getlist Private</th>
+        <td><input type='checkbox' name='private' $('checked="checked"' if user.private else '')/></td>
+      </tr>
+      <tr>
+        <th>&nbsp;</th>
+        <td><button>Save</button></td>
+      </tr>
+    </table>
+  </form>
+</div>
+
+
+<div class='invis' id='box-email-settings'>
+  <h1>Email Settings</h1>
+</div>
+
+
+
+<script type='text/javascript'>
+  $if name is not None:
+    document.getElementById('box').innerHTML = document.getElementById('box-$(name)').innerHTML;
+  $else:
+    document.getElementById('box').innerHTML = document.getElementById('box-email').innerHTML;
+</script>

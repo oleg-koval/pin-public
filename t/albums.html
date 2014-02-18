@@ -1,0 +1,9 @@
+$def with (albums)
+<h1>Photo Albums</h1>
+<p><a class='button' href='/newalbum'>New Album</a></p>
+<br/>
+$if albums:
+  $for album in albums:
+    <div><a href='/album/$album.id'><b>$album.name</b></a></div>
+$else:
+  <p>You don't have any photo albums yet!</p>

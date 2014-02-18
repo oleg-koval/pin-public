@@ -1,0 +1,81 @@
+$def with (content, categories, user=None, acti_needed=None, notif_count=None)
+<!doctype html>
+<html>
+  <head>
+    <title>MyPinnings</title>
+    <link rel='stylesheet' type='text/css' href='/static/main.css'/>
+    <link href='//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' rel='stylesheet'>
+    <script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
+  </head>
+  <body>
+    <div class='header'>
+      <div class='nav clearfix'>
+        <a class='logo' href='/'>MyPinnings</a>
+        $if sess and 'user_id' in sess:
+          <div class='left'>
+            <div class='nav-item item plus' id='switch2'>
+              <i class='fa fa-plus'></i>
+              <div class='menu left-side add-to-getlist invis' id='menu2'>
+                <a href='/addpin'>Upload to Getlist</a>
+                <a href='/add-from-website'>Add to Getlist from Website</a>
+              </div>
+            </div>
+            &nbsp;
+            <div class='nav-item item' id='switch1'>
+              <i class='fa fa-bars'></i> Discover
+              <div class='menu invis' id='menu1'>
+                <table width='100%' cellpadding='5'>
+                  $ i = 0
+                  <tr>
+                  $for cat in categories:
+                    $if i % 3 == 0:
+                      </tr><tr>
+                    <td style='width: 250px'><b><a href='/category/$cat['url_name']/$cat['id']'>$cat['name']</a></b></td>
+                    $ i += 1
+                  </tr>
+                </table>
+              </div>
+            </div>
+            <form method='get' action='/search/items' class='nav-item search'>
+              <input type='text' name='q' placeholder='Search Projects, Posts, and More&hellip;'/>
+            </form>
+          </div>
+          <div class='right'>
+            <div class='nav-item item profile-picture' id='switch3'>
+              <a href='/$user.username'>
+                $if user.pic:
+                 <img class='avatar' src='/static/pics/userthumb$(user.pic).png'/>
+                $else:
+                  <img class='avatar' src='/static/default-avatar.png'/>
+              </a>
+              <div class='menu right-side invis' id='menu3'>
+                <a href='/messages'>Messages</a>
+                $if notif_count == 0:
+                  <a href='/notifications'>Notifications</a>
+                $else:
+                  <a href='/notifications'>Notifications <span class='notif-count'>$notif_count</span></a>
+                <hr>
+                <a href='/profile/$sess.user_id'>Profile</a>
+                <a href='/settings'>Settings</a>
+                <a href='/connect'>Friends &amp; Followers</a>
+                <a href='/logout'>Log out</a>
+              </div>
+            </div>
+          </div>
+          <script type='text/javascript' src='/static/main.js'></script>
+        $else:
+          <div class='white-links pad-top'>
+            <a href='/login'>Login</a>
+            <a href='/register'>Signup</a>
+            <a href='/browse'>Browse</a>
+          </div>
+      </div>
+    </div>
+    <div class='content'>
+        $if acti_needed is not None:
+            $if acti_needed:
+                <div class='notice'>Notice: You haven't activated your account yet! Please check $user.email. <a href='/resend-activation'>Resend</a></div>
+        $:content
+    </div>
+  </body>
+</html>

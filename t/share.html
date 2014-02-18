@@ -1,0 +1,9 @@
+$def with (pin)
+
+<h1>Share item <a href='/pin/$pin.id'>$pin.description</a></h1>
+
+$ url = 'http://mypinnings.com/pin/%d' % pin.id
+
+<a class='button' href='http://www.facebook.com/sharer/sharer.php?s=100&p[url]=$url&p[title]=$pin.description'>Facebook</a>
+<a class='button' href='http://twitter.com/home?status=$(pin.description)%20on%20MyPinnings:%20$url'>Twitter</a>
+<a class='button' href='http://www.linkedin.com/shareArticle?mini=true&url=$url&title=$pin.description'>LinkedIn</a>

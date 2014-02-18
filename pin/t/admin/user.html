@@ -1,0 +1,13 @@
+$def with (user)
+<h1>Viewing user $user.name</h1>
+<p>
+    <a href='/admin/edituser/$user.id'><b>Edit user</b></a> &middot;
+    <a href='/admin/closeuser/$user.id'><b>Close user</b></a>
+</p>
+<hr/>
+<p>
+    $user.follower_count followers<br/>
+    following $user.follow_count other people<br/>
+    repinned $user.repin_count times<br/>
+    $user.friend_count friends<br/>
+</p>

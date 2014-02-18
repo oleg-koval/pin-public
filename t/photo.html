@@ -1,0 +1,11 @@
+$def with (photo, is_user_pic)
+<h1>Viewing Photo From $photo.album_name</h1>
+<br/>
+<a class='button' href='/album/$photo.album_id'>Back to Album</a>
+$if not is_user_pic:
+    <a class='button' href='/setprofilepic/$photo.id'>Set as Profile Picture</a>
+<br/>
+<br/>
+<img src='/static/pics/$(photo.id).png' alt='' style='max-width: 100%'/>
+
+
