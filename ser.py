@@ -79,8 +79,10 @@ urls = (
     '/photos', 'PagePhotos',
     '/newalbum', 'PageNewAlbum',
     '/album/(\d*)', 'PageAlbum',
+    '/album/(\d*)/remove', 'PageAlbum',
     '/newpic/(\d*)', 'PageNewPicture',
     '/photo/(\d*)', 'PagePhoto',
+    '/photo/(\d*)/remove', 'PageRemovePhoto',
     '/setprofilepic/(\d*)', 'PageSetProfilePic',
     '/setprivacy/(\d*)', 'PageSetPrivacy',
 
@@ -280,7 +282,7 @@ def logout_user(sess):
         web.setcookie(x, '', expires=-1)
 
 def tpl(*params):
-    global template_obj
+    #global template_obj
     return template_obj(*params)
 
 
@@ -302,7 +304,8 @@ def ltpl(*params):
         user = dbget('users', sess.user_id)
         acti_needed = user.activation
         notif_count = db.select('notifs', what='count(*)', where='user_id = $id', vars={'id': sess.user_id})
-        return tpl('layout', tpl(*params), all_categories, user, acti_needed, notif_count[0].count)
+        all_albums = list(db.select('albums',where="user_id=%s"%(sess.user_id), order='id'))
+        return tpl('layout', tpl(*params), all_categories, all_albums,user, acti_needed, notif_count[0].count)
     return tpl('layout', tpl(*params), all_categories)
 
 
@@ -1502,6 +1505,28 @@ class PagePhoto:
         if photo.user_id != sess.user_id:
             return 'no such photo'
 
+        user = dbget('users', sess.user_id)
+        return ltpl('photo', photo, user.pic == pid)
+
+
+class PageRemovePhoto:
+    def GET(self, pid):
+        force_login(sess)
+        pid = int(pid)
+
+        photo = db.query('''
+            select photos.*, albums.name as album_name,albums.id as album_id, albums.user_id from photos
+                join albums on albums.id = photos.album_id
+            where photos.id = $id''', vars={'id': pid})
+        if not photo:
+            return 'no such photo'
+
+        photo = photo[0]
+        if photo.user_id != sess.user_id:
+            return 'no such photo'
+        else:
+            if db.delete('photos', where="id = %s" % (pid)):
+                web.redirect('/album/%s' % (photo.album_id))
         user = dbget('users', sess.user_id)
         return ltpl('photo', photo, user.pic == pid)
 

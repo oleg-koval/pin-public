@@ -26,3 +26,18 @@
   });
 
 }).call(this);
+
+
+$(document).ready(function(){
+  $('#remove_photo').click(function(e){
+    //$(this).preventDefault();
+
+    result = window.confirm("Are you sure you want to delete this Photo ?");
+    if(!result){
+      e.preventDefault()
+      e.event.stopPropagation();
+      return false;
+    }
+    e.event.stopPropagation();
+  })
+})

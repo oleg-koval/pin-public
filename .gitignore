@@ -1,8 +1,9 @@
+.sass-cache/
 tmp/
 static/tmp/
 *.pyc
 sessions/
 static/pics
 *.out
-*.settings.py
+local_settings.py
 node_modules/

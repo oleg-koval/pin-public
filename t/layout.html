@@ -1,4 +1,4 @@
-$def with (content, categories, user=None, acti_needed=None, notif_count=None)
+$def with (content, categories,all_albums=None, user=None, acti_needed=None, notif_count=None)
 <!doctype html>
 <html>
   <head>
@@ -6,6 +6,7 @@ $def with (content, categories, user=None, acti_needed=None, notif_count=None)
     <link rel='stylesheet' type='text/css' href='/static/main.css'/>
     <link href='//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' rel='stylesheet'>
     <script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
+    <script type="text/javascript" src="/static/main.js"></script>
   </head>
   <body>
     <div class='header'>
@@ -16,6 +17,7 @@ $def with (content, categories, user=None, acti_needed=None, notif_count=None)
             <div class='nav-item item plus' id='switch2'>
               <i class='fa fa-plus'></i>
               <div class='menu left-side add-to-getlist invis' id='menu2'>
+                <a href='/newalbum'>Add Album</a>
                 <a href='/addpin'>Upload to Getlist</a>
                 <a href='/add-from-website'>Add to Getlist from Website</a>
               </div>
@@ -31,6 +33,22 @@ $def with (content, categories, user=None, acti_needed=None, notif_count=None)
                     $if i % 3 == 0:
                       </tr><tr>
                     <td style='width: 250px'><b><a href='/category/$cat['url_name']/$cat['id']'>$cat['name']</a></b></td>
+                    $ i += 1
+                  </tr>
+                </table>
+              </div>
+            </div>
+            $if all_albums:
+            <div class='nav-item item' id='switch3'>
+              <i class='fa fa-picture-o'></i> Albums
+              <div class='menu invis' id='menu3'>
+                <table width='100%' cellpadding='5'>
+                  $ i = 0
+                  <tr>
+                  $for cat in all_albums:
+                    $if i % 3 == 0:
+                      </tr><tr>
+                    <td style='width: 250px'><b><a href='/album/$cat['id']'>$cat['name']</a></b></td>
                     $ i += 1
                   </tr>
                 </table>
