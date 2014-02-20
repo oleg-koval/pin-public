@@ -38,22 +38,24 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
                 </table>
               </div>
             </div>
-            $if all_albums:
-            <div class='nav-item item' id='switch3'>
-              <i class='fa fa-picture-o'></i> Albums
-              <div class='menu invis' id='menu3'>
-                <table width='100%' cellpadding='5'>
-                  $ i = 0
-                  <tr>
-                  $for cat in all_albums:
-                    $if i % 3 == 0:
-                      </tr><tr>
-                    <td style='width: 250px'><b><a href='/album/$cat['id']'>$cat['name']</a></b></td>
-                    $ i += 1
-                  </tr>
-                </table>
-              </div>
-            </div>
+                    $if all_albums:
+                    <div class='nav-item item' id='switch3'>
+                      <i class='fa fa-picture-o'></i> Albums
+                      <div class='menu invis' id='menu3'>
+                        <table width='100%' cellpadding='5'>
+                          $ i = 0
+                          <tr>
+                          $for cat in all_albums:
+                            $if i % 3 == 0:
+                              </tr><tr>
+                            <td style='width: 250px'><b><a href='/album/$cat['id']'>$cat['name']</a></b></td>
+                            $ i += 1
+                          </tr>
+                        </table>
+                      </div>
+                    </div>
+            
+            &nbsp;
             <form method='get' action='/search/items' class='nav-item search'>
               <input type='text' name='q' placeholder='Search Projects, Posts, and More&hellip;'/>
             </form>
