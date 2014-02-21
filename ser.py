@@ -1065,9 +1065,10 @@ class PageProfile2:
                 db.select('follows',
                           where='follow = $follow and follower = $follower',
                           vars={'follow': int(user.id), 'follower': sess.user_id}))
+            photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id},  order="id DESC")
 
 
-            return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following)
+            return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
 
@@ -1785,13 +1786,14 @@ class PageChangeProfile:
     def POST(self):
         force_login(sess)
 
-        album = db.select('albums', where='user_id = $uid and name = $name', vars={'uid': sess.user_id, 'name': 'Profile Pictures'})
-        if album:
-            aid = album[0].id
-        else:
-            aid = db.insert('albums', name='Profile Pictures', user_id=sess.user_id)
+        '''Retire this piece of code'''
+        #album = db.select('albums', where='user_id = $uid and name = $name', vars={'uid': sess.user_id, 'name': 'Profile Pictures'})
+        #if album:
+        #    aid = album[0].id
+        #else:
+        #    aid = db.insert('albums', name='Profile Pictures', user_id=sess.user_id)
 
-        pid = db.insert('photos', album_id=aid)
+        pid = db.insert('photos', album_id=sess.user_id)
         self.upload_image(pid)
         db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=pid)
         raise web.seeother('/profile/%d' % sess.user_id)

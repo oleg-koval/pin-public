@@ -6,71 +6,10 @@
     return $('#form').submit();
   });
 
-  upload = true;
 
-  $('.user-heading').click(function() {
-    if ($(this).attr('id') === 'lolbg') {
-      if (upload) {
-        $('#form').attr('action', '/changebg');
-        return $('#file').click();
-      } else {
-        return upload = true;
-      }
-    }
-  });
-
-  $('.user-heading .back').click(function(e) {
-    return e.stopPropagation();
-  });
 
   $('#lolimage').click(function() {
     $('#form').attr('action', '/changeprofile');
     return $('#file').click();
   });
-
-  dragging = false;
-
-  x = 0;
-
-  y = 0;
-
-  otherX = 0;
-
-  otherY = 0;
-
-  $('#lolbg').mousedown(function(e) {
-    var _ref;
-    if ($(this).attr('data-nobg') !== 'true') {
-      x = e.pageX;
-      y = e.pageY;
-      _ref = $(this).css('background-position').split(' '), otherX = _ref[0], otherY = _ref[1];
-      return dragging = true;
-    }
-  });
-
-  $('body').mouseup(function() {
-    var tempX, tempY, _ref;
-    if (dragging) {
-      dragging = false;
-      _ref = $('#lolbg').css('background-position').split(' '), otherX = _ref[0], otherY = _ref[1];
-      tempX = parseInt(otherX.slice(0, +(otherX.length - 2) + 1 || 9e9));
-      tempY = parseInt(otherY.slice(0, +(otherY.length - 2) + 1 || 9e9));
-      return $.post('/changebgpos', {
-        x: tempX,
-        y: tempY
-      });
-    }
-  });
-
-  $('#lolbg').mousemove(function(e) {
-    var tempY;
-    if (dragging) {
-      upload = false;
-      tempY = parseInt(otherY.slice(0, +(otherY.length - 2) + 1 || 9e9));
-      if (tempY + (e.pageY - y) < 0) {
-        return $(this).css('background-position', otherX + ' ' + (tempY + (e.pageY - y)) + 'px');
-      }
-    }
-  });
-
 }).call(this);

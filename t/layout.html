@@ -17,7 +17,7 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
             <div class='nav-item item plus' id='switch2'>
               <i class='fa fa-plus'></i>
               <div class='menu left-side add-to-getlist invis' id='menu2'>
-                <a href='/newalbum'>Add Album</a>
+          
                 <a href='/addpin'>Upload to Getlist</a>
                 <a href='/add-from-website'>Add to Getlist from Website</a>
               </div>
@@ -38,6 +38,7 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
                 </table>
               </div>
             </div>
+                    <!--
                     $if all_albums:
                     <div class='nav-item item' id='switch3'>
                       <i class='fa fa-picture-o'></i> Albums
@@ -54,7 +55,7 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
                         </table>
                       </div>
                     </div>
-            
+                  -->
             &nbsp;
             <form method='get' action='/search/items' class='nav-item search'>
               <input type='text' name='q' placeholder='Search Projects, Posts, and More&hellip;'/>
@@ -69,6 +70,11 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
                   <img class='avatar' src='/static/default-avatar.png'/>
               </a>
               <div class='menu right-side invis' id='menu3'>
+                
+
+                <a href='#' id='lolimage'>Upload Profile Photo</a>
+                
+
                 <a href='/messages'>Messages</a>
                 $if notif_count == 0:
                   <a href='/notifications'>Notifications</a>
@@ -97,5 +103,9 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
                 <div class='notice'>Notice: You haven't activated your account yet! Please check $user.email. <a href='/resend-activation'>Resend</a></div>
         $:content
     </div>
+    <form id='form' method='post' class='invisform' enctype='multipart/form-data'>
+  <input type='file' name='file' id='file'/>
+</form>
+<script src='/static/profile.js'></script>
   </body>
 </html>

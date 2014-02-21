@@ -1,4 +1,4 @@
-$def with (user, hashed, friend_status=None, is_following=None)
+$def with (user, hashed, friend_status=None, is_following=None, photos=None)
 <div class='clearfix user-heading'
   $if 'logged_in' in sess and sess.user_id == user.id:
     id='lolbg'
@@ -8,10 +8,70 @@ $def with (user, hashed, friend_status=None, is_following=None)
     data-nobg='true'
     style='background: #333842;'
   >
+
+<link href="static/bootstrap.min.css" rel="stylesheet" />
+<script src="static/bootstrap.min.js"></script>
+<div class="modal fade" id="myModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      </div>
+      <div class="modal-body">
+
+
+<div class="bs-example">
+    <div id="carousel-example-captions" class="carousel slide" data-ride="carousel">
+      <div class="carousel-inner">
+
+
+        $if photos:
+            
+                $ i = 0
+                $for photo in photos:
+                     $if i == 0:
+                          <div class='item active'>
+                     $else:
+                          <div class='item'>
+                            
+                     <img src='/static/pics/$(photo.id).png' alt=''/>
+                     </div>
+                     $ i += 1
+                  <!--
+                    <div class="item active">
+                    <a href='/photo/$photo.id' class='photo left'>
+                        <img src='/static/pics/$(photo.id).png' alt=''/>
+                    </a>
+                    </div>
+                   --> 
+  
+        $else:
+            <p>You don't have any Profile pictures yet. Upload some!</p>
+
+       
+      </div>
+      <a class="left carousel-control" href="#carousel-example-captions" data-slide="prev">
+        <span class="">« Previous</span>
+      </a>
+      <a class="right carousel-control" href="#carousel-example-captions" data-slide="next">
+        <span class="">Next »</span>
+      </a>
+    </div>
+  </div>
+
+
+
+
+      </div>
+
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal --> 
+
   <div class='back clearfix'>
     <a
       $if 'logged_in' in sess and sess.user_id == user.id:
-        id='lolimage' href='#'
+        data-toggle="modal" data-target="#myModal"
       $else:
         href='/$user.username'
     >
@@ -75,7 +135,4 @@ $def with (user, hashed, friend_status=None, is_following=None)
         <a class='button' href='/newconvo/$user.id'>Message</a>
   </b></p>
 </div>
-<form id='form' method='post' class='invisform' enctype='multipart/form-data'>
-  <input type='file' name='file' id='file'/>
-</form>
-<script src='/static/profile.js'></script>
+
