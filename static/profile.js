@@ -12,4 +12,26 @@
     $('#form').attr('action', '/changeprofile');
     return $('#file').click();
   });
+
+
+dragging = false;
+
+  x = 0;
+
+  y = 0;
+
+  otherX = 0;
+
+  otherY = 0;
+
+  $('#profile_thumb').mousedown(function(e) {
+    var _ref;
+    if ($(this).attr('data-nobg') !== 'true') {
+      x = e.pageX;
+      y = e.pageY;
+      _ref = $(this).css('background-position').split(' '), otherX = _ref[0], otherY = _ref[1];
+      return dragging = true;
+    }
+  });
+
 }).call(this);

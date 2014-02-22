@@ -1516,20 +1516,20 @@ class PageRemovePhoto:
         pid = int(pid)
 
         photo = db.query('''
-            select photos.*, albums.name as album_name,albums.id as album_id, albums.user_id from photos
-                join albums on albums.id = photos.album_id
-            where photos.id = $id''', vars={'id': pid})
+            select album_id from photos where photos.id = $id AND album_id = $album_id ''', vars={'id': pid, 'album_id':sess.user_id})
         if not photo:
             return 'no such photo'
 
         photo = photo[0]
-        if photo.user_id != sess.user_id:
+        user = dbget('users', sess.user_id)
+        if photo.album_id != sess.user_id:
             return 'no such photo'
         else:
-            if db.delete('photos', where="id = %s" % (pid)):
-                web.redirect('/album/%s' % (photo.album_id))
-        user = dbget('users', sess.user_id)
-        return ltpl('photo', photo, user.pic == pid)
+            db.delete('photos', where="id = %s" % (pid))
+            new_photo = db.select('photos',where="album_id=%s"%(sess.user_id), order='id DESC', limit=1)
+            if new_photo:
+                db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=new_photo[0].id)            
+        return web.redirect('/%s' % (user.username))
 
 
 class PageSetProfilePic:
