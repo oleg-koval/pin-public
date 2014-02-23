@@ -581,6 +581,8 @@ class PageAddPin:
     def upload_image(self):
         image = web.input(image={}).image
         fname = generate_salt()
+        web.debug(image.filename)
+        web.debug(image.value)
         ext = os.path.splitext(image.filename)[1].lower()
 
         with open('static/tmp/%s%s' % (fname, ext), 'w') as f:
