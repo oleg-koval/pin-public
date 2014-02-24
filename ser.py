@@ -934,7 +934,7 @@ class PagePin:
         img_tag = "<img src='/static/tmp/%d.png' alt=''/>" % pin_id
         img_tag += ''.join(["<img src='/%s' alt=''/>" % f for f in glob.glob('static/tmp/'+`pin_id`+'.*.png')])
 
-        return ltpl('pin', pin, comments, rating, img_tag)
+        return ltpl('pin', pin, comments, rating, {{ img_tag|safe }})
 
     def POST(self, pin_id):
         force_login(sess)
