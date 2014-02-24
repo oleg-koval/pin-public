@@ -40,4 +40,8 @@ $(document).ready(function(){
     }
     e.event.stopPropagation();
   })
+
+  $('.carousel').carousel({
+    interval: false
+    }) 
 })

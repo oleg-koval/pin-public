@@ -7,7 +7,7 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
     <link href='//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' rel='stylesheet'>
     <script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
     <script type="text/javascript" src="/static/main.js"></script>
-    <link href="static/bootstrap.min.css" rel="stylesheet" />
+    <link href="static/modal.css" rel="stylesheet" />
 <script src="static/bootstrap.min.js"></script>
   </head>
   <body>
@@ -112,23 +112,6 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
 <input type='file' name='file' id='file' accept="image/*" />
 </form>
 <script src='/static/profile.js'></script>
-  
-                    $if user.pic:
-                        <div class="modal fade" id="editModal">
-                          <div class="modal-dialog">
-                            <div class="modal-content">
-                              <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                              </div>
-                            <div class="modal-body" style="
-    display: block;
-    overflow: hidden;
-" id="profile_thumb" >
-                            <img class='left avatar' src='/static/pics/userthumb$(user.pic).png' alt=''/>
-                            </div><!-- /.modal-content -->
-                          </div><!-- /.modal-dialog -->
-                        </div><!-- /.modal --> 
-                        </div>
 
   </body>
 </html>

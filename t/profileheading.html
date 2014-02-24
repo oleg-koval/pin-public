@@ -21,19 +21,26 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
 
 
           <div class="bs-example">
-              <div id="carousel-example-captions" class="carousel" data-ride="carousel">
+              <div id="carousel-example-captions" class="carousel" >
                 <div class="carousel-inner">
 
 
                   $if photos:
                           $ i = 0
+                          $ p = 0
                           $for photo in photos:
+                               $ p += 1  
+                               $if p == len(photos):
+                                   $ p = 1 
                                $if i == 0:
                                     <div class='item active'>
                                $else:
                                     <div class='item'>
                                       
-                               <img src='/static/pics/$(photo.id).png' alt=''/>
+                               <a  href="#carousel-example-captions" data-slide-to='$p'>       
+                               <img src='/static/pics/$(photo.id).png' alt='' />
+                               </a>
+
                                </div>
                                $ i += 1            
                   $else:
@@ -41,12 +48,14 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
 
                  
                 </div>
+                <!--
                 <a class="left carousel-control" href="#carousel-example-captions" data-slide="prev">
                   <span class="">« Previous</span>
                 </a>
                 <a class="right carousel-control" href="#carousel-example-captions" data-slide="next">
                   <span class="">Next »</span>
                 </a>
+                -->
               </div>
             </div>
 
