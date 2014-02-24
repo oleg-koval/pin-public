@@ -591,3 +591,30 @@ textarea {
       background-color: #223344;
       color: white;
       text-decoration: none; }
+
+.user_pic_placeholder{
+background-repeat: no-repeat;
+width: 80px;
+height: 30px;
+}
+
+#user_pic_placeholder{
+background-repeat: no-repeat;
+width: 44px;
+height: 44px;
+float: left;
+cursor: pointer;
+ -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none; 
+}
+
+#user_pic_placeholder_wrapper{
+background-repeat: no-repeat;
+width: 100px;
+height: 100px;
+float: left;
+}

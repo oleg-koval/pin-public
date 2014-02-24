@@ -1,13 +1,5 @@
 $def with (user, hashed, friend_status=None, is_following=None, photos=None)
-<div class='clearfix user-heading'
-  $if 'logged_in' in sess and sess.user_id == user.id:
-    id='lolbg'
-  $if user.bg:
-    style='background-image: url(/static/tmp/bg$(user.id).png?v=$hashed); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'
-  $else:
-    data-nobg='true'
-    style='background: #333842;'
-  >
+<div class='clearfix user-heading' style='background: #333842;'>
 
 
         $if 'logged_in' in sess and sess.user_id == user.id:
@@ -75,9 +67,12 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
         data-toggle="modal" data-target="#myModal"
       $else:
         href='/$user.username'
-    >
+    id="user_pic_placeholder_wrapper">
       $if user.pic:
+        <div class="user_pic_placeholder" style='background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'></div>
+        <!--
         <img class='left avatar' src='/static/pics/userthumb$(user.pic).png' alt=''/>
+        -->
       $else:
         <img class='left avatar' src='/static/default-avatar.png' alt=''/>
     </a>

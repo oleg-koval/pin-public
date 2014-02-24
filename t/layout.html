@@ -67,7 +67,7 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
             <div class='nav-item item profile-picture' id='switch3'>
               <a href='/$user.username'>
                 $if user.pic:
-                 <img class='avatar' src='/static/pics/userthumb$(user.pic).png'/>
+                 <div class="user_pic_placeholder avatar" style='background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'></div>
                 $else:
                   <img class='avatar' src='/static/default-avatar.png'/>
               </a>
@@ -108,10 +108,8 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
         $:content
     </div>
 
-<form id='form' method='post' class='invisform' enctype='multipart/form-data'>
-<input type='file' name='file' id='file' accept="image/*" />
-</form>
-<script src='/static/profile.js'></script>
+
+
 
 
  $if 'logged_in' in sess and sess.user_id == user.id:
@@ -121,9 +119,13 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
                 <div class="modal-header">
                   <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="display:block;overflow:hidden;">
                 $if user.pic:
-                 <img class='avatar' id="thumbnail_edit" src='/static/pics/userthumb$(user.pic).png'/>
+                 <div class="user_pic_placeholder" id="user_pic_placeholder" style='background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'></div>
+                 <div style="float:left;margin-left:20px;">
+                   <p>Drag the image to adjust.</p>
+                   <small>This version of your public profile picture will appear around the site.</small>
+                 </div>
                 $else:
                   <img class='avatar' src='/static/default-avatar.png'/>
 
@@ -131,5 +133,9 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
             </div><!-- /.modal-dialog -->
           </div><!-- /.modal --> 
           </div>
+          <form id='form' method='post' class='invisform' enctype='multipart/form-data'>
+          <input type='file' name='file' id='file' accept="image/*" />
+          </form>
+          <script src='/static/profile.js'></script>
   </body>
 </html>
