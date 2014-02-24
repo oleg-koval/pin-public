@@ -655,8 +655,11 @@ class PageAddPinUrl:
 
             urllib.urlretrieve(url, 'static/tmp/%s%s' % (fname, ext))
             if ext != '.png':
-                img = Image.open('static/tmp/%s%s' % (fname, ext))
+                t_img = 'static/tmp/%s%s' % (fname, ext)
+                img = Image.open(t_img)
                 img.save('static/tmp/%s.png' % fname)
+                img.close()
+                os.remove(t_img)
 
             img = Image.open('static/tmp/%s.png' % fname)
             width, height = img.size
@@ -928,8 +931,8 @@ class PagePin:
             pin_id = pin.id
         else:
             pin_id = pin.repin
-        img_tag = "<img src='/static/tmp/%s.png' alt=''/>" % pin_id
-        img_tag += ''.join(["<img src='/%s' alt=''/>" % f for f in glob.glob('static/tmp/'+pin_id+'.*.png')])
+        img_tag = "<img src='/static/tmp/%d.png' alt=''/>" % pin_id
+        img_tag += ''.join(["<img src='/%s' alt=''/>" % f for f in glob.glob('static/tmp/'+`pin_id`+'.*.png')])
 
         return ltpl('pin', pin, comments, rating, img_tag)
 
