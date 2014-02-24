@@ -20,6 +20,8 @@ import glob
 ##
 from db import connect_db
 
+web.config.debug = True
+
 urls = (
     '/', 'PageIndex',
     '/(first-time)', 'PageIndex',
@@ -689,12 +691,12 @@ class PageAddPinUrl:
             db.insert('tags', pin_id=pin_id, tags=tags)
 
         multi = ''
-        for idx, fname in enumerate(fnames)
+        for idx, fname in enumerate(fnames):
             os.rename('static/tmp/%s.png' % fname,
                       'static/tmp/%d%s.png' % (pin_id,multi))
             os.rename('static/tmp/pinthumb%s.png' % fname,
                       'static/tmp/pinthumb%d%s.png' % (pin_id,multi))
-            multi = '.%d' % idx+1
+            multi = '.' + `idx+1`
 
         raise web.seeother('/pin/%d' % pin_id)
 
