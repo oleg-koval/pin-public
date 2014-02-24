@@ -33,7 +33,7 @@ $('#input-url').blur ->
                 images.push src
                 if first
                     img = $('<img/>').attr('src', src).attr('id', counter++).addClass('selected')
-                    window.selected = src
+                    window.selected = src+','
                     first = false
                 else
                     img = $('<img/>').attr('src', src).attr('id', counter++)
@@ -41,9 +41,13 @@ $('#input-url').blur ->
                 preview.append img
                 img.click ->
                     src = images[parseInt($(this).attr('id'))]
-                    window.selected = src
-                    preview.find('img').removeClass('selected')
-                    $(this).addClass('selected')
+                    if $(this).hasClass('selected')
+                        $(this).removeClass('selected')
+                        window.selected.replace(new RegExp(src+','),'')
+                    else
+                        window.selected += src+','
+                        #   preview.find('img')
+                        $(this).addClass('selected')
 
         window.imagesLoading = false
 
