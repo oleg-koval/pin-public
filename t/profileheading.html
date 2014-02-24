@@ -31,7 +31,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
                           $for photo in photos:
                                $ p += 1  
                                $if p == len(photos):
-                                   $ p = 1 
+                                   $ p = 0 
                                $if i == 0:
                                     <div class='item active'>
                                $else:

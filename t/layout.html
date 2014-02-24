@@ -113,5 +113,23 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
 </form>
 <script src='/static/profile.js'></script>
 
+
+ $if 'logged_in' in sess and sess.user_id == user.id:
+          <div class="modal fade" id="editModal">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+                $if user.pic:
+                 <img class='avatar' id="thumbnail_edit" src='/static/pics/userthumb$(user.pic).png'/>
+                $else:
+                  <img class='avatar' src='/static/default-avatar.png'/>
+
+              </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+          </div><!-- /.modal --> 
+          </div>
   </body>
 </html>
