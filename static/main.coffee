@@ -31,4 +31,5 @@ $(document).ready ->
     e.event.stopPropagation()
     return
 
+  $(".carousel").carousel interval: false
   return
