@@ -658,8 +658,6 @@ class PageAddPinUrl:
                 t_img = 'static/tmp/%s%s' % (fname, ext)
                 img = Image.open(t_img)
                 img.save('static/tmp/%s.png' % fname)
-                img.close()
-                os.remove(t_img)
 
             img = Image.open('static/tmp/%s.png' % fname)
             width, height = img.size
