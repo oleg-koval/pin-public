@@ -1431,9 +1431,11 @@ class PageAlbum:
     def GET(self, aid):
         force_login(sess)
         aid = int(aid)
-        if sess.user_id != aid:
+        #if sess.user_id != aid:
+        #    raise web.seeother('/404')
+        user = dbget('users', aid)
+        if not user:
             raise web.seeother('/404')
-        user = dbget('users', sess.user_id)
         photos = db.select('photos', where='album_id = $id', vars={'id': aid})
         return ltpl('album', user, photos)
 

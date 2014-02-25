@@ -74,18 +74,19 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
               <div class='menu right-side invis' id='menu3'>
                 
 
+              <!--
                 <a href='#' id='lolimage'>Upload another profile picture</a>
                 <a href='/photo/$user.pic/remove' id="remove_photo">Remove</a>
                 <a href='#' id="edit_thumbnail" data-toggle="modal" data-target="#editModal">Edit Thumbnail</a>
-                
-
+                -->
+                <a href='/profile/$sess.user_id'>Profile</a>
                 <a href='/messages'>Messages</a>
                 $if notif_count == 0:
                   <a href='/notifications'>Notifications</a>
                 $else:
                   <a href='/notifications'>Notifications <span class='notif-count'>$notif_count</span></a>
                 <hr>
-                <a href='/profile/$sess.user_id'>Profile</a>
+                
                 <a href='/settings'>Settings</a>
                 <a href='/connect'>Friends &amp; Followers</a>
                 <a href='/logout'>Log out</a>

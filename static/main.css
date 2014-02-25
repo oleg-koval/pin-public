@@ -642,3 +642,23 @@ text-decoration: none;
 .edit_thumbnail_menu a:hover {
 text-decoration: underline;
   }
+
+
+.next_carousel_btn {
+    margin-top: 30%;
+    right: -60px !important;
+    width: 20px !important;
+    height: 30px;
+    background: #333842;
+    padding: 5px;
+
+}
+
+  .prev_carousel_btn{
+  margin-top: 30%;
+  left: -60px !important;
+width: 20px !important;
+    height: 30px;
+    background: #333842;
+    padding: 5px;
+  }
