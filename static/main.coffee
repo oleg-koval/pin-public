@@ -20,9 +20,7 @@
   return
 ).call this
 $(document).ready ->
-  $("#remove_photo").click (e) ->
-    
-    #$(this).preventDefault();
+  $("#remove_photo, #remove_photo1").click (e) ->
     result = window.confirm("Are you sure you want to delete this Photo ?")
     unless result
       e.preventDefault()
@@ -32,4 +30,10 @@ $(document).ready ->
     return
 
   $(".carousel").carousel interval: false
+  $("#switch5").click (e) ->
+    e.preventDefault()
+    $("#menu5").toggle()
+    e.event.stopPropagation()
+    return
+
   return

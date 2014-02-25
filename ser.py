@@ -1431,13 +1431,11 @@ class PageAlbum:
     def GET(self, aid):
         force_login(sess)
         aid = int(aid)
-
-        album = dbget('albums', aid)
-        if album.user_id != sess.user_id:
-            return 'Album not found.'
-
+        if sess.user_id != aid:
+            raise web.seeother('/404')
+        user = dbget('users', sess.user_id)
         photos = db.select('photos', where='album_id = $id', vars={'id': aid})
-        return ltpl('album', album, photos)
+        return ltpl('album', user, photos)
 
 
 class PageNewPicture:

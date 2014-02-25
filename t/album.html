@@ -1,13 +1,15 @@
-$def with (album, photos)
-<h1>Viewing album $album.name</h1>
+$def with (user, photos)
+<h1>Viewing album $user.name</h1>
 <p>
-    <a href='/photos' class='button'><b>Back to All Photos</b></a>
-    <a href='/newpic/$album.id' class='button'>Upload Picture</a>
+    <a href='' class='button'><b>Back to Profile</b></a>
 </p>
 $if photos:
     <div class='album clearfix'>
         $for photo in photos:
+        	<!--
             <a href='/photo/$photo.id' class='photo left'>
+             -->
+             <a href="#" class='photo left'>
                 <img src='/static/pics/$(photo.id).png' alt=''/>
             </a>
     </div>

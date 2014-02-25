@@ -7,8 +7,8 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
     <link href='//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' rel='stylesheet'>
     <script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
     <script type="text/javascript" src="/static/main.js"></script>
-    <link href="static/modal.css" rel="stylesheet" />
-<script src="static/bootstrap.min.js"></script>
+    <link href="/static/modal.css" rel="stylesheet" />
+<script src="/static/bootstrap.min.js"></script>
   </head>
   <body>
     <div class='header'>
@@ -65,7 +65,7 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
           </div>
           <div class='right'>
             <div class='nav-item item profile-picture' id='switch3'>
-              <a href='/$user.username'>
+              <a href='/$user.username' id="user_avatar_placeholder_wrapper">
                 $if user.pic:
                  <div class="user_pic_placeholder avatar" style='background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'></div>
                 $else:

@@ -56,7 +56,13 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
 
                 </div>
 
+
+                <div class="modal-footer">
+                <a href="/album/$user.id">View Photo Album</a>
+              </div>
+
               </div><!-- /.modal-content -->
+              
             </div><!-- /.modal-dialog -->
           </div><!-- /.modal --> 
 
@@ -109,6 +115,14 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
         <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
       </p>
     </div>
+          $if 'logged_in' in sess and user.id == sess.user_id:
+                  <a href='#' class='button' id="switch5">Edit Profile Picture</a>
+              
+              <div  class='edit_thumbnail_menu' id="menu5">
+             <a href='#' id='lolimage1'>Upload another profile picture</a>
+                <a href='/photo/$user.pic/remove' id="remove_photo1">Remove</a>
+                <a href='#' id="edit_thumbnail" data-toggle="modal" data-target="#editModal">Edit Thumbnail</a>
+            </div>
   </div>
   <p class='right'><b>
     $if 'logged_in' in sess and user.id != sess.user_id:

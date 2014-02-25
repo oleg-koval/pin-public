@@ -8,7 +8,7 @@
 
 
 
-  $('#lolimage').click(function() {
+  $('#lolimage, #lolimage1').click(function() {
     $('#form').attr('action', '/changeprofile');
     return $('#file').click();
   });

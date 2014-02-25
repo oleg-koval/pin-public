@@ -618,3 +618,27 @@ width: 100px;
 height: 100px;
 float: left;
 }
+
+.edit_thumbnail_menu{
+text-align: left;
+position: absolute;
+width: 300px;
+z-index: 230847023;
+background-color: white;
+border: solid 1px #aabbcc;
+padding: 10px;
+margin-top: 1px;
+display: none;
+}
+
+.edit_thumbnail_menu a {
+display: block;
+padding: 0.3em;
+border-radius: 3px;
+font-weight: bold;
+text-decoration: none;
+}
+
+.edit_thumbnail_menu a:hover {
+text-decoration: underline;
+  }
