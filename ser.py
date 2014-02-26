@@ -1451,13 +1451,13 @@ class PageAlbum:
     def GET(self, aid):
         force_login(sess)
         aid = int(aid)
-
-        album = dbget('albums', aid)
-        if album.user_id != sess.user_id:
-            return 'Album not found.'
-
+        #if sess.user_id != aid:
+        #    raise web.seeother('/404')
+        user = dbget('users', aid)
+        if not user:
+            raise web.seeother('/404')
         photos = db.select('photos', where='album_id = $id', vars={'id': aid})
-        return ltpl('album', album, photos)
+        return ltpl('album', user, photos)
 
 
 class PageNewPicture:
@@ -1548,7 +1548,7 @@ class PageRemovePhoto:
             db.delete('photos', where="id = %s" % (pid))
             new_photo = db.select('photos',where="album_id=%s"%(sess.user_id), order='id DESC', limit=1)
             if new_photo:
-                db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=new_photo[0].id)            
+                db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=new_photo[0].id,bgx=0, bgy=0)            
         return web.redirect('/%s' % (user.username))
 
 
@@ -1815,7 +1815,8 @@ class PageChangeProfile:
 
         pid = db.insert('photos', album_id=sess.user_id)
         self.upload_image(pid)
-        db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=pid)
+        #reset the image and background positioning
+        db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=pid, bgx=0, bgy=0)
         raise web.seeother('/profile/%d' % sess.user_id)
 
 

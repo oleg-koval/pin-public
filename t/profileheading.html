@@ -1,13 +1,5 @@
 $def with (user, hashed, friend_status=None, is_following=None, photos=None)
-<div class='clearfix user-heading'
-  $if 'logged_in' in sess and sess.user_id == user.id:
-    id='lolbg'
-  $if user.bg:
-    style='background-image: url(/static/tmp/bg$(user.id).png?v=$hashed); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'
-  $else:
-    data-nobg='true'
-    style='background: #333842;'
-  >
+<div class='clearfix user-heading' style='background: #333842;'>
 
 
         $if 'logged_in' in sess and sess.user_id == user.id:
@@ -48,14 +40,14 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
 
                  
                 </div>
-                <!--
-                <a class="left carousel-control" href="#carousel-example-captions" data-slide="prev">
-                  <span class="">« Previous</span>
+                
+                <a class="left carousel-control prev_carousel_btn" href="#carousel-example-captions" data-slide="prev">
+                  <span class="">«</span>
                 </a>
-                <a class="right carousel-control" href="#carousel-example-captions" data-slide="next">
-                  <span class="">Next »</span>
+                <a class="right carousel-control next_carousel_btn" href="#carousel-example-captions" data-slide="next">
+                  <span class="">»</span>
                 </a>
-                -->
+                
               </div>
             </div>
 
@@ -64,7 +56,13 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
 
                 </div>
 
+
+                <div class="modal-footer">
+                <a href="/album/$user.id">View Photo Album</a>
+              </div>
+
               </div><!-- /.modal-content -->
+              
             </div><!-- /.modal-dialog -->
           </div><!-- /.modal --> 
 
@@ -72,12 +70,18 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
   <div class='back clearfix'>
     <a
       $if 'logged_in' in sess and sess.user_id == user.id:
-        data-toggle="modal" data-target="#myModal"
+          $if user.pic:
+            data-toggle="modal" data-target="#myModal"
+          $else:
+            id='lolimage1'
       $else:
         href='/$user.username'
-    >
+    id="user_pic_placeholder_wrapper">
       $if user.pic:
+        <div class="user_pic_placeholder" style='background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'></div>
+        <!--
         <img class='left avatar' src='/static/pics/userthumb$(user.pic).png' alt=''/>
+        -->
       $else:
         <img class='left avatar' src='/static/default-avatar.png' alt=''/>
     </a>
@@ -114,6 +118,13 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
         <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
       </p>
     </div>
+          $if 'logged_in' in sess and user.id == sess.user_id:
+                  <a href='#' class='button' id="switch5">Edit Profile Picture</a>
+                  <div  class='edit_thumbnail_menu' id="menu5">
+                  <a href='#' id='lolimage1'>Upload another profile picture</a>
+                  <a href='/photo/$user.pic/remove' id="remove_photo1">Remove</a>
+                  <a href='#' id="edit_thumbnail" data-toggle="modal" data-target="#editModal">Edit Thumbnail</a>
+                  </div>
   </div>
   <p class='right'><b>
     $if 'logged_in' in sess and user.id != sess.user_id:

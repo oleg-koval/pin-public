@@ -29,9 +29,8 @@
 
 
 $(document).ready(function(){
-  $('#remove_photo').click(function(e){
-    //$(this).preventDefault();
 
+  $('#remove_photo, #remove_photo1').click(function(e){
     result = window.confirm("Are you sure you want to delete this Photo ?");
     if(!result){
       e.preventDefault()
@@ -44,4 +43,13 @@ $(document).ready(function(){
   $('.carousel').carousel({
     interval: false
     }) 
+
+   $('#switch5').click(function(e) {
+    e.preventDefault();
+    $('#menu5').toggle();
+    e.event.stopPropagation();
+    return false;
+   });
+
+
 })
