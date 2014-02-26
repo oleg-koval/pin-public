@@ -70,7 +70,10 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
   <div class='back clearfix'>
     <a
       $if 'logged_in' in sess and sess.user_id == user.id:
-        data-toggle="modal" data-target="#myModal"
+          $if user.pic:
+            data-toggle="modal" data-target="#myModal"
+          $else:
+            id='lolimage1'
       $else:
         href='/$user.username'
     id="user_pic_placeholder_wrapper">
@@ -117,12 +120,11 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
     </div>
           $if 'logged_in' in sess and user.id == sess.user_id:
                   <a href='#' class='button' id="switch5">Edit Profile Picture</a>
-              
-              <div  class='edit_thumbnail_menu' id="menu5">
-             <a href='#' id='lolimage1'>Upload another profile picture</a>
-                <a href='/photo/$user.pic/remove' id="remove_photo1">Remove</a>
-                <a href='#' id="edit_thumbnail" data-toggle="modal" data-target="#editModal">Edit Thumbnail</a>
-            </div>
+                  <div  class='edit_thumbnail_menu' id="menu5">
+                  <a href='#' id='lolimage1'>Upload another profile picture</a>
+                  <a href='/photo/$user.pic/remove' id="remove_photo1">Remove</a>
+                  <a href='#' id="edit_thumbnail" data-toggle="modal" data-target="#editModal">Edit Thumbnail</a>
+                  </div>
   </div>
   <p class='right'><b>
     $if 'logged_in' in sess and user.id != sess.user_id:
