@@ -14,6 +14,10 @@
   });
 
 
+  $('#save_thumbnail_edit').click(function() {
+    location.reload(true);
+  });
+
 
   dragging = false;
 
