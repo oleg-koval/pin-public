@@ -8,3 +8,5 @@ static/pics
 local_settings.py
 node_modules/
 static/cat_reg_thmb/
+.project
+.pydevproject
