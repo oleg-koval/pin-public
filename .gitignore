@@ -7,3 +7,5 @@ static/pics
 *.out
 local_settings.py
 node_modules/
+.project
+.pydevproject
