@@ -1549,7 +1549,7 @@ class PageSetProfilePic:
         print photo
         if photo.id != pid:
             return 'no such photo'
-        db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=pid)
+        db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=pid,bgx=0, bgy=0)
         raise web.seeother('/photo/%d' % pid)
 
 
