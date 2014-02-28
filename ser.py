@@ -1437,7 +1437,8 @@ class PageAlbum:
         if not user:
             raise web.seeother('/404')
         photos = db.select('photos', where='album_id = $id', vars={'id': aid})
-        return ltpl('album', user, photos)
+        carousel = db.select('photos', where='album_id = $id', vars={'id': aid})
+        return ltpl('album', user, photos, carousel)
 
 
 class PageNewPicture:
@@ -1538,16 +1539,16 @@ class PageSetProfilePic:
         pid = int(pid)
 
         photo = db.query('''
-            select albums.user_id from photos
-                join albums on albums.id = photos.album_id
-            where photos.id = $id''', vars={'id': pid})
+            select id from photos
+                where album_id = $sessid
+            AND id = $id''', vars={'id': pid, 'sessid': sess.user_id})
         if not photo:
             return 'no such photo'
 
         photo = photo[0]
-        if photo.user_id != sess.user_id:
+        print photo
+        if photo.id != pid:
             return 'no such photo'
-
         db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=pid)
         raise web.seeother('/photo/%d' % pid)
 

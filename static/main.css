@@ -220,7 +220,7 @@ textarea {
     .header .nav .avatar {
       max-width: 44px;
       max-height: 44px;
-      border-radius: 4px; }
+    }
     .header .nav .item {
       cursor: pointer;
       padding: 6.66667px;
@@ -667,4 +667,9 @@ width: 20px !important;
     height: 30px;
     background: #333842;
     padding: 5px;
+  }
+
+  #set_as_profile_pic{
+    color: red;
+    margin-right: 30px;
   }

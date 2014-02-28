@@ -30,7 +30,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
                                     <div class='item'>
                                       
                                <a  href="#carousel-example-captions" data-slide-to='$p'>       
-                               <img src='/static/pics/$(photo.id).png' alt='' />
+                               <img src='/static/pics/$(photo.id).png' alt='' picid="$photo.id" />
                                </a>
 
                                </div>
@@ -58,6 +58,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
 
 
                 <div class="modal-footer">
+                <a href="#" id="set_as_profile_pic">Set as Profile Picture</a>
                 <a href="/album/$user.id">View Photo Album</a>
               </div>
 
