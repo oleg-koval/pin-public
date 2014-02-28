@@ -11,8 +11,6 @@ from PIL import Image
 import requests
 import re
 import json
-from bs4 import BeautifulSoup
-import traceback
 import subprocess
 import HTMLParser
 import tpllib
@@ -350,6 +348,7 @@ def json_pins(pins, template=None):
     template = template or 'onepin'
     pins = [str(tpl(template, x)) for x in pins]
     return json.dumps(pins)
+
 
 class PageIndex:
     def GET(self, first_time=None):

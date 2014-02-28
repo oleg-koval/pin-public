@@ -20,7 +20,7 @@
 
 
   $('#set_as_profile_pic').click(function() {
-      picid = $('#myModal .active img').attr('picid');
+      picid = $('.modal .active img').attr('picid');
       return $.get('/setprofilepic/'+picid, function(response){
         location.reload(true);
       });
