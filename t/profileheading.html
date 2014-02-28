@@ -79,7 +79,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
         href='/$user.username'
     id="user_pic_placeholder_wrapper">
       $if user.pic:
-        <div class="user_pic_placeholder" style='background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'></div>
+        <div class="user_pic_placeholder" style='height:160px !important;background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'></div>
         <!--
         <img class='left avatar' src='/static/pics/userthumb$(user.pic).png' alt=''/>
         -->
