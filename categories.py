@@ -17,8 +17,8 @@ names = [
     'Wine & Champagne',
 ]
 
-import db
-db = db.connect_db()
+from mypinnings import database
+db = database.connect_db()
 
 names = [{'name': x} for x in names]
 db.multiple_insert('categories', names)

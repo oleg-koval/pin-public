@@ -4,7 +4,6 @@ import web
 from web import form
 import hashlib
 import random
-import string
 import urllib
 import os
 from PIL import Image
@@ -13,15 +12,23 @@ import re
 import json
 import subprocess
 import HTMLParser
-import tpllib
-##
-from db import connect_db
+# #
+from mypinnings.database import connect_db, dbget
+db = connect_db()
+
+from mypinnings.cached_models import all_categories
+from mypinnings.auth import authenticate_user_email, force_login, logged_in, \
+    authenticate_user_username, login_user, username_exists, email_exists, \
+    logout_user, generate_salt
+import mypinnings.register
+from mypinnings.template import tpl, ltpl, lmsg
+import mypinnings.session
 
 urls = (
+    '/register', mypinnings.register.app,
     '/', 'PageIndex',
     '/(first-time)', 'PageIndex',
     '/login', 'PageLogin',
-    '/register', 'PageRegister',
     '/reg-checkuser', 'PageCheckUsername',
     '/reg-checkpw', 'PageCheckPassword',
     '/reg-checkemail', 'PageCheckEmail',
@@ -67,7 +74,7 @@ urls = (
     '/share/(\d*)', 'PageShare',
     '/followed-by/(\d*)', 'PageFollowedBy',
     '/following/(\d*)', 'PageFollowing',
-    
+
     '/unfriend/(\d*)', 'PageUnfriend',
     '/cancelfr/(\d*)', 'PageUnfriend',
     '/acceptfr/(\d*)', 'PageAcceptFR',
@@ -121,16 +128,12 @@ urls = (
 )
 
 app = web.application(urls, globals())
+mypinnings.session.initialize(app)
+sess = mypinnings.session.sess
+mypinnings.template.initialize(directory='t')
 
 
-def debuggable_session(app):
-    if web.config.get('_sess') is None:
-        sess = web.session.Session(app, web.session.DiskStore('sessions'))
-        web.config._sess = sess
-        return sess
-    return web.config._sess
-
-sess = debuggable_session(app)
+PIN_COUNT = 20
 
 
 class AttrDict(dict):
@@ -147,168 +150,6 @@ def rs():
     return hash(str(random.randint(1, 10000)))
 
 
-def generate_salt(length=10):
-    random.seed()
-    pool = string.ascii_uppercase + string.ascii_lowercase + string.digits
-    return ''.join(random.choice(pool) for i in range(length))
-
-
-def logged_in(sess):
-    if 'logged_in' in sess:
-        if sess.logged_in:
-            return sess.user_id
-    return False
-
-
-def force_login(sess, page='/', check_logged_in=False):
-    user_id = logged_in(sess)
-    if bool(user_id) == check_logged_in:
-        raise web.seeother(page)
- 
-
-def email_exists(email):
-    result = db.select('users',
-        what='1',
-        where='email=$email',
-        vars={'email': email},
-        limit=1)
-    return bool(result)
-
-
-def username_exists(username):
-    result = db.select('users',
-        what='1',
-        where='username=$username',
-        vars={'username': username},
-        limit=1)
-    return bool(result)
-
-
-def create_user(email, password, **params):
-    pw_hash = hash(password)
-    pw_salt = generate_salt()
-    pw_hash = hash(pw_hash+pw_salt)
-
-    return db.insert('users', email=email, pw_hash=pw_hash, pw_salt=pw_salt, **params)
-
-
-def authenticate_user_email(email, password):
-    users = db.select('users', where='email = $email', vars={'email': email},
-    what='id, pw_hash, pw_salt')
-    if not users:
-        return False
-
-    user = users[0]
-    if hash(hash(password) + user['pw_salt']) == user['pw_hash']:
-        return user['id']
-    return False
-
-
-def authenticate_user_username(username, password):
-    users = db.select('users', where='username = $username', vars={'username': username}, what='id, pw_hash, pw_salt')
-    if not users:
-        return False
-
-    user = users[0]
-    if hash(hash(password) + user['pw_salt']) == user['pw_hash']:
-        return user['id']
-    return False
-
-
-def cookie_logged_in():
-    try:
-        cookies = web.cookies()
-        result = db.select('users',
-            where='id = $user_id and seriesid = $seriesid and logintoken=$logintoken',
-            vars=dict((x, getattr(cookies, x)) for x in ['user_id', 'seriesid', 'logintoken']))
-        if len(list(result)) == 1:
-            return cookies.user_id
-    except:
-        return False
-
-
-def update_cookie_login(user_id, new_series_id=False):
-    params = {
-        'user_id': user_id,
-        'logintoken': generate_salt()}
-    if new_series_id:
-        params['seriesid'] = generate_salt()
-
-    for k, v in params.iteritems():
-        web.setcookie(k, v, 9999999) # a really long time
-
-    del params['user_id']
-    db.update('users',
-        where='id = $user_id',
-        vars={'user_id': user_id},
-        **params)
-
-def logged_in(sess):
-    if 'logged_in' in sess:
-        if sess.logged_in:
-            return sess.user_id
-    return False
-
-def force_login(sess, page='/login', check_logged_in=False):
-    user_id = logged_in(sess)
-    if not user_id:
-        user_id = cookie_logged_in()
-
-    if user_id:
-        login_user(sess, user_id)
-
-    redirect = (bool(user_id) == check_logged_in)
-
-    if user_id:
-        update_cookie_login(user_id)
-    if redirect:
-        raise web.seeother(page)
-
-def login_user(sess, user_id):
-    if logged_in(sess):
-        return False
-
-    user_id = int(user_id)
-    sess.logged_in = True
-    sess.user_id = user_id
-    update_cookie_login(user_id, new_series_id=True)
-    return True
-
-def logout_user(sess):
-    sess.kill()
-    for x in ['user_id', 'seriesid', 'logintoken']:
-        web.setcookie(x, '', expires=-1)
-
-def tpl(*params):
-    #global template_obj
-    return template_obj(*params)
-
-
-def template_closure(directory):
-    global settings
-    templates = web.template.render(directory,
-        globals={'sess': sess, 'tpl': tpl, 'tpllib': tpllib})
-    def render(name, *params):
-        return getattr(templates, name)(*params)
-    return render
-
-template_obj = template_closure('t')
-
-
-def ltpl(*params):
-    global all_categories
-
-    if logged_in(sess):
-        user = dbget('users', sess.user_id)
-        acti_needed = user.activation
-        notif_count = db.select('notifs', what='count(*)', where='user_id = $id', vars={'id': sess.user_id})
-        all_albums = list(db.select('albums',where="user_id=%s"%(sess.user_id), order='id'))
-        return tpl('layout', tpl(*params), all_categories, all_albums,user, acti_needed, notif_count[0].count)
-    return tpl('layout', tpl(*params), all_categories)
-
-
-def lmsg(msg):
-    return tpl('layout', msg)
 
 
 def make_notif(user_id, msg, url, fr_id=None):
@@ -318,10 +159,6 @@ def make_notif(user_id, msg, url, fr_id=None):
         params['fr_id'] = fr_id
 
     return db.insert('notifs', **params)
-
-
-db = connect_db()
-all_categories = list(db.select('categories', order='id'))
 
 
 def transform_name_to_url(name):
@@ -335,13 +172,6 @@ def transform_name_to_url(name):
 for x in all_categories:
     x['url_name'] = transform_name_to_url(x['name'])
 
-
-PIN_COUNT = 20
-
-
-def dbget(table, row_id):
-    rows = db.select(table, where='id = $id', vars={'id': row_id})
-    return rows[0] if rows else None
 
 
 def json_pins(pins, template=None):
@@ -430,12 +260,6 @@ class PageLogin:
         login_user(sess, user_id)
         raise web.seeother('/dashboard')
 
-
-def send_activation_email(email, hashed, user_id):
-    web.sendmail('noreply@mypinnings.com', email, 'Please activate your MyPinnings account',
-                 str(tpl('email', hashed, user_id)), headers={'Content-Type': 'text/html;charset=utf-8'})
-
-
 class PageCheckUsername:
     def GET(self):
         u = web.input(u='').u
@@ -446,57 +270,12 @@ class PageCheckPassword:
     def GET(self):
         p = web.input(p='').p
         return pw_hash(p)
- 
+
 
 class PageCheckEmail:
     def GET(self):
         e = web.input(e='').e
         return 'taken' if email_exists(e) else 'ok'
-
-
-class PageRegister:
-    _form = form.Form(
-        form.Textbox('email', autocomplete='off', id='email', placeholder='Where we\'ll never spam you.'),
-        form.Textbox('username', id='username', autocomplete='off', placeholder='The name in your url.'),
-        form.Password('password', id='password', autocomplete='off', placeholder='Something you\'ll remember but others won\'t guess.'),
-        form.Textbox('name', autocomplete='off', placeholder='The name next to your picture.'),
-        form.Button('Let\'s get started!')
-    )
-
-    def msg(self, s):
-        raise web.seeother('/register?msg=%s' % s)
-
-    def GET(self):
-        force_login(sess, '/dashboard', True)
-        form = self._form()
-        message = web.input(msg=None).msg
-        if message:
-            return ltpl('reg', form, message)
-        return tpl('reg', form)
-
-    def POST(self):
-        form = self._form()
-        form.validates()
-
-        if not all([form.d.email, form.d.password, form.d.name, form.d.username]):
-            self.msg('Please enter an email, pasword, and username.')
-
-        if email_exists(form.d.email):
-            self.msg('Sorry, that email already exists.')
-
-        if username_exists(form.d.username):
-            self.msg('Sorry, that username already exists.')
-
-        activation = random.randint(1, 10000)
-        hashed = hash(str(activation))
-
-        user_id = create_user(form.d.email, form.d.password, name=form.d.name, username=form.d.username, activation=activation)
-        if not user_id:
-            self.msg('Sorry, a database error occurred and we couldn\'t create your account.')
-
-        send_activation_email(form.d.email, hashed, user_id)
-        login_user(sess, user_id)
-        raise web.seeother('/after-signup')
 
 
 class PageActivate:
@@ -598,7 +377,7 @@ class PageAddPin:
         img.save('static/tmp/pinthumb%s.png' % fname)
 
         return fname
-    
+
     def POST(self):
         force_login(sess)
         form = self.make_form()
@@ -606,7 +385,7 @@ class PageAddPin:
             return lmsg('Form couldn\'t validate.')
 
         fname = self.upload_image()
-        
+
         pin_id = db.insert('pins',
             description=form.d.description,
             user_id=sess.user_id,
@@ -659,7 +438,7 @@ class PageAddPinUrl:
         img.save('static/tmp/pinthumb%s.png' % fname)
 
         return fname
-    
+
     def POST(self):
         force_login(sess)
         form = self.make_form()
@@ -693,7 +472,7 @@ class PageRepin:
     def make_form(self, pin=None, categories=None):
         categories = categories or []
         categories = [(x.id, x.name) for x in categories]
-        
+
         if pin is None:
             return form.Form(
                 form.Textarea('description'),
@@ -727,7 +506,7 @@ class PageRepin:
         pin = dbget('pins', pin_id)
         if pin is None:
             return 'pin doesn\'t exist'
-        
+
         if pin.repin:
             pin_id = pin.repin
 
@@ -839,7 +618,7 @@ class PageConnect:
             select u1.name as u1name, u2.name as u2name,
                 u1.pic as u1pic, u2.pic as u2pic,
                 friends.*
-            from friends 
+            from friends
                 join users u1 on u1.id = friends.id1
                 join users u2 on u2.id = friends.id2
             where friends.id1 = $id or friends.id2 = $id
@@ -909,7 +688,7 @@ class PagePin:
         rating = rating[0]
         if not rating.avg:
             rating.avg = 0
-                
+
         rating = round(float(rating.avg), 2)
         return ltpl('pin', pin, comments, rating)
 
@@ -1012,7 +791,7 @@ class PageProfile:
         user = dbget('users', user_id)
         if not user:
             return 'User not found.'
-        
+
         raise web.seeother('/' + user.username)
 
 
@@ -1034,7 +813,7 @@ class PageProfile2:
         is_logged_in = logged_in(sess)
 
         if is_logged_in and sess.user_id != user.id:
-            db.update('users', where='id = $id', vars={'id': user.id}, views = web.SQLLiteral('views + 1'))
+            db.update('users', where='id = $id', vars={'id': user.id}, views=web.SQLLiteral('views + 1'))
 
             this_user = dbget('users', sess.user_id)
             make_notif(user.id, '%s has viewed your profile!' % this_user.name, '/%s' % this_user.username)
@@ -1064,7 +843,8 @@ class PageProfile2:
                 db.select('follows',
                           where='follow = $follow and follower = $follower',
                           vars={'follow': int(user.id), 'follower': sess.user_id}))
-            photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id},  order="id DESC")
+            photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id}, order="id DESC")
+
             return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
@@ -1127,7 +907,7 @@ class PageNewConvo:
             raise web.seeother('/convo/%d' % convo[0].id)
 
         print 'convo:', [dict(x) for x in list(convo)]
-        
+
         convo_id = db.insert('convos', id1=ids[0], id2=ids[1])
         raise web.seeother('/convo/%d' % convo_id)
 
@@ -1136,7 +916,7 @@ class PageConvo:
     _form = form.Form(
         form.Textarea('content')
     )
-             
+
     def GET(self, convo_id):
         force_login(sess)
         convo_id = int(convo_id)
@@ -1152,7 +932,7 @@ class PageConvo:
             vars={'convo_id': convo_id, 'id': sess.user_id})
         if not convo:
             return 'convo not found'
-        
+
         messages = db.query('''
             select messages.*, users.name from messages
                 join users on users.id = messages.sender
@@ -1171,7 +951,7 @@ class PageConvo:
                       vars={'cid': convo_id, 'id': sess.user_id}))
         if not allowed:
             return 'convo not found'
-        
+
         form = self._form()
         if not form.validates():
             return 'fill everything in'
@@ -1428,7 +1208,7 @@ class PageAlbum:
     def GET(self, aid):
         force_login(sess)
         aid = int(aid)
-        #if sess.user_id != aid:
+        # if sess.user_id != aid:
         #    raise web.seeother('/404')
         user = dbget('users', aid)
         if not user:
@@ -1527,7 +1307,7 @@ class PageRemovePhoto:
             user = dbget('users', sess.user_id)
             '''if this is an avatar update to null'''
             if user.pic == pid:
-                db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=None,bgx=0, bgy=0)
+                db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=None, bgx=0, bgy=0)
         return web.redirect('/%s' % (user.username))
 
 
@@ -1547,7 +1327,7 @@ class PageSetProfilePic:
         print photo
         if photo.id != pid:
             return 'no such photo'
-        db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=pid,bgx=0, bgy=0)
+        db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=pid, bgx=0, bgy=0)
         raise web.seeother('/photo/%d' % pid)
 
 
@@ -1580,7 +1360,7 @@ class PageSort:
 class PageSortPut:
     def GET(self, pid, cid):
         pid = int(pid)
-        cid = int(cid) 
+        cid = int(cid)
 
         db.update('temp_pins', where='id = $id', vars={'id': pid},
                   category=cid)
@@ -1610,7 +1390,7 @@ category_table = [
     'movies-and-music',
     'shoes',
     'travel',
-    'watches', 
+    'watches',
     'wine-and-champagne',
 ]
 
@@ -1786,15 +1566,15 @@ class PageChangeProfile:
         force_login(sess)
 
         '''Retire this piece of code'''
-        #album = db.select('albums', where='user_id = $uid and name = $name', vars={'uid': sess.user_id, 'name': 'Profile Pictures'})
-        #if album:
+        # album = db.select('albums', where='user_id = $uid and name = $name', vars={'uid': sess.user_id, 'name': 'Profile Pictures'})
+        # if album:
         #    aid = album[0].id
-        #else:
+        # else:
         #    aid = db.insert('albums', name='Profile Pictures', user_id=sess.user_id)
 
         pid = db.insert('photos', album_id=sess.user_id)
         self.upload_image(pid)
-        #reset the image and background positioning
+        # reset the image and background positioning
         db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=pid, bgx=0, bgy=0)
         raise web.seeother('/profile/%d' % sess.user_id)
 
@@ -1903,7 +1683,7 @@ class PageBrowse:
         categories.append({'name': 'Random', 'id': 0, 'url_name': 'random'})
         return ltpl('browse', categories)
 
-        
+
 class PageCategory:
     def GET(self, cid):
         cid = int(cid)
@@ -1945,22 +1725,6 @@ class PageCategory:
         return ltpl('category', pins, category, all_categories)
 
 
-class PageResendActivation:
-    def GET(self):
-        force_login(sess)
-
-        user = dbget('users', sess.user_id)
-        if not user:
-            raise web.seeother('/')
-
-        if user.activation == 0:
-            raise web.seeother('/')
-
-        hashed = hash(str(user.activation))
-        send_activation_email(user.email, hashed, user.id)
-        return lmsg('An email has been resent. <a href="/"><b>Back</b></a> |  <a href=""><b>Send another one</b></a>')
-
-    
 def make_query(q):
     q = ''.join([x if x.isalnum() else ' ' for x in q])
     while '  ' in q:
@@ -1983,7 +1747,7 @@ class PageSearchItems:
                 tags.tags, pins.*, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
                 ts_rank_cd(to_tsvector(tags.tags), query) as rank1,
                 ts_rank_cd(pins.tsv, query) as rank2
-            from pins 
+            from pins
                 left join tags on tags.pin_id = pins.id
                 join to_tsquery('""" + q + """') query on true
                 left join users on users.id = pins.user_id
@@ -2010,7 +1774,7 @@ class PageSearchPeople:
             select
                 users.*, ts_rank_cd(users.tsv, query) as rank,
                 count(distinct f1) <> 0 as is_following
-            from users 
+            from users
                 join to_tsquery('""" + q + """') query on true
                 left join follows f1 on f1.follower = $user_id and f1.follow = users.id
             where query @@ users.tsv group by users.id, query.query
@@ -2021,4 +1785,5 @@ class PageSearchPeople:
 
 
 if __name__ == '__main__':
+
     app.run()
