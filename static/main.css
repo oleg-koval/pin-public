@@ -218,8 +218,7 @@ textarea {
         box-shadow: none;
         margin: 0; }
     .header .nav .avatar {
-      max-width: 44px;
-      max-height: 44px;
+
     }
     .header .nav .item {
       cursor: pointer;
@@ -600,6 +599,7 @@ height: 100px;
 
 .user_pic_placeholder.avatar{
 background-repeat: no-repeat;
+background-size:80px auto;
 width: 80px;
 height: 30px !important;
 }
