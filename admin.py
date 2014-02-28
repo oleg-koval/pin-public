@@ -5,7 +5,7 @@ import random
 import string
 import hashlib
 ##
-from db import connect_db
+from mypinnings.database import connect_db
 import ser
 
 PASSWORD = 'davidfanisawesome'

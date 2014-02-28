@@ -1,10 +1,10 @@
-import db
+from mypinnings import database
 import urllib
 import os
 from PIL import Image
 import traceback
 
-db = db.connect_db()
+db = database.connect_db()
 
 
 def upload_image(url, pid):

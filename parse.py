@@ -1,4 +1,4 @@
-from db import connect_db
+from mypinnings.database import connect_db
 
 db = connect_db()
 
