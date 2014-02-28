@@ -594,14 +594,12 @@ textarea {
 .user_pic_placeholder{
 background-repeat: no-repeat;
 width: 80px;
-height: 100px;
+height: 40px;
 }
 
 .user_pic_placeholder.avatar{
 background-repeat: no-repeat;
-background-size:80px auto;
-width: 80px;
-height: 30px !important;
+background-size:auto 40px;
 }
 
 #user_pic_placeholder{
