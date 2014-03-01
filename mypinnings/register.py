@@ -27,8 +27,8 @@ class PageRegister:
         form = self._form()
         message = web.input(msg=None).msg
         if message:
-            return template.ltpl('reg', form, message)
-        return template.tpl('reg', form)
+            return template.ltpl('register/reg', form, message)
+        return template.tpl('register/reg', form)
 
     def POST(self):
         form = self._form()
