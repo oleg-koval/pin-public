@@ -1,4 +1,5 @@
-from mypinnings.database import get_db
+all_categories = None
 
-
-all_categories = list(get_db().select('categories', order='id'))
+def initialize(db):
+    global all_categories
+    all_categories = list(db.select('categories', order='id'))
