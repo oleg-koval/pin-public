@@ -671,3 +671,11 @@ width: 20px !important;
     color: red;
     margin-right: 30px;
   }
+
+
+  #uploadimageform{
+    padding: none !important;
+  background-color: transparent !important;
+  box-shadow: none;
+  display: block !important;
+}

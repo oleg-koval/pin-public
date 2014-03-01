@@ -2,6 +2,7 @@
 (function() {
   var dragging, otherX, otherY, upload, x, y;
 
+/*
   $('#file').change(function() {
     return $('#form').submit();
   });
@@ -12,7 +13,7 @@
     $('#form').attr('action', '/changeprofile');
     return $('#file').click();
   });
-
+*/
 
   $('#save_thumbnail_edit').click(function() {
     location.reload(true);
@@ -71,6 +72,19 @@
   });
 
 
+
+$('#switch5_wrapper').mouseover(function() {
+    return $('#menu5').show();
+  });
+
+
+$('#switch5_wrapper').mouseout(function() {
+    return $('#menu5').hide();
+  });
+
+//$('.edit_thumbnail_menu').mouseout(function() {
+//    return $('#menu5').hide();
+//  });
 
 
 }).call(this);

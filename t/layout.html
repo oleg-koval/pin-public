@@ -119,6 +119,28 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
 
 
  $if 'logged_in' in sess and sess.user_id == user.id:
+          <div class="modal fade" id="uploadImageModal">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                
+                <a href="#" type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
+                <h1>Change your picture</h1>
+                </div>
+                
+                <form id='uploadimageform' action="/changeprofile" method='post' enctype='multipart/form-data'>
+                <div class="modal-body">
+               <input type='file' name='file' id='file' accept="image/*" required="required" />
+                 </div>
+              <div class="modal-footer">
+              <button type="submit"  class="button">Upload Picture</button>
+              </div>
+              </form>
+              
+            </div>
+          </div>
+          
+          </div>
           <!--
           <div class="modal fade" id="editModal">
             <div class="modal-dialog">
