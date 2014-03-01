@@ -16,13 +16,13 @@ import HTMLParser
 from mypinnings.database import connect_db, dbget
 db = connect_db()
 
-from mypinnings.cached_models import all_categories
 from mypinnings.auth import authenticate_user_email, force_login, logged_in, \
     authenticate_user_username, login_user, username_exists, email_exists, \
     logout_user, generate_salt
 import mypinnings.register
 from mypinnings.template import tpl, ltpl, lmsg
 import mypinnings.session
+from mypinnings import cached_models
 
 urls = (
     '/register', mypinnings.register.app,
@@ -131,6 +131,8 @@ app = web.application(urls, globals())
 mypinnings.session.initialize(app)
 sess = mypinnings.session.sess
 mypinnings.template.initialize(directory='t')
+cached_models.initialize(db)
+from mypinnings.cached_models import all_categories
 
 
 PIN_COUNT = 20

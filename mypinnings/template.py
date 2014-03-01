@@ -16,6 +16,7 @@ def template_closure(directory):
     templates = web.template.render(directory,
         globals={'sess': session.get_session(), 'tpl': tpl, 'tpllib': tpllib})
     def render(name, *params):
+        print('19 render', templates, name, params)
         return getattr(templates, name)(*params)
     return render
 
@@ -38,4 +39,4 @@ def lmsg(msg):
 
 def initialize(directory):
     global template_obj
-    template_obj = template_closure(dir)
+    template_obj = template_closure(directory)
