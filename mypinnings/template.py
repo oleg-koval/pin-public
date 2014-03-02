@@ -16,7 +16,6 @@ def template_closure(directory):
     templates = web.template.render(directory,
         globals={'sess': session.get_session(), 'tpl': tpl, 'tpllib': tpllib})
     def render(name, *params):
-        print('19 render', templates, name, params)
         return getattr(templates, name)(*params)
     return render
 
@@ -26,7 +25,7 @@ def ltpl(*params):
     sess = session.get_session()
     if auth.logged_in(sess):
         db = database.get_db()
-        user = db.dbget('users', sess.user_id)
+        user = database.dbget('users', sess.user_id)
         acti_needed = user.activation
         notif_count = db.select('notifs', what='count(*)', where='user_id = $id', vars={'id': sess.user_id})
         all_albums = list(db.select('albums', where="user_id=%s" % (sess.user_id), order='id'))
@@ -35,7 +34,7 @@ def ltpl(*params):
 
 
 def lmsg(msg):
-    return tpl('layout', msg)
+    return tpl('layout', msg, {})
 
 def initialize(directory):
     global template_obj
