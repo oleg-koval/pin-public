@@ -1,3 +1,6 @@
+'''
+Handles registration and login using the twitter service
+'''
 import random
 import time
 import logging
@@ -20,7 +23,9 @@ logger = logging.getLogger('mypinnings.twitter')
 
 
 class Register(object):
-
+    '''
+    Start the twitter login
+    '''
     def GET(self):
         sess = session.get_session()
         twitter = twython.Twython(app_key=settings.TWITTER['api_key'],
@@ -38,7 +43,9 @@ class Register(object):
 
 
 class Return(object):
-
+    '''
+    Manages the callback from the twitter login
+    '''
     def GET(self):
         sess = session.get_session()
         twitter = twython.Twython(app_key=settings.TWITTER['api_key'],
@@ -66,6 +73,10 @@ class Return(object):
             return template.lmsg(_("User not authenticated"))
 
     def _get_user_credentials(self):
+        '''
+        Get the user profile from twitter, Returns True if the user is
+        found in twitter, False otherwise
+        '''
         try:
             twitter = twython.Twython(app_key=settings.TWITTER['api_key'],
                                   app_secret=settings.TWITTER['api_secret'],
