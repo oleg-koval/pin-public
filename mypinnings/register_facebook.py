@@ -127,8 +127,9 @@ class Return:
         Else returns false.
         '''
         db = database.get_db()
-        query_result = db.select(tables='users', where="username=$username",
-                                   vars={'username': self.profile['username']})
+        query_result = db.select(tables='users', where="username=$username and login_source=$login_source",
+                                   vars={'username': self.profile['username'],
+                                         'login_source': auth.LOGIN_SOURCE_FACEBOOK})
         for row in query_result:
             self.user_id = row['id']
             return self.user_id
@@ -144,6 +145,7 @@ class Return:
                   'username': self.profile['username'],
                   'facebook': self.profile['username'],
                   'hometown': self.profile.get('hometown', {'name': ''}).get('name', ''),
+                  'login_source': auth.LOGIN_SOURCE_FACEBOOK,
                   }
         db = database.get_db()
         user_id = db.insert(tablename='users', **values)
