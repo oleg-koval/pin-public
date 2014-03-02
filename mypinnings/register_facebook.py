@@ -21,7 +21,7 @@ urls = ('/register', 'Register',
         '/return', 'Return',
         )
 
-logger = logging.getLogger('facebook')
+logger = logging.getLogger('mypinnings.facebook')
 
 class Register:
     '''
@@ -35,9 +35,10 @@ class Register:
         state = str(random.randrange(99999999))
         sess = session.get_session()
         sess['state'] = state
+        redirect_url = web.ctx.home + '/return'
         parameters = {'state': state,
                       'client_id': settings.FACEBOOK['application_id'],
-                      'redirect_uri': settings.FACEBOOK['login_redirect_uri'],
+                      'redirect_uri': redirect_url,
                       }
         url_redirect = base_url + urllib.urlencode(parameters)
         raise web.seeother(url=url_redirect, absolute=True)
@@ -89,9 +90,10 @@ class Return:
         '''
         try:
             base_url = 'https://graph.facebook.com/oauth/access_token?'
+            redirect_url = web.ctx.home + '/return'
             parameters = {'client_id': settings.FACEBOOK['application_id'],
                           'client_secret': settings.FACEBOOK['application_secret'],
-                          'redirect_uri': settings.FACEBOOK['login_redirect_uri'],
+                          'redirect_uri': redirect_url,
                           'code': self.code,
                           }
             url_exchange = base_url + urllib.urlencode(parameters)
@@ -101,7 +103,8 @@ class Return:
             self.access_token_expires = token_data['expires'][-1]
             return True
         except:
-            logger.error('Cannot exchange code for access token. Code: {}', self.code, exc_info=True)
+            import sys
+            logger.error('Cannot exchange code for access token. Code: %s', self.code, exc_info=sys.exc_info())
             return False
 
     def _obtain_user_profile(self):
@@ -116,7 +119,7 @@ class Return:
             self.profile = json.load(urllib.urlopen(url=url_profile))
             return True
         except:
-            logger.error('Cannot cannot obtain user profile. Access token: {}', self.access_token, exc_info=True)
+            logger.error('Cannot cannot obtain user profile. Access token: %s', self.access_token)
             return False
 
     def _get_user_from_db(self):
