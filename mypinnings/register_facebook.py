@@ -118,7 +118,6 @@ class Return:
             self.profile = json.load(urllib.urlopen(url=url_profile))
             return True
         except:
-            import sys
             logger.error('Cannot cannot obtain user profile. Access token: %s', self.access_token, exc_info=True)
             return False
 
