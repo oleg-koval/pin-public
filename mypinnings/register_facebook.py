@@ -45,7 +45,8 @@ class Return:
     '''
     def GET(self):
         '''
-        Manages the return from the facebook login
+        Manages the return from the facebook login. On success returns to the root
+        of the server url. Else prints a message
         '''
         error = web.input(error=None)['error']
         if error:
@@ -67,6 +68,10 @@ class Return:
                 return template.lmsg(_('Failure in the OAuth protocol with facebook. Try again'))
 
     def _exchange_code_for_access_token(self):
+        '''
+        Validates the code returned from facebook redirect. If correctly validated,
+        returns True, otherwise False
+        '''
         try:
             base_url = 'https://graph.facebook.com/oauth/access_token?'
             parameters = {'client_id': settings.FACEBOOK['application_id'],
@@ -85,6 +90,10 @@ class Return:
             return False
 
     def _obtain_user_profile(self):
+        '''
+        Get the user profile from facebook, Returns True if the user is
+        found in facebook, False otherwise
+        '''
         try:
             base_url = 'https://graph.facebook.com/me?'
             parameters = {'access_token': self.access_token}
@@ -96,6 +105,10 @@ class Return:
             return False
 
     def _get_user_from_db(self):
+        '''
+        Obtains the user_id from the database and return if exists.
+        Else returns false.
+        '''
         db = database.get_db()
         query_result = db.select(tables='users', where="username=$username",
                                    vars={'username': self.profile['username']})
@@ -105,6 +118,10 @@ class Return:
         return False
 
     def _insert_user_to_db(self):
+        '''
+        Inserts the user into the database using the data that we can extract
+        from the facebook profile.
+        '''
         values = {'email': self.profile.get('email', ''),
                   'name': self.profile['name'],
                   'username': self.profile['username'],
@@ -115,4 +132,5 @@ class Return:
         user_id = db.insert(tablename='users', **values)
         return user_id
 
+# register the app for using in the main urls
 app = web.application(urls, locals())
