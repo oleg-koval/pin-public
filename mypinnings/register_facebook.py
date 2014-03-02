@@ -32,7 +32,10 @@ class Register:
         Redirects to facebook login page
         '''
         base_url = 'https://www.facebook.com/dialog/oauth?'
-        parameters = {'state': str(random.randrange(99999999)),
+        state = str(random.randrange(99999999))
+        sess = session.get_session()
+        sess['state'] = state
+        parameters = {'state': state,
                       'client_id': settings.FACEBOOK['application_id'],
                       'redirect_uri': settings.FACEBOOK['login_redirect_uri'],
                       }
@@ -55,6 +58,8 @@ class Return:
         else:
             self.code = web.input(code=None)['code']
             if self.code:
+                if not self._check_state_parameter():
+                    return template.lmsg(_('Detected a possible request forge'))
                 if not self._exchange_code_for_access_token():
                     return template.lmsg(_('Invalid facebook login'))
                 if not self._obtain_user_profile():
@@ -66,6 +71,16 @@ class Return:
                 raise web.seeother(url='/', absolute=True)
             else:
                 return template.lmsg(_('Failure in the OAuth protocol with facebook. Try again'))
+
+    def _check_state_parameter(self):
+        '''
+        Check that the state we send to facebook is the same that facebook
+        returns back.
+        '''
+        sess = session.get_session()
+        state = sess['state']
+        returned_state = web.input(state=None)['state']
+        return state == returned_state
 
     def _exchange_code_for_access_token(self):
         '''
