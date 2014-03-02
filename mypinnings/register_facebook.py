@@ -103,8 +103,7 @@ class Return:
             self.access_token_expires = token_data['expires'][-1]
             return True
         except:
-            import sys
-            logger.error('Cannot exchange code for access token. Code: %s', self.code, exc_info=sys.exc_info())
+            logger.error('Cannot exchange code for access token. Code: %s', self.code, exc_info=True)
             return False
 
     def _obtain_user_profile(self):
@@ -119,7 +118,8 @@ class Return:
             self.profile = json.load(urllib.urlopen(url=url_profile))
             return True
         except:
-            logger.error('Cannot cannot obtain user profile. Access token: %s', self.access_token)
+            import sys
+            logger.error('Cannot cannot obtain user profile. Access token: %s', self.access_token, exc_info=True)
             return False
 
     def _get_user_from_db(self):
