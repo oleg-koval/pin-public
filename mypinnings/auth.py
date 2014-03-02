@@ -5,6 +5,11 @@ import web
 
 from mypinnings import database
 
+
+LOGIN_SOURCE_MYPINNINGS = 'MP'
+LOGIN_SOURCE_FACEBOOK = 'FB'
+LOGIN_SOURCE_TWITTER = 'TW'
+
 def generate_salt(length=10):
     random.seed()
     pool = string.ascii_uppercase + string.ascii_lowercase + string.digits

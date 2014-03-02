@@ -25,9 +25,11 @@ from mypinnings import cached_models
 
 import mypinnings.register
 import mypinnings.register_facebook
+import mypinnings.register_twitter
 
 urls = (
     '/register_facebook', mypinnings.register_facebook.app,
+    '/register_twitter', mypinnings.register_twitter.app,
     '/register', mypinnings.register.app,
     '/', 'PageIndex',
     '/(first-time)', 'PageIndex',
