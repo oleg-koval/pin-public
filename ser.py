@@ -19,12 +19,15 @@ db = connect_db()
 from mypinnings.auth import authenticate_user_email, force_login, logged_in, \
     authenticate_user_username, login_user, username_exists, email_exists, \
     logout_user, generate_salt
-import mypinnings.register
 from mypinnings.template import tpl, ltpl, lmsg
 import mypinnings.session
 from mypinnings import cached_models
 
+import mypinnings.register
+import mypinnings.register_facebook
+
 urls = (
+    '/register_facebook', mypinnings.register_facebook.app,
     '/register', mypinnings.register.app,
     '/', 'PageIndex',
     '/(first-time)', 'PageIndex',

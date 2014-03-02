@@ -1,17 +1,9 @@
 import web
 
+from mypinnings.settings import *
+
 
 db = None
-
-
-# try to import local settings
-# Localhost settings
-try:
-    from local_settings import *
-except ImportError:
-    from settings import *
-    pass
-
 
 def connect_db():
     global db
