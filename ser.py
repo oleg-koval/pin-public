@@ -1065,8 +1065,6 @@ class PageProfile2:
                           where='follow = $follow and follower = $follower',
                           vars={'follow': int(user.id), 'follower': sess.user_id}))
             photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id},  order="id DESC")
-
-
             return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
@@ -1528,7 +1526,9 @@ class PageRemovePhoto:
             db.delete('photos', where="id = %s" % (pid))
             new_photo = db.select('photos',where="album_id=%s"%(sess.user_id), order='id DESC', limit=1)
             if new_photo:
-                db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=new_photo[0].id,bgx=0, bgy=0)            
+                db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=new_photo[0].id,bgx=0, bgy=0)  
+            else:
+                db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=None,bgx=0, bgy=0)         
         return web.redirect('/%s' % (user.username))
 
 

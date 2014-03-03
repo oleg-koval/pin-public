@@ -84,7 +84,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
         <img class='left avatar' src='/static/pics/userthumb$(user.pic).png' alt=''/>
         -->
       $else:
-        <img class='left avatar' src='/static/default-avatar.png' alt=''/>
+        <img class='left avatar' src='/static/default-avatar.png' alt='' style="height=44px;" />
     </a>
     <div class='left'>
       <h1>$user.name</h1>
@@ -127,8 +127,10 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
                   <a href='#' id='lolimage1'>Upload another profile picture</a>
                    -->
 
-                   <a href='#' id="upload_thumbnail" data-toggle="modal" data-target="#uploadImageModal">Upload another profile picture</a>
-                  <a href='/photo/$user.pic/remove' id="remove_photo1">Remove</a>
+                  <a href='#' id="upload_thumbnail" data-toggle="modal" data-target="#uploadImageModal">Upload another profile picture</a>
+                        $if user.pic:
+                            <a href='/photo/$user.pic/remove' id="remove_photo1">Remove</a>
+                            <a href="/album/$user.id">View Photo Album</a>
                   <!--
                   <a href='#' id="edit_thumbnail" data-toggle="modal" data-target="#editModal">Edit Thumbnail</a>
                   -->
