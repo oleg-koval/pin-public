@@ -10,3 +10,11 @@ try:
         }
 except Exception:
 	pass
+
+FACEBOOK = {'application_id': '1540569082835261',
+            'application_secret': os.environ['FACEBOOK_APPLICATION_SECRET'],
+            }
+
+TWITTER = {'api_key': 'QNcMlvWvVS2ictFpHW3bQ',
+           'api_secret': os.environ['TWITTER_APPLICATION_SECRET'],
+           }
