@@ -19,6 +19,7 @@ from mypinnings import auth
 
 urls = ('/register', 'Register',
         '/return', 'Return',
+        '/username', 'Username',
         )
 
 logger = logging.getLogger('mypinnings.facebook')
@@ -39,11 +40,12 @@ class Register:
         parameters = {'state': state,
                       'client_id': settings.FACEBOOK['application_id'],
                       'redirect_uri': redirect_url,
+                      'scope': 'email',
                       }
         url_redirect = base_url + urllib.urlencode(parameters)
         raise web.seeother(url=url_redirect, absolute=True)
 
-class Return:
+class Return(auth.UniqueUsernameMixin):
     '''
     Manages the return from the facebook login
     '''
@@ -52,6 +54,7 @@ class Return:
         Manages the return from the facebook login. On success returns to the root
         of the server url. Else prints a message
         '''
+        sess = session.get_session()
         error = web.input(error=None)['error']
         if error:
             errors = web.input()
@@ -67,9 +70,13 @@ class Return:
                     return template.lmsg(_('Invalid facebook login'))
                 user_id = self._get_user_from_db()
                 if not user_id:
+                    if self.username_already_exists(self.profile['username']):
+                        self._save_profile_in_session()
+                        sess['fb_username'] = self.suggest_a_username(self.profile['username'])
+                        raise web.seeother(url='/username', absolute=False)
                     user_id = self._insert_user_to_db()
                 auth.login_user(session.get_session(), user_id)
-                raise web.seeother(url='/', absolute=True)
+                raise web.seeother(url='/{}'.format(self.username), absolute=True)
             else:
                 return template.lmsg(_('Failure in the OAuth protocol with facebook. Try again'))
 
@@ -127,11 +134,12 @@ class Return:
         Else returns false.
         '''
         db = database.get_db()
-        query_result = db.select(tables='users', where="username=$username and login_source=$login_source",
+        query_result = db.select(tables='users', where="facebook=$username and login_source=$login_source",
                                    vars={'username': self.profile['username'],
                                          'login_source': auth.LOGIN_SOURCE_FACEBOOK})
         for row in query_result:
             self.user_id = row['id']
+            self.username = row['username']
             return self.user_id
         return False
 
@@ -140,7 +148,7 @@ class Return:
         Inserts the user into the database using the data that we can extract
         from the facebook profile.
         '''
-        values = {'email': self.profile.get('email', ''),
+        values = {'email': self.profile['email'],
                   'name': self.profile['name'],
                   'username': self.profile['username'],
                   'facebook': self.profile['username'],
@@ -150,6 +158,58 @@ class Return:
         db = database.get_db()
         user_id = db.insert(tablename='users', **values)
         return user_id
+
+    def _save_profile_in_session(self):
+        sess = session.get_session()
+        if hasattr(self, 'user_id') and self.user_id:
+            sess['fb_user_id'] = self.user_id
+        else:
+            sess['fb_user_id'] = None
+        sess['fb_name'] = self.profile['name']
+        sess['fb_username'] = self.profile['username']
+        sess['fb_facebook'] = self.profile['username']
+        sess['fb_email'] = self.profile['email']
+
+
+class Username(auth.UniqueUsernameMixin):
+    '''
+    Ask for the user to select a username
+    '''
+    username_form = web.form.Form(web.form.Textbox('username', web.form.notnull, autocomplete='off',
+                                                 id='username', placeholder=_('Select a username for your profile.'),
+                                                 ),
+                                web.form.Button(_('Next')))
+
+    def GET(self):
+        sess = session.get_session()
+        form = self.username_form()
+        form['username'].set_value(sess.fb_username)
+        return template.ltpl('register/facebook/username', form)
+
+    def POST(self):
+        form = self.username_form()
+        if form.validates():
+            self.username = form['username'].value
+            if self.username_already_exists(self.username):
+                return template.ltpl('register/facebook/username', form, msg=_('Username already exists'))
+            self._insert_user_to_db()
+            auth.login_user(session.get_session(), self.user_id)
+            web.seeother(url='/{}'.format(self.username), absolute=True)
+        else:
+            return template.ltpl('register/facebook/username', form, msg=_('Please provide an username and email'))
+
+    def _insert_user_to_db(self):
+        sess = session.get_session()
+        values = {'name': sess['fb_name'],
+                  'username': self.username,
+                  'facebook': sess['fb_facebook'],
+                  'login_source': auth.LOGIN_SOURCE_FACEBOOK,
+                  'email': sess['fb_email'],
+                  }
+        db = database.get_db()
+        self.user_id = db.insert(tablename='users', **values)
+        return self.user_id
+
 
 # register the app for using in the main urls
 app = web.application(urls, locals())

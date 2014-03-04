@@ -44,7 +44,7 @@ class Register(object):
         raise web.seeother(url=authtw['auth_url'], absolute=True)
 
 
-class Return(object):
+class Return(auth.UniqueUsernameMixin):
     '''
     Manages the callback from the twitter login
     '''
@@ -68,8 +68,8 @@ class Return(object):
             user_id, email = self._get_user_data_from_db()
             if not user_id:
                 self._save_profile_in_session()
-                if username_already_exists(self.credentials['screen_name']):
-                    self._suggest_a_username()
+                if self.username_already_exists(self.credentials['screen_name']):
+                    sess['tw_username'] = self.suggest_a_username(self.credentials['screen_name'])
                     raise web.seeother(url='/username', absolute=False)
                 raise web.seeother(url='/email', absolute=False)
             if email:
@@ -139,14 +139,6 @@ class Return(object):
         sess['tw_username'] = self.credentials['screen_name']
         sess['tw_twitter'] = self.credentials['screen_name']
 
-    def _suggest_a_username(self):
-        base_username = self.credentials['screen_name']
-        suggested_username = base_username + str(random.randrange(999))
-        while username_already_exists(suggested_username):
-            suggested_username = base_username + str(random.randrange(999))
-        sess = session.get_session()
-        sess['tw_username'] = suggested_username
-
 
 class Email(object):
     '''
@@ -184,7 +176,7 @@ class Email(object):
             return template.ltpl('register/twitter/email', form, msg=_('Please provide an email'))
 
 
-class Username(object):
+class Username(auth.UniqueUsernameMixin):
     '''
     Ask for the user to select a username and email; Twitter API does not provides email
     '''
@@ -207,7 +199,7 @@ class Username(object):
         if form.validates():
             self.email = form['email'].value
             self.username = form['username'].value
-            if username_already_exists(self.username):
+            if self.username_already_exists(self.username):
                 return template.ltpl('register/twitter/username', form, msg=_('Username already exists'))
             self._insert_user_to_db()
             auth.login_user(session.get_session(), self.user_id)
@@ -226,18 +218,6 @@ class Username(object):
         db = database.get_db()
         self.user_id = db.insert(tablename='users', **values)
         return self.user_id
-
-
-def username_already_exists(username):
-    '''
-    Test if the username already exists in the DB
-    '''
-    db = database.get_db()
-    query_result = db.select(tables='users', where="username=$username",
-                               vars={'username': username})
-    for _ in query_result:
-        return True
-    return False
 
 
 app = web.application(mapping=urls, fvars=locals())

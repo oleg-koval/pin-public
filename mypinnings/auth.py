@@ -129,3 +129,23 @@ def logout_user(sess):
     sess.kill()
     for x in ['user_id', 'seriesid', 'logintoken']:
         web.setcookie(x, '', expires=-1)
+
+
+class UniqueUsernameMixin(object):
+
+    def username_already_exists(self, username):
+        '''
+        Test if the username already exists in the DB
+        '''
+        db = database.get_db()
+        query_result = db.select(tables='users', where="username=$username",
+                                   vars={'username': username})
+        for _ in query_result:
+            return True
+        return False
+
+    def suggest_a_username(self, username):
+        suggested_username = "{}{}".format(username, random.randrange(999))
+        while self.username_already_exists(suggested_username):
+            suggested_username = "{}{}".format(username, random.randrange(999))
+        return suggested_username
