@@ -11,8 +11,6 @@ from PIL import Image
 import requests
 import re
 import json
-from bs4 import BeautifulSoup
-import traceback
 import subprocess
 import HTMLParser
 import tpllib
@@ -353,6 +351,7 @@ def json_pins(pins, template=None):
     template = template or 'onepin'
     pins = [str(tpl(template, x)) for x in pins]
     return json.dumps(pins)
+
 
 class PageIndex:
     def GET(self, first_time=None):
@@ -1086,8 +1085,6 @@ class PageProfile2:
                           where='follow = $follow and follower = $follower',
                           vars={'follow': int(user.id), 'follower': sess.user_id}))
             photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id},  order="id DESC")
-
-
             return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
@@ -1457,7 +1454,8 @@ class PageAlbum:
         if not user:
             raise web.seeother('/404')
         photos = db.select('photos', where='album_id = $id', vars={'id': aid})
-        return ltpl('album', user, photos)
+        carousel = db.select('photos', where='album_id = $id', vars={'id': aid})
+        return ltpl('album', user, photos, carousel)
 
 
 class PageNewPicture:
@@ -1548,7 +1546,9 @@ class PageRemovePhoto:
             db.delete('photos', where="id = %s" % (pid))
             new_photo = db.select('photos',where="album_id=%s"%(sess.user_id), order='id DESC', limit=1)
             if new_photo:
-                db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=new_photo[0].id,bgx=0, bgy=0)            
+                db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=new_photo[0].id,bgx=0, bgy=0)  
+            else:
+                db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=None,bgx=0, bgy=0)         
         return web.redirect('/%s' % (user.username))
 
 
@@ -1558,17 +1558,17 @@ class PageSetProfilePic:
         pid = int(pid)
 
         photo = db.query('''
-            select albums.user_id from photos
-                join albums on albums.id = photos.album_id
-            where photos.id = $id''', vars={'id': pid})
+            select id from photos
+                where album_id = $sessid
+            AND id = $id''', vars={'id': pid, 'sessid': sess.user_id})
         if not photo:
             return 'no such photo'
 
         photo = photo[0]
-        if photo.user_id != sess.user_id:
+        print photo
+        if photo.id != pid:
             return 'no such photo'
-
-        db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=pid)
+        db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=pid,bgx=0, bgy=0)
         raise web.seeother('/photo/%d' % pid)
 
 

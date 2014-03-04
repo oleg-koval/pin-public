@@ -1,32 +1,66 @@
-$def with (user, photos)
+$def with (user, photos, carousel)
 <h1>Viewing album $user.name</h1>
 <p>
     <a href='/$user.username' class='button'><b>Back to Profile</b></a>
 </p>
 $if photos:
     <div class='album clearfix'>
+        $ i = 0
         $for photo in photos:
-        	<!--
-            <a href='/photo/$photo.id' class='photo left'>
-             -->
-             <a href="#" class='photo left' data-toggle="modal" data-target="#picModal$photo.id">
+            <a href="#" class='photo left' data-toggle="modal" data-target="#picModal" data-slide-to=$i>
                 <img src='/static/pics/$(photo.id).png' alt=''/>
             </a>
+            $ i += 1 
+    </div>   
 
-                    <div class="modal fade" id="picModal$photo.id">
-                    <div class="modal-dialog">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        </div>
-                        <div class="modal-body" style="display:block;overflow:hidden;">
-                        
-                            <img src='/static/pics/$(photo.id).png' alt=''/>
+    <div class="modal fade" id="picModal">
+    <div class="modal-dialog">
+    <div class="modal-content">
+    <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    </div>
+    <div class="modal-body" style="display:block;">
+    <div class="bs-example">
+    <div id="carousel-example-captions" class="carousel" >
+    <div class="carousel-inner">        
+    $ i = 0
+    $ p = 0
+    $for photo in carousel:
+      $ p += 1  
+      $if p == len(carousel):
+        $ p = 0 
+      $if i == 0:
+        <div class='item active'>
+      $else:
+        <div class='item'>
+      <a  href="#carousel-example-captions" data-slide-to='$p'>       
+      <img src='/static/pics/$(photo.id).png' alt='' picid="$photo.id" />
+      </a>
+      </div>
+      $ i += 1           
+    </div>
+    <a class="left carousel-control prev_carousel_btn" href="#carousel-example-captions" data-slide="prev">
+    <span class="">«</span>
+    </a>
+    <a class="right carousel-control next_carousel_btn" href="#carousel-example-captions" data-slide="next">
+    <span class="">»</span>
+    </a>
+    </div>
+    </div>
 
-                      </div><!-- /.modal-content -->
-                    </div><!-- /.modal-dialog -->
-                  </div><!-- /.modal --> 
-                  </div>
+    <div class="modal-footer">
+    <a href="#" id="set_as_profile_pic">Set as Profile Picture</a>
+    </div>
+
+    </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+    </div><!-- /.modal --> 
+    </div>
+    </div>   
+        
+
+
+
 
     </div>
 $else:

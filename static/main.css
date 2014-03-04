@@ -218,9 +218,8 @@ textarea {
         box-shadow: none;
         margin: 0; }
     .header .nav .avatar {
-      max-width: 44px;
-      max-height: 44px;
-      border-radius: 4px; }
+
+    }
     .header .nav .item {
       cursor: pointer;
       padding: 6.66667px;
@@ -595,13 +594,12 @@ textarea {
 .user_pic_placeholder{
 background-repeat: no-repeat;
 width: 80px;
-height: 100px;
+height: 40px;
 }
 
 .user_pic_placeholder.avatar{
 background-repeat: no-repeat;
-width: 80px;
-height: 30px !important;
+background-size:auto 40px;
 }
 
 #user_pic_placeholder{
@@ -668,3 +666,16 @@ width: 20px !important;
     background: #333842;
     padding: 5px;
   }
+
+  #set_as_profile_pic{
+    color: red;
+    margin-right: 30px;
+  }
+
+
+  #uploadimageform{
+    padding: none !important;
+  background-color: transparent !important;
+  box-shadow: none;
+  display: block !important;
+}

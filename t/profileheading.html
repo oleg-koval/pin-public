@@ -30,7 +30,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
                                     <div class='item'>
                                       
                                <a  href="#carousel-example-captions" data-slide-to='$p'>       
-                               <img src='/static/pics/$(photo.id).png' alt='' />
+                               <img src='/static/pics/$(photo.id).png' alt='' picid="$photo.id" />
                                </a>
 
                                </div>
@@ -58,6 +58,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
 
 
                 <div class="modal-footer">
+                <a href="#" id="set_as_profile_pic">Set as Profile Picture</a>
                 <a href="/album/$user.id">View Photo Album</a>
               </div>
 
@@ -78,12 +79,12 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
         href='/$user.username'
     id="user_pic_placeholder_wrapper">
       $if user.pic:
-        <div class="user_pic_placeholder" style='background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'></div>
+        <div class="user_pic_placeholder" style='height:160px !important;background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'></div>
         <!--
         <img class='left avatar' src='/static/pics/userthumb$(user.pic).png' alt=''/>
         -->
       $else:
-        <img class='left avatar' src='/static/default-avatar.png' alt=''/>
+        <img class='left avatar' src='/static/default-avatar.png' alt='' style="height=44px;" />
     </a>
     <div class='left'>
       <h1>$user.name</h1>
@@ -119,11 +120,22 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
       </p>
     </div>
           $if 'logged_in' in sess and user.id == sess.user_id:
+                  <div id="switch5_wrapper">
                   <a href='#' class='button' id="switch5">Edit Profile Picture</a>
                   <div  class='edit_thumbnail_menu' id="menu5">
+                  <!--
                   <a href='#' id='lolimage1'>Upload another profile picture</a>
-                  <a href='/photo/$user.pic/remove' id="remove_photo1">Remove</a>
+                   -->
+
+                  <a href='#' id="upload_thumbnail" data-toggle="modal" data-target="#uploadImageModal">Upload another profile picture</a>
+                        $if user.pic:
+                            <a href='/photo/$user.pic/remove' id="remove_photo1">Remove</a>
+                            <a href="/album/$user.id">View Photo Album</a>
+                  <!--
                   <a href='#' id="edit_thumbnail" data-toggle="modal" data-target="#editModal">Edit Thumbnail</a>
+                  -->
+                  
+                  </div>
                   </div>
   </div>
   <p class='right'><b>

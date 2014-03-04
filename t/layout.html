@@ -74,7 +74,7 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
                   <a href='#' id="lolimage1">
                   -->
                   <a href='/$user.username' >
-                  <img class='avatar' src='/static/default-avatar.png'/>
+                  <img class='avatar' src='/static/default-avatar.png' style="height:44px;" />
               </a>
               <div class='menu right-side invis' id='menu3'>
                 
@@ -119,6 +119,29 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
 
 
  $if 'logged_in' in sess and sess.user_id == user.id:
+          <div class="modal fade" id="uploadImageModal">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                
+                <a href="#" type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
+                <h1>Change your picture</h1>
+                </div>
+                
+                <form id='uploadimageform' action="/changeprofile" method='post' enctype='multipart/form-data'>
+                <div class="modal-body">
+               <input type='file' name='file' id='file' accept="image/*" required="required" />
+                 </div>
+              <div class="modal-footer">
+              <button type="submit"  class="button">Upload Picture</button>
+              </div>
+              </form>
+              
+            </div>
+          </div>
+          
+          </div>
+          <!--
           <div class="modal fade" id="editModal">
             <div class="modal-dialog">
               <div class="modal-content">
@@ -135,17 +158,21 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
                 $else:
                   <img class='avatar' src='/static/default-avatar.png'/>
 
-              </div><!-- /.modal-content -->
+              </div>
               <div class="modal-footer">
               <a href="#" class="button" id="save_thumbnail_edit">Save Thumbnail</a>
               </div>
 
-            </div><!-- /.modal-dialog -->
-          </div><!-- /.modal --> 
+            </div>
           </div>
+          </div>
+          
+
           <form id='form' method='post' class='invisform' enctype='multipart/form-data'>
           <input type='file' name='file' id='file' accept="image/*" />
           </form>
+          -->
+          
           <script src='/static/profile.js'></script>
   </body>
 </html>

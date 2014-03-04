@@ -44,12 +44,6 @@ $(document).ready(function(){
     interval: false
     }) 
 
-   $('#switch5').click(function(e) {
-    e.preventDefault();
-    $('#menu5').toggle();
-    e.event.stopPropagation();
-    return false;
-   });
-
+  
 
 })
