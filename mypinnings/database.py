@@ -1,6 +1,6 @@
 import web
 
-from mypinnings.settings import *
+from mypinnings.conf import settings
 
 
 db = None
@@ -9,7 +9,7 @@ def connect_db():
     global db
     if db is not None:
         return db
-    db = web.database(**params)
+    db = web.database(**settings.params)
     return db
 
 def dbget(table, row_id):
