@@ -48,7 +48,8 @@
             src = images[parseInt($(this).attr('id'))];
             if ($(this).hasClass('selected')) {
               $(this).removeClass('selected');
-              return window.selected.replace(new RegExp(src + ','), '');
+              src = src.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+              return window.selected = window.selected.replace(new RegExp(src + ','), '');
             } else {
               window.selected += src + ',';
               return $(this).addClass('selected');
@@ -67,6 +68,9 @@
     }
     if (window.selected) {
       $('#input-url').val(window.selected);
+    } else {
+      alert("Please select at least one image.");
+      return false;
     }
     return true;
   });

@@ -43,10 +43,10 @@ $('#input-url').blur ->
                     src = images[parseInt($(this).attr('id'))]
                     if $(this).hasClass('selected')
                         $(this).removeClass('selected')
-                        window.selected.replace(new RegExp(src+','),'')
+                        src = src.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&")
+                        window.selected = window.selected.replace(new RegExp(src+','),'')
                     else
                         window.selected += src+','
-                        #   preview.find('img')
                         $(this).addClass('selected')
 
         window.imagesLoading = false
@@ -58,5 +58,8 @@ $('#form').submit ->
 
     if window.selected
         $('#input-url').val window.selected
+    else
+        alert("Please select at least one image.")
+        return false
 
     true
