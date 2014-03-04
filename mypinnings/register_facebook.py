@@ -10,7 +10,7 @@ from gettext import gettext as _
 
 import web
 
-from mypinnings import settings
+from mypinnings.conf import settings
 from mypinnings import template
 from mypinnings import session
 from mypinnings import database

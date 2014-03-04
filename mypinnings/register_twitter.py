@@ -9,7 +9,7 @@ from gettext import gettext as _
 import web
 import twython
 
-from mypinnings import settings
+from mypinnings.conf import settings
 from mypinnings import session
 from mypinnings import template
 from mypinnings import database
@@ -39,7 +39,7 @@ class Register(object):
             sess['oauth_token'] = authtw['oauth_token']
             sess['oauth_token_secret'] = authtw['oauth_token_secret']
         except:
-            logger.error('Could not get auth tokens from twitter, review settings and twitter configuration', exc_info=True)
+            logger.error('Could not get auth tokens from twitter, review conf and twitter configuration', exc_info=True)
             return template.lmsg(_('Login to twitter not available.'))
         raise web.seeother(url=authtw['auth_url'], absolute=True)
 
