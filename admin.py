@@ -26,6 +26,7 @@ urls = ('', 'admin.PageIndex',
         '/logout', 'admin.PageLogout',
         '/relationships', 'admin.PageRelationships',
         '/categories', 'ListCategories',
+        'registration-items/(\d*)', 'ItemsForRegisterOfACategory'
         )
 
 
@@ -42,13 +43,13 @@ def login_required(f):
     '''
     Decorator to force login
     '''
-    def not_logged_in(self):
-        raise web.seeother('/login')
-    sess = session.get_session()
-    if sess and ('ok' not in sess or not sess['ok']):
-        return not_logged_in
-    else:
-        return f
+    def not_logged_in(self, *args, **kwargs):
+        sess = session.get_session()
+        if 'ok' not in sess or not sess['ok']:
+            raise web.seeother('/login')
+        else:
+            return f(self, *args, **kwargs)
+    return not_logged_in
 
 
 class PageIndex:
@@ -316,6 +317,10 @@ class ListCategories(object):
     @login_required
     def GET(self):
         return template.admin.list_categories(cached_models.all_categories)
+
+
+class ItemsForRegisterOfACategory(object):
+    pass
 
 
 app = web.application(urls, locals())
