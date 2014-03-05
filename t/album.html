@@ -40,11 +40,12 @@ $if photos:
       </div>
       $ i += 1           
     </div>
-    <a class="left carousel-control prev_carousel_btn" href="#carousel-example-captions" data-slide="prev">
-    <span class="">«</span>
-    </a>
-    <a class="right carousel-control next_carousel_btn" href="#carousel-example-captions" data-slide="next">
-    <span class="">»</span>
+    $if len(photos) > 1:
+        <a class="left carousel-control prev_carousel_btn" href="#carousel-example-captions" data-slide="prev">
+        <span class="">«</span>
+        </a>
+        <a class="right carousel-control next_carousel_btn" href="#carousel-example-captions" data-slide="next">
+        <span class="">»</span>
     </a>
     </div>
     </div>

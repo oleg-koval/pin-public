@@ -40,14 +40,14 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
 
                  
                 </div>
-                
-                <a class="left carousel-control prev_carousel_btn" href="#carousel-example-captions" data-slide="prev">
-                  <span class="">«</span>
-                </a>
-                <a class="right carousel-control next_carousel_btn" href="#carousel-example-captions" data-slide="next">
-                  <span class="">»</span>
-                </a>
-                
+                  $if len(photos) > 1:
+                      <a class="left carousel-control prev_carousel_btn" href="#carousel-example-captions" data-slide="prev">
+                        <span class="">«</span>
+                      </a>
+                      <a class="right carousel-control next_carousel_btn" href="#carousel-example-captions" data-slide="next">
+                        <span class="">»</span>
+                      </a>
+                      
               </div>
             </div>
 
