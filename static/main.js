@@ -40,13 +40,27 @@ $(document).ready(function(){
     e.event.stopPropagation();
   })
 
+
+//initialise this to the current active image
+id = $('.carousel2').find('.active').attr('photoid');
+$('#remove_photo').attr('href','/photo/'+id+'/remove');
+
+
+
+$('.album_item').click(function(){
+  
+
+id = $(this).attr('data-photoid');
+$('#remove_photo').attr('href','/photo/'+id+'/remove');
+
+});
+
+
   $('.carousel1').carousel({
     interval: false
     }) 
 
-  //initialise this to the current active image
-   id = $('.carousel2').find('.active').attr('photoid');
-   $('#remove_photo').attr('href','/photo/'+id+'/remove');
+
 
 
    $('.carousel2').carousel({
