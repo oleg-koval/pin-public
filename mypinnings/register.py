@@ -6,8 +6,11 @@ from mypinnings import auth
 from mypinnings import template
 from mypinnings import session
 from mypinnings import database
+from mypinnings import cached_models
 
-urls = ('', 'PageRegister',
+urls = ('/after-signup/(\d*)', 'PageAfterSignup',
+        '/after-signup', 'PageAfterSignup',
+        '', 'PageRegister',
         )
 
 class PageRegister:
@@ -70,6 +73,67 @@ class PageResendActivation:
         hashed = hash(str(user.activation))
         send_activation_email(user.email, hashed, user.id)
         return template.lmsg('An email has been resent. <a href="/"><b>Back</b></a> |  <a href=""><b>Send another one</b></a>')
+
+
+class PageAfterSignup:
+    def phase1(self):
+        return template.atpl('register/aphase1', cached_models.categories_with_thumbnails, phase=1)
+
+    _form1 = web.form.Form(web.form.Hidden('ids'))
+
+    def phase2(self):
+        form = self._form1()
+        form.validates()
+        ids = map(str, map(int, form.d.ids.split(',')))
+        db = database.get_db()
+        users = db.query('''
+            select
+                users.*,
+                count(distinct pins) as pin_count
+            from users
+                left join pins on pins.user_id = users.id
+            where pins.category in (%s)
+            group by users.id
+            order by pin_count desc
+            limit 10''' % ', '.join(ids))
+        return template.atpl('register/aphase2', users, phase=2)
+
+    def phase_post_2(self):
+        try:
+            form = self._form1()
+            form.validates()
+            ids = map(str, map(int, form.d.ids.split(',')))
+
+            print ids
+            if len(ids) > 10:
+                ids = ids[:10]
+            sess = session.get_session()
+            db = database.get_db()
+            follows = [{'follow': x, 'follower': sess.user_id} for x in ids]
+            db.multiple_insert('follows', follows)
+        except:
+            pass
+        raise web.seeother('/after-signup/3')
+
+    def phase3(self):
+        return template.atpl('register/aphase3', phase=3)
+
+    def GET(self, phase=None):
+        auth.force_login(session.get_session())
+        phase = int(phase or 1)
+        try:
+            return getattr(self, 'phase%d' % phase)()
+        except AttributeError as e:
+            raise web.notfound()
+
+    def POST(self, phase=None):
+        auth.force_login(session.get_session())
+        phase = int(phase or 1)
+
+        try:
+            return getattr(self, 'phase_post_%d' % phase)()
+        except AttributeError:
+            raise web.notfound()
 
 
 

@@ -1,0 +1,26 @@
+$def with (categories)
+$var cssfiles: /static/css/category_thumbs.css
+<link rel="stylesheet" href="/static/css/category_thumbs.css" />
+<center>
+  <h1>Let's get started! Pick three categories you're passionate about.</h1>
+  <br/>
+  <div class="categorylist">
+      $for category in categories:
+      	<div class="categorybox_$loop.parity">
+      		<div class="categorytop">
+          <button class='loldongs' style='margin-bottom: 10px;' data-id="$category['id']">$category['name']</button>&nbsp;
+          	</div>
+          	<div class="categorythumbs">
+          		$for thumb in category['thumbs']:
+	          		<div class="thumbimg">
+	          			<img src="/static/cat_reg_thmb/$thumb['image_name']"/>
+	          		</div>
+          	</div>
+        </div>
+  </div>
+</center>
+<form method='get' id='wat' action='/after-signup/2' style='display: none'>
+    <input type='hidden' name='ids' id='lol'/>
+</form>
+<script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
+<script type='text/javascript' src='/static/asignup.js'></script>
