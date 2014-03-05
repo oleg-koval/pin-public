@@ -26,6 +26,7 @@ from mypinnings import cached_models
 import mypinnings.register
 import mypinnings.register_facebook
 import mypinnings.register_twitter
+import admin
 
 urls = (
     '/register_facebook', mypinnings.register_facebook.app,
@@ -96,18 +97,7 @@ urls = (
     '/setprofilepic/(\d*)', 'PageSetProfilePic',
     '/setprivacy/(\d*)', 'PageSetPrivacy',
 
-    '/admin', 'admin.PageIndex',
-    '/admin/', 'admin.PageIndex',
-    '/admin/login', 'admin.PageLogin',
-    '/admin/search', 'admin.PageSearch',
-    '/admin/search/(all)', 'admin.PageSearch',
-    '/admin/create', 'admin.PageCreate',
-    '/admin/user/(\d*)', 'admin.PageUser',
-    '/admin/closeuser/(\d*)', 'admin.PageCloseUser',
-    '/admin/edituser/(\d*)', 'admin.PageEditUser',
-    '/admin/createuser', 'admin.PageCreateUser',
-    '/admin/logout', 'admin.PageLogout',
-    '/admin/relationships', 'admin.PageRelationships',
+    '/admin', admin.app,
 
     '/fbgm/(.*?)', 'PageHax',
 

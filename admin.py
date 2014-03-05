@@ -4,62 +4,57 @@ from web import form
 import random
 import string
 import hashlib
-##
-from mypinnings.database import connect_db
-import ser
+# #
+from mypinnings import database
+from mypinnings import session
+from mypinnings import template
+from mypinnings import cached_models
+
 
 PASSWORD = 'davidfanisawesome'
 
-db = connect_db()
-
-
-sess = ser.sess
-
-
-def tpl(*params):
-    global template_obj
-    return template_obj(*params)
-
-
-def template_closure(directory):
-    global settings
-    templates = web.template.render(directory,
-        globals={'sess': sess, 'tpl': tpl})
-    def render(name, *params):
-        return getattr(templates, name)(*params)
-    return render
-
-template_obj = template_closure('t/admin')
-
-
-def ltpl(*params):
-    return tpl('layout', tpl(*params))
+urls = ('', 'admin.PageIndex',
+        '/', 'admin.PageIndex',
+        '/login', 'admin.PageLogin',
+        '/search', 'admin.PageSearch',
+        '/search/(all)', 'admin.PageSearch',
+        '/create', 'admin.PageCreate',
+        '/user/(\d*)', 'admin.PageUser',
+        '/closeuser/(\d*)', 'admin.PageCloseUser',
+        '/edituser/(\d*)', 'admin.PageEditUser',
+        '/createuser', 'admin.PageCreateUser',
+        '/logout', 'admin.PageLogout',
+        '/relationships', 'admin.PageRelationships',
+        '/categories', 'ListCategories',
+        )
 
 
 def lmsg(msg):
-    return tpl('layout', '<div class="prose">%s</div>' % msg)
-
+    return template.admin.msg(msg)
 
 
 def login():
-    global sess
+    sess = session.get_session()
+    if 'ok' not in sess or not sess['ok']:
+        raise web.seeother('/login')
 
-    good = False
-    if 'ok' in sess:
-        good = True
+def login_required(f):
+    '''
+    Decorator to force login
+    '''
+    def not_logged_in(self):
+        raise web.seeother('/login')
+    sess = session.get_session()
+    if sess and ('ok' not in sess or not sess['ok']):
+        return not_logged_in
     else:
-        cookies = web.cookies()
-        if cookies.get('adminpw') == PASSWORD:
-            good = True
-
-    if not good:
-        raise web.seeother('/admin/login')
+        return f
 
 
 class PageIndex:
     def GET(self):
         login()
-        return ltpl('index')
+        return template.admin.index()
 
 
 class PageLogin:
@@ -69,9 +64,12 @@ class PageLogin:
     )
 
     def GET(self):
-        return ltpl('form', self._form(), 'Login')
+        sess = session.get_session()
+        sess['ok'] = False
+        return template.admin.form(self._form, 'Login')
 
     def POST(self):
+        sess = session.get_session()
         form = self._form()
         if not form.validates():
             return 'houston we have a problem'
@@ -79,20 +77,20 @@ class PageLogin:
         if form.d.password != PASSWORD:
             return 'password incorrect'
 
-        web.setcookie('adminpw', PASSWORD, 99999999)
         sess.ok = True
-        raise web.seeother('/admin/')
+        raise web.seeother('/')
 
 
 class PageLogout:
     def GET(self):
+        sess = session.get_session()
         sess.kill()
-        web.setcookie('adminpw', '', expires=-1)
-        raise web.seeother('/admin')
+        raise web.seeother('/')
 
 
 class PageRelationships:
     def GET(self):
+        db = database.get_db()
         follows = db.query('''
             select
                 follows.*,
@@ -114,8 +112,7 @@ class PageRelationships:
             from friends
                 join users u1 on u1.id = friends.id1
                 join users u2 on u2.id = friends.id2''')
-
-        return ltpl('relations', follows, friends)
+        return template.admin.relations(follows, friends)
 
 
 
@@ -149,7 +146,7 @@ class PageSearch:
 
         params = web.input(order=None, query=None)
         order = params.order
-        
+
         def make_query(query):
             if order is not None:
                 return query + (' order by %s desc' % order)
@@ -157,12 +154,13 @@ class PageSearch:
 
         if allusers is not None:
             query = make_query(USERS_QUERY % '')
+            db = database.get_db()
             results = db.query(query)
-            return ltpl('search', results)
+            return template.admin.search(results)
 
         search_query = params.query
         if search_query is None:
-            return ltpl('searchform', self._form(), params)
+            return template.admin.searchform(self._form(), params)
 
         query = make_query(USERS_QUERY % '''
             where
@@ -171,12 +169,13 @@ class PageSearch:
                 users.about ilike $search''')
 
         results = db.query(query, vars={'search': '%%%s%%' % search_query})
-        return ltpl('search', results)
+        return template.admin.search(results)
 
 
 class PageUser:
     def GET(self, user_id):
         user_id = int(user_id)
+        db = database.get_db()
         user = db.query('''
             select
                 users.*,
@@ -194,17 +193,17 @@ class PageUser:
             group by users.id''', vars={'id': user_id})
         if not user:
             return 'user not found'
-
-        return ltpl('user', user[0])
+        return template.admin.user(user[0])
 
 
 class PageCloseUser:
     def GET(self, user_id):
         login()
         user_id = int(user_id)
+        db = database.get_db()
         db.query('delete from pins where user_id = $id', vars={'id': user_id})
         db.query('delete from users where id = $id', vars={'id': user_id})
-        raise web.seeother('/admin/')
+        raise web.seeother('/')
 
 
 class PageEditUser:
@@ -219,11 +218,11 @@ class PageEditUser:
     def GET(self, user_id):
         login()
         user_id = int(user_id)
+        db = database.get_db()
         user = db.select('users', where='id = $id', vars={'id': user_id})
         if not user:
             return 'That user does not exist.'
-
-        return ltpl('edituser', self.make_form(user[0]))
+        return template.admin.edituser(self.make_form(user[0]))
 
     def POST(self, user_id):
         login()
@@ -234,11 +233,13 @@ class PageEditUser:
 
         d = dict(form.d)
         del d['update']
+        db = database.get_db()
         db.update('users', where='id = $id', vars={'id': user_id}, **d)
-        raise web.seeother('/admin/edituser/%d' % user_id)
+        raise web.seeother('/edituser/%d' % user_id)
 
 
 def email_exists(email):
+    db = database.get_db()
     result = db.select('users',
         what='1',
         where='email=$email',
@@ -254,8 +255,8 @@ def hash(data):
 def create_user(email, password, **params):
     pw_hash = hash(password)
     pw_salt = generate_salt()
-    pw_hash = hash(pw_hash+pw_salt)
-
+    pw_hash = hash(pw_hash + pw_salt)
+    db = database.get_db()
     return db.insert('users', email=email, pw_hash=pw_hash, pw_salt=pw_salt, **params)
 
 
@@ -266,6 +267,7 @@ def generate_salt(length=10):
 
 
 def username_exists(username):
+    db = database.get_db()
     result = db.select('users',
         what='1',
         where='username=$username',
@@ -286,7 +288,7 @@ class PageCreateUser:
     def GET(self):
         login()
         form = self._form()
-        return ltpl('reg', form)
+        return template.admin.reg(form)
 
     def POST(self):
         login()
@@ -304,8 +306,16 @@ class PageCreateUser:
         if not user_id:
             return 'couldn\'t create user'
 
-        raise web.seeother('/admin/user/%d' % user_id)
+        raise web.seeother('/user/%d' % user_id)
 
 
-if __name__ == '__main__':
-    app.run()
+class ListCategories(object):
+    '''
+    Shows the category list to edit them and change its properties
+    '''
+    @login_required
+    def GET(self):
+        return template.admin.list_categories(cached_models.all_categories)
+
+
+app = web.application(urls, locals())
