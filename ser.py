@@ -1524,11 +1524,10 @@ class PageRemovePhoto:
             return 'no such photo'
         else:
             db.delete('photos', where="id = %s" % (pid))
-            new_photo = db.select('photos',where="album_id=%s"%(sess.user_id), order='id DESC', limit=1)
-            if new_photo:
-                db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=new_photo[0].id,bgx=0, bgy=0)  
-            else:
-                db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=None,bgx=0, bgy=0)         
+            user = dbget('users', sess.user_id)
+            '''if this is an avatar update to null'''
+            if user.pic == pid:
+                db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=None,bgx=0, bgy=0)
         return web.redirect('/%s' % (user.username))
 
 
