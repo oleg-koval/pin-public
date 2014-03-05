@@ -111,9 +111,6 @@ urls = (
 
     '/fbgm/(.*?)', 'PageHax',
 
-    '/after-signup', 'PageAfterSignup',
-    '/after-signup/(\d*)', 'PageAfterSignup',
-
     '/connect', 'PageConnect',
     '/profile/(\d*)', 'PageProfile',
 
@@ -1428,73 +1425,6 @@ class PageViewCategory:
 
         pins = list(db.query(query, vars={'cid': cid}))
         return ltpl('category', pins, category, name, offset, PIN_COUNT)
-
-
-def atpl(*params, **kwargs):
-    if 'phase' not in kwargs:
-        raise Exception('phase needed in atpl')
-    return tpl('asignup', tpl(*params), kwargs['phase'])
-
-class PageAfterSignup:
-    def phase1(self):
-        global all_categories
-
-        return atpl('aphase1', all_categories, phase=1)
-
-    _form1 = form.Form(form.Hidden('ids'))
-
-    def phase2(self):
-        form = self._form1()
-        form.validates()
-        ids = map(str, map(int, form.d.ids.split(',')))
-
-        users = db.query('''
-            select
-                users.*,
-                count(distinct pins) as pin_count
-            from users
-                left join pins on pins.user_id = users.id
-            where pins.category in (%s)
-            group by users.id
-            order by pin_count desc
-            limit 10''' % ', '.join(ids))
-        return atpl('aphase2', users, phase=2)
-
-    def phase_post_2(self):
-        try:
-            form = self._form1()
-            form.validates()
-            ids = map(str, map(int, form.d.ids.split(',')))
-
-            print ids
-            if len(ids) > 10:
-                ids = ids[:10]
-
-            follows = [{'follow': x, 'follower': sess.user_id} for x in ids]
-            db.multiple_insert('follows', follows)
-        except:
-            pass
-        raise web.seeother('/after-signup/3')
-
-    def phase3(self):
-        return atpl('aphase3', phase=3)
-
-    def GET(self, phase=None):
-        force_login(sess)
-        phase = int(phase or 1)
-        try:
-            return getattr(self, 'phase%d' % phase)()
-        except AttributeError as e:
-            raise web.notfound()
-
-    def POST(self, phase=None):
-        force_login(sess)
-        phase = int(phase or 1)
-
-        try:
-            return getattr(self, 'phase_post_%d' % phase)()
-        except AttributeError:
-            raise web.notfound()
 
 
 class PageShare:

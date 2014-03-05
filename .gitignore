@@ -9,3 +9,4 @@ local_settings.py
 node_modules/
 .project
 .pydevproject
+static/cat_reg_thmb/

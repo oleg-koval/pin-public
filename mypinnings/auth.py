@@ -57,7 +57,7 @@ def username_exists(username):
 
 
 def create_user(email, password, **params):
-    pw_hash = hash(password)
+    pw_hash = str(hash(password))
     pw_salt = generate_salt()
     pw_hash = hash(pw_hash + pw_salt)
 

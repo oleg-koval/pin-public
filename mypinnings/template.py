@@ -36,6 +36,12 @@ def ltpl(*params):
 def lmsg(msg):
     return tpl('layout', msg, {})
 
+
+def atpl(*params, **kwargs):
+    if 'phase' not in kwargs:
+        raise Exception('phase needed in atpl')
+    return tpl('asignup', tpl(*params), kwargs['phase'])
+
 def initialize(directory):
     global template_obj
     template_obj = template_closure(directory)

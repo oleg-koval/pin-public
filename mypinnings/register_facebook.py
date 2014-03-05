@@ -76,7 +76,7 @@ class Return(auth.UniqueUsernameMixin):
                         raise web.seeother(url='/username', absolute=False)
                     user_id = self._insert_user_to_db()
                 auth.login_user(session.get_session(), user_id)
-                raise web.seeother(url='/{}'.format(self.username), absolute=True)
+                raise web.seeother(url='/register/after-signup', absolute=True)
             else:
                 return template.lmsg(_('Failure in the OAuth protocol with facebook. Try again'))
 
@@ -194,7 +194,7 @@ class Username(auth.UniqueUsernameMixin):
                 return template.ltpl('register/facebook/username', form, msg=_('Username already exists'))
             self._insert_user_to_db()
             auth.login_user(session.get_session(), self.user_id)
-            web.seeother(url='/{}'.format(self.username), absolute=True)
+            web.seeother(url='/register/after-signup', absolute=True)
         else:
             return template.ltpl('register/facebook/username', form, msg=_('Please provide an username and email'))
 

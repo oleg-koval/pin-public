@@ -75,7 +75,7 @@ class Return(auth.UniqueUsernameMixin):
             if email:
                 auth.login_user(session.get_session(), user_id)
                 # username is set in _get_user_data_from_db()
-                raise web.seeother(url='/{}'.format(self.username), absolute=True)
+                raise web.seeother(url='/register/after-signup', absolute=True)
             else:
                 self._save_profile_in_session()
                 raise web.seeother(url='/email', absolute=False)
@@ -171,7 +171,7 @@ class Email(object):
                           }
                 user_id = db.insert(tablename='users', **values)
             auth.login_user(session.get_session(), user_id)
-            web.seeother(url='/{}'.format(sess.tw_username), absolute=True)
+            web.seeother(url='/register/after-signup', absolute=True)
         else:
             return template.ltpl('register/twitter/email', form, msg=_('Please provide an email'))
 
@@ -203,7 +203,7 @@ class Username(auth.UniqueUsernameMixin):
                 return template.ltpl('register/twitter/username', form, msg=_('Username already exists'))
             self._insert_user_to_db()
             auth.login_user(session.get_session(), self.user_id)
-            web.seeother(url='/{}'.format(self.username), absolute=True)
+            web.seeother(url='/register/after-signup', absolute=True)
         else:
             return template.ltpl('register/twitter/username', form, msg=_('Please provide an username and email'))
 
