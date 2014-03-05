@@ -7,6 +7,9 @@ from mypinnings import tpllib
 from mypinnings import cached_models
 
 
+admin = None
+
+
 def tpl(*params):
     global template_obj
     return template_obj(*params)
@@ -44,4 +47,6 @@ def atpl(*params, **kwargs):
 
 def initialize(directory):
     global template_obj
+    global admin
     template_obj = template_closure(directory)
+    admin = web.template.render(loc='t/admin', base='layout')
