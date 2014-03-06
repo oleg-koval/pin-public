@@ -40,24 +40,6 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
                 </table>
               </div>
             </div>
-                    <!--
-                    $if all_albums:
-                    <div class='nav-item item' id='switch3'>
-                      <i class='fa fa-picture-o'></i> Albums
-                      <div class='menu invis' id='menu3'>
-                        <table width='100%' cellpadding='5'>
-                          $ i = 0
-                          <tr>
-                          $for cat in all_albums:
-                            $if i % 3 == 0:
-                              </tr><tr>
-                            <td style='width: 250px'><b><a href='/album/$cat['id']'>$cat['name']</a></b></td>
-                            $ i += 1
-                          </tr>
-                        </table>
-                      </div>
-                    </div>
-                  -->
             &nbsp;
             <form method='get' action='/search/items' class='nav-item search'>
               <input type='text' name='q' placeholder='Search Projects, Posts, and More&hellip;'/>
@@ -141,37 +123,7 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
           </div>
           
           </div>
-          <!--
-          <div class="modal fade" id="editModal">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                </div>
-                <div class="modal-body" style="display:block;overflow:hidden;">
-                $if user.pic:
-                 <div class="user_pic_placeholder" id="user_pic_placeholder" style='background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'></div>
-                 <div style="float:left;margin-left:20px;">
-                   <p>Drag the image to adjust.</p>
-                   <small>This version of your public profile picture will appear around the site.</small>
-                 </div>
-                $else:
-                  <img class='avatar' src='/static/default-avatar.png'/>
 
-              </div>
-              <div class="modal-footer">
-              <a href="#" class="button" id="save_thumbnail_edit">Save Thumbnail</a>
-              </div>
-
-            </div>
-          </div>
-          </div>
-          
-
-          <form id='form' method='post' class='invisform' enctype='multipart/form-data'>
-          <input type='file' name='file' id='file' accept="image/*" />
-          </form>
-          -->
           
           <script src='/static/profile.js'></script>
   </body>

@@ -31,7 +31,7 @@
 $(document).ready(function(){
 
   $('#remove_photo, #remove_photo1').click(function(e){
-    result = window.confirm("Are you sure you want to delete this Photo ?");
+    result = window.confirm("Are you sure you want to remove this picture ?");
     if(!result){
       e.preventDefault()
       e.event.stopPropagation();
@@ -40,10 +40,36 @@ $(document).ready(function(){
     e.event.stopPropagation();
   })
 
-  $('.carousel').carousel({
+
+//initialise this to the current active image
+id = $('.carousel2').find('.active').attr('photoid');
+$('#remove_photo').attr('href','/photo/'+id+'/remove');
+
+
+
+$('.album_item').click(function(){
+  
+
+id = $(this).attr('data-photoid');
+$('#remove_photo').attr('href','/photo/'+id+'/remove');
+
+});
+
+
+  $('.carousel1').carousel({
     interval: false
     }) 
 
+
+
+
+   $('.carousel2').carousel({
+    interval: false
+    }).on('slid.bs.carousel', function (e) {
+       var xx = $(this);
+       id = xx.find('.active').attr('photoid');
+       $('#remove_photo').attr('href','/photo/'+id+'/remove');
+   });
   
 
 })

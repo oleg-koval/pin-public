@@ -2,18 +2,6 @@
 (function() {
   var dragging, otherX, otherY, upload, x, y;
 
-/*
-  $('#file').change(function() {
-    return $('#form').submit();
-  });
-
-
-
-  $('#lolimage, #lolimage1').click(function() {
-    $('#form').attr('action', '/changeprofile');
-    return $('#file').click();
-  });
-*/
 
   $('#save_thumbnail_edit').click(function() {
     location.reload(true);

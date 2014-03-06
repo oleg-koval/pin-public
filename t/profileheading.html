@@ -13,7 +13,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
 
 
           <div class="bs-example">
-              <div id="carousel-example-captions" class="carousel" >
+              <div id="carousel-example-captions" class="carousel carousel1" >
                 <div class="carousel-inner">
 
 
@@ -40,14 +40,14 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
 
                  
                 </div>
-                
-                <a class="left carousel-control prev_carousel_btn" href="#carousel-example-captions" data-slide="prev">
-                  <span class="">«</span>
-                </a>
-                <a class="right carousel-control next_carousel_btn" href="#carousel-example-captions" data-slide="next">
-                  <span class="">»</span>
-                </a>
-                
+                  $if len(photos) > 1:
+                      <a class="left carousel-control prev_carousel_btn" href="#carousel-example-captions" data-slide="prev">
+                        <span class="">«</span>
+                      </a>
+                      <a class="right carousel-control next_carousel_btn" href="#carousel-example-captions" data-slide="next">
+                        <span class="">»</span>
+                      </a>
+                      
               </div>
             </div>
 
@@ -130,6 +130,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
                   <a href='#' id="upload_thumbnail" data-toggle="modal" data-target="#uploadImageModal">Upload another profile picture</a>
                         $if user.pic:
                             <a href='/photo/$user.pic/remove' id="remove_photo1">Remove</a>
+                        $if photos:
                             <a href="/album/$user.id">View Photo Album</a>
                   <!--
                   <a href='#' id="edit_thumbnail" data-toggle="modal" data-target="#editModal">Edit Thumbnail</a>

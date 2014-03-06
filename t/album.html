@@ -2,12 +2,13 @@ $def with (user, photos, carousel)
 <h1>Viewing album $user.name</h1>
 <p>
     <a href='/$user.username' class='button'><b>Back to Profile</b></a>
+    <a href='#' id="upload_thumbnail" class='button' data-toggle="modal" data-target="#uploadImageModal">Upload another profile picture</a>
 </p>
 $if photos:
     <div class='album clearfix'>
         $ i = 0
         $for photo in photos:
-            <a href="#" class='photo left' data-toggle="modal" data-target="#picModal" data-slide-to=$i>
+            <a href="#" class='photo left album_item' data-photoid="$photo.id" data-toggle="modal" data-target="#picModal" data-slide-to=$i >
                 <img src='/static/pics/$(photo.id).png' alt=''/>
             </a>
             $ i += 1 
@@ -21,7 +22,7 @@ $if photos:
     </div>
     <div class="modal-body" style="display:block;">
     <div class="bs-example">
-    <div id="carousel-example-captions" class="carousel" >
+    <div id="carousel-example-captions" class="carousel carousel2" >
     <div class="carousel-inner">        
     $ i = 0
     $ p = 0
@@ -30,25 +31,27 @@ $if photos:
       $if p == len(carousel):
         $ p = 0 
       $if i == 0:
-        <div class='item active'>
+        <div class='item active' photoid="$photo.id">
       $else:
-        <div class='item'>
+        <div class='item' photoid="$photo.id">
       <a  href="#carousel-example-captions" data-slide-to='$p'>       
       <img src='/static/pics/$(photo.id).png' alt='' picid="$photo.id" />
       </a>
       </div>
       $ i += 1           
     </div>
-    <a class="left carousel-control prev_carousel_btn" href="#carousel-example-captions" data-slide="prev">
-    <span class="">«</span>
-    </a>
-    <a class="right carousel-control next_carousel_btn" href="#carousel-example-captions" data-slide="next">
-    <span class="">»</span>
+    $if len(photos) > 1:
+        <a class="left carousel-control prev_carousel_btn" href="#carousel-example-captions" data-slide="prev">
+        <span class="">«</span>
+        </a>
+        <a class="right carousel-control next_carousel_btn" href="#carousel-example-captions" data-slide="next">
+        <span class="">»</span>
     </a>
     </div>
     </div>
 
     <div class="modal-footer">
+    <a href='/photo/$user.pic/remove' id="remove_photo" style="font-weight:bold;color:red;margin-right:30px;">Remove</a>
     <a href="#" id="set_as_profile_pic">Set as Profile Picture</a>
     </div>
 
