@@ -1,28 +1,24 @@
-$def with (user, countries, name)
+$def with (user, countries, name, photos)
 
 <div class='settings clearfix'>
   <div class='nav left'>
-    <a href='/settings/email'>Email</a>
-    <a href='/settings/profile'>Profile</a>
-    <a href='/$user.username/photos'>Photos</a>
-    <a href='/settings/password'>Change Password</a>
-    <a href='/settings/social-media'>Social Media</a>
-    <a href='/settings/privacy'>Privacy</a>
-    <a href='/settings/email-settings'>Email Settings</a>
+
+
+
+     <a href='/settings/profile'>Profile</a>
+     <a href='/settings/account'>Account</a>
+     <a href='/settings/privacy'>Privacy</a>
+     <a href='/settings/password'>Password</a>
+     <a href='/settings/email-settings'>Email Settings</a>
+     <a href='/settings/social-media'>Social Media</a>  
+
+
   </div>
   <div class='right' id='box'>
   </div>
 </div>
 
-<!--<div class='invis' id='box-photos'>
-  <h1>Photos</h1>
-  <hr/>
-  <h2>Profile Picture</h2>
-  $if user.pic:
-    <img src='/static/pics/$(user.id).png' style='width: 200px; height: 200px; vertical-align: top; margin-bottom: 30px'/>
-  $else:
-    <p>You haven't chosen a profile picture yet! Upload some photos, then pick one.</p>
-</div>-->
+
 
 <div class='invis' id='box-email'>
   <h1>Email</h1>
@@ -42,9 +38,47 @@ $def with (user, countries, name)
 
 
 <div class='invis' id='box-profile'>
-  <h1>Edit Profile (<a href='/profile/$sess.user_id'>View Profile</a>)</h1>
+  <h1>Profile Settings</h1>
   <form method='post' class='inner-form' action='' autocomplete='off'>
     <table>
+    <tr>
+        <th>Photo</th>
+        <td>
+              
+              <div class="pull-left">
+              $if user.pic:
+                 <a href='/$user.username' id="user_avatar_placeholder_wrapper">
+                 <div class="user_pic_placeholder avatar" style='background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'></div>
+                $else:
+                  <a href='/$user.username' >
+                  <img class='avatar' src='/static/default-avatar.png' style="height:44px;" />
+              </a>
+              </div>
+
+
+              <div class="pull-left">
+              <div class="dropdown">
+              <a id="dropdownMenu1" data-toggle="dropdown">Change Photo</a>
+              <span class="caret"></span>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+               <li role="presentation"><a href='#' id="upload_thumbnail" data-toggle="modal" data-target="#uploadImageModal">Upload another profile picture</a></li>
+               $if user.pic:
+                    <li role="presentation"><a href='/photo/$user.pic/remove' id="remove_photo1">Remove</a></li>
+               $if photos:
+                    <li role="presentation"><a href="/album/$user.id">View Photo Album</a></li>   
+  </ul>
+
+</div>
+              </div>
+
+
+
+        </td>
+      </tr>
+      <tr>
+        <th>Header</th>
+        <td><input type='text' name='name' value='$user.name' /></td>
+      </tr>
       <tr>
         <th>Name</th>
         <td><input type='text' name='name' value='$user.name' /></td>
