@@ -441,13 +441,8 @@ class PageAddPinUrl:
             img.thumbnail((width, height), Image.ANTIALIAS)
             img.save('static/tmp/pinthumb%s.png' % fname)
 
-<<<<<<< HEAD
-        return fname
-
-=======
         return imgs
     
->>>>>>> multipin
     def POST(self):
         force_login(sess)
         form = self.make_form()
