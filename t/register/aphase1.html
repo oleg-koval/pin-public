@@ -7,7 +7,7 @@ $def with (categories)
       $for category in categories:
       	<div class="categorybox_$loop.parity">
       		<div class="categorytop">
-          <button class='loldongs' style='margin-bottom: 10px;' data-id="$category['id']">$category['name']</button>&nbsp;
+          <button class='loldongs' style='margin-bottom: 10px;' categoryid="$category['id']">$category['name']</button>&nbsp;
           	</div>
           	<div class="categorythumbs">
           		$for thumb in category['thumbs']:
@@ -17,9 +17,15 @@ $def with (categories)
           	</div>
         </div>
   </div>
+  <div>
+  	Select at least 3 to continue
+  </div>
+  <div>
+  	<button id="continue_button" disabled>Continue</button>
+  </div>
 </center>
 <form method='get' id='wat' action='/register/after-signup/2' style='display: none'>
     <input type='hidden' name='ids' id='lol'/>
 </form>
-<script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
-<script type='text/javascript' src='/static/asignup.js'></script>
+<script src='//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js'></script>
+<script type='text/javascript' src='/static/js/asignup.js'></script>

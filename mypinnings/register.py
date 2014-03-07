@@ -1,4 +1,5 @@
 import random
+import json
 
 import web
 
@@ -10,6 +11,7 @@ from mypinnings import cached_models
 
 urls = ('/after-signup/(\d*)', 'PageAfterSignup',
         '/after-signup', 'PageAfterSignup',
+        '/api/users/me/category/(\d*)/?', 'ApiRegisterCategoryForUser',
         '', 'PageRegister',
         )
 
@@ -98,7 +100,7 @@ class PageAfterSignup:
             limit 10''' % ', '.join(ids))
         return template.atpl('register/aphase2', users, phase=2)
 
-    def phase_post_2(self):
+    def old_phase_post_2(self):
         try:
             form = self._form1()
             form.validates()
@@ -134,6 +136,25 @@ class PageAfterSignup:
             return getattr(self, 'phase_post_%d' % phase)()
         except AttributeError:
             raise web.notfound()
+
+
+class ApiRegisterCategoryForUser:
+    '''
+    '''
+    def PUT(self, category_id):
+        sess = session.get_session()
+        db = database.get_db()
+        db.insert(tablename='user_prefered_categories', user_id=sess.user_id, category_id=category_id)
+        web.header('Content-Type', 'application/json')
+        return json.dumps({'status': 'ok'})
+
+    def DELETE(self, category_id):
+        sess = session.get_session()
+        db = database.get_db()
+        db.delete(table='user_prefered_categories', where='user_id=$user_id and category_id=$category_id',
+                  vars={'user_id': sess.user_id, 'category_id': category_id})
+        web.header('Content-Type', 'application/json')
+        return json.dumps({'status': 'ok'})
 
 
 
