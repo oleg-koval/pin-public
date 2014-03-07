@@ -11,6 +11,12 @@ $def with (category, pins)
 	<div id="search_pin_list" class="container-fluid"></div>
 	<div id="search_navigation" class="container-fluid"><div class="row"></div></div>
 </div>
+<style>
+.box_pin {
+	border: 2px dotted lightgray;
+	padding: 4px;
+}
+</style>
 <script language="javascript">
 $$(document).ready(function (){
 	$$( "#pin_list" ).on('click', '.remove', function () {
@@ -132,7 +138,7 @@ $$(document).ready(function (){
 	
 	var data;
 $for pin in pins:
-	data = {'id': $pin['id'], 'name': '$pin['name']', 'description': '$pin['description']'}
+	data = {'id': $pin['id'], 'name': '$pin['name']', 'description': '$pin['description']', 'link': '$pin['link']'}
 	add_to_pin_list(data);
 });
 </script>
