@@ -34,6 +34,9 @@ import glob
 
 web.config.debug = True
 
+
+web.config.debug = True
+
 urls = (
     '/register_facebook', mypinnings.register_facebook.app,
     '/register_twitter', mypinnings.register_twitter.app,
