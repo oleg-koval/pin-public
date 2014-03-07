@@ -559,7 +559,8 @@ class PageEditProfile:
     def GET(self, name=None):
         force_login(sess)
         user = dbget('users', sess.user_id)
-        return ltpl('editprofile', user, countries, name)
+        photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id})
+        return ltpl('editprofile', user, countries, name, photos)
 
     def POST(self, name=None):
         force_login(sess)
@@ -575,6 +576,7 @@ class PageEditProfile:
             vars={'id': sess.user_id})
 
         raise web.seeother('/settings/profile')
+
 
 
 class PageChangeEmail:
