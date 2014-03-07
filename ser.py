@@ -1015,7 +1015,7 @@ class PageProfile:
         user = dbget('users', user_id)
         if not user:
             return 'User not found.'
-        
+        print user        
         raise web.seeother('/' + user.username)
 
 
