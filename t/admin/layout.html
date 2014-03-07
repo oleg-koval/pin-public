@@ -3,23 +3,30 @@ $def with (content)
 <html>
     <head>
         <title>MyPinnings Admin</title>
-        <link rel='stylesheet' type='text/css' href='/static/main.css'/>
-        <link rel='stylesheet' type='text/css' href='/static/admin.css'/>
+        <link rel='stylesheet' type='text/css' href='/static/bootstrap3.css'/>
+        <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+        <script src="/static/bootstrap.min.js"></script>
     </head>
-    <body>
-	    <div class="menu">
-	    <a href='/admin/search/all'><b>All users</b></a><br/>
-	    <a href='/admin/search'><b>Search</b></a><br/>
-	    <a href='/admin/relationships'><b>Relationships</b></a><br/>
-	    <a href='/admin/createuser'><b>Create account</b></a><br/>
-	    <a href='/admin/categories'><b>Categories</b></a><br/>
-	    <hr/>
-	    <a href='/admin/logout'><b>Log out of admin panel</b></a>
-		</div>
-        <div class='wrap'>
-            <h1><a href='/admin/'>MyPinnings Admin</a></h1>
-            <hr/>
-            $:content
+    <body class="container">
+    	<div class="row">
+		    <div class="col-xs-2">
+		    	<ul>
+				    <li><a href='/admin/search/all'>All users</a><br/>
+				    <li><a href='/admin/search'>Search</a><br/>
+				    <li><a href='/admin/relationships'>Relationships</a><br/>
+				    <li><a href='/admin/createuser'>Create account</a><br/>
+				    <li><a href='/admin/categories'>Categories</a><br/>
+				    <hr/>
+				    <li><a href='/admin/logout'>Log out of admin panel</a>
+		    	</ul>
+			</div>
+	        <div class='col-xs-10'>
+	            <h1><a href='/admin/'>MyPinnings Admin</a></h1>
+	            <hr/>
+	            $:content
+	        </div>
         </div>
     </body>
 </html>

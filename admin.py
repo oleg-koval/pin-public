@@ -4,12 +4,16 @@ from web import form
 import random
 import string
 import hashlib
+import json
+import logging
 # #
 from mypinnings import database
 from mypinnings import session
 from mypinnings import template
 from mypinnings import cached_models
 
+
+logger = logging.getLogger('admin')
 
 PASSWORD = 'davidfanisawesome'
 
@@ -26,7 +30,10 @@ urls = ('', 'admin.PageIndex',
         '/logout', 'admin.PageLogout',
         '/relationships', 'admin.PageRelationships',
         '/categories', 'ListCategories',
-        'registration-items/(\d*)', 'ItemsForRegisterOfACategory'
+        '/cool-items-category/(\d*)', 'EditCoolProductsForCategory',
+        '/api/categories/(\d*)/pins', 'ApiCategoryPins',
+#         '/api/categories/(\d*)/cool_pins', 'ApiategoryCoolPins'
+         '/api/categories/(\d*)/cool_pins/(\d*)/', 'ApiCategoryCoolPins'
         )
 
 
@@ -319,8 +326,68 @@ class ListCategories(object):
         return template.admin.list_categories(cached_models.all_categories)
 
 
-class ItemsForRegisterOfACategory(object):
-    pass
+class EditCoolProductsForCategory(object):
+    '''
+    Allows edition of cool products for one category
+    '''
+    @login_required
+    def GET(self, category_id):
+        db = database.get_db()
+        pins = db.select(tables=['pins', 'cool_pins'], order='pins.name',
+                         where='cool_pins.category_id=$category_id and cool_pins.pin_id=pins.id',
+                         vars={'category_id': category_id})
+        categories = db.where(table='categories', id=category_id)
+        for c in categories:
+            category = c
+        return template.admin.edit_cool_products_category(category, pins)
+
+
+class ApiCategoryPins(object):
+    @login_required
+    def GET(self, category_id):
+        db = database.get_db()
+        search_terms = web.input(search_terms=None)['search_terms']
+        if search_terms:
+            search_terms = "%{}%".format(search_terms.lower())
+            pins = db.select(tables=['pins'], order='name',
+                         where='category=$category_id and (lower(name) like $search or lower(description) like $search)',
+                         vars={'category_id': category_id, 'search': search_terms})
+            list_of_pins = []
+            for p in pins:
+                list_of_pins.append(dict(p))
+            web.header('Content-Type', 'application/json')
+            return json.dumps(list_of_pins)
+        else:
+            raise web.NotFound(_("You did not provide search terms"))
+
+
+class ApiCategoryCoolPins(object):
+    @login_required
+    def PUT(self, category_id, pin_id):
+        '''
+        Puts the pin in the category's cool pins
+        '''
+        db = database.get_db()
+        try:
+            db.insert(tablename='cool_pins', category_id=category_id, pin_id=pin_id)
+        except:
+            logger.error('Could not add pin ({}) to cool pins for category ({})'.format(pin_id, category_id), exc_info=True)
+            raise web.NotFound('Could not add pin to cool pins')
+        return json.dumps({'status': 'ok'})
+
+    @login_required
+    def DELETE(self, category_id, pin_id):
+        '''
+        Deletes the pin from the category's cool pins
+        '''
+        db = database.get_db()
+        try:
+            db.delete(table='cool_pins', where='category_id=$category_id and pin_id=$pin_id',
+                      vars={'category_id': category_id, 'pin_id': pin_id})
+        except:
+            logger.error('Could not delete pin ({}) from cool pins for category ({})'.format(pin_id, category_id), exc_info=True)
+            raise web.NotFound('Could not delete pin from cool pins')
+        return json.dumps({'status': 'ok'})
 
 
 app = web.application(urls, locals())
