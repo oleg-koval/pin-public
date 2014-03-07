@@ -4,12 +4,12 @@ $def with (category, pins)
 </div>
 <div><button id="search_for_cool_pins_button" class="btn">Add a cool product</button></div>
 <div id="pin_list" class="pins">
-$for pin in pins:
-	<div id="pin$pin.id" class="pin">
-		<span>$pin.name</span>
-		<span>$pin.description</span>
-		<button id="remove_pin$pin.id" pin="$pin.id" class="btn remove">remove</button>
-	</div>
+</div>
+<div id="search_dialog" title="Search cool items">
+	<input type="text" id="search_terms"/>
+	<button id="search_button" class="btn">Search</button>
+	<div id="search_pin_list" class="container-fluid"></div>
+	<div id="search_navigation" class="container-fluid"><div class="row"></div></div>
 </div>
 <script language="javascript">
 $$(document).ready(function (){
@@ -34,11 +34,7 @@ $$(document).ready(function (){
 	}
 
 	function add_to_pin_list( pin ) {
-		$$( "#pin_list" ).append('<div id="pin' + pin['id'] + '" class="pin">'
-				+ '<span>' + pin['name'] + '</span>'
-				+ '<span>' + pin['description'] + '</span>'
-				+ '<button id="remove_pin' + pin['id'] + '" pin="' + pin['id'] + '" class="btn remove">remove</button>'
-				+ '</div>');	
+		$$("#pin_list").grow('append', pin);
 	}
 	
 	$$( "#search_dialog" ).dialog({autoOpen: false, minWidth: 500,
@@ -51,6 +47,20 @@ $$(document).ready(function (){
 	$$("#search_button").click(function() {
 		console.log("search...")
 		perform_search($$( "#search_terms" ).val(), '', '');
+	});
+	
+	$$("#search_pin_list").grow({
+		templateURL: '/static/jstemplates/admin/cat_coolpin_search_pin_list.html',
+		cache: true,
+	    animation: 'slide',
+	    speed: 10
+	});
+	
+	$$("#pin_list").grow({
+		templateURL: '/static/jstemplates/admin/cat_coolpin_search_add_cool.html',
+		cache: true,
+	    animation: 'slide',
+	    speed: 10
 	});
 	
 	function perform_search(search_terms, offset, limit) {
@@ -96,9 +106,7 @@ $$(document).ready(function (){
 	});
 	
 	function add_search_pin(pin) {
-		$$( "#search_pin_list" ).append('<div id="search_pin' + pin['id'] + '" class="row"><div class="col-xs-9"><small>'
-				+ pin['description'] + '</small><button id="addpin' + pin["id"] + '" pin="' + pin["id"] + '" class="btn add_pin_button">add</button>'
-				+ '</div><div class="col-xs-3"><img src="asdf"/></div></div>');
+		$$("#search_pin_list").grow('append', pin);
 	}
 
 	$$( "#search_pin_list" ).on('click', ".add_pin_button", function() {
@@ -118,13 +126,13 @@ $$(document).ready(function (){
 	}
 	
 	function remove_from_search_pin_list( pin ) {
+		console.log('remove..');
 		$$( "#search_pin" + pin['id'] ).remove();
 	}
+	
+	var data;
+$for pin in pins:
+	data = {'id': $pin['id'], 'name': '$pin['name']', 'description': '$pin['description']'}
+	add_to_pin_list(data);
 });
 </script>
-<div id="search_dialog" title="Search cool items">
-	<input type="text" id="search_terms"/>
-	<button id="search_button" class="btn">Search</button>
-	<div id="search_pin_list" class="container-fluid"></div>
-	<div id="search_navigation" class="container-fluid"><div class="row"></div></div>
-</div>

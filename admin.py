@@ -31,9 +31,10 @@ urls = ('', 'admin.PageIndex',
         '/relationships', 'admin.PageRelationships',
         '/categories', 'ListCategories',
         '/cool-items-category/(\d*)', 'EditCoolProductsForCategory',
-        '/api/categories/(\d*)/pins', 'ApiCategoryPins',
+        '/api/categories/(\d*)/pins/?', 'ApiCategoryListPins',
+        '/api/categories/(\d*)/pins/(\d*)/?', 'ApiCategoryPins',
 #         '/api/categories/(\d*)/cool_pins', 'ApiategoryCoolPins'
-         '/api/categories/(\d*)/cool_pins/(\d*)/', 'ApiCategoryCoolPins'
+         '/api/categories/(\d*)/cool_pins/(\d*)/?', 'ApiCategoryCoolPins'
         )
 
 
@@ -342,9 +343,17 @@ class EditCoolProductsForCategory(object):
         return template.admin.edit_cool_products_category(category, pins)
 
 
-class ApiCategoryPins(object):
+class ApiCategoryListPins(object):
+    '''
+    API to list and serach the pins in a category
+    '''
     @login_required
     def GET(self, category_id):
+        '''
+        Searches or returns all pins in this category_id.
+
+        The results are paginated using offset and limit
+        '''
         db = database.get_db()
         search_terms = web.input(search_terms=None)['search_terms']
         try:
@@ -381,7 +390,25 @@ class ApiCategoryPins(object):
                            'search_terms': search_terms})
 
 
+class ApiCategoryPins(object):
+    '''
+    '''
+    @login_required
+    def GET(self, pin_id):
+        db = database.get_db()
+        query_results = db.where(table='pins', id=pin_id)
+        pin = None
+        for p in query_results:
+            pin = dict(p)
+        if pin:
+            web.header('Content-Type', 'application/json')
+            return json.dumps(pin)
+
+
 class ApiCategoryCoolPins(object):
+    '''
+    API to manage cool pins in a category
+    '''
     @login_required
     def PUT(self, category_id, pin_id):
         '''
