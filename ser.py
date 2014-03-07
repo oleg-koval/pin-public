@@ -13,6 +13,8 @@ import json
 import subprocess
 import HTMLParser
 # #
+web.config.debug = True
+
 from mypinnings.database import connect_db, dbget
 db = connect_db()
 
