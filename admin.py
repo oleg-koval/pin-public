@@ -347,18 +347,38 @@ class ApiCategoryPins(object):
     def GET(self, category_id):
         db = database.get_db()
         search_terms = web.input(search_terms=None)['search_terms']
+        try:
+            search_limit = int(web.input(limit='10')['limit'])
+        except ValueError:
+            search_limit = 10
+        else:
+            if search_limit > 50: search_limit = 50
+            if search_limit < 5: search_limit = 5
+        try:
+            search_offset = int(web.input(offset='0')['offset'])
+        except ValueError:
+            search_offset = 0
+        else:
+            if search_offset < 0: search_offset = 0
         if search_terms:
             search_terms = "%{}%".format(search_terms.lower())
             pins = db.select(tables=['pins'], order='name',
-                         where='category=$category_id and (lower(name) like $search or lower(description) like $search)',
-                         vars={'category_id': category_id, 'search': search_terms})
-            list_of_pins = []
-            for p in pins:
-                list_of_pins.append(dict(p))
-            web.header('Content-Type', 'application/json')
-            return json.dumps(list_of_pins)
+                             where='category=$category_id and (lower(name) like $search or lower(description) like $search)'
+                                ' and id not in (select pin_id from cool_pins where category=$category_id)',
+                             vars={'category_id': category_id, 'search': search_terms},
+                             limit=search_limit, offset=search_offset)
         else:
-            raise web.NotFound(_("You did not provide search terms"))
+            pins = db.select(tables='pins', order='name',
+                             where='category=$category_id'
+                                ' and id not in (select pin_id from cool_pins where category=$category_id)',
+                             vars={'category_id': category_id, 'search': search_terms},
+                             limit=search_limit, offset=search_offset)
+        list_of_pins = []
+        for p in pins:
+            list_of_pins.append(dict(p))
+        web.header('Content-Type', 'application/json')
+        return json.dumps({'limit': search_limit, 'offset': search_offset, 'list_of_pins': list_of_pins,
+                           'search_terms': search_terms})
 
 
 class ApiCategoryCoolPins(object):
@@ -373,6 +393,7 @@ class ApiCategoryCoolPins(object):
         except:
             logger.error('Could not add pin ({}) to cool pins for category ({})'.format(pin_id, category_id), exc_info=True)
             raise web.NotFound('Could not add pin to cool pins')
+        web.header('Content-Type', 'application/json')
         return json.dumps({'status': 'ok'})
 
     @login_required
@@ -387,6 +408,7 @@ class ApiCategoryCoolPins(object):
         except:
             logger.error('Could not delete pin ({}) from cool pins for category ({})'.format(pin_id, category_id), exc_info=True)
             raise web.NotFound('Could not delete pin from cool pins')
+        web.header('Content-Type', 'application/json')
         return json.dumps({'status': 'ok'})
 
 

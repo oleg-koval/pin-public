@@ -50,18 +50,49 @@ $$(document).ready(function (){
 	
 	$$("#search_button").click(function() {
 		console.log("search...")
+		perform_search($$( "#search_terms" ).val(), '', '');
+	});
+	
+	function perform_search(search_terms, offset, limit) {
 		$$( "#search_pin_list" ).html( "" );
-		$$.search_results = new Array()
-		$$.get( "/admin/api/categories/$category.id/pins?search_terms=" + $$( "#search_terms" ).val(), function( data ) {
-			if (data.length > 0) {
-				data.forEach( function( pin ) {
+		$$( "#search_navigation .row div" ).remove();
+		var request_data = {'search_terms': $$( "#search_terms" ).val(),
+				'offset': offset, 'limit': limit}
+		$$.get( '/admin/api/categories/$category.id/pins', request_data, function( data ) {
+			var list_of_pins = data['list_of_pins']
+			if (list_of_pins.length > 0) {
+				$$.search_results = new Array();
+				list_of_pins.forEach( function( pin ) {
 					add_search_pin( pin );
 					$$.search_results[pin['id']] = pin;
 				});
+				var offset = data['offset'];
+				var limit = data['limit'];
+				if ( offset <= 0 ) {
+					$$("#search_navigation .row").append('<div class="col-xs-4"/>');
+				} else {
+					var new_offset = offset - limit;
+					$$("#search_navigation .row").append('<div class="col-xs-4"><button class="btn navigate" search_terms="' + search_terms 
+							+ '" offset="' + new_offset + '" limit="' + limit + '">prev</button></div>');
+				}
+				$$("#search_navigation .row").append('<div class="col-xs-4"/>');
+				var new_offset = offset + limit;
+				$$("#search_navigation .row").append('<div class="col-xs-4"><button class="btn navigate" search_terms="' + search_terms 
+						+ '" offset="' + new_offset + '" limit="' + limit + '">next</button></div>');
 			} else {
-				$$( "#search_pin_list" ).html('No elements for this search')
+				$$( "#search_pin_list" ).html('No elements for this search');
+				$$( "#search_navigation .row" ).html('');
+				$$.search_results = new Array()
 			}
-		});
+		}, 'json');
+	}
+	
+	$$( "#search_navigation" ).on('click', '.navigate', function() {
+		var search_terms = $$( this ).attr('search_terms');
+		var offset = $$( this ).attr('offset');
+		var limit = $$( this ).attr('limit');
+		console.log('search naveiga', search_terms, offset, limit);
+		perform_search(search_terms, offset, limit);
 	});
 	
 	function add_search_pin(pin) {
@@ -95,4 +126,5 @@ $$(document).ready(function (){
 	<input type="text" id="search_terms"/>
 	<button id="search_button" class="btn">Search</button>
 	<div id="search_pin_list" class="container-fluid"></div>
+	<div id="search_navigation" class="container-fluid"><div class="row"></div></div>
 </div>
