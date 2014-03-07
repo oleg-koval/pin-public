@@ -75,6 +75,7 @@ class PageLogin:
     def GET(self):
         sess = session.get_session()
         sess['ok'] = False
+        return web.template.frender('t/admin/form.html')(self._form, 'Login')
         return template.admin.form(self._form, 'Login')
 
     def POST(self):
