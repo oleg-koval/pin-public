@@ -48,10 +48,10 @@ $def with (user, countries, name, photos)
               <div class="pull-left">
               $if user.pic:
                  <a href='/$user.username' id="user_avatar_placeholder_wrapper">
-                 <div class="user_pic_placeholder avatar" style='background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'></div>
+                 <img  src='/static/pics/userthumb$(user.pic).png' style="width:44px;" />
                 $else:
                   <a href='/$user.username' >
-                  <img class='avatar' src='/static/default-avatar.png' style="height:44px;" />
+                  <img  src='/static/default-avatar.png' style="width:44px;" />
               </a>
               </div>
 
@@ -69,6 +69,8 @@ $def with (user, countries, name, photos)
   </ul>
 
 </div>
+
+
               </div>
 
 
@@ -77,24 +79,66 @@ $def with (user, countries, name, photos)
       </tr>
       <tr>
         <th>Header</th>
-        <td><input type='text' name='name' value='$user.name' /></td>
+        <td>
+          
+             <div class="pull-left">
+              $if user.bg:
+                 <img class='avatar' src='/static/tmp/bg$(user.id).png' style="width:44px;" />
+                $else:
+                  <span style="width:44px;margin-right:10px;" />No Photo</span>
+              </a>
+              </div>
+
+
+              <div class="pull-left">
+
+          <div class="dropdown">
+        <a id="dropdownMenu2" data-toggle="dropdown" >Change Header</a>
+        <span class="caret"></span>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu2">
+        <li role="presentation"><a href='#' data-toggle="modal" data-target="#uploadBackgroundImageModal">Upload background photo</a></li>
+               $if user.bg:
+                    <li role="presentation"><a href='/bg/remove' id="remove_bg_photo">Remove</a></li>
+        </ul>
+        </div>
+
+        </div>
+
+        </td>
       </tr>
       <tr>
         <th>Name</th>
         <td><input type='text' name='name' value='$user.name' /></td>
       </tr>
+
+      <!--
       <tr>
         <th>Username</th>
         <td>
           <input type='text' name='username' value='$user.username'/>
         </td>
       </tr>
+      -->
       <tr>
-        <th>About Me</th>
+        <th>Location</th>
+        <td>
+          <input type='text' name='hometown' value='$user.hometown'/>
+        </td>
+      </tr>
+      <tr>
+        <th>Website</th>
+        <td>
+          <input type='url' class="input" name='website' value='$user.website'/>
+        </td>
+      </tr>
+
+      <tr>
+        <th>Bio</th>
         <td>
           <textarea name='about'>$user.about</textarea>
         </td>
       </tr>
+      <!--
       <tr>
         <th>Country</th>
         <td>
@@ -125,12 +169,8 @@ $def with (user, countries, name, photos)
           <input type='text' name='zip' value='$user.zip'/>
         </td>
       </tr>
-      <tr>
-        <th>Website</th>
-        <td>
-          <input type='text' name='website' value='$user.website'/>
-        </td>
-      </tr>
+      -->
+      
       <tr>
         <th>&nbsp;</th>
         <td><button>Save</button></td>

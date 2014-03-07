@@ -148,7 +148,7 @@ form {
 
 input[type='text'],
 input[type='password'],
-textarea {
+textarea, .input {
   width: 300px;
   border: solid 1px #888888;
   padding: 4px;
