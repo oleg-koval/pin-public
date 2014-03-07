@@ -124,6 +124,29 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
           
           </div>
 
+           <div class="modal fade" id="uploadBackgroundImageModal">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                
+                <a href="#" type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
+                <h1>Background Photo</h1>
+                </div>
+                
+                <form id='uploadimageform' action="/changebg" method='post' enctype='multipart/form-data'>
+                <div class="modal-body">
+               <input type='file' name='file' id='file' accept="image/*" required="required" />
+                 </div>
+              <div class="modal-footer">
+              <button type="submit"  class="button">Upload Photo</button>
+              </div>
+              </form>
+              
+            </div>
+          </div>
+          
+          </div>
+
           
           <script src='/static/profile.js'></script>
   </body>

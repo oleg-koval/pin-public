@@ -41,6 +41,17 @@ $(document).ready(function(){
   })
 
 
+  $('#remove_bg_photo').click(function(e){
+    result = window.confirm("Are you sure you want to remove your background photo ?");
+    if(!result){
+      e.preventDefault()
+      e.event.stopPropagation();
+      return false;
+    }
+    e.event.stopPropagation();
+  })
+
+
 //initialise this to the current active image
 id = $('.carousel2').find('.active').attr('photoid');
 $('#remove_photo').attr('href','/photo/'+id+'/remove');
