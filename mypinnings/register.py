@@ -23,7 +23,7 @@ class PageRegister:
     )
 
     def msg(self, s):
-        raise web.seeother('/register?msg=%s' % s)
+        raise web.seeother('/register?msg=%s' % s, absolute=False)
 
     def GET(self):
         auth.force_login(session.get_session(), '/dashboard', True)

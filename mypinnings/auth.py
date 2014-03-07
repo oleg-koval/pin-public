@@ -59,7 +59,7 @@ def username_exists(username):
 def create_user(email, password, **params):
     pw_hash = str(hash(password))
     pw_salt = generate_salt()
-    pw_hash = hash(pw_hash + pw_salt)
+    pw_hash = str(hash(pw_hash + pw_salt))
 
     return database.get_db().insert('users', email=email, pw_hash=pw_hash, pw_salt=pw_salt, **params)
 
@@ -71,7 +71,10 @@ def authenticate_user_email(email, password):
         return False
 
     user = users[0]
-    if hash(hash(password) + user['pw_salt']) == user['pw_hash']:
+    pw_hash = str(hash(password))
+    pw_salt = user['pw_salt']
+    pw_hash = str(hash(pw_hash + pw_salt))
+    if pw_hash == user['pw_hash']:
         return user['id']
     return False
 
@@ -82,7 +85,10 @@ def authenticate_user_username(username, password):
         return False
 
     user = users[0]
-    if hash(hash(password) + user['pw_salt']) == user['pw_hash']:
+    pw_hash = str(hash(password))
+    pw_salt = user['pw_salt']
+    pw_hash = str(hash(pw_hash + pw_salt))
+    if pw_hash == user['pw_hash']:
         return user['id']
     return False
 
