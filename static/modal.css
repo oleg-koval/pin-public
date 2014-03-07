@@ -370,6 +370,7 @@ body.modal-open,
 
 .dropdown {
   position: relative;
+  text-align: left;
 }
 
 .dropdown-toggle:focus {

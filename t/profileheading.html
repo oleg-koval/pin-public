@@ -1,5 +1,13 @@
 $def with (user, hashed, friend_status=None, is_following=None, photos=None)
-<div class='clearfix user-heading' style='background: #333842;'>
+<div class='clearfix user-heading'
+  $if 'logged_in' in sess and sess.user_id == user.id:
+    id='lolbg'
+  $if user.bg:
+    style='background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);$('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'
+  $else:
+    data-nobg='true'
+    style='background: #333842;'
+  >
 
 
         $if 'logged_in' in sess and sess.user_id == user.id:
@@ -12,7 +20,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
                 <div class="modal-body">
 
 
-          <div class="bs-example">
+              <div class="bs-example">
               <div id="carousel-example-captions" class="carousel carousel1" >
                 <div class="carousel-inner">
 
@@ -65,7 +73,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
               </div><!-- /.modal-content -->
               
             </div><!-- /.modal-dialog -->
-          </div><!-- /.modal --> 
+           </div>
 
             
   <div class='back clearfix'>
@@ -139,7 +147,18 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
                   </div>
                   </div>
   </div>
-  <p class='right'><b>
+  <div class='right'>
+    $if 'logged_in' in sess and user.id == sess.user_id:
+       <div class="dropdown">
+        <a id="dropdownMenu2" data-toggle="dropdown" class="button">Edit Header</a>
+        <span class="caret"></span>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu2">
+        <li role="presentation"><a href='#' data-toggle="modal" data-target="#uploadBackgroundImageModal">Upload background photo</a></li>
+               $if user.bg:
+                    <li role="presentation"><a href='/bg/remove' id="remove_bg_photo">Remove</a></li>
+        </ul>
+        </div>
+  <b>
     $if 'logged_in' in sess and user.id != sess.user_id:
       $if friend_status is not None:
         $if friend_status:
@@ -158,6 +177,6 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
           <a class='button' href='/follow/$user.id'>Follow</a>
         <br/>
         <a class='button' href='/newconvo/$user.id'>Message</a>
-  </b></p>
+  </b></div>
 </div>
 

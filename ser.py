@@ -63,6 +63,7 @@ urls = (
     '/changeemail', 'PageChangeEmail',
     '/categories/(.*?)/', 'PageViewCategory',
     '/changebg', 'PageChangeBG',
+    '/bg/remove', 'PageRemoveBg',
     '/changebgpos', 'PageChangeBGPos',
     '/share/(\d*)', 'PageShare',
     '/followed-by/(\d*)', 'PageFollowedBy',
@@ -1743,6 +1744,15 @@ class PageChangeBG:
 
         db.update('users', where='id = $id', vars={'id': sess.user_id}, bg=True)
         raise web.seeother('/profile/%d' % sess.user_id)
+
+
+class PageRemoveBg:
+    def GET(self):
+        force_login(sess)
+        user = dbget('users', sess.user_id)
+        if user.bg:
+            db.update('users', where='id = $id', vars={'id': sess.user_id}, bg=False)
+        return web.redirect('/%s' % (user.username))
 
 
 class PageChangeBGPos:
