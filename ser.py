@@ -27,6 +27,10 @@ import mypinnings.register
 import mypinnings.register_facebook
 import mypinnings.register_twitter
 import admin
+import glob
+##
+
+web.config.debug = True
 
 urls = (
     '/register_facebook', mypinnings.register_facebook.app,
@@ -416,31 +420,41 @@ class PageAddPinUrl:
         return ltpl('addpinurl', self.make_form(all_categories))
 
     def upload_image(self, url):
-        fname = generate_salt()
-        ext = os.path.splitext(url)[1].lower()
+        urls = url.rstrip(',').split(',')
+        imgs = []
+        for url in urls:
+            imgs.append(generate_salt())
+            fname=imgs[-1]
+            ext = os.path.splitext(url)[1].lower()
 
-        urllib.urlretrieve(url, 'static/tmp/%s%s' % (fname, ext))
-        if ext != '.png':
-            img = Image.open('static/tmp/%s%s' % (fname, ext))
-            img.save('static/tmp/%s.png' % fname)
+            urllib.urlretrieve(url, 'static/tmp/%s%s' % (fname, ext))
+            if ext != '.png':
+                t_img = 'static/tmp/%s%s' % (fname, ext)
+                img = Image.open(t_img)
+                img.save('static/tmp/%s.png' % fname)
 
-        img = Image.open('static/tmp/%s.png' % fname)
-        width, height = img.size
-        ratio = 202 / width
-        width = 202
-        height *= ratio
-        img.thumbnail((width, height), Image.ANTIALIAS)
-        img.save('static/tmp/pinthumb%s.png' % fname)
+            img = Image.open('static/tmp/%s.png' % fname)
+            width, height = img.size
+            ratio = 202 / width
+            width = 202
+            height *= ratio
+            img.thumbnail((width, height), Image.ANTIALIAS)
+            img.save('static/tmp/pinthumb%s.png' % fname)
 
+<<<<<<< HEAD
         return fname
 
+=======
+        return imgs
+    
+>>>>>>> multipin
     def POST(self):
         force_login(sess)
         form = self.make_form()
         if not form.validates():
             return 'shit done fucked up'
 
-        fname = self.upload_image(form.d.url)
+        fnames = self.upload_image(form.d.url)
 
         link = form.d.link
         if '://' not in link:
@@ -456,10 +470,14 @@ class PageAddPinUrl:
             tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
             db.insert('tags', pin_id=pin_id, tags=tags)
 
-        os.rename('static/tmp/%s.png' % fname,
-                  'static/tmp/%d.png' % pin_id)
-        os.rename('static/tmp/pinthumb%s.png' % fname,
-                  'static/tmp/pinthumb%d.png' % pin_id)
+        multi = ''
+        for idx, fname in enumerate(fnames):
+            os.rename('static/tmp/%s.png' % fname,
+                      'static/tmp/%d%s.png' % (pin_id,multi))
+            os.rename('static/tmp/pinthumb%s.png' % fname,
+                      'static/tmp/pinthumb%d%s.png' % (pin_id,multi))
+            multi = '.' + `idx+1`
+
         raise web.seeother('/pin/%d' % pin_id)
 
 
@@ -687,7 +705,15 @@ class PagePin:
             rating.avg = 0
 
         rating = round(float(rating.avg), 2)
-        return ltpl('pin', pin, comments, rating)
+        
+        if pin.repin == 0:
+            pin_id = pin.id
+        else:
+            pin_id = pin.repin
+        img_src = ['/static/tmp/%d.png' % pin_id]
+        img_src.extend(['/%s' % f for f in glob.glob('static/tmp/'+`pin_id`+'.*.png')])
+
+        return ltpl('pin', pin, comments, rating, img_src)
 
     def POST(self, pin_id):
         force_login(sess)
