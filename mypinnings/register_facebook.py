@@ -70,13 +70,11 @@ class Return(auth.UniqueUsernameMixin):
                     return template.lmsg(_('Invalid facebook login'))
                 user_id = self._get_user_from_db()
                 if not user_id:
-                    if self.username_already_exists(self.profile['username']):
-                        self._save_profile_in_session()
-                        sess['fb_username'] = self.suggest_a_username(self.profile['username'])
-                        raise web.seeother(url='/username', absolute=False)
-                    user_id = self._insert_user_to_db()
-                auth.login_user(session.get_session(), user_id)
-                raise web.seeother(url='/register/after-signup', absolute=True)
+                    sess['fb_profile'] = self.profile
+                    web.seeother(url='/username', absolute=False)
+                else:
+                    # user already registered, perform a login instead of registration
+                    web.seeother(url="/login/facebook", absolute=True)
             else:
                 return template.lmsg(_('Failure in the OAuth protocol with facebook. Try again'))
 
@@ -143,33 +141,6 @@ class Return(auth.UniqueUsernameMixin):
             return self.user_id
         return False
 
-    def _insert_user_to_db(self):
-        '''
-        Inserts the user into the database using the data that we can extract
-        from the facebook profile.
-        '''
-        values = {'email': self.profile['email'],
-                  'name': self.profile['name'],
-                  'username': self.profile['username'],
-                  'facebook': self.profile['username'],
-                  'hometown': self.profile.get('hometown', {'name': ''}).get('name', ''),
-                  'login_source': auth.LOGIN_SOURCE_FACEBOOK,
-                  }
-        db = database.get_db()
-        user_id = db.insert(tablename='users', **values)
-        return user_id
-
-    def _save_profile_in_session(self):
-        sess = session.get_session()
-        if hasattr(self, 'user_id') and self.user_id:
-            sess['fb_user_id'] = self.user_id
-        else:
-            sess['fb_user_id'] = None
-        sess['fb_name'] = self.profile['name']
-        sess['fb_username'] = self.profile['username']
-        sess['fb_facebook'] = self.profile['username']
-        sess['fb_email'] = self.profile['email']
-
 
 class Username(auth.UniqueUsernameMixin):
     '''
@@ -178,36 +149,43 @@ class Username(auth.UniqueUsernameMixin):
     username_form = web.form.Form(web.form.Textbox('username', web.form.notnull, autocomplete='off',
                                                  id='username', placeholder=_('Select a username for your profile.'),
                                                  ),
+                                web.form.Textbox('email', autocomplete='off', id='email', placeholder='Where we\'ll never spam you.'),
+                                web.form.Password('password', id='password', autocomplete='off',
+                                                  placeholder='Something you\'ll remember but others won\'t guess.'),
                                 web.form.Button(_('Next')))
 
     def GET(self):
         sess = session.get_session()
+        if self.username_already_exists(sess.fb_profile['username']):
+            username = self.suggest_a_username(sess.fb_profile['username'])
+        else:
+            username = sess.fb_profile['username']
         form = self.username_form()
-        form['username'].set_value(sess.fb_username)
+        form['username'].set_value(username)
+        form['email'].set_value(sess.fb_profile['email'])
         return template.ltpl('register/facebook/username', form)
 
     def POST(self):
-        form = self.username_form()
-        if form.validates():
-            self.username = form['username'].value
-            if self.username_already_exists(self.username):
-                return template.ltpl('register/facebook/username', form, msg=_('Username already exists'))
+        self.form = self.username_form()
+        if self.form.validates():
+            if self.username_already_exists(self.form['username'].value):
+                return template.ltpl('register/facebook/username', self.form, _('Username already exists'))
+            if self.email_already_exists(self.form['email'].value):
+                return template.ltpl('register/facebook/username', self.form, _('Email already exists'))
             self._insert_user_to_db()
             auth.login_user(session.get_session(), self.user_id)
             web.seeother(url='/register/after-signup', absolute=True)
         else:
-            return template.ltpl('register/facebook/username', form, msg=_('Please provide an username and email'))
+            return template.ltpl('register/facebook/username', self.form, _('Please provide all information'))
 
     def _insert_user_to_db(self):
         sess = session.get_session()
-        values = {'name': sess['fb_name'],
-                  'username': self.username,
-                  'facebook': sess['fb_facebook'],
+        values = {'name': sess.fb_profile['name'],
+                  'username': self.form['username'].value,
+                  'facebook': sess.fb_profile['username'],
                   'login_source': auth.LOGIN_SOURCE_FACEBOOK,
-                  'email': sess['fb_email'],
                   }
-        db = database.get_db()
-        self.user_id = db.insert(tablename='users', **values)
+        self.user_id = auth.create_user(self.form['email'].value, self.form['password'].value, **values)
         return self.user_id
 
 
