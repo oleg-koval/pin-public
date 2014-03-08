@@ -1,6 +1,9 @@
 import os
 
 try:
+    import local_settings
+    params = local_settings.params
+except Exception:
 	params = {
         'dbn': 'postgres',
         'db': 'pin',
@@ -8,8 +11,6 @@ try:
         'pw': os.environ['DB_PASSWORD'],
         'host': 'mypinnings.com',
         }
-except Exception:
-	pass
 
 FACEBOOK = {'application_id': '1540569082835261',
             'application_secret': os.environ['FACEBOOK_APPLICATION_SECRET'],
