@@ -1,5 +1,12 @@
-<div id="pin<@id>" class="box_pin">
-	<span><@name></span>
-	<span><@description></span>
-	<button id="remove_pin<@id>" pin="<@id>" class="btn remove">remove</button>
+<div id="pin<@id>" class="container-fluid">
+	<dir class="row">
+		<div class="col-xs-8">
+			<span><@name></span>
+			<span><@description></span>
+			<div><a href="<@link>"><@link></a></div>
+			<button id="remove_pin<@id>" pin="<@id>" class="btn remove">remove</button>
+		</div>
+		<div class="col-xs-4"><img class="img-responsive" src="/static/tmp/<@id>.png"/></div>
+	</div>
 </div>
+<div class="bottom-separator"></div>
