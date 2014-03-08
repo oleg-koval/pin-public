@@ -12,6 +12,7 @@ from mypinnings import cached_models
 urls = ('/after-signup/(\d*)', 'PageAfterSignup',
         '/after-signup', 'PageAfterSignup',
         '/api/users/me/category/(\d*)/?', 'ApiRegisterCategoryForUser',
+        '/api/users/me/coolpins/(\d*)/?', 'ApiRegisterCoolPinForUser',
         '', 'PageRegister',
         )
 
@@ -84,38 +85,13 @@ class PageAfterSignup:
     _form1 = web.form.Form(web.form.Hidden('ids'))
 
     def phase2(self):
-        form = self._form1()
-        form.validates()
-        ids = map(str, map(int, form.d.ids.split(',')))
+        sess = session.get_session()
         db = database.get_db()
-        users = db.query('''
-            select
-                users.*,
-                count(distinct pins) as pin_count
-            from users
-                left join pins on pins.user_id = users.id
-            where pins.category in (%s)
-            group by users.id
-            order by pin_count desc
-            limit 10''' % ', '.join(ids))
-        return template.atpl('register/aphase2', users, phase=2)
-
-    def old_phase_post_2(self):
-        try:
-            form = self._form1()
-            form.validates()
-            ids = map(str, map(int, form.d.ids.split(',')))
-
-            print ids
-            if len(ids) > 10:
-                ids = ids[:10]
-            sess = session.get_session()
-            db = database.get_db()
-            follows = [{'follow': x, 'follower': sess.user_id} for x in ids]
-            db.multiple_insert('follows', follows)
-        except:
-            pass
-        raise web.seeother('/after-signup/3')
+        cool_pins = db.select(tables=['pins', 'cool_pins', 'user_prefered_categories'], what='pins.*',
+                              where='pins.id=cool_pins.pin_id and cool_pins.category_id=user_prefered_categories.category_id'
+                              ' and user_prefered_categories.user_id=$user_id',
+                              vars={'user_id': sess.user_id})
+        return template.atpl('register/aphase2', cool_pins, phase=2)
 
     def phase3(self):
         return template.atpl('register/aphase3', phase=3)
@@ -140,19 +116,60 @@ class PageAfterSignup:
 
 class ApiRegisterCategoryForUser:
     '''
+    Adds and deletes prefered categories for the user
+
+    For user via ajax.
     '''
     def PUT(self, category_id):
+        '''
+        Put a category in the prefered categories for this user
+        '''
         sess = session.get_session()
+        auth.force_login(sess)
         db = database.get_db()
         db.insert(tablename='user_prefered_categories', user_id=sess.user_id, category_id=category_id)
         web.header('Content-Type', 'application/json')
         return json.dumps({'status': 'ok'})
 
     def DELETE(self, category_id):
+        '''
+        Deletes a category from the prefered categories for this user
+        '''
         sess = session.get_session()
+        auth.force_login(sess)
         db = database.get_db()
         db.delete(table='user_prefered_categories', where='user_id=$user_id and category_id=$category_id',
                   vars={'user_id': sess.user_id, 'category_id': category_id})
+        web.header('Content-Type', 'application/json')
+        return json.dumps({'status': 'ok'})
+
+
+class ApiRegisterCoolPinForUser(object):
+    '''
+    Adds and deletes cool items for the user
+
+    For user via ajax.
+    '''
+    def PUT(self, pin_id):
+        '''
+        Put a cool item for this user
+        '''
+        sess = session.get_session()
+        auth.force_login(sess)
+        db = database.get_db()
+        db.insert(tablename='user_prefered_pins', user_id=sess.user_id, pin_id=pin_id)
+        web.header('Content-Type', 'application/json')
+        return json.dumps({'status': 'ok'})
+
+    def DELETE(self, pin_id):
+        '''
+        Deletes a cool item from this user
+        '''
+        sess = session.get_session()
+        auth.force_login(sess)
+        db = database.get_db()
+        db.delete(table='user_prefered_pins', where='user_id=$user_id and pin_id=$pin_id',
+                  vars={'user_id': sess.user_id, 'pin_id': pin_id})
         web.header('Content-Type', 'application/json')
         return json.dumps({'status': 'ok'})
 
