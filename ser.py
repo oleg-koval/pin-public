@@ -12,8 +12,6 @@ import re
 import json
 import subprocess
 import HTMLParser
-# #
-web.config.debug = True
 
 from mypinnings.database import connect_db, dbget
 db = connect_db()
@@ -26,16 +24,19 @@ import mypinnings.session
 from mypinnings import cached_models
 
 import mypinnings.register
-import mypinnings.register_facebook
+import mypinnings.facebook
 import mypinnings.register_twitter
 import admin
 import glob
-##
+# #
+
+web.config.debug = True
+
 
 web.config.debug = True
 
 urls = (
-    '/register_facebook', mypinnings.register_facebook.app,
+    '/facebook', mypinnings.facebook.app,
     '/register_twitter', mypinnings.register_twitter.app,
     '/register', mypinnings.register.app,
     '/', 'PageIndex',
@@ -426,7 +427,7 @@ class PageAddPinUrl:
         imgs = []
         for url in urls:
             imgs.append(generate_salt())
-            fname=imgs[-1]
+            fname = imgs[-1]
             ext = os.path.splitext(url)[1].lower()
 
             urllib.urlretrieve(url, 'static/tmp/%s%s' % (fname, ext))
@@ -444,7 +445,7 @@ class PageAddPinUrl:
             img.save('static/tmp/pinthumb%s.png' % fname)
 
         return imgs
-    
+
     def POST(self):
         force_login(sess)
         form = self.make_form()
@@ -470,10 +471,10 @@ class PageAddPinUrl:
         multi = ''
         for idx, fname in enumerate(fnames):
             os.rename('static/tmp/%s.png' % fname,
-                      'static/tmp/%d%s.png' % (pin_id,multi))
+                      'static/tmp/%d%s.png' % (pin_id, multi))
             os.rename('static/tmp/pinthumb%s.png' % fname,
-                      'static/tmp/pinthumb%d%s.png' % (pin_id,multi))
-            multi = '.' + `idx+1`
+                      'static/tmp/pinthumb%d%s.png' % (pin_id, multi))
+            multi = '.' + `idx + 1`
 
         raise web.seeother('/pin/%d' % pin_id)
 
@@ -702,13 +703,13 @@ class PagePin:
             rating.avg = 0
 
         rating = round(float(rating.avg), 2)
-        
+
         if pin.repin == 0:
             pin_id = pin.id
         else:
             pin_id = pin.repin
         img_src = ['/static/tmp/%d.png' % pin_id]
-        img_src.extend(['/%s' % f for f in glob.glob('static/tmp/'+`pin_id`+'.*.png')])
+        img_src.extend(['/%s' % f for f in glob.glob('static/tmp/' + `pin_id` + '.*.png')])
 
         return ltpl('pin', pin, comments, rating, img_src)
 

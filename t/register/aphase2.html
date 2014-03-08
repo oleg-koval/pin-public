@@ -1,24 +1,29 @@
-$def with (users)
-<h1>We've chosen some cool people for you to follow. Click some to follow!</h1>
-
-$def usergrid(users):
-  <div class='pick-people clearfix'>
-    $for user in users:
-      <div class='user left clearfix' data-id='$user.id'>
-        $if user.pic:
-          <img class='left' src='/static/pics/$(user.pic).png' alt=''/>
-        $else:
-          <img class='left' src='/static/default-avatar.png' alt=''/>
-        <b class='left'><a target='_blank' href='/profile/$user.id'>$user.name</a></b>
-      </div>
+$def with (pins)
+<link rel="stylesheet" href="/static/css/register_select_pins.css" />
+<center>
+  <h1>Let's get started! Pick at least five items that interest you.</h1>
+  <br/>
+  <div class="container-fluid">
+  	<div class="row">
+		$for pin in pins:
+	      	<div class="col-xs-4">
+	      		<div class="pin-add-button add-space">
+	          		<button class='select_pins' style='margin-bottom: 10px;' pinid="$pin['id']">$pin['description']</button>&nbsp;
+	          	</div>
+	          	<div class="pin-image">
+	          		<img class="img-responsive" src='/static/tmp/$(pin.id).png' alt=''/>
+	          	</div>
+	        </div>
+	        $if loop.index % 3 == 0:
+	        	</div>
+	        	<div class="row">
+	</div>
   </div>
-
-
-$:usergrid(users)
-<form method='post' action='/after-signup/2' class='no-back' id='herp'>
-  <input type='hidden' name='ids' id='derp'/>
-  <button>Follow these people</button>
-</form>
-
-<script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
-<script type='text/javascript' src='/static/aphase2.js'></script>
+  <div>
+  	Select at least 5 to continue
+  </div>
+  <div class="add-space">
+  	<button id="continue_button" disabled>Continue</button>
+  </div>
+</center>
+<script type='text/javascript' src='/static/js/asignup2.js'></script>

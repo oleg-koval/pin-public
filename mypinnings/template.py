@@ -43,7 +43,7 @@ def lmsg(msg):
 def atpl(*params, **kwargs):
     if 'phase' not in kwargs:
         raise Exception('phase needed in atpl')
-    return tpl('asignup', tpl(*params), kwargs['phase'])
+    return tpl('register/asignup', tpl(*params), kwargs['phase'])
 
 def initialize(directory):
     global template_obj

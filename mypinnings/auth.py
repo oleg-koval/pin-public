@@ -155,3 +155,14 @@ class UniqueUsernameMixin(object):
         while self.username_already_exists(suggested_username):
             suggested_username = "{}{}".format(username, random.randrange(999))
         return suggested_username
+
+    def email_already_exists(self, email):
+        '''
+        Test if the email already exists in the DB
+        '''
+        db = database.get_db()
+        query_result = db.select(tables='users', where="email=$email",
+                                   vars={'email': email})
+        for _ in query_result:
+            return True
+        return False

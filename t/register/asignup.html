@@ -3,8 +3,11 @@ $def with (content, phase)
 <html>
     <head>
         <title>MyPinnings</title>
+        <link rel='stylesheet' type='text/css' href='/static/bootstrap3.css'/>
         <link rel='stylesheet' type='text/css' href='/static/main.css'/>
         <link href='//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' rel='stylesheet'>
+		<script src='//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js'></script>
+        <script src="/static/bootstrap.min.js"></script>
     </head>
     <body>
         <div class='header'><h1 style='margin-bottom: 0'><a href='/'>MyPinnings</a></h1></div>
@@ -12,7 +15,7 @@ $def with (content, phase)
           <div class='left signup-helper-nav'>
             <h1>Three steps to get started!</h1>
             <hr>
-            $ phases = [ 'Pick categories you like', 'Follow some people', 'Invite your friends', ]
+            $ phases = [ 'Pick categories you like', 'Select some items', 'Go to your profile', ]
             $for k, v in enumerate(phases):
               $ i = k + 1
               <p $:('class="bold"' if i == phase else '')>$i. $v</p>
