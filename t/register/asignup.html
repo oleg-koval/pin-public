@@ -15,7 +15,7 @@ $def with (content, phase)
           <div class='left signup-helper-nav'>
             <h1>Three steps to get started!</h1>
             <hr>
-            $ phases = [ 'Pick categories you like', 'Select some items', 'Invite your friends', ]
+            $ phases = [ 'Pick categories you like', 'Select some items', 'Go to your profile', ]
             $for k, v in enumerate(phases):
               $ i = k + 1
               <p $:('class="bold"' if i == phase else '')>$i. $v</p>

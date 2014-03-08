@@ -80,11 +80,17 @@ class PageResendActivation:
 
 class PageAfterSignup:
     def phase1(self):
+        '''
+        Select at least 3 categories from the list
+        '''
         return template.atpl('register/aphase1', cached_models.categories_with_thumbnails, phase=1)
 
     _form1 = web.form.Form(web.form.Hidden('ids'))
 
     def phase2(self):
+        '''
+        Select at least 5 pins from the list
+        '''
         sess = session.get_session()
         db = database.get_db()
         cool_pins = db.select(tables=['pins', 'cool_pins', 'user_prefered_categories'], what='pins.*',
@@ -94,23 +100,28 @@ class PageAfterSignup:
         return template.atpl('register/aphase2', cool_pins, phase=2)
 
     def phase3(self):
-        return template.atpl('register/aphase3', phase=3)
+        '''
+        Go to the profile
+        '''
+        sess = session.get_session()
+        db = database.get_db()
+        results = db.where(table='users', what='username', id=sess.user_id)
+        username = results[0]['username']
+        raise web.seeother(url="/{}".format(username), absolute=True)
 
     def GET(self, phase=None):
+        '''
+        Manages 3 phases of registration:
+
+        1. Select categories
+        2. select pins
+        3. go to the profile
+        '''
         auth.force_login(session.get_session())
         phase = int(phase or 1)
         try:
             return getattr(self, 'phase%d' % phase)()
         except AttributeError as e:
-            raise web.notfound()
-
-    def POST(self, phase=None):
-        auth.force_login(session.get_session())
-        phase = int(phase or 1)
-
-        try:
-            return getattr(self, 'phase_post_%d' % phase)()
-        except AttributeError:
             raise web.notfound()
 
 

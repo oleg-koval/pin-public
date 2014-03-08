@@ -29,4 +29,4 @@ remove_pin_from_user = (pin_id, button) ->
 					$('#continue_button').attr('disabled', 'disabled')
 
 $("#continue_button").click ->
-	window.location.href = 'after-signup/3'
+	window.location.href = '3'

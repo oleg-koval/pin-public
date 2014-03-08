@@ -44,7 +44,7 @@
   };
 
   $("#continue_button").click(function() {
-    return window.location.href = 'after-signup/3';
+    return window.location.href = '3';
   });
 
 }).call(this);
