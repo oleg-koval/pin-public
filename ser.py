@@ -25,6 +25,7 @@ from mypinnings import cached_models
 
 import mypinnings.register
 import mypinnings.facebook
+import mypinnings.google
 import mypinnings.register_twitter
 import admin
 import glob
@@ -37,6 +38,7 @@ web.config.debug = True
 
 urls = (
     '/facebook', mypinnings.facebook.app,
+    '/google', mypinnings.google.app,
     '/register_twitter', mypinnings.register_twitter.app,
     '/register', mypinnings.register.app,
     '/', 'PageIndex',

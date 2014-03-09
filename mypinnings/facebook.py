@@ -191,20 +191,20 @@ class Username(auth.UniqueUsernameMixin):
         form = self.username_form()
         form['username'].set_value(username)
         form['email'].set_value(sess.fb_profile['email'])
-        return template.ltpl('register/facebook/username', form)
+        return template.ltpl('register/username', form)
 
     def POST(self):
         self.form = self.username_form()
         if self.form.validates():
             if self.username_already_exists(self.form['username'].value):
-                return template.ltpl('register/facebook/username', self.form, _('Username already exists'))
+                return template.ltpl('register/username', self.form, _('Username already exists'))
             if self.email_already_exists(self.form['email'].value):
-                return template.ltpl('register/facebook/username', self.form, _('Email already exists'))
+                return template.ltpl('register/username', self.form, _('Email already exists'))
             self._insert_user_to_db()
             auth.login_user(session.get_session(), self.user_id)
             web.seeother(url='/register/after-signup', absolute=True)
         else:
-            return template.ltpl('register/facebook/username', self.form, _('Please provide all information'))
+            return template.ltpl('register/username', self.form, _('Please provide all information'))
 
     def _insert_user_to_db(self):
         sess = session.get_session()
