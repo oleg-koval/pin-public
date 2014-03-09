@@ -20,25 +20,148 @@ logger = logging.getLogger('mypinnings.google')
 urls = ('/register/?', 'Register',
         '/register_return/?', 'RegisterReturn',
         '/username/?', 'SelectAUsernameAndPassword',
+        '/login/?', 'Login',
+        '/login_return/?', 'LoginReturn',
      )
 
 
-class Register(object):
+class GoogleOauthStart(object):
+    '''
+    Starts the oauth dance with facebook
+    '''
+    def __init__(self, redirect_uri):
+        '''
+        Must provide the redirect_uri to return from google
+        '''
+        self.redirect_uri = redirect_uri
+
     def GET(self):
+        '''
+        Starts the authorization
+        '''
         sess = session.get_session()
         oAuth_url = 'https://accounts.google.com/o/oauth2/auth?'
-        redirect_uri = web.ctx.home + '/register_return'
         sess['state'] = str(random.randrange(999999))
+        sess['redirect_uri'] = self.redirect_uri
         parameters = {'response_type': 'code',
                       'client_id': settings.GOOGLE['client_id'],
-                      'redirect_uri': redirect_uri,
+                      'redirect_uri': self.redirect_uri,
                       'scope': 'profile email',
                       'state': sess['state'],
                       }
         url_redirect = oAuth_url + urllib.urlencode(parameters)
         raise web.seeother(url=url_redirect, absolute=True)
 
-class RegisterReturn(object):
+
+class GoogleOauthReturnMixin(object):
+    '''
+    Mixin with utilities to manage the response from google oauth
+    '''
+    def grab_query_string_parameters(self):
+        '''
+        Get the parameter from query string returned by google
+        '''
+        self.state = web.input(state=None)['state']
+        self.error = web.input(error=None)['error']
+        self.code = web.input(code=None)['code']
+
+    def chech_for_errors(self):
+        '''
+        Look for errors.
+
+        Query string can contain an error parameter.
+        The state can be different from what we sent in the oauth start
+        Code parameter is mandatory.
+        '''
+        if not self.state or self.state != self.sess['state']:
+            return template.lmsg(_('Detected a possible request forge'))
+        if self.error:
+            return template.lmsg(self.error)
+        if not self.code:
+            return template.lmsg(_('Invalid google login'))
+        return False
+
+    def exchange_authorization_code(self):
+        '''
+        Exchange the code for an access token
+        '''
+        try:
+            base_url = 'https://accounts.google.com/o/oauth2/token'
+            parameters = {'client_id': settings.GOOGLE['client_id'],
+                          'client_secret': settings.GOOGLE['client_secret'],
+                          'redirect_uri': self.sess.redirect_uri,
+                          'code': self.code,
+                          'grant_type': 'authorization_code',
+                          }
+            url_data = urllib.urlencode(parameters)
+            url_exchange = base_url
+            exchange_data = urllib.urlopen(url=url_exchange, data=url_data).read()
+            token_data = json.loads(exchange_data)
+            self.access_token = token_data['access_token']
+            self.access_token_expires = token_data['expires_in']
+            self.token_type = token_data['token_type']
+            return True
+        except:
+            logger.error('Cannot exchange code for access token. Code: %s', self.code, exc_info=True)
+            return False
+
+    def obtain_user_profile(self):
+        '''
+        Get the user profile from Google
+        '''
+        try:
+            profile_url = 'https://www.googleapis.com/plus/v1/people/me?'
+            parameters = {'access_token': self.access_token}
+            url_profile = profile_url + urllib.urlencode(parameters)
+            self.profile = json.load(urllib.urlopen(url=url_profile))
+            # TODO delete this
+            from pprint import pprint
+            pprint(self.profile)
+            return True
+        except:
+            logger.error('Cannot cannot obtain user profile. Access token: %s', self.access_token, exc_info=True)
+            return False
+
+    def get_user_from_db(self):
+        '''
+        Obtains the user_id from the database and return if exists, else returns false.
+
+        Looks if the google nickname is in the DB. If the profile does not have a nickname,
+        look if the email is in the DB.
+        '''
+        db = database.get_db()
+        if 'nickname' in self.profile:
+            query_result = db.select(tables='users', where="gplus=$username and login_source=$login_source",
+                                       vars={'username': self.profile['nickname'],
+                                             'login_source': auth.LOGIN_SOURCE_GOOGLE})
+        elif 'emails' in self.profile:
+            email = self.profile['emails'][0]['value']
+            query_result = db.select(tables='users', where="email=$email",
+                                       vars={'email': email})
+        else:
+            return False
+        for row in query_result:
+            self.user_id = row['id']
+            self.username = row['username']
+            return self.user_id
+        return False
+
+
+class Register(GoogleOauthStart):
+    '''
+    Starts the registration by performing the google oauth
+    '''
+    def __init__(self):
+        '''
+        Indicates the return url
+        '''
+        super(Register, self).__init__(web.ctx.home + '/register_return')
+
+
+class RegisterReturn(GoogleOauthReturnMixin):
+    '''
+    Manages the return from google
+    '''
     def GET(self):
         self.sess = session.get_session()
         self.grab_query_string_parameters()
@@ -56,83 +179,10 @@ class RegisterReturn(object):
             # user already registered, perform a login instead of registration
             web.seeother(url='/login/')
 
-    def grab_query_string_parameters(self):
-        self.state = web.input(state=None)['state']
-        self.error = web.input(error=None)['error']
-        self.code = web.input(code=None)['code']
-
-    def chech_for_errors(self):
-        if not self.state or self.state != self.sess['state']:
-            return template.lmsg(_('Detected a possible request forge'))
-        if self.error:
-            return template.lmsg(self.error)
-        if not self.code:
-            return template.lmsg(_('Invalid google login'))
-        return False
-
-    def exchange_authorization_code(self):
-        try:
-            base_url = 'https://accounts.google.com/o/oauth2/token'
-            redirect_url = web.ctx.home + '/register_return'
-            parameters = {'client_id': settings.GOOGLE['client_id'],
-                          'client_secret': settings.GOOGLE['client_secret'],
-                          'redirect_uri': redirect_url,
-                          'code': self.code,
-                          'grant_type': 'authorization_code',
-                          }
-            url_data = urllib.urlencode(parameters)
-            url_exchange = base_url
-            exchange_data = urllib.urlopen(url=url_exchange, data=url_data).read()
-            token_data = json.loads(exchange_data)
-            self.access_token = token_data['access_token']
-            self.access_token_expires = token_data['expires_in']
-            self.token_type = token_data['token_type']
-            return True
-        except:
-            logger.error('Cannot exchange code for access token. Code: %s', self.code, exc_info=True)
-            return False
-
-    def obtain_user_profile(self):
-        try:
-            profile_url = 'https://www.googleapis.com/plus/v1/people/me?'
-            parameters = {'access_token': self.access_token}
-            url_profile = profile_url + urllib.urlencode(parameters)
-            self.profile = json.load(urllib.urlopen(url=url_profile))
-            # TODO delete this
-            from pprint import pprint
-            pprint(self.profile)
-            return True
-        except:
-            logger.error('Cannot cannot obtain user profile. Access token: %s', self.access_token, exc_info=True)
-            return False
-
-    def get_user_from_db(self):
-        '''
-        Obtains the user_id from the database and return if exists.
-        Else returns false.
-        '''
-        db = database.get_db()
-        if 'nickname' in self.profile:
-            query_result = db.select(tables='users', where="gplus=$username and login_source=$login_source",
-                                       vars={'username': self.profile['nickname'],
-                                             'login_source': auth.LOGIN_SOURCE_GOOGLE})
-        elif 'emails' in self.profile:
-            email = self.profile['emails'][0]['value']
-            query_result = db.select(tables='users', where="email=$email and login_source=$login_source",
-                                       vars={'email': email,
-                                             'login_source': auth.LOGIN_SOURCE_GOOGLE})
-        else:
-            return False
-        for row in query_result:
-            self.user_id = row['id']
-            self.username = row['username']
-            return self.user_id
-        return False
-
 
 class SelectAUsernameAndPassword(auth.UniqueUsernameMixin):
     '''
-    Ask for the user to select a username
+    Ask for the user to select a username, email and password
     '''
     username_form = web.form.Form(web.form.Textbox('username', web.form.notnull, autocomplete='off',
                                                  id='username', placeholder=_('Select a username for your profile.'),
@@ -143,6 +193,9 @@ class SelectAUsernameAndPassword(auth.UniqueUsernameMixin):
                                 web.form.Button(_('Next')))
 
     def GET(self):
+        '''
+        Shows a form to introduce the data: username, email, password
+        '''
         sess = session.get_session()
         if 'nickname' in sess.profile and self.username_already_exists(sess.profile['nickname']):
             username = self.suggest_a_username(sess.profile['nickname'])
@@ -159,6 +212,9 @@ class SelectAUsernameAndPassword(auth.UniqueUsernameMixin):
         return template.ltpl('register/username', form)
 
     def POST(self):
+        '''
+        Creates the user in the DB if the data is valid
+        '''
         self.form = self.username_form()
         if self.form.validates():
             if self.username_already_exists(self.form['username'].value):
@@ -172,6 +228,9 @@ class SelectAUsernameAndPassword(auth.UniqueUsernameMixin):
             return template.ltpl('register/username', self.form, _('Please provide all information'))
 
     def _insert_user_to_db(self):
+        '''
+        Inserts the user data into the DB
+        '''
         sess = session.get_session()
         # basic profile data
         values = {'username': self.form['username'].value,
@@ -216,6 +275,9 @@ class SelectAUsernameAndPassword(auth.UniqueUsernameMixin):
         return self.user_id
 
     def grab_and_insert_profile_picture(self):
+        '''
+        Grabs the profile image from google into this user
+        '''
         sess = session.get_session()
         if 'image' in sess.profile and 'url' in sess.profile['image']:
             db = database.get_db()
@@ -243,6 +305,42 @@ class SelectAUsernameAndPassword(auth.UniqueUsernameMixin):
             except:
                 # no problem, we can live without the profile picture
                 logger.info('Could not obtain google profile picture', exc_info=True)
+
+
+class Login(GoogleOauthStart):
+    '''
+    Starts the login process with google with oauth
+    '''
+    def __init__(self):
+        '''
+        Indicates the return URL
+        '''
+        super(Login, self).__init__(web.ctx.home + '/login_return')
+
+
+class LoginReturn(GoogleOauthReturnMixin):
+    '''
+    Manages the return grom google login
+    '''
+    def GET(self):
+        '''
+        Logs the user in
+        '''
+        self.sess = session.get_session()
+        self.grab_query_string_parameters()
+        errors = self.chech_for_errors()
+        if errors:
+            return errors
+        if not self.exchange_authorization_code():
+            return template.lmsg(_('Invalid google login'))
+        if not self.obtain_user_profile():
+            return template.lmsg(_('Invalid google login'))
+        if not self.get_user_from_db():
+            # user not registered, go to registration
+            web.seeother(url='/register/')
+        else:
+            auth.login_user(self.sess, self.user_id)
+            web.seeother(url='/{}'.format(self.username), absolute=True)
 
 
 app = web.application(urls, locals())
