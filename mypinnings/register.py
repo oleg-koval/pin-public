@@ -1,4 +1,5 @@
 import random
+import json
 
 import web
 
@@ -10,6 +11,8 @@ from mypinnings import cached_models
 
 urls = ('/after-signup/(\d*)', 'PageAfterSignup',
         '/after-signup', 'PageAfterSignup',
+        '/api/users/me/category/(\d*)/?', 'ApiRegisterCategoryForUser',
+        '/api/users/me/coolpins/(\d*)/?', 'ApiRegisterCoolPinForUser',
         '', 'PageRegister',
         )
 
@@ -77,48 +80,43 @@ class PageResendActivation:
 
 class PageAfterSignup:
     def phase1(self):
+        '''
+        Select at least 3 categories from the list
+        '''
         return template.atpl('register/aphase1', cached_models.categories_with_thumbnails, phase=1)
 
     _form1 = web.form.Form(web.form.Hidden('ids'))
 
     def phase2(self):
-        form = self._form1()
-        form.validates()
-        ids = map(str, map(int, form.d.ids.split(',')))
+        '''
+        Select at least 5 pins from the list
+        '''
+        sess = session.get_session()
         db = database.get_db()
-        users = db.query('''
-            select
-                users.*,
-                count(distinct pins) as pin_count
-            from users
-                left join pins on pins.user_id = users.id
-            where pins.category in (%s)
-            group by users.id
-            order by pin_count desc
-            limit 10''' % ', '.join(ids))
-        return template.atpl('register/aphase2', users, phase=2)
-
-    def phase_post_2(self):
-        try:
-            form = self._form1()
-            form.validates()
-            ids = map(str, map(int, form.d.ids.split(',')))
-
-            print ids
-            if len(ids) > 10:
-                ids = ids[:10]
-            sess = session.get_session()
-            db = database.get_db()
-            follows = [{'follow': x, 'follower': sess.user_id} for x in ids]
-            db.multiple_insert('follows', follows)
-        except:
-            pass
-        raise web.seeother('/after-signup/3')
+        cool_pins = db.select(tables=['pins', 'cool_pins', 'user_prefered_categories'], what='pins.*',
+                              where='pins.id=cool_pins.pin_id and cool_pins.category_id=user_prefered_categories.category_id'
+                              ' and user_prefered_categories.user_id=$user_id',
+                              vars={'user_id': sess.user_id})
+        return template.atpl('register/aphase2', cool_pins, phase=2)
 
     def phase3(self):
-        return template.atpl('register/aphase3', phase=3)
+        '''
+        Go to the profile
+        '''
+        sess = session.get_session()
+        db = database.get_db()
+        results = db.where(table='users', what='username', id=sess.user_id)
+        username = results[0]['username']
+        raise web.seeother(url="/{}".format(username), absolute=True)
 
     def GET(self, phase=None):
+        '''
+        Manages 3 phases of registration:
+
+        1. Select categories
+        2. select pins
+        3. go to the profile
+        '''
         auth.force_login(session.get_session())
         phase = int(phase or 1)
         try:
@@ -126,14 +124,65 @@ class PageAfterSignup:
         except AttributeError as e:
             raise web.notfound()
 
-    def POST(self, phase=None):
-        auth.force_login(session.get_session())
-        phase = int(phase or 1)
 
-        try:
-            return getattr(self, 'phase_post_%d' % phase)()
-        except AttributeError:
-            raise web.notfound()
+class ApiRegisterCategoryForUser:
+    '''
+    Adds and deletes prefered categories for the user
+
+    For user via ajax.
+    '''
+    def PUT(self, category_id):
+        '''
+        Put a category in the prefered categories for this user
+        '''
+        sess = session.get_session()
+        auth.force_login(sess)
+        db = database.get_db()
+        db.insert(tablename='user_prefered_categories', user_id=sess.user_id, category_id=category_id)
+        web.header('Content-Type', 'application/json')
+        return json.dumps({'status': 'ok'})
+
+    def DELETE(self, category_id):
+        '''
+        Deletes a category from the prefered categories for this user
+        '''
+        sess = session.get_session()
+        auth.force_login(sess)
+        db = database.get_db()
+        db.delete(table='user_prefered_categories', where='user_id=$user_id and category_id=$category_id',
+                  vars={'user_id': sess.user_id, 'category_id': category_id})
+        web.header('Content-Type', 'application/json')
+        return json.dumps({'status': 'ok'})
+
+
+class ApiRegisterCoolPinForUser(object):
+    '''
+    Adds and deletes cool items for the user
+
+    For user via ajax.
+    '''
+    def PUT(self, pin_id):
+        '''
+        Put a cool item for this user
+        '''
+        sess = session.get_session()
+        auth.force_login(sess)
+        db = database.get_db()
+        db.insert(tablename='user_prefered_pins', user_id=sess.user_id, pin_id=pin_id)
+        web.header('Content-Type', 'application/json')
+        return json.dumps({'status': 'ok'})
+
+    def DELETE(self, pin_id):
+        '''
+        Deletes a cool item from this user
+        '''
+        sess = session.get_session()
+        auth.force_login(sess)
+        db = database.get_db()
+        db.delete(table='user_prefered_pins', where='user_id=$user_id and pin_id=$pin_id',
+                  vars={'user_id': sess.user_id, 'pin_id': pin_id})
+        web.header('Content-Type', 'application/json')
+        return json.dumps({'status': 'ok'})
 
 
 
