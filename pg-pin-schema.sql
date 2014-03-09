@@ -654,7 +654,8 @@ CREATE TABLE users (
     bgy integer DEFAULT 0,
     activation integer DEFAULT 0,
     tsv tsvector,
-    login_source character(2) DEFAULT 'MP'::bpchar NOT NULL
+    login_source character(2) DEFAULT 'MP'::bpchar NOT NULL,
+    birthday date
 );
 
 
