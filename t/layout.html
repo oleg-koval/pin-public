@@ -1,4 +1,4 @@
-$def with (content, categories,all_albums=None, user=None, acti_needed=None, notif_count=None)
+$def with (content, categories,all_albums=None, user=None, acti_needed=None, notif_count=None, csrf_token=None)
 <!doctype html>
 <html>
   <head>
@@ -46,6 +46,19 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
             </form>
           </div>
           <div class='right'>
+
+
+            <a href="/messages" class="nav-item nav-icons">
+              <img src="/static/messages.png">
+            </a>
+
+              <a href="/notifications" class="nav-item nav-icons">
+              <img src="/static/notifications.png">
+                $if not notif_count == 0:
+                  <span class='notif-count'>$notif_count</span>
+              </a>
+
+
             <div class='nav-item item profile-picture' id='switch3'>
              
                 $if user.pic:
@@ -67,12 +80,8 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
                 <a href='#' id="edit_thumbnail" data-toggle="modal" data-target="#editModal">Edit Thumbnail</a>
                 -->
                 <a href='/profile/$sess.user_id'>Profile</a>
-                <a href='/messages'>Messages</a>
-                $if notif_count == 0:
-                  <a href='/notifications'>Notifications</a>
-                $else:
-                  <a href='/notifications'>Notifications <span class='notif-count'>$notif_count</span></a>
-                <hr>
+
+                
                 
                 <a href='/settings'>Settings</a>
                 <a href='/connect'>Friends &amp; Followers</a>

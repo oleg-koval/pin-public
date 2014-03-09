@@ -1007,6 +1007,12 @@ ALTER TABLE ONLY user_prefered_pins
     ADD CONSTRAINT user_prefered_pins_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
 
 
+ALTER TABLE users 
+    ADD headerbgx INT NOT NULL DEFAULT 0;
+
+ALTER TABLE users 
+    ADD headerbgy INT NOT NULL DEFAULT 0;
+
 --
 -- Name: public; Type: ACL; Schema: -; Owner: postgres
 --

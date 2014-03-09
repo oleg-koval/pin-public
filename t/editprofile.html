@@ -21,19 +21,36 @@ $def with (user, countries, name, photos)
 
 
 <div class='invis' id='box-email'>
-  <h1>Email</h1>
+  
+  <div>
+  <h1>Account</h1>
+  <small>Change your basic account settings here</small>  
+  </div>
+  
+  <div>    
   <form method='post' class='inner-form' action='/changeemail' autocomplete='off'>
     <table>
+    
+        <tr>
+        <th>Username</th>
+        <td>
+        <input type='text' name='username' value='$user.username'/>
+        </td>
+        </tr>
+
       <tr>
-        <th>Email</th>
-        <td><input type='text' name='email' value='$user.email' /></td>
+      <th>Email</th>
+      <td><input type='email' class="input" name='email' value='$user.email' /></td>
       </tr>
+
       <tr>
         <th>&nbsp;</th>
         <td><button>Save</button></td>
       </tr>
     </table>
   </form>
+  </div>
+
 </div>
 
 
