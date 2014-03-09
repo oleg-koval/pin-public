@@ -598,16 +598,21 @@ class PageEditProfile:
 
 class PageChangeEmail:
     _form = form.Form(
-        form.Textbox('email'))
+        form.Textbox('email'),
+        form.Textbox('username'))
 
+    #@csrf_protected # Verify this is not CSRF, or fail
     def POST(self):
         force_login(sess)
 
         form = self._form()
         if not form.validates():
             return 'you need to fill in everything'
-
-        db.update('users', where='id = $id', vars={'id': sess.user_id}, email=form.d.email)
+        if db.select('users', where='email = $email', vars={'email' : form.d.email}):
+            return 'Pick another email address'
+        if db.select('users', where='username = $username', vars={'username':form.d.username}):
+            return 'Pick another username'
+        db.update('users', where='id = $id', vars={'id': sess.user_id}, email=form.d.email, username=form.d.username)
         raise web.seeother('/settings/email')
 
 
@@ -1744,6 +1749,19 @@ class PageSearchPeople:
 
         users = db.query(query, vars={'user_id': sess.user_id})
         return ltpl('searchpeople', users, orig)
+
+
+def csrf_protected(f):
+    def decorated(*args, **kwargs):
+        inp = web.input()
+        if not (inp.has_key('csrf_token') and inp.csrf_token==session.pop('csrf_token',None)):
+            raise web.HTTPError(
+                "400 Bad request",
+                {'content-type':'text/html'},
+                """Cross-site request forgery (CSRF) attempt (or stale browser form).
+<a href="">Back to the form</a>.""")
+        return f(*args,**kwargs)
+    return decorated
 
 
 if __name__ == '__main__':

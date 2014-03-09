@@ -679,3 +679,18 @@ width: 20px !important;
   box-shadow: none;
   display: block !important;
 }
+
+
+
+.nav-icons{
+  top: -15px;
+}
+.nav-icons img{
+  height: 30px;
+}
+
+.nav-icons img:hover{
+-webkit-transition: width 2s; /* For Safari 3.1 to 6.0 */
+transition: width 2s;
+background-color: #fff;
+}

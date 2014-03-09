@@ -23,6 +23,11 @@ def template_closure(directory):
     return render
 
 
+def csrf_token():
+    if not 'csrf_token' in session:
+        from uuid import uuid4
+        session.csrf_token = uuid4().hex
+    return session.csrf_token
 
 def ltpl(*params):
     sess = session.get_session()
@@ -32,7 +37,7 @@ def ltpl(*params):
         acti_needed = user.activation
         notif_count = db.select('notifs', what='count(*)', where='user_id = $id', vars={'id': sess.user_id})
         all_albums = list(db.select('albums', where="user_id=%s" % (sess.user_id), order='id'))
-        return tpl('layout', tpl(*params), cached_models.all_categories, all_albums, user, acti_needed, notif_count[0].count)
+        return tpl('layout', tpl(*params), cached_models.all_categories, all_albums, user, acti_needed, notif_count[0].count, csrf_token)
     return tpl('layout', tpl(*params), cached_models.all_categories)
 
 
