@@ -45,7 +45,7 @@ class FacebookOauthStart(object):
         parameters = {'state': state,
                       'client_id': settings.FACEBOOK['application_id'],
                       'redirect_uri': self.return_url,
-                      'scope': 'email',
+                      'scope': 'email,user_birthday,publish_actions,user_hometown',
                       }
         url_redirect = base_url + urllib.urlencode(parameters)
         raise web.seeother(url=url_redirect, absolute=True)
@@ -210,6 +210,23 @@ class Username(auth.UniqueUsernameMixin):
                   'facebook': sess.fb_profile['username'],
                   'login_source': auth.LOGIN_SOURCE_FACEBOOK,
                   }
+        hometown = sess.fb_profile.get('hometown', None)
+        if hometown:
+            values['hometown'] = hometown
+        location = sess.fb_profile.get('location', None)
+        if location:
+            location_name = location['name']
+            if location_name:
+                city_and_country = location_name.split(',')
+                values['city'] = city_and_country[0].trim()
+                if len(city_and_country) > 1:
+                    values['country'] = city_and_country[1].trim()
+        website = sess.fb_profile.get('website', None)
+        if website:
+            values['website'] = website
+        birthday = sess.fb_profile.get('birthday', None)
+        if birthday:
+            values['birthday'] = birthday
         self.user_id = auth.create_user(self.form['email'].value, self.form['password'].value, **values)
         return self.user_id
 
