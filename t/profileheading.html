@@ -1,9 +1,10 @@
 $def with (user, hashed, friend_status=None, is_following=None, photos=None)
 <div class='clearfix user-heading'
   $if 'logged_in' in sess and sess.user_id == user.id:
-    id='lolbg'
   $if user.bg:
-    style='background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);$('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'
+    data-bg="true"
+    id='header_background'
+    style='background-position: $(user.headerbgx)px $(user.headerbgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);$('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')";'
   $else:
     data-nobg='true'
     style='background: #333842;'

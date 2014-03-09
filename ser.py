@@ -1496,7 +1496,7 @@ class PageChangeBGPos:
         form = self._form()
         form.validates()
 
-        db.update('users', where='id=$id', vars={'id':sess.user_id}, bgx=form.d.x, bgy=form.d.y)
+        db.update('users', where='id=$id', vars={'id':sess.user_id}, headerbgx=form.d.x, headerbgy=form.d.y)
         return '%s %s' % (form.d.x, form.d.y)
 
 
