@@ -6,9 +6,12 @@ import urllib
 import urlparse
 import json
 import logging
+import os
+import os.path
 from gettext import gettext as _
 
 import web
+from PIL import Image
 
 from mypinnings.conf import settings
 from mypinnings import template
@@ -205,30 +208,65 @@ class Username(auth.UniqueUsernameMixin):
 
     def _insert_user_to_db(self):
         sess = session.get_session()
+        # basic profile data
         values = {'name': sess.fb_profile['name'],
                   'username': self.form['username'].value,
                   'facebook': sess.fb_profile['username'],
                   'login_source': auth.LOGIN_SOURCE_FACEBOOK,
                   }
+        # extended profile data, may not be always available
         hometown = sess.fb_profile.get('hometown', None)
         if hometown:
-            values['hometown'] = hometown
+            hometown_name = hometown.get('name', None)
+            if hometown_name:
+                values['hometown'] = hometown_name
         location = sess.fb_profile.get('location', None)
         if location:
             location_name = location['name']
             if location_name:
                 city_and_country = location_name.split(',')
-                values['city'] = city_and_country[0].trim()
+                values['city'] = city_and_country[0].strip()
                 if len(city_and_country) > 1:
-                    values['country'] = city_and_country[1].trim()
+                    values['country'] = city_and_country[1].strip()
         website = sess.fb_profile.get('website', None)
         if website:
             values['website'] = website
         birthday = sess.fb_profile.get('birthday', None)
         if birthday:
             values['birthday'] = birthday
+        import pprint
+        pprint.pprint(values)
         self.user_id = auth.create_user(self.form['email'].value, self.form['password'].value, **values)
+        self.grab_and_insert_profile_picture()
         return self.user_id
+
+    def grab_and_insert_profile_picture(self):
+        sess = session.get_session()
+        db = database.get_db()
+        album_id = db.insert(tablename='albums', name=_('Profile Pictures'), user_id=self.user_id)
+        photo_id = db.insert(tablename='photos', album_id=album_id)
+        picture_url = 'https://graph.facebook.com/{0}/picture'.format(sess.fb_profile['username'])
+        picture_filename = 'static/pics/{0}.png'.format(photo_id)
+        try:
+            filename, headers = urllib.urlretrieve(url=picture_url)
+            if filename.endswith('.png'):
+                os.renames(old=filename, new=picture_filename)
+            else:
+                img = Image.open(filename)
+                img.save(picture_filename)
+                os.unlink(filename)
+            img = Image.open(picture_filename)
+            width, height = img.size
+            ratio = 80 / width
+            width = 80
+            height *= ratio
+            img.thumbnail((width, height), Image.ANTIALIAS)
+            picture_thumb_filename = 'static/pics/userthumb{0}.png'.format(photo_id)
+            img.save(picture_thumb_filename)
+            db.update(tables='users', where='id=$id', vars={'id': self.user_id}, pic=photo_id)
+        except:
+            # no problem, we can live without the profile picture
+            logger.info('Could not obtain faceboog profile picture', exc_info=True)
 
 
 class Login(FacebookOauthStart):
