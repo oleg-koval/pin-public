@@ -215,27 +215,37 @@ class Username(auth.UniqueUsernameMixin):
                   'login_source': auth.LOGIN_SOURCE_FACEBOOK,
                   }
         # extended profile data, may not be always available
-        hometown = sess.fb_profile.get('hometown', None)
-        if hometown:
-            hometown_name = hometown.get('name', None)
-            if hometown_name:
-                values['hometown'] = hometown_name
-        location = sess.fb_profile.get('location', None)
-        if location:
-            location_name = location['name']
-            if location_name:
-                city_and_country = location_name.split(',')
-                values['city'] = city_and_country[0].strip()
-                if len(city_and_country) > 1:
-                    values['country'] = city_and_country[1].strip()
-        website = sess.fb_profile.get('website', None)
-        if website:
-            values['website'] = website
-        birthday = sess.fb_profile.get('birthday', None)
-        if birthday:
-            values['birthday'] = birthday
-        import pprint
-        pprint.pprint(values)
+        try:
+            hometown = sess.fb_profile.get('hometown', None)
+            if hometown:
+                hometown_name = hometown.get('name', None)
+                if hometown_name:
+                    values['hometown'] = hometown_name
+        except:
+            logger.info('could not get hometown', exc_info=True)
+        try:
+            location = sess.fb_profile.get('location', None)
+            if location:
+                location_name = location['name']
+                if location_name:
+                    city_and_country = location_name.split(',')
+                    values['city'] = city_and_country[0].strip()
+                    if len(city_and_country) > 1:
+                        values['country'] = city_and_country[1].strip()
+        except:
+            logger.info('could not get city and country', exc_info=True)
+        try:
+            website = sess.fb_profile.get('website', None)
+            if website:
+                values['website'] = website
+        except:
+            logger.info('could not get website', exc_info=True)
+        try:
+            birthday = sess.fb_profile.get('birthday', None)
+            if birthday:
+                values['birthday'] = birthday
+        except:
+            logger.info('could not get birthday', exc_info=True)
         self.user_id = auth.create_user(self.form['email'].value, self.form['password'].value, **values)
         self.grab_and_insert_profile_picture()
         return self.user_id
