@@ -19,3 +19,7 @@ FACEBOOK = {'application_id': '1540569082835261',
 TWITTER = {'api_key': 'QNcMlvWvVS2ictFpHW3bQ',
            'api_secret': os.environ['TWITTER_APPLICATION_SECRET'],
            }
+
+GOOGLE = {'client_id': '985703411904-602sd2jgsl6v5ad8k3fb6tanc46a0v88.apps.googleusercontent.com',
+          'client_secret': '5yH_l93eepm9c_NUws8zrQoY',
+          }
