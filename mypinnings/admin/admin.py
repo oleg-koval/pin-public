@@ -29,12 +29,15 @@ urls = ('', 'PageIndex',
         '/edituser/(\d*)', 'PageEditUser',
         '/createuser', 'PageCreateUser',
         '/relationships', 'PageRelationships',
+
         '/categories', 'ListCategories',
         '/cool-items-category/(\d*)', 'EditCoolProductsForCategory',
         '/api/categories/(\d*)/pins/?', 'ApiCategoryListPins',
         '/api/categories/(\d*)/pins/(\d*)/?', 'ApiCategoryPins',
 #         '/api/categories/(\d*)/cool_pins', 'ApiategoryCoolPins'
-         '/api/categories/(\d*)/cool_pins/(\d*)/?', 'ApiCategoryCoolPins'
+        '/api/categories/(\d*)/cool_pins/(\d*)/?', 'ApiCategoryCoolPins',
+
+        '/admin_users_list/?', 'mypinnings.admin.admin_user_management.UsersList'
         )
 
 
