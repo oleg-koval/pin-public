@@ -21,7 +21,7 @@ class UsersList(object):
         form = self.SearchForm()
         form.d.offset = 0
         form.d.limit = PAGE_LIMIT
-        return template.admin.user_list(form, users_results)
+        return template.admin.admin_user_list(form, users_results)
 
     @login_required(only_super=True)
     def POST(self):
@@ -36,3 +36,25 @@ class UsersList(object):
                                       where='username like $search', vars={'search': search})
             return template.admin.user_list(form, users_results)
         return self.GET()
+
+
+class UsersAddNew(object):
+    NewUserForm = web.form.Form(web.form.Textbox('username'),
+                                web.form.Password('password'),
+                                web.form.Checkbox('super', value='ok'),
+                                web.form.Checkbox('manager', value='ok'),
+                                web.form.Button('Add'))
+
+    def GET(self):
+        form = self.NewUserForm()
+        return template.admin.form(form, 'Add admin user')
+
+    def POST(self):
+        form = self.NewUserForm()
+        if form.validates():
+            user = AdminUser(username=form.d.username, password=form.d.password,
+                             super=form.d.super, manager=form.d.manager)
+            user.save()
+            return web.seeother(url='/admin_users_list/')
+        else:
+            return template.admin.form(form, 'Add admin user - invalid data')

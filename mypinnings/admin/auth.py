@@ -45,6 +45,10 @@ class NoSuchPermissionException(Exception):
     pass
 
 
+class CannotCreateUser(Exception):
+    pass
+
+
 class AdminPermission():
     def __init__(self, perm_id=None, name=None):
         self.perm_id = perm_id
@@ -81,7 +85,7 @@ class AdminUser(object):
     '''
     User model for the administration interface
     '''
-    def __init__(self, id=None, username=None, pwsalt=None, pwhash=None, super=False, manager=False, storage=None):
+    def __init__(self, id=None, username=None, pwsalt=None, pwhash=None, super=False, manager=False, password=None, storage=None):
         if storage:
             self.id = storage.id
             self.username = storage.username
@@ -96,6 +100,7 @@ class AdminUser(object):
             self.pwhash = pwhash
             self.super = super
             self.manager = manager
+            self.password = password
 
     def has_valid_password(self, password):
         if not self.pwsalt or not self.pwhash:
@@ -126,6 +131,20 @@ class AdminUser(object):
                 NoSuchAdminUserException('Invalid password')
         else:
             raise NoSuchAdminUserException('No such user')
+
+    def save(self):
+        db = database.get_db()
+        if self.id:
+            db.update(tables='admin_users', where='id=$id', vars={'id': self.id},
+                      super=self.super, manager=self.manager)
+        elif self.password:
+            self.pwsalt = generate_salt()
+            self.pwhash = salt_and_hash(self.password, self.pwsalt)
+            userid = db.insert(tablename='admin_users', username=self.username, pwsalt=self.pwsalt, pwhash=self.pwhash,
+                      super=self.super, manager=self.manager)
+            self.id = userid
+        else:
+            raise CannotCreateUser('Cannot create user, missing data')
 
 
 class PageLogin:
