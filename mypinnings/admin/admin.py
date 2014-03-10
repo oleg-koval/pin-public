@@ -12,23 +12,23 @@ from mypinnings import session
 from mypinnings import template
 from mypinnings import cached_models
 
+from mypinnings.admin.auth import login_required
+
 
 logger = logging.getLogger('admin')
 
-PASSWORD = 'davidfanisawesome'
-
-urls = ('', 'admin.PageIndex',
-        '/', 'admin.PageIndex',
-        '/login', 'admin.PageLogin',
-        '/search', 'admin.PageSearch',
-        '/search/(all)', 'admin.PageSearch',
-        '/create', 'admin.PageCreate',
-        '/user/(\d*)', 'admin.PageUser',
-        '/closeuser/(\d*)', 'admin.PageCloseUser',
-        '/edituser/(\d*)', 'admin.PageEditUser',
-        '/createuser', 'admin.PageCreateUser',
-        '/logout', 'admin.PageLogout',
-        '/relationships', 'admin.PageRelationships',
+urls = ('', 'PageIndex',
+        '/', 'PageIndex',
+        '/login', 'mypinnings.admin.auth.PageLogin',
+        '/logout', 'mypinnings.admin.auth.PageLogout',
+        '/search', 'PageSearch',
+        '/search/(all)', 'PageSearch',
+        '/create', 'PageCreate',
+        '/user/(\d*)', 'PageUser',
+        '/closeuser/(\d*)', 'PageCloseUser',
+        '/edituser/(\d*)', 'PageEditUser',
+        '/createuser', 'PageCreateUser',
+        '/relationships', 'PageRelationships',
         '/categories', 'ListCategories',
         '/cool-items-category/(\d*)', 'EditCoolProductsForCategory',
         '/api/categories/(\d*)/pins/?', 'ApiCategoryListPins',
@@ -42,60 +42,10 @@ def lmsg(msg):
     return template.admin.msg(msg)
 
 
-def login():
-    sess = session.get_session()
-    if 'ok' not in sess or not sess['ok']:
-        raise web.seeother('/login')
-
-def login_required(f):
-    '''
-    Decorator to force login
-    '''
-    def not_logged_in(self, *args, **kwargs):
-        sess = session.get_session()
-        if 'ok' not in sess or not sess['ok']:
-            raise web.seeother('/login')
-        else:
-            return f(self, *args, **kwargs)
-    return not_logged_in
-
-
 class PageIndex:
+    @login_required()
     def GET(self):
-        login()
         return template.admin.index()
-
-
-class PageLogin:
-    _form = form.Form(
-        form.Password('password'),
-        form.Button('login')
-    )
-
-    def GET(self):
-        sess = session.get_session()
-        sess['ok'] = False
-        return web.template.frender('t/admin/form.html')(self._form, 'Login')
-        return template.admin.form(self._form, 'Login')
-
-    def POST(self):
-        sess = session.get_session()
-        form = self._form()
-        if not form.validates():
-            return 'houston we have a problem'
-
-        if form.d.password != PASSWORD:
-            return 'password incorrect'
-
-        sess.ok = True
-        raise web.seeother('/')
-
-
-class PageLogout:
-    def GET(self):
-        sess = session.get_session()
-        sess.kill()
-        raise web.seeother('/')
 
 
 class PageRelationships:
@@ -151,9 +101,8 @@ class PageSearch:
         form.Button('search')
     )
 
+    @login_required()
     def GET(self, allusers=None):
-        login()
-
         params = web.input(order=None, query=None)
         order = params.order
 
@@ -207,8 +156,8 @@ class PageUser:
 
 
 class PageCloseUser:
+    @login_required()
     def GET(self, user_id):
-        login()
         user_id = int(user_id)
         db = database.get_db()
         db.query('delete from pins where user_id = $id', vars={'id': user_id})
@@ -225,8 +174,8 @@ class PageEditUser:
             form.Textarea('about', value=user.get('about')),
             form.Button('update'))()
 
+    @login_required()
     def GET(self, user_id):
-        login()
         user_id = int(user_id)
         db = database.get_db()
         user = db.select('users', where='id = $id', vars={'id': user_id})
@@ -234,8 +183,8 @@ class PageEditUser:
             return 'That user does not exist.'
         return template.admin.edituser(self.make_form(user[0]))
 
+    @login_required()
     def POST(self, user_id):
-        login()
         user_id = int(user_id)
         form = self.make_form()
         if not form.validates():
@@ -295,13 +244,13 @@ class PageCreateUser:
         form.Button('create account')
     )
 
+    @login_required()
     def GET(self):
-        login()
         form = self._form()
         return template.admin.reg(form)
 
+    @login_required()
     def POST(self):
-        login()
         form = self._form()
         if not form.validates():
             return 'bad input'
@@ -323,7 +272,7 @@ class ListCategories(object):
     '''
     Shows the category list to edit them and change its properties
     '''
-    @login_required
+    @login_required()
     def GET(self):
         return template.admin.list_categories(cached_models.all_categories)
 
@@ -332,7 +281,7 @@ class EditCoolProductsForCategory(object):
     '''
     Allows edition of cool products for one category
     '''
-    @login_required
+    @login_required()
     def GET(self, category_id):
         db = database.get_db()
         pins = db.select(tables=['pins', 'cool_pins'], order='pins.name',
@@ -348,7 +297,7 @@ class ApiCategoryListPins(object):
     '''
     API to list and serach the pins in a category
     '''
-    @login_required
+    @login_required()
     def GET(self, category_id):
         '''
         Searches or returns all pins in this category_id.
@@ -394,7 +343,7 @@ class ApiCategoryListPins(object):
 class ApiCategoryPins(object):
     '''
     '''
-    @login_required
+    @login_required()
     def GET(self, pin_id):
         db = database.get_db()
         query_results = db.where(table='pins', id=pin_id)
@@ -410,7 +359,7 @@ class ApiCategoryCoolPins(object):
     '''
     API to manage cool pins in a category
     '''
-    @login_required
+    @login_required()
     def PUT(self, category_id, pin_id):
         '''
         Puts the pin in the category's cool pins
@@ -424,7 +373,7 @@ class ApiCategoryCoolPins(object):
         web.header('Content-Type', 'application/json')
         return json.dumps({'status': 'ok'})
 
-    @login_required
+    @login_required()
     def DELETE(self, category_id, pin_id):
         '''
         Deletes the pin from the category's cool pins
