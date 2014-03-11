@@ -45,10 +45,12 @@ class AddNewUser(object):
                                 web.form.Checkbox('manager', value='ok'),
                                 web.form.Button('Add'))
 
+    @login_required(only_super=True)
     def GET(self):
         form = self.NewUserForm()
         return template.admin.form(form, 'Add admin user')
 
+    @login_required(only_super=True)
     def POST(self):
         form = self.NewUserForm()
         if form.validates():
@@ -61,6 +63,7 @@ class AddNewUser(object):
 
 
 class PermissionsList(object):
+    @login_required(only_super=True)
     def GET(self):
         db = database.get_db()
         permissions_list = db.where(table='admin_permissions', order='name')
@@ -71,10 +74,12 @@ class AddNewPermission(object):
     NewPermissionForm = web.form.Form(web.form.Textbox('name'),
                                       web.form.Button('Add'))
 
+    @login_required(only_super=True)
     def GET(self):
         form = self.NewPermissionForm()
         return template.admin.form(form, 'Add new permission type')
 
+    @login_required(only_super=True)
     def POST(self):
         form = self.NewPermissionForm()
         if form.validates():
@@ -83,3 +88,25 @@ class AddNewPermission(object):
             return web.seeother(url='/admin_perms/', absolute=False)
         else:
             return template.admin.form(form, 'Add new permission type, permission not added')
+
+
+class EditPermission(object):
+    NewPermissionForm = web.form.Form(web.form.Textbox('name'),
+                                      web.form.Button('Edit'))
+
+    @login_required(only_super=True)
+    def GET(self, id):
+        permission = AdminPermission.load(id)
+        form = self.NewPermissionForm()
+        form['name'].value = permission.name
+        return template.admin.form(form, 'Edit permission type')
+
+    @login_required(only_super=True)
+    def POST(self, id):
+        form = self.NewPermissionForm()
+        if form.validates():
+            permission = AdminPermission(name=form.d.name, id=id)
+            permission.save()
+            return web.seeother(url='/admin_perms/', absolute=False)
+        else:
+            return template.admin.form(form, 'Edit permission type, permission not modified')

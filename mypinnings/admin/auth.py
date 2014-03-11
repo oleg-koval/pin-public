@@ -65,20 +65,14 @@ class AdminPermission():
         return permission
 
     @staticmethod
-    def load(id_or_name):
-        try:
-            permission = AdminPermission._load_by_id(id_or_name)
-        except NoSuchPermissionException:
-            permission = AdminPermission._load_by_name(id_or_name)
-        return permission
-
-    @staticmethod
-    def _load_by_id(id):
-        pass
-
-    @staticmethod
-    def _load_by_name(name):
-        pass
+    def load(id):
+        db = database.get_db()
+        results = db.where(table='admin_permissions', id=id)
+        for row in results:
+            permission = AdminPermission(**row)
+            return permission
+        else:
+            raise NoSuchPermissionException
 
     def save(self):
         db = database.get_db()
