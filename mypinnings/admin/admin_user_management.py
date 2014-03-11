@@ -1,3 +1,5 @@
+import json
+
 import web
 
 from mypinnings import database
@@ -110,3 +112,9 @@ class EditPermission(object):
             return web.seeother(url='/admin_perms/', absolute=False)
         else:
             return template.admin.form(form, 'Edit permission type, permission not modified')
+
+    @login_required(only_super=True)
+    def DELETE(self, id):
+        permission = AdminPermission(id=id)
+        permission.delete()
+        return json.dumps({'status': 'ok'})

@@ -55,16 +55,6 @@ class AdminPermission():
         self.name = name
 
     @staticmethod
-    def load_all():
-        db = database.get_db()
-        results = db.select(tables='users')
-        permission_list = []
-        for row in results:
-            permission = AdminPermission(**row)
-            permission_list.append(permission)
-        return permission
-
-    @staticmethod
     def load(id):
         db = database.get_db()
         results = db.where(table='admin_permissions', id=id)
@@ -80,6 +70,12 @@ class AdminPermission():
             db.update(tables='admin_permissions', where='id=$id', vars={'id': self.id}, name=self.name)
         else:
             self.id = db.insert(tablename='admin_permissions', name=self.name)
+
+    def delete(self):
+        if self.id:
+            db = database.get_db()
+            db.delete(table='admin_users_permissions', where='user_id=$id', vars={'id': self.id})
+            db.delete(table='admin_permissions', where='id=$id', vars={'id': self.id})
 
 
 class AdminUser(object):

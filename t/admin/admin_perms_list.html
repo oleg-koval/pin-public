@@ -6,12 +6,19 @@ $def with (permissions_list)
 		</div>
 	</div>
 </div>
-<table class="table table-striped">
+<table class="table table-striped" id="admin_permission_list">
 	<tr>
 		<th>Permissions</th>
+		<th></th>
 	</tr>
 $for permission in permissions_list
-	<tr>
+	<tr id="perm$permission['id']">
 		<td><a href="/admin/admin_perm/$permission['id']/">$permission['name']</a></td>
+		<td><button class="btn delete" permsid="$permission['id']" permsname="$permission['name']">delete</button>
 	</tr>
+</table>
+<div id="delete_confirmation_dialog" title="Confirm to delete">
+	<div>Please confirm that you want to delete this permission. Any user that have this permission will lose it and
+	wont be able to use some protected resources.</div>
+	<div><span id="delete_confirmation_dialog_id"></span> - <span id="delete_confirmation_dialog_name"></span></div>
 </div>
