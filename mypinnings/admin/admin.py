@@ -23,7 +23,6 @@ urls = ('', 'PageIndex',
         '/logout', 'mypinnings.admin.auth.PageLogout',
         '/search', 'PageSearch',
         '/search/(all)', 'PageSearch',
-        '/create', 'PageCreate',
         '/user/(\d*)', 'PageUser',
         '/closeuser/(\d*)', 'PageCloseUser',
         '/edituser/(\d*)', 'PageEditUser',
@@ -34,7 +33,6 @@ urls = ('', 'PageIndex',
         '/cool-items-category/(\d*)', 'EditCoolProductsForCategory',
         '/api/categories/(\d*)/pins/?', 'ApiCategoryListPins',
         '/api/categories/(\d*)/pins/(\d*)/?', 'ApiCategoryPins',
-#         '/api/categories/(\d*)/cool_pins', 'ApiategoryCoolPins'
         '/api/categories/(\d*)/cool_pins/(\d*)/?', 'ApiCategoryCoolPins',
 
         '/admin_users/?', 'mypinnings.admin.admin_user_management.UsersList',
@@ -57,6 +55,7 @@ class PageIndex:
 
 
 class PageRelationships:
+    @login_required(roles=['user_admin'])
     def GET(self):
         db = database.get_db()
         follows = db.query('''
@@ -109,7 +108,7 @@ class PageSearch:
         form.Button('search')
     )
 
-    @login_required()
+    @login_required(roles=['user_admin'])
     def GET(self, allusers=None):
         params = web.input(order=None, query=None)
         order = params.order
@@ -140,6 +139,7 @@ class PageSearch:
 
 
 class PageUser:
+    @login_required(roles=['user_admin'])
     def GET(self, user_id):
         user_id = int(user_id)
         db = database.get_db()
@@ -164,7 +164,7 @@ class PageUser:
 
 
 class PageCloseUser:
-    @login_required()
+    @login_required(roles=['user_admin'])
     def GET(self, user_id):
         user_id = int(user_id)
         db = database.get_db()
@@ -182,7 +182,7 @@ class PageEditUser:
             form.Textarea('about', value=user.get('about')),
             form.Button('update'))()
 
-    @login_required()
+    @login_required(roles=['user_admin'])
     def GET(self, user_id):
         user_id = int(user_id)
         db = database.get_db()
@@ -191,7 +191,7 @@ class PageEditUser:
             return 'That user does not exist.'
         return template.admin.edituser(self.make_form(user[0]))
 
-    @login_required()
+    @login_required(roles=['user_admin'])
     def POST(self, user_id):
         user_id = int(user_id)
         form = self.make_form()
@@ -252,12 +252,12 @@ class PageCreateUser:
         form.Button('create account')
     )
 
-    @login_required()
+    @login_required(roles=['user_admin'])
     def GET(self):
         form = self._form()
         return template.admin.reg(form)
 
-    @login_required()
+    @login_required(roles=['user_admin'])
     def POST(self):
         form = self._form()
         if not form.validates():
@@ -280,7 +280,7 @@ class ListCategories(object):
     '''
     Shows the category list to edit them and change its properties
     '''
-    @login_required()
+    @login_required(roles=['categories_admin'])
     def GET(self):
         return template.admin.list_categories(cached_models.all_categories)
 
@@ -289,7 +289,7 @@ class EditCoolProductsForCategory(object):
     '''
     Allows edition of cool products for one category
     '''
-    @login_required()
+    @login_required(roles=['categories_admin'])
     def GET(self, category_id):
         db = database.get_db()
         pins = db.select(tables=['pins', 'cool_pins'], order='pins.name',
@@ -305,7 +305,7 @@ class ApiCategoryListPins(object):
     '''
     API to list and serach the pins in a category
     '''
-    @login_required()
+    @login_required(roles=['categories_admin'])
     def GET(self, category_id):
         '''
         Searches or returns all pins in this category_id.
@@ -351,7 +351,7 @@ class ApiCategoryListPins(object):
 class ApiCategoryPins(object):
     '''
     '''
-    @login_required()
+    @login_required(roles=['categories_admin'])
     def GET(self, pin_id):
         db = database.get_db()
         query_results = db.where(table='pins', id=pin_id)
@@ -367,7 +367,7 @@ class ApiCategoryCoolPins(object):
     '''
     API to manage cool pins in a category
     '''
-    @login_required()
+    @login_required(roles=['categories_admin'])
     def PUT(self, category_id, pin_id):
         '''
         Puts the pin in the category's cool pins
@@ -381,7 +381,7 @@ class ApiCategoryCoolPins(object):
         web.header('Content-Type', 'application/json')
         return json.dumps({'status': 'ok'})
 
-    @login_required()
+    @login_required(roles=['categories_admin'])
     def DELETE(self, category_id, pin_id):
         '''
         Deletes the pin from the category's cool pins

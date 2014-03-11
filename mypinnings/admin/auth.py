@@ -31,7 +31,7 @@ class login_required(object):
                 return "You don't have permission to see this page"
             if self.only_managers and not sess.user.manager:
                 return "You don't have permission to see this page"
-            if not self.roles.issubset(sess.user.roles):
+            if not sess.user.has_all_rol_names(self.roles):
                 return "You don't have permission to see this page"
             return f(*args, **kwargs)
         return check_login_and_permissions
@@ -94,7 +94,7 @@ class AdminRol():
     def __eq__(self, other):
         if isinstance(other, AdminRol):
             return self.id == other.id
-        return False
+        return self.name.equals(other)
 
     def __hash__(self):
         return self.id
@@ -186,6 +186,15 @@ class AdminUser(object):
             db = database.get_db()
             db.delete(table='admin_users_roles', where='user_id=$id', vars={'id': self.id})
             db.delete(table='admin_users', where='id=$id', vars={'id': self.id})
+
+    def has_all_rol_names(self, rol_names):
+        for name in rol_names:
+            for rol in self.roles:
+                if rol.name == name:
+                    break
+            else:
+                return False
+        return True
 
 
 class PageLogin:
