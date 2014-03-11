@@ -50,7 +50,7 @@ class AddNewUser(object):
     def GET(self):
         form = self.NewUserForm()
         perms_list = AdminRol.load_all()
-        return template.admin.admin_user_edit(form, 'Add admin user', 'Add', perms_list)
+        return template.admin.admin_user_insert(form, 'Add admin user', 'Add', perms_list)
 
     @login_required(only_super=True)
     def POST(self):
@@ -67,6 +67,42 @@ class AddNewUser(object):
                     pass
             user = AdminUser(username=form.d.username, password=form.d.password,
                              super=form.d.super, manager=form.d.manager, roles=perms_list_to_add)
+            user.save()
+            return web.seeother(url='/admin_users/')
+        else:
+            return template.admin.form(form, 'Add admin user - invalid data')
+
+
+class EditUser(object):
+    UserForm = web.form.Form(web.form.Textbox('username'),
+                                web.form.Checkbox('super', value='ok'),
+                                web.form.Checkbox('manager', value='ok'))
+
+    @login_required(only_super=True)
+    def GET(self, id):
+        user = AdminUser.load(id)
+        form = self.UserForm()
+        form['username'].value = user.username
+        form['super'].value = user.super
+        form['manager'].value = user.manager
+        perms_list = AdminRol.load_all()
+        return template.admin.admin_user_edit(form, 'Edit admin user', 'Edit', perms_list, user)
+
+    @login_required(only_super=True)
+    def POST(self, id):
+        form = self.UserForm()
+        if form.validates():
+            perms_list = AdminRol.load_all()
+            perms_list_to_add = []
+            for perm in perms_list:
+                try:
+                    val = web.input()[str(perm.id)]
+                    if val == 'ok':
+                        perms_list_to_add.append(AdminUser(id=perm.id))
+                except KeyError:
+                    pass
+            user = AdminUser(id=id, username=form.d.username, super=form.d.super,
+                             manager=form.d.manager, roles=perms_list_to_add)
             user.save()
             return web.seeother(url='/admin_users/')
         else:

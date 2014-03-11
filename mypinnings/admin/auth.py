@@ -17,7 +17,7 @@ class login_required(object):
     def __init__(self, only_super=False, only_managers=False, roles=[]):
         self.only_super = only_super
         self.only_managers = only_managers
-        self.roles = frozenset(roles)
+        self.roles = set(roles)
 
     def __call__(self, f):
         def check_login_and_permissions(*args, **kwargs):
@@ -78,7 +78,6 @@ class AdminRol():
         else:
             raise NoSuchPermissionException
 
-
     def save(self):
         db = database.get_db()
         if self.id:
@@ -91,6 +90,14 @@ class AdminRol():
             db = database.get_db()
             db.delete(table='admin_users_roles', where='user_id=$id', vars={'id': self.id})
             db.delete(table='admin_roles', where='id=$id', vars={'id': self.id})
+
+    def __eq__(self, other):
+        if isinstance(other, AdminRol):
+            return self.id == other.id
+        return False
+
+    def __hash__(self):
+        return self.id
 
 
 class AdminUser(object):
@@ -114,7 +121,7 @@ class AdminUser(object):
             self.super = super
             self.manager = manager
             self.password = password
-        self.roles = frozenset(roles)
+        self.roles = set(roles)
 
     def has_valid_password(self, password):
         if not self.pwsalt or not self.pwhash:
@@ -129,9 +136,19 @@ class AdminUser(object):
         if len(results) > 0:
             row = results[0]
             user = AdminUser(**row)
+            user._load_roles()
             return user
         else:
             raise NoSuchAdminUserException('No such user')
+
+    def _load_roles(self):
+        db = database.get_db()
+        results = db.select(tables=['admin_users_roles', 'admin_roles'], what='admin_roles.*',
+                            where='admin_users_roles.user_id=$id and admin_users_roles.rol_id=admin_roles.id',
+                            vars={'id': self.id})
+        for row in results:
+            rol = AdminRol(**row)
+            self.roles.add(rol)
 
     @staticmethod
     def get_with_password(username=None, password=None):
@@ -140,6 +157,7 @@ class AdminUser(object):
         for row in results:
             user = AdminUser(storage=row)
             if user.has_valid_password(password):
+                user._load_roles()
                 return user
             else:
                 NoSuchAdminUserException('Invalid password')
@@ -151,7 +169,7 @@ class AdminUser(object):
         if self.id:
             db.update(tables='admin_users', where='id=$id', vars={'id': self.id},
                       super=self.super, manager=self.manager)
-            db.delete(table='admin_users_roles', where='user_id=$id', vars={'id', self.id})
+            db.delete(table='admin_users_roles', where='user_id=$id', vars={'id': self.id})
         elif self.password:
             self.pwsalt = generate_salt()
             self.pwhash = salt_and_hash(self.password, self.pwsalt)

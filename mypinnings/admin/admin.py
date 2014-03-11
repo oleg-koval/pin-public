@@ -38,6 +38,7 @@ urls = ('', 'PageIndex',
         '/api/categories/(\d*)/cool_pins/(\d*)/?', 'ApiCategoryCoolPins',
 
         '/admin_users/?', 'mypinnings.admin.admin_user_management.UsersList',
+        '/admin_user/(\d+)/?', 'mypinnings.admin.admin_user_management.EditUser',
         '/admin_user/?', 'mypinnings.admin.admin_user_management.AddNewUser',
         '/admin_roles/?', 'mypinnings.admin.admin_user_management.RolesList',
         '/admin_rol/(\d+)/?', 'mypinnings.admin.admin_user_management.EditRol',
