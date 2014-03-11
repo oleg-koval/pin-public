@@ -50,8 +50,8 @@ class CannotCreateUser(Exception):
 
 
 class AdminPermission():
-    def __init__(self, perm_id=None, name=None):
-        self.perm_id = perm_id
+    def __init__(self, id=None, name=None):
+        self.id = id
         self.name = name
 
     @staticmethod
@@ -73,12 +73,19 @@ class AdminPermission():
         return permission
 
     @staticmethod
-    def _load_by_id(perm_id):
+    def _load_by_id(id):
         pass
 
     @staticmethod
     def _load_by_name(name):
         pass
+
+    def save(self):
+        db = database.get_db()
+        if self.id:
+            db.update(tables='admin_permissions', where='id=$id', vars={'id': self.id}, name=self.name)
+        else:
+            self.id = db.insert(tablename='admin_permissions', name=self.name)
 
 
 class AdminUser(object):

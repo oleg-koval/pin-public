@@ -2,8 +2,11 @@
 (function() {
 
   jQuery(function() {
-    return $("#add_new_admin_user_button").click(function() {
+    $("#add_new_admin_user_button").click(function() {
       window.location.href = '/admin/admin_user_add_new/';
+    });
+    $("#add_new_admin_permission_button").click(function() {
+      window.location.href = '/admin/admin_perms_add_new/';
     });
   });
 

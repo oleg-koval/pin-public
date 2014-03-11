@@ -38,7 +38,7 @@ class UsersList(object):
         return self.GET()
 
 
-class UsersAddNew(object):
+class AddNewUser(object):
     NewUserForm = web.form.Form(web.form.Textbox('username'),
                                 web.form.Password('password'),
                                 web.form.Checkbox('super', value='ok'),
@@ -58,3 +58,28 @@ class UsersAddNew(object):
             return web.seeother(url='/admin_users_list/')
         else:
             return template.admin.form(form, 'Add admin user - invalid data')
+
+
+class PermissionsList(object):
+    def GET(self):
+        db = database.get_db()
+        permissions_list = db.where(table='admin_permissions', order='name')
+        return template.admin.admin_perms_list(permissions_list)
+
+
+class AddNewPermission(object):
+    NewPermissionForm = web.form.Form(web.form.Textbox('name'),
+                                      web.form.Button('Add'))
+
+    def GET(self):
+        form = self.NewPermissionForm()
+        return template.admin.form(form, 'Add new permission type')
+
+    def POST(self):
+        form = self.NewPermissionForm()
+        if form.validates():
+            permission = AdminPermission(name=form.d.name)
+            permission.save()
+            return web.seeother(url='/admin_perms_list/', absolute=False)
+        else:
+            return template.admin.form(form, 'Add new permission type, permission not added')

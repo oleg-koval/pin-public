@@ -1,0 +1,17 @@
+$def with (permissions_list)
+<div class="container-flow">
+	<div class="row">
+		<div class="col-xs-12">
+			<button class="btn" id="add_new_admin_permission_button">Add new</button>
+		</div>
+	</div>
+</div>
+<table class="table table-striped">
+	<tr>
+		<th>Permissions</th>
+	</tr>
+$for permission in permissions_list
+	<tr>
+		<td>$permission['name']</td>
+	</tr>
+</div>
