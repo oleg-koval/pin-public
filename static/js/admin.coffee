@@ -60,5 +60,19 @@ jQuery ->
 							$.confirm_dialog.dialog('close')
 							return
 				return
-		
+	
+	$('#admin_user_list_next_button').click ->
+		limit = parseInt($('#limit').attr('value'))
+		offset = parseInt($('#offset').attr('value'))
+		$('#offset').attr('value', offset + limit)
+		$('form').submit()
+		return
+
+	$('#admin_user_list_prev_button').click ->
+		limit = parseInt($('#limit').attr('value'))
+		offset = parseInt($('#offset').attr('value'))
+		$('#offset').attr('value', offset - limit)
+		$('form').submit()
+		return
+	
 	return

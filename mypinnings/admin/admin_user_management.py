@@ -36,7 +36,7 @@ class UsersList(object):
             search = '%{}%'.format(search)
             users_results = db.select(tables='admin_users', limit=PAGE_LIMIT, offset=offset, order='username',
                                       where='username like $search', vars={'search': search})
-            return template.admin.user_list(form, users_results)
+            return template.admin.admin_user_list(form, users_results)
         return self.GET()
 
 

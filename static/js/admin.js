@@ -66,6 +66,20 @@
         }
       }
     });
+    $('#admin_user_list_next_button').click(function() {
+      var limit, offset;
+      limit = parseInt($('#limit').attr('value'));
+      offset = parseInt($('#offset').attr('value'));
+      $('#offset').attr('value', offset + limit);
+      $('form').submit();
+    });
+    $('#admin_user_list_prev_button').click(function() {
+      var limit, offset;
+      limit = parseInt($('#limit').attr('value'));
+      offset = parseInt($('#offset').attr('value'));
+      $('#offset').attr('value', offset - limit);
+      $('form').submit();
+    });
   });
 
 }).call(this);
