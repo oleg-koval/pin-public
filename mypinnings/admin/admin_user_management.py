@@ -4,7 +4,7 @@ import web
 
 from mypinnings import database
 from mypinnings import template
-from mypinnings.admin.auth import AdminUser, AdminPermission, login_required
+from mypinnings.admin.auth import AdminUser, AdminRol, login_required
 
 
 PAGE_LIMIT = 10
@@ -44,77 +44,86 @@ class AddNewUser(object):
     NewUserForm = web.form.Form(web.form.Textbox('username'),
                                 web.form.Password('password'),
                                 web.form.Checkbox('super', value='ok'),
-                                web.form.Checkbox('manager', value='ok'),
-                                web.form.Button('Add'))
+                                web.form.Checkbox('manager', value='ok'))
 
     @login_required(only_super=True)
     def GET(self):
         form = self.NewUserForm()
-        return template.admin.form(form, 'Add admin user')
+        perms_list = AdminRol.load_all()
+        return template.admin.admin_user_edit(form, 'Add admin user', 'Add', perms_list)
 
     @login_required(only_super=True)
     def POST(self):
         form = self.NewUserForm()
         if form.validates():
+            perms_list = AdminRol.load_all()
+            perms_list_to_add = []
+            for perm in perms_list:
+                try:
+                    val = web.input()[str(perm.id)]
+                    if val == 'ok':
+                        perms_list_to_add.append(AdminUser(id=perm.id))
+                except KeyError:
+                    pass
             user = AdminUser(username=form.d.username, password=form.d.password,
-                             super=form.d.super, manager=form.d.manager)
+                             super=form.d.super, manager=form.d.manager, roles=perms_list_to_add)
             user.save()
             return web.seeother(url='/admin_users/')
         else:
             return template.admin.form(form, 'Add admin user - invalid data')
 
 
-class PermissionsList(object):
+class RolesList(object):
     @login_required(only_super=True)
     def GET(self):
         db = database.get_db()
-        permissions_list = db.where(table='admin_permissions', order='name')
-        return template.admin.admin_perms_list(permissions_list)
+        roles_list = db.where(table='admin_roles', order='name')
+        return template.admin.admin_roles_list(roles_list)
 
 
-class AddNewPermission(object):
-    NewPermissionForm = web.form.Form(web.form.Textbox('name'),
+class AddNewRol(object):
+    NewRolForm = web.form.Form(web.form.Textbox('name'),
                                       web.form.Button('Add'))
 
     @login_required(only_super=True)
     def GET(self):
-        form = self.NewPermissionForm()
+        form = self.NewRolForm()
         return template.admin.form(form, 'Add new permission type')
 
     @login_required(only_super=True)
     def POST(self):
-        form = self.NewPermissionForm()
+        form = self.NewRolForm()
         if form.validates():
-            permission = AdminPermission(name=form.d.name)
-            permission.save()
-            return web.seeother(url='/admin_perms/', absolute=False)
+            rol = AdminRol(name=form.d.name)
+            rol.save()
+            return web.seeother(url='/admin_roles/', absolute=False)
         else:
-            return template.admin.form(form, 'Add new permission type, permission not added')
+            return template.admin.form(form, 'Add new rol type, rol not added')
 
 
-class EditPermission(object):
-    NewPermissionForm = web.form.Form(web.form.Textbox('name'),
+class EditRol(object):
+    NewRolForm = web.form.Form(web.form.Textbox('name'),
                                       web.form.Button('Edit'))
 
     @login_required(only_super=True)
     def GET(self, id):
-        permission = AdminPermission.load(id)
-        form = self.NewPermissionForm()
-        form['name'].value = permission.name
-        return template.admin.form(form, 'Edit permission type')
+        rol = AdminRol.load(id)
+        form = self.NewRolForm()
+        form['name'].value = rol.name
+        return template.admin.form(form, 'Edit rol type')
 
     @login_required(only_super=True)
     def POST(self, id):
-        form = self.NewPermissionForm()
+        form = self.NewRolForm()
         if form.validates():
-            permission = AdminPermission(name=form.d.name, id=id)
-            permission.save()
-            return web.seeother(url='/admin_perms/', absolute=False)
+            rol = AdminRol(name=form.d.name, id=id)
+            rol.save()
+            return web.seeother(url='/admin_roles/', absolute=False)
         else:
-            return template.admin.form(form, 'Edit permission type, permission not modified')
+            return template.admin.form(form, 'Edit rol type, rol not modified')
 
     @login_required(only_super=True)
     def DELETE(self, id):
-        permission = AdminPermission(id=id)
-        permission.delete()
+        rol = AdminRol(id=id)
+        rol.delete()
         return json.dumps({'status': 'ok'})

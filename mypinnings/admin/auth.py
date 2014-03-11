@@ -27,7 +27,7 @@ class login_required(object):
                 return web.seeother('/login')
             if sess.user.super:
                 return f(*args, **kwargs)
-            if self.only_admins and not sess.user.super:
+            if self.only_super and not sess.user.super:
                 return "You don't have permission to see this page"
             if self.only_managers and not sess.user.manager:
                 return "You don't have permission to see this page"
@@ -49,40 +49,56 @@ class CannotCreateUser(Exception):
     pass
 
 
-class AdminPermission():
-    def __init__(self, id=None, name=None):
-        self.id = id
-        self.name = name
+class AdminRol():
+    def __init__(self, id=None, name=None, storage=None):
+        if storage:
+            self.id = storage.id
+            self.name = storage.name
+        else:
+            self.id = id
+            self.name = name
+
+    @staticmethod
+    def load_all():
+        db = database.get_db()
+        results = db.where(table='admin_roles', order='name')
+        permissions = []
+        for row in results:
+            permission = AdminRol(**row)
+            permissions.append(permission)
+        return permissions
 
     @staticmethod
     def load(id):
         db = database.get_db()
-        results = db.where(table='admin_permissions', id=id)
+        results = db.where(table='admin_roles', id=id)
         for row in results:
-            permission = AdminPermission(**row)
+            permission = AdminRol(**row)
             return permission
         else:
             raise NoSuchPermissionException
 
+
     def save(self):
         db = database.get_db()
         if self.id:
-            db.update(tables='admin_permissions', where='id=$id', vars={'id': self.id}, name=self.name)
+            db.update(tables='admin_roles', where='id=$id', vars={'id': self.id}, name=self.name)
         else:
-            self.id = db.insert(tablename='admin_permissions', name=self.name)
+            self.id = db.insert(tablename='admin_roles', name=self.name)
 
     def delete(self):
         if self.id:
             db = database.get_db()
-            db.delete(table='admin_users_permissions', where='user_id=$id', vars={'id': self.id})
-            db.delete(table='admin_permissions', where='id=$id', vars={'id': self.id})
+            db.delete(table='admin_users_roles', where='user_id=$id', vars={'id': self.id})
+            db.delete(table='admin_roles', where='id=$id', vars={'id': self.id})
 
 
 class AdminUser(object):
     '''
     User model for the administration interface
     '''
-    def __init__(self, id=None, username=None, pwsalt=None, pwhash=None, super=False, manager=False, password=None, storage=None):
+    def __init__(self, id=None, username=None, pwsalt=None, pwhash=None, super=False,
+                 manager=False, password=None, storage=None, roles=[]):
         if storage:
             self.id = storage.id
             self.username = storage.username
@@ -98,6 +114,7 @@ class AdminUser(object):
             self.super = super
             self.manager = manager
             self.password = password
+        self.roles = frozenset(roles)
 
     def has_valid_password(self, password):
         if not self.pwsalt or not self.pwhash:
@@ -134,6 +151,7 @@ class AdminUser(object):
         if self.id:
             db.update(tables='admin_users', where='id=$id', vars={'id': self.id},
                       super=self.super, manager=self.manager)
+            db.delete(table='admin_users_roles', where='user_id=$id', vars={'id', self.id})
         elif self.password:
             self.pwsalt = generate_salt()
             self.pwhash = salt_and_hash(self.password, self.pwsalt)
@@ -142,6 +160,8 @@ class AdminUser(object):
             self.id = userid
         else:
             raise CannotCreateUser('Cannot create user, missing data')
+        for rol in self.roles:
+            db.insert(tablename='admin_users_roles', user_id=self.id, rol_id=rol.id)
 
 
 class PageLogin:

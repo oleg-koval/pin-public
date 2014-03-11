@@ -39,9 +39,9 @@ urls = ('', 'PageIndex',
 
         '/admin_users/?', 'mypinnings.admin.admin_user_management.UsersList',
         '/admin_user/?', 'mypinnings.admin.admin_user_management.AddNewUser',
-        '/admin_perms/?', 'mypinnings.admin.admin_user_management.PermissionsList',
-        '/admin_perm/(\d+)/?', 'mypinnings.admin.admin_user_management.EditPermission',
-        '/admin_perm/?', 'mypinnings.admin.admin_user_management.AddNewPermission',
+        '/admin_roles/?', 'mypinnings.admin.admin_user_management.RolesList',
+        '/admin_rol/(\d+)/?', 'mypinnings.admin.admin_user_management.EditRol',
+        '/admin_rol/?', 'mypinnings.admin.admin_user_management.AddNewRol',
         )
 
 

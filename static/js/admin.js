@@ -6,7 +6,7 @@
       window.location.href = '/admin/admin_user/';
     });
     $("#add_new_admin_permission_button").click(function() {
-      window.location.href = '/admin/admin_perm/';
+      window.location.href = '/admin/admin_rol/';
     });
     $("#admin_permission_list").on('click', '.delete', function() {
       $.permsid = $(this).attr('permsid');
@@ -25,7 +25,7 @@
         'Confirm delete': function() {
           var url;
           $.confirm_dialog = $(this);
-          url = "/admin/admin_perm/" + $.permsid + "/";
+          url = "/admin/admin_rol/" + $.permsid + "/";
           $.ajax(url, {
             type: 'DELETE',
             dataType: 'json',

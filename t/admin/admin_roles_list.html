@@ -13,7 +13,7 @@ $def with (permissions_list)
 	</tr>
 $for permission in permissions_list
 	<tr id="perm$permission['id']">
-		<td><a href="/admin/admin_perm/$permission['id']/">$permission['name']</a></td>
+		<td><a href="/admin/admin_rol/$permission['id']/">$permission['name']</a></td>
 		<td><button class="btn delete" permsid="$permission['id']" permsname="$permission['name']">delete</button>
 	</tr>
 </table>
