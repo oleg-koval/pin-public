@@ -88,7 +88,7 @@ class AdminRol():
     def delete(self):
         if self.id:
             db = database.get_db()
-            db.delete(table='admin_users_roles', where='user_id=$id', vars={'id': self.id})
+            db.delete(table='admin_users_roles', where='rol_id=$id', vars={'id': self.id})
             db.delete(table='admin_roles', where='id=$id', vars={'id': self.id})
 
     def __eq__(self, other):
@@ -168,7 +168,7 @@ class AdminUser(object):
         db = database.get_db()
         if self.id:
             db.update(tables='admin_users', where='id=$id', vars={'id': self.id},
-                      super=self.super, manager=self.manager)
+                      super=self.super, manager=self.manager, username=self.username)
             db.delete(table='admin_users_roles', where='user_id=$id', vars={'id': self.id})
         elif self.password:
             self.pwsalt = generate_salt()
@@ -180,6 +180,12 @@ class AdminUser(object):
             raise CannotCreateUser('Cannot create user, missing data')
         for rol in self.roles:
             db.insert(tablename='admin_users_roles', user_id=self.id, rol_id=rol.id)
+
+    def delete(self):
+        if self.id:
+            db = database.get_db()
+            db.delete(table='admin_users_roles', where='user_id=$id', vars={'id': self.id})
+            db.delete(table='admin_users', where='id=$id', vars={'id': self.id})
 
 
 class PageLogin:

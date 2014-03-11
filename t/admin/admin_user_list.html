@@ -9,14 +9,19 @@ $def with (Form, user_list)
 		</div>
 	</div>
 </div>
-<table class="table table-striped">
+<table class="table table-striped" id="admin_users_list">
 	<tr>
 		<th>Username</th>
-		<th>Permissions</th>
+		<th></th>
 	</tr>
 $for user in user_list
-	<tr>
+	<tr id="user$user['id']">
 		<td><a href="/admin/admin_user/$user['id']/">$user['username']</a></td>
-		<td>...</td>
+		<td><button class="btn delete" userid="$user['id']" username="$user['username']">delete</button></td>
 	</tr>
+</div>
+<div id="admin_user_delete_confirmation_dialog" title="Confirm to delete">
+	<div>Please confirm that you want to delete this permission. Any user that have this permission will lose it and
+	wont be able to use some protected resources.</div>
+	<div><span id="delete_confirmation_dialog_id"></span> - <span id="delete_confirmation_dialog_name"></span></div>
 </div>

@@ -83,8 +83,8 @@ class EditUser(object):
         user = AdminUser.load(id)
         form = self.UserForm()
         form['username'].value = user.username
-        form['super'].value = user.super
-        form['manager'].value = user.manager
+        form['super'].checked = user.super
+        form['manager'].checked = user.manager
         perms_list = AdminRol.load_all()
         return template.admin.admin_user_edit(form, 'Edit admin user', 'Edit', perms_list, user)
 
@@ -107,6 +107,12 @@ class EditUser(object):
             return web.seeother(url='/admin_users/')
         else:
             return template.admin.form(form, 'Add admin user - invalid data')
+
+    @login_required(only_super=True)
+    def DELETE(self, id):
+        user = AdminUser(id=id)
+        user.delete()
+        return json.dumps({'status': 'ok'})
 
 
 class RolesList(object):
