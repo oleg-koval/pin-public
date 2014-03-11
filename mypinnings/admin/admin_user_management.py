@@ -55,7 +55,7 @@ class AddNewUser(object):
             user = AdminUser(username=form.d.username, password=form.d.password,
                              super=form.d.super, manager=form.d.manager)
             user.save()
-            return web.seeother(url='/admin_users_list/')
+            return web.seeother(url='/admin_users/')
         else:
             return template.admin.form(form, 'Add admin user - invalid data')
 
@@ -80,6 +80,6 @@ class AddNewPermission(object):
         if form.validates():
             permission = AdminPermission(name=form.d.name)
             permission.save()
-            return web.seeother(url='/admin_perms_list/', absolute=False)
+            return web.seeother(url='/admin_perms/', absolute=False)
         else:
             return template.admin.form(form, 'Add new permission type, permission not added')
