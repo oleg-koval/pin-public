@@ -41,6 +41,8 @@ urls = ('', 'PageIndex',
         '/admin_roles/?', 'mypinnings.admin.admin_user_management.RolesList',
         '/admin_rol/(\d+)/?', 'mypinnings.admin.admin_user_management.EditRol',
         '/admin_rol/?', 'mypinnings.admin.admin_user_management.AddNewRol',
+
+        '/input/?', 'mypinnings.admin.data_load.LoadPins',
         )
 
 
