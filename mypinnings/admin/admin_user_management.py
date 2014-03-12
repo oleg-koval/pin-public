@@ -41,10 +41,11 @@ class UsersList(object):
 
 
 class AddNewUser(object):
-    NewUserForm = web.form.Form(web.form.Textbox('username'),
-                                web.form.Password('password'),
-                                web.form.Checkbox('super', value='ok'),
-                                web.form.Checkbox('manager', value='ok'))
+    NewUserForm = web.form.Form(web.form.Textbox('username', description="Username"),
+                                web.form.Password('password', description='Password'),
+                                web.form.Checkbox('super', value='ok', description='Is a super-user'),
+                                web.form.Checkbox('manager', value='ok', description='Is a manager'),
+                                web.form.Textbox('site_user_email', description='Email in the live site (optional)'))
 
     @login_required(only_super=True)
     def GET(self):
@@ -66,7 +67,8 @@ class AddNewUser(object):
                 except KeyError:
                     pass
             user = AdminUser(username=form.d.username, password=form.d.password,
-                             super=form.d.super, manager=form.d.manager, roles=perms_list_to_add)
+                             super=form.d.super, manager=form.d.manager, site_user_email=form.d.site_user_email,
+                             roles=perms_list_to_add)
             user.save()
             return web.seeother(url='/admin_users/')
         else:
@@ -74,9 +76,10 @@ class AddNewUser(object):
 
 
 class EditUser(object):
-    UserForm = web.form.Form(web.form.Textbox('username'),
-                                web.form.Checkbox('super', value='ok'),
-                                web.form.Checkbox('manager', value='ok'))
+    UserForm = web.form.Form(web.form.Textbox('username', description="Username"),
+                                web.form.Checkbox('super', value='ok', description='Is a super-user'),
+                                web.form.Checkbox('manager', value='ok', description='Is a manager'),
+                                web.form.Textbox('site_user_email', description='Email in the live site (optional)'))
 
     @login_required(only_super=True)
     def GET(self, id):
@@ -102,7 +105,8 @@ class EditUser(object):
                 except KeyError:
                     pass
             user = AdminUser(id=id, username=form.d.username, super=form.d.super,
-                             manager=form.d.manager, roles=perms_list_to_add)
+                             manager=form.d.manager, site_user_email=form.d.site_user_email,
+                             roles=perms_list_to_add)
             user.save()
             return web.seeother(url='/admin_users/')
         else:

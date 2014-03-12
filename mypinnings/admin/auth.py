@@ -105,13 +105,14 @@ class AdminUser(object):
     User model for the administration interface
     '''
     def __init__(self, id=None, username=None, pwsalt=None, pwhash=None, super=False,
-                 manager=False, password=None, storage=None, roles=[]):
+                 manager=False, password=None, storage=None, site_user_email=None, roles=[]):
         if storage:
             self.id = storage.id
             self.username = storage.username
             self.pwsalt = storage.pwsalt
             self.pwhash = storage.pwhash
             self.super = storage.super
+            self.site_user_id = storage.site_user_id
             self.manager = storage.manager
         else:
             self.id = id
@@ -121,6 +122,7 @@ class AdminUser(object):
             self.super = super
             self.manager = manager
             self.password = password
+            self.site_user_email = site_user_email
         self.roles = set(roles)
 
     def has_valid_password(self, password):
@@ -166,15 +168,23 @@ class AdminUser(object):
 
     def save(self):
         db = database.get_db()
+        if self.site_user_email:
+            # find the site user with this email, this is the users table
+            results = db.where(table='users', email=self.site_user_email)
+            for row in results:
+                self.site_user_id = row.id
+                break
+            else:
+                raise CannotCreateUser('Cannot create user, that email is not registered for a site user')
         if self.id:
             db.update(tables='admin_users', where='id=$id', vars={'id': self.id},
-                      super=self.super, manager=self.manager, username=self.username)
+                      super=self.super, manager=self.manager, username=self.username, site_user_id=self.site_user_id)
             db.delete(table='admin_users_roles', where='user_id=$id', vars={'id': self.id})
         elif self.password:
             self.pwsalt = generate_salt()
             self.pwhash = salt_and_hash(self.password, self.pwsalt)
             userid = db.insert(tablename='admin_users', username=self.username, pwsalt=self.pwsalt, pwhash=self.pwhash,
-                      super=self.super, manager=self.manager)
+                      super=self.super, manager=self.manager, site_user_id=self.site_user_id)
             self.id = userid
         else:
             raise CannotCreateUser('Cannot create user, missing data')
