@@ -69,7 +69,10 @@ class AddNewUser(object):
             user = AdminUser(username=form.d.username, password=form.d.password,
                              super=form.d.super, manager=form.d.manager, site_user_email=form.d.site_user_email,
                              roles=perms_list_to_add)
-            user.save()
+            try:
+                user.save()
+            except Exception as e:
+                return unicode(e)
             return web.seeother(url='/admin_users/')
         else:
             return template.admin.form(form, 'Add admin user - invalid data')
@@ -88,6 +91,11 @@ class EditUser(object):
         form['username'].value = user.username
         form['super'].checked = user.super
         form['manager'].checked = user.manager
+        if user.site_user_id:
+            db = database.get_db()
+            results = db.where(table='users', what='email', id=user.site_user_id)
+            for row in results:
+                form['site_user_email'].value = row.email
         perms_list = AdminRol.load_all()
         return template.admin.admin_user_edit(form, 'Edit admin user', 'Edit', perms_list, user)
 
@@ -107,7 +115,10 @@ class EditUser(object):
             user = AdminUser(id=id, username=form.d.username, super=form.d.super,
                              manager=form.d.manager, site_user_email=form.d.site_user_email,
                              roles=perms_list_to_add)
-            user.save()
+            try:
+                user.save()
+            except Exception as e:
+                return unicode(e)
             return web.seeother(url='/admin_users/')
         else:
             return template.admin.form(form, 'Add admin user - invalid data')

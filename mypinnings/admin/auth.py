@@ -105,7 +105,8 @@ class AdminUser(object):
     User model for the administration interface
     '''
     def __init__(self, id=None, username=None, pwsalt=None, pwhash=None, super=False,
-                 manager=False, password=None, storage=None, site_user_email=None, roles=[]):
+                 manager=False, password=None, storage=None, site_user_id=None,
+                 site_user_email=None, roles=[]):
         if storage:
             self.id = storage.id
             self.username = storage.username
@@ -122,6 +123,7 @@ class AdminUser(object):
             self.super = super
             self.manager = manager
             self.password = password
+            self.site_user_id = site_user_id
             self.site_user_email = site_user_email
         self.roles = set(roles)
 
@@ -170,7 +172,7 @@ class AdminUser(object):
         db = database.get_db()
         if self.site_user_email:
             # find the site user with this email, this is the users table
-            results = db.where(table='users', email=self.site_user_email)
+            results = db.where(table='users', what='id', email=self.site_user_email)
             for row in results:
                 self.site_user_id = row.id
                 break
