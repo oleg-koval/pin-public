@@ -99,11 +99,29 @@ def _random_name(length=20):
     return ''.join(random.choice(_pool) for _ in range(length))
 
 
-def get_image_url(image_name):
+def get_image_url(image_name, size=None):
+    reload_servers()
     parts = image_name.split('_', 3)
     server_id = int(parts[0])
     path = parts[1] + "/" + parts[2]
     server = MediaServer.servers[server_id]
+
+    if size and isinstance(size, (basestring, list, tuple)):
+        if isinstance(size, basestring):
+            if 'x' in size:
+                width, height = (int(v) for v in size.split('x'))
+            if ',' in size:
+                width, height = (int(v) for v in size.split(','))
+        else:
+            width, height = size
+        size_sufix = '_{width}x{height}'.format(width=width, height=height)
+        name, ext = os.path.splitext(image_name)
+        if not name.endswith(size_sufix):
+            name += size_sufix + ext
+            test_path = os.path.join(server.path, path, name)
+            if os.path.exists(test_path):
+                image_name = name
+
     url = server.url.format(path=path, media=image_name)
     return url
 
