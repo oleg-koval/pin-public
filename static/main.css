@@ -694,3 +694,8 @@ width: 20px !important;
 transition: width 2s;
 background-color: #fff;
 }
+
+
+#profile-about-box{
+  margin-top: 10px;
+}

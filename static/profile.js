@@ -76,3 +76,9 @@ $('#switch5_wrapper').mouseout(function() {
 
 
 }).call(this);
+
+
+$('#myTab a').click(function (e) {
+  e.preventDefault()
+  $(this).tab('show')
+})
