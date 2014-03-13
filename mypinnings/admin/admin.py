@@ -43,6 +43,10 @@ urls = ('', 'PageIndex',
         '/admin_rol/?', 'mypinnings.admin.admin_user_management.AddNewRol',
 
         '/input/?', 'mypinnings.admin.data_load.LoadPins',
+
+        '/media_servers/?', 'mypinnings.admin.media_servers.ListMediaServers',
+        '/media_server/(\d+)/?', 'mypinnings.admin.media_servers.EditMediaServer',
+        '/media_server/?', 'mypinnings.admin.media_servers.AddNewMediaServer',
         )
 
 
