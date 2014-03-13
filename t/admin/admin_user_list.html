@@ -12,12 +12,13 @@ $def with (form, user_list)
 <table class="table table-striped" id="admin_users_list">
 	<tr>
 		<th>Username</th>
-		<th></th>
+		<th colspan="2"></th>
 	</tr>
 $for user in user_list:
 	<tr id="user$user['id']">
 		<td><a href="/admin/admin_user/$user['id']/">$user['username']</a></td>
 		<td><button class="btn delete" userid="$user['id']" username="$user['username']">delete</button></td>
+		<td><a href="/admin/admin_user/$user['id']/change_password/" class="btn btn-default">change password</a></td>
 	</tr>
 </table>
 <div class="container-flow">

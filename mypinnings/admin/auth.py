@@ -292,6 +292,16 @@ class AdminUser(object):
                 return False
         return True
 
+    def change_password(self, password):
+        '''
+        Changes the password for the user in the DB
+        '''
+        self.pwsalt = generate_salt()
+        self.pwhash = salt_and_hash(password, self.pwsalt)
+        db = database.get_db()
+        db.update(tables='admin_users', where='id=$id', vars={'id': self.id},
+                  pwsalt=self.pwsalt, pwhash=self.pwhash)
+
 
 class PageLogin:
     '''

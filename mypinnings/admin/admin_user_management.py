@@ -184,3 +184,25 @@ class EditRol(object):
         rol = AdminRol(id=id)
         rol.delete()
         return json.dumps({'status': 'ok'})
+
+
+class ChangePasswordUser(object):
+    PasswordForm = web.form.Form(web.form.Password('password1', web.form.notnull, description="Enter password"),
+                                 web.form.Password('password2', web.form.notnull, description="Confirm password"),
+                                 web.form.Button('Edit'),
+                                 validators=[web.form.Validator("Passwords did't match", lambda i: i.password1 == i.password2)])
+
+    @login_required(only_super=True)
+    def GET(self, id):
+        form = self.PasswordForm()
+        return template.admin.form(form, 'Change passoword')
+
+    @login_required(only_super=True)
+    def POST(self, id):
+        form = self.PasswordForm()
+        if form.validates():
+            user = AdminUser.load(id)
+            user.change_password(form.d.password1)
+            return web.seeother(url='/admin_users/', absolute=False)
+        else:
+            return "Invalid password, verify that both passwords matches"
