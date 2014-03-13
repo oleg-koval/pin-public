@@ -8,7 +8,7 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
     <script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
     <script type="text/javascript" src="/static/main.js"></script>
     <link href="/static/modal.css" rel="stylesheet" />
-<script src="/static/bootstrap.min.js"></script>
+    <script src="/static/bootstrap.min.js"></script>
   </head>
   <body>
     <div class='header'>
@@ -47,18 +47,6 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
           </div>
           <div class='right'>
 
-
-            <a href="/messages" class="nav-item nav-icons">
-              <img src="/static/messages.png">
-            </a>
-
-              <a href="/notifications" class="nav-item nav-icons">
-              <img src="/static/notifications.png">
-                $if not notif_count == 0:
-                  <span class='notif-count'>$notif_count</span>
-              </a>
-
-
             <div class='nav-item item profile-picture' id='switch3'>
              
                 $if user.pic:
@@ -72,13 +60,13 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
                   <img class='avatar' src='/static/default-avatar.png' style="height:44px;" />
               </a>
               <div class='menu right-side invis' id='menu3'>
-                
+                <a href='/messages'>Messages</a>
+                $if notif_count == 0:
+                  <a href='/notifications'>Notifications</a>
+                $else:
+                  <a href='/notifications'>Notifications <span class='notif-count'>$notif_count</span></a>
+                <hr>
 
-              <!--
-                <a href='#' id='lolimage'>Upload another profile picture</a>
-                <a href='/photo/$user.pic/remove' id="remove_photo">Remove</a>
-                <a href='#' id="edit_thumbnail" data-toggle="modal" data-target="#editModal">Edit Thumbnail</a>
-                -->
                 <a href='/profile/$sess.user_id'>Profile</a>
 
                 
