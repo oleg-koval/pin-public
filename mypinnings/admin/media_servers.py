@@ -37,25 +37,55 @@ class ListMediaServers(object):
             return template.admin.admin_media_server_list(form, server_results)
         return self.GET()
 
-class AddNewMediaServer(object):
-    ServerForm = web.form.Form(web.form.Textbox('url', web.form.notnull, description="URL", size='60',
-                                                 placeholder='http://mypinnings.com/static/media/{path}/{media}'),
-                                web.form.Textbox('path', web.form.notnull, description='Fyle system path so save images', size='60',
-                                                  placeholder='/var/www/pin/static/media/'),
-                                web.form.Checkbox('active', value='ok', description='Is active for upload', checked=True),
-                                web.form.Button('Save'))
 
+ServerForm = web.form.Form(web.form.Textbox('url', web.form.notnull, description="URL", size='60',
+                                             placeholder='http://mypinnings.com/static/media/{path}/{media}'),
+                            web.form.Textbox('path', web.form.notnull, description='Fyle system path so save images', size='60',
+                                              placeholder='/var/www/pin/static/media/'),
+                            web.form.Checkbox('active', value='ok', description='Is active for upload'),
+                            web.form.Button('Save'))
+
+
+class AddNewMediaServer(object):
     @login_required(roles=['media_server'])
     def GET(self):
-        form = self.ServerForm()
+        form = ServerForm()
+        form['active'].checked = True
         return template.admin.form(form, 'Add media server')
 
     @login_required(roles=['media_server'])
     def POST(self):
-        form = self.ServerForm()
+        form = ServerForm()
         if form.validates():
             db = database.get_db()
             db.insert(tablename='media_servers', active=form.d.active, url=form.d.url, path=form.d.path)
+            return web.seeother(url='/media_servers/')
+        else:
+            return template.admin.form(form, 'Media Server - invalid data')
+
+
+class EditMediaServer(object):
+    @login_required(roles=['media_server'])
+    def GET(self, id):
+        form = ServerForm()
+        db = database.get_db()
+        results = db.where(table='media_servers', id=id)
+        for row in results:
+            form['url'].value = row.url
+            form['path'].value = row.path
+            form['active'].checked = row.active
+            break
+        else:
+            return "No such media server"
+        return template.admin.form(form, 'Add media server')
+
+    @login_required(roles=['media_server'])
+    def POST(self, id):
+        form = ServerForm()
+        if form.validates():
+            db = database.get_db()
+            db.update(tables='media_servers', where='id=$id', vars={'id': id},
+                      active=form.d.active, url=form.d.url, path=form.d.path)
             return web.seeother(url='/media_servers/')
         else:
             return template.admin.form(form, 'Media Server - invalid data')

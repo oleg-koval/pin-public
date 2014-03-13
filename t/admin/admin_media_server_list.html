@@ -17,8 +17,8 @@ $def with (form, server_list)
 	</tr>
 $for media_server in server_list:
 	<tr id="media_server$media_server['id']">
-		<td><a href="/admin/admin_media_server/$media_server['id']/">$media_server['url']</a></td>
-		<td><a href="/admin/admin_media_server/$media_server['id']/">$media_server['path']</a></td>
+		<td><a href="/admin/media_server/$media_server['id']/">$media_server['url']</a></td>
+		<td><a href="/admin/media_server/$media_server['id']/">$media_server['path']</a></td>
 		<td><button class="btn delete" media_serverid="$media_server['id']" media_serverurl="$media_server['url']">delete</button></td>
 	</tr>
 </table>
