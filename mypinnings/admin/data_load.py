@@ -1,3 +1,6 @@
+'''
+Allows to massively upload pins with images to the site.
+'''
 import web
 
 from mypinnings import database
@@ -9,6 +12,11 @@ from mypinnings import cached_models
 
 class LoadPins(object):
     def get_form(self, categories):
+        '''
+        Returns a form to upload the pins, obtains the categories needed in the form.
+
+        The form allows to indicate the image as an URL or to upload the image.
+        '''
         cat_list = []
         for cat in categories:
             cat_list.append((cat.id, cat.name))
@@ -25,14 +33,21 @@ class LoadPins(object):
 
     @login_required(roles=['pin_loader'])
     def GET(self):
+        '''
+        Shows the form to upload pins
+        '''
         form = self.get_form(cached_models.all_categories)
         return template.admin.form(form, 'Load Pin')
 
     @login_required(roles=['pin_loader'])
     def POST(self):
+        '''
+        Saves the pins into the DB.
+        '''
         form = self.get_form(cached_models.all_categories)
         if form.validates():
             sess = session.get_session()
+            # save the image in one of the media servers
             image_file = web.input(image={}).image
             if image_file:
                 image_metadata = media.store_image_from_filename(file=image_file.filename, widths=[220, 40])

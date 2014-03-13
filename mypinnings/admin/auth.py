@@ -14,6 +14,33 @@ def salt_and_hash(password, salt):
     return hashed
 
 class login_required(object):
+    '''
+    Decorator to protect access in the admin interface.
+
+    Use this decorator on HTTP request verb methods: GET, POST, DELETE, etc.
+
+    To protect a request requiring only user login:
+    @login_required()
+    def GET(self):
+        pass
+
+    Notice the call to @login_required() has parentesis: this is mandatory
+
+    For a request to be accessible only for the super-users:
+    @login_required(only_super=True)
+
+    For a request to be accessible only for the managers:
+    @login_required(only_managers=True)
+
+    For a request to be accessible only for users with role pin_loaders:
+    @login_required(roles=['pin_loaders'])
+
+    For a request to be accessible only for users with role categories and pins:
+    @login_required(roles=['categories', 'pins'])
+    must have both roles to access this resource
+
+    Users that are 'super' users have access to all requests.
+    '''
     def __init__(self, only_super=False, only_managers=False, roles=[]):
         self.only_super = only_super
         self.only_managers = only_managers
@@ -50,7 +77,13 @@ class CannotCreateUser(Exception):
 
 
 class AdminRol():
+    '''
+    A role in the administrative site
+    '''
     def __init__(self, id=None, name=None, storage=None):
+        '''
+        Can be initialized by id and name, or by a web.py Storage object (db)
+        '''
         if storage:
             self.id = storage.id
             self.name = storage.name
@@ -60,6 +93,9 @@ class AdminRol():
 
     @staticmethod
     def load_all():
+        '''
+        Loads all roles
+        '''
         db = database.get_db()
         results = db.where(table='admin_roles', order='name')
         permissions = []
@@ -70,6 +106,9 @@ class AdminRol():
 
     @staticmethod
     def load(id):
+        '''
+        Loads one rol by id
+        '''
         db = database.get_db()
         results = db.where(table='admin_roles', id=id)
         for row in results:
@@ -79,6 +118,9 @@ class AdminRol():
             raise NoSuchPermissionException
 
     def save(self):
+        '''
+        Inserts or updates into the DB
+        '''
         db = database.get_db()
         if self.id:
             db.update(tables='admin_roles', where='id=$id', vars={'id': self.id}, name=self.name)
@@ -86,6 +128,11 @@ class AdminRol():
             self.id = db.insert(tablename='admin_roles', name=self.name)
 
     def delete(self):
+        '''
+        Deletes the role from the DB.
+
+        Also removes the role to every user that previously have it
+        '''
         if self.id:
             db = database.get_db()
             db.delete(table='admin_users_roles', where='rol_id=$id', vars={'id': self.id})
@@ -107,6 +154,9 @@ class AdminUser(object):
     def __init__(self, id=None, username=None, pwsalt=None, pwhash=None, super=False,
                  manager=False, password=None, storage=None, site_user_id=None,
                  site_user_email=None, roles=[]):
+        '''
+        Can be created by indicating the fields or by a web.py Storage object (db)
+        '''
         if storage:
             self.id = storage.id
             self.username = storage.username
@@ -128,6 +178,11 @@ class AdminUser(object):
         self.roles = set(roles)
 
     def has_valid_password(self, password):
+        '''
+        Test if the user password is valid.
+
+        Useful for login in
+        '''
         if not self.pwsalt or not self.pwhash:
             return False
         salted_and_hashed = salt_and_hash(password, self.pwsalt)
@@ -135,6 +190,9 @@ class AdminUser(object):
 
     @staticmethod
     def load(id):
+        '''
+        Loads a user from DB given its id
+        '''
         db = database.get_db()
         results = db.where(table='admin_users', id=id)
         if len(results) > 0:
@@ -146,6 +204,9 @@ class AdminUser(object):
             raise NoSuchAdminUserException('No such user')
 
     def _load_roles(self):
+        '''
+        Loads the roles for this user from the DB
+        '''
         db = database.get_db()
         results = db.select(tables=['admin_users_roles', 'admin_roles'], what='admin_roles.*',
                             where='admin_users_roles.user_id=$id and admin_users_roles.rol_id=admin_roles.id',
@@ -156,6 +217,9 @@ class AdminUser(object):
 
     @staticmethod
     def get_with_password(username=None, password=None):
+        '''
+        Get the user from the DB given username and password
+        '''
         db = database.get_db()
         results = db.where(table='admin_users', username=username)
         for row in results:
@@ -169,6 +233,11 @@ class AdminUser(object):
             raise NoSuchAdminUserException('No such user')
 
     def save(self):
+        '''
+        Inserts or updates the user in the DB.
+
+        Also saves the roles the user have associated
+        '''
         db = database.get_db()
         if self.site_user_email:
             # find the site user with this email, this is the users table
@@ -194,12 +263,25 @@ class AdminUser(object):
             db.insert(tablename='admin_users_roles', user_id=self.id, rol_id=rol.id)
 
     def delete(self):
+        '''
+        Deletes the user and removes the roles from the user
+        '''
         if self.id:
             db = database.get_db()
             db.delete(table='admin_users_roles', where='user_id=$id', vars={'id': self.id})
             db.delete(table='admin_users', where='id=$id', vars={'id': self.id})
 
     def has_all_rol_names(self, rol_names):
+        '''
+        Test if the user has all the roles in rol_names
+
+        - rol_names list of string with the names of the roles to test: ['pin_loaders', 'category']
+
+        Returns True if the user has _all_ the roles in the rol_names list, or if the
+            rol_names list is empty or None. False otherwise.
+
+        Useful to test that the user has access to some resource
+        '''
         for name in rol_names:
             for rol in self.roles:
                 if rol.name == name:
@@ -210,6 +292,14 @@ class AdminUser(object):
 
 
 class PageLogin:
+    '''
+    Login to the site
+
+    Saves the logged in user in the session as:
+
+    >>> sess.user:
+    <Object: AdminUser>
+    '''
     _form = web.form.Form(
         web.form.Textbox('username'),
         web.form.Password('password'),
@@ -238,6 +328,9 @@ class PageLogin:
 
 
 class PageLogout:
+    '''
+    Logouts the user by killing the session
+    '''
     def GET(self):
         sess = session.get_session()
         sess.kill()
