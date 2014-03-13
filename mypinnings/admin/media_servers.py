@@ -45,12 +45,12 @@ class AddNewMediaServer(object):
                                 web.form.Checkbox('active', value='ok', description='Is active for upload', checked=True),
                                 web.form.Button('Save'))
 
-    @login_required(only_super=True)
+    @login_required(roles=['media_server'])
     def GET(self):
         form = self.ServerForm()
         return template.admin.form(form, 'Add media server')
 
-    @login_required(only_super=True)
+    @login_required(roles=['media_server'])
     def POST(self):
         form = self.ServerForm()
         if form.validates():
