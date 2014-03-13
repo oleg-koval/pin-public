@@ -36,6 +36,9 @@ class LoadPins(object):
         '''
         Shows the form to upload pins
         '''
+        sess = session.get_session()
+        if not sess.user.site_user_id:
+            return "Your user does not have an associated site user, contact the site administrator."
         form = self.get_form(cached_models.all_categories)
         return template.admin.form(form, 'Load Pin')
 
