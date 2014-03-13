@@ -51,18 +51,22 @@ class LoadPins(object):
         if form.validates():
             sess = session.get_session()
             # save the image in one of the media servers
-            image_file = web.input(image={}).image
-            if image_file:
-                image_metadata = media.store_image_from_filename(file=image_file.filename, widths=[220, 40])
-            elif form.d.image_url:
-                image_metadata = media.store_image_from_url(url=form.d.image_url, widths=[220, 40])
-            else:
-                return "You must provide an image via upload or URL"
+            try:
+                image_file = web.input(image={}).image
+                if image_file:
+                    image_metadata = media.store_image_from_filename(file=image_file.filename, widths=[220, 40])
+                elif form.d.image_url:
+                    image_metadata = media.store_image_from_url(url=form.d.image_url, widths=[220, 40])
+                else:
+                    return "You must provide an image via upload or URL"
+            except Exception as e:
+                return "Image upload error, assure you put a valid image URL or uploaded a valid image: {}".format(str(e))
             db = database.get_db()
             pin_id = db.insert(tablename='pins', name=form.d.name, description=form.d.description,
                                user_id=sess.user.site_user_id, link=form.d.link, category=form.d.category)
             db.insert('tags', pin_id=pin_id, tags=form.d.tags)
             db.insert('pins_photos', pin_id=pin_id, photo_id=image_metadata.id)
+            db.insert('pin_loader_log', pin_loader_id=sess.user.id, pin_id=pin_id)
             return web.seeother(url='', absolute=False)
         else:
             return template.admin.form(form, 'Load Pin')
