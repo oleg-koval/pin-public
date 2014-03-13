@@ -1,5 +1,7 @@
 '''
 Authentication for the admin interface
+
+You can be interested in the @login_required() decorator.
 '''
 import web
 
