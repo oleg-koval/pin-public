@@ -1,3 +1,5 @@
+import json
+
 import web
 
 from mypinnings import database
@@ -89,3 +91,9 @@ class EditMediaServer(object):
             return web.seeother(url='/media_servers/')
         else:
             return template.admin.form(form, 'Media Server - invalid data')
+
+    @login_required(roles=['media_server'])
+    def DELETE(self, id):
+        db = database.get_db()
+        db.delete(table='media_servers', where='id=$id', vars={'id': id})
+        return json.dumps({'status': 'ok'})
