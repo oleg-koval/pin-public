@@ -1,3 +1,6 @@
+'''
+Administration of the media servers.
+'''
 import json
 
 import web
