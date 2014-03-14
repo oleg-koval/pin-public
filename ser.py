@@ -27,7 +27,7 @@ import mypinnings.register
 import mypinnings.facebook
 import mypinnings.google
 import mypinnings.register_twitter
-import admin
+import mypinnings.admin.admin
 import glob
 # #
 
@@ -107,7 +107,7 @@ urls = (
     '/setprofilepic/(\d*)', 'PageSetProfilePic',
     '/setprivacy/(\d*)', 'PageSetPrivacy',
 
-    '/admin', admin.app,
+    '/admin', mypinnings.admin.admin.app,
 
     '/fbgm/(.*?)', 'PageHax',
 
@@ -603,7 +603,7 @@ class PageChangeEmail:
         form.Textbox('email'),
         form.Textbox('username'))
 
-    #@csrf_protected # Verify this is not CSRF, or fail
+    # @csrf_protected # Verify this is not CSRF, or fail
     def POST(self):
         force_login(sess)
 
@@ -1756,13 +1756,13 @@ class PageSearchPeople:
 def csrf_protected(f):
     def decorated(*args, **kwargs):
         inp = web.input()
-        if not (inp.has_key('csrf_token') and inp.csrf_token==session.pop('csrf_token',None)):
+        if not (inp.has_key('csrf_token') and inp.csrf_token == session.pop('csrf_token', None)):
             raise web.HTTPError(
                 "400 Bad request",
                 {'content-type':'text/html'},
                 """Cross-site request forgery (CSRF) attempt (or stale browser form).
 <a href="">Back to the form</a>.""")
-        return f(*args,**kwargs)
+        return f(*args, **kwargs)
     return decorated
 
 

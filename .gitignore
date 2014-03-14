@@ -10,3 +10,5 @@ node_modules/
 .project
 .pydevproject
 static/cat_reg_thmb/
+static/media
+mypinnings/admin/generate_salt_and_hash.py

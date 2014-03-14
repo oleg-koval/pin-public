@@ -1,0 +1,39 @@
+$def with (form, user_list)
+<div class="container-flow">
+	<div class="row">
+		<div class="col-xs-5">
+			<form method='POST'>$:form.render()</form>
+		</div>
+		<div class="col-xs-7">
+			<button class="btn" id="add_new_admin_user_button">Add new</button>
+		</div>
+	</div>
+</div>
+<table class="table table-striped" id="admin_users_list">
+	<tr>
+		<th>Username</th>
+		<th colspan="2"></th>
+	</tr>
+$for user in user_list:
+	<tr id="user$user['id']">
+		<td><a href="/admin/admin_user/$user['id']/">$user['username']</a></td>
+		<td><button class="btn delete" userid="$user['id']" username="$user['username']">delete</button></td>
+		<td><a href="/admin/admin_user/$user['id']/change_password/" class="btn btn-default">change password</a></td>
+	</tr>
+</table>
+<div class="container-flow">
+	<div class="row">
+		<div class="col-xs-4">
+		$if int(form.d.offset) > 0:
+			<button class="btn" id="admin_user_list_prev_button">Prev</button>
+		</div>
+		<div class="col-xs-4"></div>
+		<div class="col-xs-4">
+			<button class="btn" id="admin_user_list_next_button">Next</button>
+		</div>
+	</div>
+</div>
+<div id="admin_user_delete_confirmation_dialog" title="Confirm to delete">
+	<div>Please confirm that you want to delete this user.</div>
+	<div><span id="delete_confirmation_dialog_id"></span> - <span id="delete_confirmation_dialog_name"></span></div>
+</div>
