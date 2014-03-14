@@ -63,6 +63,18 @@ $$(document).ready(function (){
 		});
 	});
 	
+	$$("#cool-items").on('click', '.remove', function() {
+		var pinid = $$(this).attr('pinid');
+		$$.div_to_remove = $$('#pinbox' + pinid);
+		$$.ajax({url: '/admin/api/categories/$category.id/cool_pins/' + pinid + '/',
+				 method: 'DELETE',
+				 success: function(data) {
+					$$.div_to_remove.remove();
+					location.reload(true);
+				 }
+		});
+	});
+	
 	function load_cool_pins() {
 		$$.get('/admin/category-cool-items/$category.id/',
 			function(data) {
