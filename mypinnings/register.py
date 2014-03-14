@@ -144,6 +144,9 @@ class PageAfterSignup:
                               vars={'user_id': sess.user_id})
         cols = [[] for _ in range(3)]
         for i, cp in enumerate(cool_pins):
+            image_name = os.path.join('static', 'tmp', str(cp.id)) + '.png'
+            if not os.path.exists(image_name):
+                continue
             cols[i % 3].append(cp)
             if not cp.name:
                 cp.name = cp.description
