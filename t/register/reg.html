@@ -4,6 +4,7 @@ $def with (form, message=None)
   <head>
     <title>MyPinnings</title>
     <link rel='stylesheet' type='text/css' href='/static/main.css'/>
+    <link rel='stylesheet' type='text/css' href='/static/css/register.css'/>
     <link href='//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' rel='stylesheet'>
   </head>
   <body>
@@ -12,7 +13,9 @@ $def with (form, message=None)
         <a class='logo' href='/'>MyPinnings</a>
       </div>
     </div>
-    <div class='content'>
+    <div class='content register_columns_container'>
+      <div class='space_column'>&nbsp;</div>
+      <div class='first_column'>
       <h1 class='center large pad-top pad-bottom'>Sign up for a MyPinnings account</h1>
       <form class='width-auto' method='post' action=''>
         $if message is not None:
@@ -26,13 +29,17 @@ $def with (form, message=None)
         &nbsp;
         <a href='/'>Back to Home</a>
       </p>
-    </div>
-    
-    <div>
-    <a href="/facebook/register/">Signup with Facebook</a>
-    </div>
-    <div>
-    <a href="/google/register/">Signup with Google+</a>
+      </div>
+      <div class='second_column'>
+        <div class='login_services_column'>
+		    <div>
+		    <a href="/facebook/register/" class='signupfb'>Signup with Facebook</a>
+		    </div>
+		    <div>
+		    <a href="/google/register/" class='signupgg'>Signup with Google+</a>
+		    </div>
+	    </div>
+      </div>
     </div>
     
     <script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
