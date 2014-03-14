@@ -1,5 +1,7 @@
 import random
 import json
+import calendar
+import datetime
 
 import web
 
@@ -8,6 +10,8 @@ from mypinnings import template
 from mypinnings import session
 from mypinnings import database
 from mypinnings import cached_models
+from mypinnings.conf import settings
+
 
 urls = ('/after-signup/(\d*)', 'PageAfterSignup',
         '/after-signup', 'PageAfterSignup',
@@ -17,11 +21,25 @@ urls = ('/after-signup/(\d*)', 'PageAfterSignup',
         )
 
 class PageRegister:
+    days = tuple((x, x) for x in range(0, 32))
+    months = tuple(enumerate(calendar.month_name[1:]))
+    current_year = datetime.date.today().year
+    years = tuple((x, x) for x in range(current_year, current_year - 100, -1))
+    if not hasattr(settings, 'LANGUAGES') or not settings.LANGUAGES:
+        languages = (('en', 'English'),)
+    else:
+        languages = settings.LANGUAGES
     _form = web.form.Form(
-        web.form.Textbox('email', autocomplete='off', id='email', placeholder='Where we\'ll never spam you.'),
         web.form.Textbox('username', id='username', autocomplete='off', placeholder='The name in your url.'),
+        web.form.Textbox('name', autocomplete='off', placeholder='The name next to your picture.',
+                         description="Complete name"),
+        web.form.Textbox('email', autocomplete='off', id='email', placeholder='Where we\'ll never spam you.'),
         web.form.Password('password', id='password', autocomplete='off', placeholder='Something you\'ll remember but others won\'t guess.'),
         web.form.Textbox('name', autocomplete='off', placeholder='The name next to your picture.'),
+        web.form.Dropdown('language', args=languages),
+        web.form.Dropdown('day', args=days),
+        web.form.Dropdown('month', args=months),
+        web.form.Dropdown('year', args=years),
         web.form.Button('Let\'s get started!')
     )
 
@@ -33,15 +51,16 @@ class PageRegister:
         form = self._form()
         message = web.input(msg=None).msg
         if message:
-            return template.ltpl('register/reg', form, message)
+            return template.tpl('register/reg', form, message)
         return template.tpl('register/reg', form)
 
     def POST(self):
         form = self._form()
         form.validates()
 
-        if not all([form.d.email, form.d.password, form.d.name, form.d.username]):
-            self.msg('Please enter an email, pasword, and username.')
+        if not all([form.d.email, form.d.password, form.d.name, form.d.username, form.d.language,
+                    form.d.day, form.d.month, form.d.year]):
+            self.msg('Please enter an username, full name, email, pasword, and birthday and language.')
 
         if auth.email_exists(form.d.email):
             self.msg('Sorry, that email already exists.')
@@ -52,7 +71,9 @@ class PageRegister:
         activation = random.randint(1, 10000)
         hashed = hash(str(activation))
 
-        user_id = auth.create_user(form.d.email, form.d.password, name=form.d.name, username=form.d.username, activation=activation)
+        birthday = '{}-{}-{}'.format(form.d.year, form.d.month, form.d.day)
+        user_id = auth.create_user(form.d.email, form.d.password, name=form.d.name, username=form.d.username, activation=activation,
+                                   locale=form.d.language, birthday=birthday)
         if not user_id:
             self.msg('Sorry, a database error occurred and we couldn\'t create your account.')
 

@@ -19,7 +19,15 @@ $def with (form, message=None)
 	      <form class='width-auto' method='post' action=''>
 	        $if message is not None:
 	          <div class='notice'>$:message</div>
-	        $:form.render()
+<table>
+    <tr><th><label for="username">username</label></th><td>$:form['username'].render()</td></tr>
+    <tr><th><label for="name">Complete name</label></th><td>$:form['name'].render()</td></tr>
+    <tr><th><label for="email">email</label></th><td>$:form['email'].render()</td></tr>
+    <tr><th><label for="password">password</label></th><td>$:form['password'].render()</td></tr>
+    <tr><th><label for="day">Birthday</label></th><td>$:form['day'].render() $:form['month'].render() $:form['year'].render()</td></tr>
+    <tr><th><label for="language">language</label></th><td>$:form['language'].render()</td></tr>
+    <tr><th><label for="Let's get started!"></label></th><td><button id="Let&#39;s get started!" name="Let&#39;s get started!">Let&#39;s get started!</button></td></tr>
+</table>
 	      </form>
 	      <br/>
 	      <p class='center bold'>
