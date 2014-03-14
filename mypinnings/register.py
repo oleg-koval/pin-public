@@ -104,7 +104,25 @@ class PageAfterSignup:
         '''
         Select at least 3 categories from the list
         '''
-        return template.atpl('register/aphase1', cached_models.categories_with_thumbnails, phase=1)
+        db = database.get_db()
+        categories_results = db.where(table='categories', order='name')
+        categories = []
+        for category in categories_results:
+            cool_items_resutls = db.select(tables=['pins', 'cool_pins'], what="pins.*",
+                         where='pins.category=$category_id and pins.id=cool_pins.pin_id',
+                         vars={'category_id': category.id})
+            cool_items_list = list(cool_items_resutls)
+            random_cool_items = []
+            if len(cool_items_list) > 0:
+                for _ in range(6):
+                    if len(cool_items_list) == 0:
+                        break
+                    cool_item = random.choice(cool_items_list)
+                    cool_items_list.remove(cool_item)
+                    random_cool_items.append(cool_item)
+                category.cool_items = random_cool_items
+                categories.append(category)
+        return template.atpl('register/aphase1', categories, phase=1)
 
     _form1 = web.form.Form(web.form.Hidden('ids'))
 
