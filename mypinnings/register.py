@@ -135,8 +135,14 @@ class PageAfterSignup:
         cool_pins = db.select(tables=['pins', 'cool_pins', 'user_prefered_categories'], what='pins.*',
                               where='pins.id=cool_pins.pin_id and cool_pins.category_id=user_prefered_categories.category_id'
                               ' and user_prefered_categories.user_id=$user_id',
+                              order='timestamp desc',
                               vars={'user_id': sess.user_id})
-        return template.atpl('register/aphase2', cool_pins, phase=2)
+        cols = [[] for _ in range(3)]
+        for i, cp in enumerate(cool_pins):
+            cols[i % 3].append(cp)
+            if not cp.name:
+                cp.name = cp.description
+        return template.atpl('register/aphase2', cols[0], cols[1], cols[2], phase=2)
 
     def phase3(self):
         '''
