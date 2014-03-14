@@ -14,24 +14,24 @@ $def with (form, message=None)
       </div>
     </div>
     <div class='content register_columns_container'>
-      <div class='space_column'>&nbsp;</div>
       <div class='first_column'>
-      <h1 class='center large pad-top pad-bottom'>Sign up for a MyPinnings account</h1>
-      <form class='width-auto' method='post' action=''>
-        $if message is not None:
-          <div class='notice'>$:message</div>
-        $:form.render()
-      </form>
-      <br/>
-      <p class='center bold'>
-        <a href='/login'>Login</a>
-        &nbsp;
-        &nbsp;
-        <a href='/'>Back to Home</a>
-      </p>
+	      <h1 class='center large pad-top pad-bottom'>Sign up for a MyPinnings account</h1>
+	      <form class='width-auto' method='post' action=''>
+	        $if message is not None:
+	          <div class='notice'>$:message</div>
+	        $:form.render()
+	      </form>
+	      <br/>
+	      <p class='center bold'>
+	        <a href='/login'>Login</a>
+	        &nbsp;
+	        &nbsp;
+	        <a href='/'>Back to Home</a>
+	      </p>
       </div>
+      <div class='space_column'></div>
       <div class='second_column'>
-        <div class='login_services_column'>
+        <div class='register_services_column'>
 		    <div>
 		    <a href="/facebook/register/" class='signupfb'>Signup with Facebook</a>
 		    </div>

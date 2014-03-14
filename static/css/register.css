@@ -35,8 +35,11 @@ div.register_columns_container {
     div.register_columns_container div.second_column:last-child {
       margin-right: 0; }
 
-div.login_services_column {
+div.register_services_column {
   margin-top: 100px; }
+
+div.login_services_column {
+  margin-top: 45px; }
 
 .signupbutton, a.signupfb, a.signupgg {
   display: inline-block;
