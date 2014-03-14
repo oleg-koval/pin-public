@@ -2,6 +2,7 @@ import random
 import json
 import calendar
 import datetime
+import os.path
 
 import web
 
@@ -119,9 +120,13 @@ class PageAfterSignup:
                         break
                     cool_item = random.choice(cool_items_list)
                     cool_items_list.remove(cool_item)
+                    image_name = os.path.join('static', 'tmp', str(cool_item.id)) + '_cool.png'
+                    if not os.path.exists(image_name):
+                        continue
                     random_cool_items.append(cool_item)
-                category.cool_items = random_cool_items
-                categories.append(category)
+                if len(random_cool_items) > 0:
+                    category.cool_items = random_cool_items
+                    categories.append(category)
         return template.atpl('register/aphase1', categories, phase=1)
 
     _form1 = web.form.Form(web.form.Hidden('ids'))
