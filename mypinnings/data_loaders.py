@@ -1,12 +1,22 @@
 '''
 This module is for interfaces to speed user data loading, like Pin Loaders
 '''
+import logging
+import urllib
+import os
+import os.path
+from PIL import Image
+
 import web
 
 from mypinnings import cached_models
 from mypinnings import template
 from mypinnings import session
 from mypinnings import auth
+from mypinnings import database
+
+
+logger = logging.getLogger('mypinnings.data_loaders')
 
 
 class PinLoaderPage(object):
@@ -53,6 +63,16 @@ class PinLoaderPage(object):
                              web.form.Textarea('description8'),
                              web.form.Textarea('description9'),
                              web.form.Textarea('description10'),
+                             web.form.Textbox('link1'),
+                             web.form.Textbox('link2'),
+                             web.form.Textbox('link3'),
+                             web.form.Textbox('link4'),
+                             web.form.Textbox('link5'),
+                             web.form.Textbox('link6'),
+                             web.form.Textbox('link7'),
+                             web.form.Textbox('link8'),
+                             web.form.Textbox('link9'),
+                             web.form.Textbox('link10'),
                              web.form.Textbox('tags1', placeholder='#this #is #awesome'),
                              web.form.Textbox('tags2', placeholder='#this #is #awesome'),
                              web.form.Textbox('tags3', placeholder='#this #is #awesome'),
@@ -70,4 +90,102 @@ class PinLoaderPage(object):
     def GET(self):
         auth.force_login(session.get_session())
         form = self.get_form()
-        return template.ltpl('pin_loader', form)
+        errors = web.input(errors=None)['errors']
+        return template.ltpl('pin_loader', form, errors)
+
+    def POST(self):
+        sess = session.get_session()
+        auth.force_login(sess)
+        form = self.get_form()
+        errors = []
+        if form.validates():
+            category = form.d.category
+            for i in range(10):
+                error = self.save_pin(form, str(i + 1), category)
+                if error:
+                    errors.append(error)
+            return web.seeother('?errors={}'.format(errors))
+        else:
+            return template.ltpl('pin_loader', form)
+
+    def save_pin(self, form, i, category):
+        title = form['title' + i]
+        if title and title.value:
+            description = form['description' + i]
+            link = form['link' + i]
+            imageurl = form['imageurl' + i]
+            image = web.input().get('image' + i, None)
+            tags = form['tags' + i]
+            errors = self.validate_errors(title, description, link, imageurl, image, tags)
+            pin_id = None
+            if errors:
+                return template.ltpl('pin_loader', form, ' - '.join(errors))
+            try:
+                pin_id = self.save_pin_in_db(category, title.value, description.value, link.value, tags.value)
+                self.save_image(pin_id, imageurl, image)
+            except Exception as e:
+                if pin_id:
+                    self.delete_pin_from_db(pin_id)
+                return str(e)
+        return None
+
+    def validate_errors(self, title, description, link, imageurl, image, tags):
+        errors = []
+        if not description or not description.value:
+            errors.append("No description for pin with title: {}".format(title))
+        if not link or not link.value:
+            errors.append("No link for pin with title: {}".format(title))
+        if not image and (not imageurl or not imageurl.value):
+            errors.append("No image URL for pin with title: {}".format(title))
+        return errors
+
+    def save_pin_in_db(self, category, title, description, link, tags):
+        try:
+            db = database.get_db()
+            sess = session.get_session()
+            pin_id = db.insert(tablename='pins', name=title, description=description,
+                               user_id=sess.user_id, link=link, category=category,
+                               views=1)
+            if tags:
+                db.insert(tablename='tags', pin_id=pin_id, tags=tags)
+            db.insert(tablename='likes', pin_id=pin_id, user_id=sess.user_id)
+            return pin_id
+        except:
+            logger.error('Cannot insert a pin in the DB with the pin loader ingerface',
+                         exc_info=True)
+            raise
+
+    def delete_pin_from_db(self, pin_id):
+        try:
+            db = database.get_db()
+            db.delete(table='likes', where='pin_id=$id', vars={'id': pin_id})
+            db.delete(table='tags', where='pin_id=$id', vars={'id': pin_id})
+            db.delete(table='pins', where='id=$id', vars={'id': pin_id})
+        except:
+            logger.error('Cannot delete pin when doing pin uploader interface', exc_info=True)
+
+    def save_image(self, pin_id, imageurl, image):
+        if imageurl and imageurl.value:
+            self.save_image_from_url(pin_id, imageurl.value)
+        else:
+            self.save_image_from_file(pin_id, image.filename)
+
+    def save_image_from_url(self, pin_id, url):
+        filename, _ = urllib.urlretrieve(url)
+        self.save_image_from_file(pin_id, filename)
+
+    def save_image_from_file(self, pin_id, filename):
+        new_filename = 'static/tmp/{}.png'.format(pin_id)
+        if filename.endswith('.png'):
+            os.rename(filename, new_filename)
+        else:
+            img = Image.open(filename)
+            img.save(new_filename)
+        img = Image.open(new_filename)
+        width, height = img.size
+        ratio = 202.0 / float(width)
+        width = 202
+        height *= ratio
+        img.thumbnail((width, int(height)), Image.ANTIALIAS)
+        img.save('static/tmp/pinthumb{}.png'.format(pin_id))
+        os.unlink(filename)

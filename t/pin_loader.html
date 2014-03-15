@@ -1,5 +1,7 @@
-$def with (form)
+$def with (form, errors=None)
 <h1>Upload to Getlist</h1>
+$if errors:
+	<p>$errors</p>
 <form id='form' autocomplete='off' enctype='multipart/form-data' method='post' action=''>
 	<h1>Category for these Pins: </h1>$:form['category'].render()
 	<p>All the items you upload will belong to the same category, so carefully select the category</p>
@@ -16,6 +18,10 @@ $def with (form)
 					<tr>
 						<th><label for="description$i">Description</label></th>
 						<td>$:form['description{}'.format(i)].render()</td>
+					</tr>
+					<tr>
+						<th><label for="link$i">Link URL</label></th>
+						<td>$:form['link{}'.format(i)].render()</td>
 					</tr>
 					<tr>
 						<th><label for="imageurl$i">Image URL</label></th>
@@ -41,6 +47,10 @@ $def with (form)
 					<tr>
 						<th><label for="description$j">Description</label></th>
 						<td>$:form['description{}'.format(j)].render()</td>
+					</tr>
+					<tr>
+						<th><label for="link$j">Link URL</label></th>
+						<td>$:form['link{}'.format(j)].render()</td>
 					</tr>
 					<tr>
 						<th><label for="imageurl$j">Image URL</label></th>
