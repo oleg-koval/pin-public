@@ -221,7 +221,7 @@ class ApiRegisterCoolPinForUser(object):
         sess = session.get_session()
         auth.force_login(sess)
         db = database.get_db()
-        test_pin_exists = db.where(table='pins', repin=pin_id)
+        test_pin_exists = db.where(table='pins', repin=pin_id, user_id=sess.user_id)
         for _ in test_pin_exists:
             web.header('Content-Type', 'application/json')
             return json.dumps({'status': 'ok'})
