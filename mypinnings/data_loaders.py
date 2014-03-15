@@ -5,6 +5,7 @@ import logging
 import urllib
 import os
 import os.path
+from gettext import gettext as _
 from PIL import Image
 
 import web
@@ -104,7 +105,11 @@ class PinLoaderPage(object):
                 error = self.save_pin(form, str(i + 1), category)
                 if error:
                     errors.append(error)
-            return web.seeother('?errors={}'.format(errors))
+            if errors:
+                str_errors = ' - '.join(errors)
+                return web.seeother('?errors={}'.format(urllib.quote_plus(str_errors)))
+            else:
+                return web.seeother('')
         else:
             return template.ltpl('pin_loader', form)
 
@@ -114,12 +119,12 @@ class PinLoaderPage(object):
             description = form['description' + i]
             link = form['link' + i]
             imageurl = form['imageurl' + i]
-            image = web.input().get('image' + i, None)
+            image = web.input(**{'image' + i: {}}).get('image' + i, None)
             tags = form['tags' + i]
-            errors = self.validate_errors(title, description, link, imageurl, image, tags)
+            error = self.validate_errors(title, description, link, imageurl, image, tags)
             pin_id = None
-            if errors:
-                return template.ltpl('pin_loader', form, ' - '.join(errors))
+            if error:
+                return error
             try:
                 pin_id = self.save_pin_in_db(category, title.value, description.value, link.value, tags.value)
                 self.save_image(pin_id, imageurl, image)
@@ -130,14 +135,13 @@ class PinLoaderPage(object):
         return None
 
     def validate_errors(self, title, description, link, imageurl, image, tags):
-        errors = []
         if not description or not description.value:
-            errors.append("No description for pin with title: {}".format(title))
+            return _("No description for pin with title: {}").format(title.value)
         if not link or not link.value:
-            errors.append("No link for pin with title: {}".format(title))
-        if not image and (not imageurl or not imageurl.value):
-            errors.append("No image URL for pin with title: {}".format(title))
-        return errors
+            return _("No link for pin with title: {}").format(title.value)
+        if not image and not imageurl and not imageurl.value:
+            return _("No image URL for pin with title: {}").format(title.value)
+        return None
 
     def save_pin_in_db(self, category, title, description, link, tags):
         try:
@@ -168,7 +172,10 @@ class PinLoaderPage(object):
         if imageurl and imageurl.value:
             self.save_image_from_url(pin_id, imageurl.value)
         else:
-            self.save_image_from_file(pin_id, image.filename)
+            new_filename = 'static/tmp/{}'.format(image.filename)
+            with open(new_filename, 'w') as f:
+                f.write(image.file.read())
+            self.save_image_from_file(pin_id, new_filename)
 
     def save_image_from_url(self, pin_id, url):
         filename, _ = urllib.urlretrieve(url)

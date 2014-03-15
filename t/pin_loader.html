@@ -3,8 +3,6 @@ $def with (form, errors=None)
 $if errors:
 	<p>$errors</p>
 <form id='form' autocomplete='off' enctype='multipart/form-data' method='post' action=''>
-	<h1>Category for these Pins: </h1>$:form['category'].render()
-	<p>All the items you upload will belong to the same category, so carefully select the category</p>
 	<p>For the image you can put the URL or upload the image, don't use both</p>
 	<table cellpadding="20">
 	$for i in range(1, 11, 2):
@@ -68,5 +66,7 @@ $if errors:
 			</td>
 		</tr>
 	</table>
+	<h1>Category for these Pins: </h1>$:form['category'].render()
+	<p>All the items you upload will belong to the same category, so carefully select the category</p>
 	$:form['add'].render()
 </form>
