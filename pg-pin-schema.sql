@@ -1027,3 +1027,6 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 -- PostgreSQL database dump complete
 --
 
+
+--- For the registration process
+alter table users add locale char(2) not null default 'en';
