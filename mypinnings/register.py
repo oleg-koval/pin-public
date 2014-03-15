@@ -3,6 +3,7 @@ import json
 import calendar
 import datetime
 import os.path
+from gettext import gettext as _
 
 import web
 
@@ -21,9 +22,13 @@ urls = ('/after-signup/(\d*)', 'PageAfterSignup',
         '', 'PageRegister',
         )
 
+
+valid_email = web.form.regexp(r"[^@]+@[^@]+\.[^@]+", "Must be a valid email address")
+
+
 class PageRegister:
-    days = tuple((x, x) for x in range(0, 32))
-    months = tuple(enumerate(calendar.month_name[1:]))
+    days = tuple((x, x) for x in range(1, 32))
+    months = tuple((i + 1, month) for i, month in enumerate(calendar.month_name[1:]))
     current_year = datetime.date.today().year
     years = tuple((x, x) for x in range(current_year, current_year - 100, -1))
     if not hasattr(settings, 'LANGUAGES') or not settings.LANGUAGES:
@@ -31,16 +36,15 @@ class PageRegister:
     else:
         languages = settings.LANGUAGES
     _form = web.form.Form(
-        web.form.Textbox('username', id='username', autocomplete='off', placeholder='The name in your url.'),
-        web.form.Textbox('name', autocomplete='off', placeholder='The name next to your picture.',
+        web.form.Textbox('username', web.form.notnull, id='username', autocomplete='off', placeholder='The name in your url.'),
+        web.form.Textbox('name', web.form.notnull, autocomplete='off', placeholder='The name next to your picture.',
                          description="Complete name"),
-        web.form.Textbox('email', autocomplete='off', id='email', placeholder='Where we\'ll never spam you.'),
-        web.form.Password('password', id='password', autocomplete='off', placeholder='Something you\'ll remember but others won\'t guess.'),
-        web.form.Textbox('name', autocomplete='off', placeholder='The name next to your picture.'),
-        web.form.Dropdown('language', args=languages),
-        web.form.Dropdown('day', args=days),
-        web.form.Dropdown('month', args=months),
-        web.form.Dropdown('year', args=years),
+        web.form.Textbox('email', valid_email, web.form.notnull, autocomplete='off', id='email', placeholder='Where we\'ll never spam you.'),
+        web.form.Password('password', web.form.notnull, id='password', autocomplete='off', placeholder='Something you\'ll remember but others won\'t guess.'),
+        web.form.Dropdown('language', languages, web.form.notnull),
+        web.form.Dropdown('day', days, web.form.notnull),
+        web.form.Dropdown('month', months, web.form.notnull),
+        web.form.Dropdown('year', years, web.form.notnull),
         web.form.Button('Let\'s get started!')
     )
 
@@ -48,7 +52,6 @@ class PageRegister:
         raise web.seeother('?msg=%s' % s, absolute=False)
 
     def GET(self):
-        auth.force_login(session.get_session(), '/dashboard', True)
         form = self._form()
         message = web.input(msg=None).msg
         if message:
@@ -57,30 +60,29 @@ class PageRegister:
 
     def POST(self):
         form = self._form()
-        form.validates()
+        if form.validates():
+            if auth.email_exists(form.d.email):
+                self.msg('Sorry, that email already exists.')
 
-        if not all([form.d.email, form.d.password, form.d.name, form.d.username, form.d.language,
-                    form.d.day, form.d.month, form.d.year]):
-            self.msg('Please enter an username, full name, email, pasword, and birthday and language.')
+            if auth.username_exists(form.d.username):
+                self.msg('Sorry, that username already exists.')
 
-        if auth.email_exists(form.d.email):
-            self.msg('Sorry, that email already exists.')
+            activation = random.randint(1, 10000)
+            hashed = hash(str(activation))
 
-        if auth.username_exists(form.d.username):
-            self.msg('Sorry, that username already exists.')
+            birthday = '{}-{}-{}'.format(form.d.year, form.d.month, form.d.day)
+            user_id = auth.create_user(form.d.email, form.d.password, name=form.d.name, username=form.d.username, activation=activation,
+                                       locale=form.d.language, birthday=birthday)
+            if not user_id:
+                msg = _('Sorry, a database error occurred and we couldn\'t create your account.')
+                return template.tpl('register/reg', form, msg)
+            send_activation_email(form.d.email, hashed, user_id)
+            auth.login_user(session.get_session(), user_id)
+            raise web.seeother('/after-signup')
+        else:
+            message = _('Please enter an username, full name, email, pasword, and birthday and language.')
+            return template.tpl('register/reg', form, message)
 
-        activation = random.randint(1, 10000)
-        hashed = hash(str(activation))
-
-        birthday = '{}-{}-{}'.format(form.d.year, form.d.month, form.d.day)
-        user_id = auth.create_user(form.d.email, form.d.password, name=form.d.name, username=form.d.username, activation=activation,
-                                   locale=form.d.language, birthday=birthday)
-        if not user_id:
-            self.msg('Sorry, a database error occurred and we couldn\'t create your account.')
-
-        send_activation_email(form.d.email, hashed, user_id)
-        auth.login_user(session.get_session(), user_id)
-        raise web.seeother('/after-signup')
 
 
 class PageResendActivation:

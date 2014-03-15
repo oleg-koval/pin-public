@@ -14,6 +14,7 @@ from mypinnings import template
 from mypinnings import auth
 from mypinnings import database
 from mypinnings.facebook import redirect_to_register
+from mypinnings.register import valid_email
 
 
 logger = logging.getLogger('mypinnings.google')
@@ -55,7 +56,8 @@ class GoogleOauthStart(object):
             return web.seeother(url=url_redirect, absolute=True)
         except Exception:
             logger.error('Cannot construct the URL to redirect to Facebook login', exc_info=True)
-            return redirect_to_register(_('There is a misconfiguration in our server. We are not able to login to Facebook now. Please try another method'))
+            return redirect_to_register(_('There is a misconfiguration in our server. We are not'
+                                          ' able to login to Facebook now. Please try another method'))
 
 
 class GoogleOauthReturnMixin(object):
@@ -196,7 +198,7 @@ class SelectAUsernameAndPassword(auth.UniqueUsernameMixin):
     username_form = web.form.Form(web.form.Textbox('username', web.form.notnull, autocomplete='off',
                                                  id='username', placeholder=_('Select a username for your profile.'),
                                                  ),
-                                web.form.Textbox('email', web.form.notnull, autocomplete='off', id='email',
+                                web.form.Textbox('email', valid_email, web.form.notnull, autocomplete='off', id='email',
                                                  placeholder='Where we\'ll never spam you.'),
                                 web.form.Password('password', web.form.notnull, id='password', autocomplete='off',
                                                   placeholder='Something you\'ll remember but others won\'t guess.'),
