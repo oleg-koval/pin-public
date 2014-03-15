@@ -13,15 +13,17 @@ $def with (category, pins, prev, next)
 					<div class="col-xs-3" id="itemcol3"></div>
 				</div>
 			</div>
-			<div class="container-fluid">
+			<div class="container-fluid septop">
 				<div class="row">
+					<div class="col-xs-2"></div>
 					<div class="col-xs-1"><a href="?offset=$prev" class="btn">Prev</a></div>
-					<div class="col-xs-10"></div>
+					<div class="col-xs-6"></div>
 					<div class="col-xs-1"><a href="?offset=$next" class="btn">Next</a></div>
+					<div class="col-xs-2"></div>
 				</div>
 			</div>
 		</div>
-		<div class="col-xs-2">
+		<div class="col-xs-2 sep">
 			<h3>Cool pins</h3>
 			<div id="cool-items"></div>
 		</div>
@@ -32,6 +34,8 @@ $def with (category, pins, prev, next)
 	font-size: 10px;
 }
 .pinimg {cursor:pointer;}
+.sep {border-left: 1px solid black}
+.septop {border-top: 1px solid black}
 </style>
 <script language="javascript">
 $$(document).ready(function (){
