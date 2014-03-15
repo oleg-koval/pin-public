@@ -221,7 +221,15 @@ class ApiRegisterCoolPinForUser(object):
         sess = session.get_session()
         auth.force_login(sess)
         db = database.get_db()
-        db.insert(tablename='user_prefered_pins', user_id=sess.user_id, pin_id=pin_id)
+        test_pin_exists = db.where(table='pins', repin=pin_id)
+        for _ in test_pin_exists:
+            web.header('Content-Type', 'application/json')
+            return json.dumps({'status': 'ok'})
+        old_pin = db.where(table='pins', id=pin_id)[0]
+        new_id = db.insert(tablename='pins', name=old_pin.name, description=old_pin.description,
+                           user_id=sess.user_id, repin=pin_id, link=old_pin.link, category=old_pin.category,
+                           views=0, tsv=old_pin.tsv)
+        db.insert(tablename='likes', pin_id=new_id, user_id=sess.user_id)
         web.header('Content-Type', 'application/json')
         return json.dumps({'status': 'ok'})
 
@@ -232,8 +240,11 @@ class ApiRegisterCoolPinForUser(object):
         sess = session.get_session()
         auth.force_login(sess)
         db = database.get_db()
-        db.delete(table='user_prefered_pins', where='user_id=$user_id and pin_id=$pin_id',
-                  vars={'user_id': sess.user_id, 'pin_id': pin_id})
+        new_pin = db.where(table='pins', repin=pin_id)[0]
+        db.delete(table='likes', where='user_id=$user_id and pin_id=$pin_id',
+                  vars={'user_id': sess.user_id, 'pin_id': new_pin.id})
+        db.delete(table='pins', where='user_id=$user_id and id=$pin_id',
+                  vars={'user_id': sess.user_id, 'pin_id': new_pin.id})
         web.header('Content-Type', 'application/json')
         return json.dumps({'status': 'ok'})
 
