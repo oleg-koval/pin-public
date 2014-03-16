@@ -38,7 +38,7 @@
           images.push(src);
           if (first) {
             img = $('<img/>').attr('src', src).attr('id', counter++).addClass('selected');
-            window.selected = src + ',';
+            window.selected = src;
             first = false;
           } else {
             img = $('<img/>').attr('src', src).attr('id', counter++);
@@ -46,14 +46,9 @@
           preview.append(img);
           img.click(function() {
             src = images[parseInt($(this).attr('id'))];
-            if ($(this).hasClass('selected')) {
-              $(this).removeClass('selected');
-              src = src.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-              return window.selected = window.selected.replace(new RegExp(src + ','), '');
-            } else {
-              window.selected += src + ',';
-              return $(this).addClass('selected');
-            }
+            window.selected = src;
+            preview.find('img').removeClass('selected');
+            return $(this).addClass('selected');
           });
         }
       }
