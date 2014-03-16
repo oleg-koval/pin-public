@@ -1,6 +1,25 @@
-.add-space
-	padding-top: 50px
-	padding-bottom: 5px
+@import "bourbon/bourbon"
+@import "neat/neat"
+
+div.columns_container
+	@include outer-container
+	div.column1
+		@include span-columns(4)
+	div.column2
+		@include span-columns(4)
+	div.column3
+		@include span-columns(4)
 
 .selected
 	color: lightblue
+	
+.img-responsive
+	width: inherit
+	max-width: 100%
+	height: auto
+
+.shadowbox
+	box-shadow: 0 0 5px #446688
+	padding: 0px
+	margin: 0px
+	margin-bottom: 18px

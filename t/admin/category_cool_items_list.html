@@ -1,0 +1,11 @@
+$def with(pins)
+$for pin in pins:
+	<div id="pinbox$(pin.id)">
+		<img src="/static/tmp/$(pin.id).png" class="img-responsive"/>
+		$if pin.name:
+			<div class="small-text">$pin.name</div>
+		$else:
+			<div class="small-text">$pin.description</div>
+		<div class="btn btn-xs btn-danger remove" pinid="$pin.id">remove</div>
+		<div class="small-text" style="padding-bottom:2px;border-bottom:1px solid lightgray;margin-bottom:6px;"><a href="$pin.link" title="$pin.link">Link</a></div>
+	</div>

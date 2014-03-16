@@ -1,5 +1,9 @@
 import random
 import json
+import calendar
+import datetime
+import os.path
+from gettext import gettext as _
 
 import web
 
@@ -8,6 +12,8 @@ from mypinnings import template
 from mypinnings import session
 from mypinnings import database
 from mypinnings import cached_models
+from mypinnings.conf import settings
+
 
 urls = ('/after-signup/(\d*)', 'PageAfterSignup',
         '/after-signup', 'PageAfterSignup',
@@ -16,12 +22,29 @@ urls = ('/after-signup/(\d*)', 'PageAfterSignup',
         '', 'PageRegister',
         )
 
+
+valid_email = web.form.regexp(r"[^@]+@[^@]+\.[^@]+", "Must be a valid email address")
+
+
 class PageRegister:
+    days = tuple((x, x) for x in range(1, 32))
+    months = tuple((i + 1, month) for i, month in enumerate(calendar.month_name[1:]))
+    current_year = datetime.date.today().year
+    years = tuple((x, x) for x in range(current_year, current_year - 100, -1))
+    if not hasattr(settings, 'LANGUAGES') or not settings.LANGUAGES:
+        languages = (('en', 'English'),)
+    else:
+        languages = settings.LANGUAGES
     _form = web.form.Form(
-        web.form.Textbox('email', autocomplete='off', id='email', placeholder='Where we\'ll never spam you.'),
-        web.form.Textbox('username', id='username', autocomplete='off', placeholder='The name in your url.'),
-        web.form.Password('password', id='password', autocomplete='off', placeholder='Something you\'ll remember but others won\'t guess.'),
-        web.form.Textbox('name', autocomplete='off', placeholder='The name next to your picture.'),
+        web.form.Textbox('username', web.form.notnull, id='username', autocomplete='off', placeholder='The name in your url.'),
+        web.form.Textbox('name', web.form.notnull, autocomplete='off', placeholder='The name next to your picture.',
+                         description="Complete name"),
+        web.form.Textbox('email', valid_email, web.form.notnull, autocomplete='off', id='email', placeholder='Where we\'ll never spam you.'),
+        web.form.Password('password', web.form.notnull, id='password', autocomplete='off', placeholder='Something you\'ll remember but others won\'t guess.'),
+        web.form.Dropdown('language', languages, web.form.notnull),
+        web.form.Dropdown('day', days, web.form.notnull),
+        web.form.Dropdown('month', months, web.form.notnull),
+        web.form.Dropdown('year', years, web.form.notnull),
         web.form.Button('Let\'s get started!')
     )
 
@@ -29,36 +52,37 @@ class PageRegister:
         raise web.seeother('?msg=%s' % s, absolute=False)
 
     def GET(self):
-        auth.force_login(session.get_session(), '/dashboard', True)
         form = self._form()
         message = web.input(msg=None).msg
         if message:
-            return template.ltpl('register/reg', form, message)
+            return template.tpl('register/reg', form, message)
         return template.tpl('register/reg', form)
 
     def POST(self):
         form = self._form()
-        form.validates()
+        if form.validates():
+            if auth.email_exists(form.d.email):
+                self.msg('Sorry, that email already exists.')
 
-        if not all([form.d.email, form.d.password, form.d.name, form.d.username]):
-            self.msg('Please enter an email, pasword, and username.')
+            if auth.username_exists(form.d.username):
+                self.msg('Sorry, that username already exists.')
 
-        if auth.email_exists(form.d.email):
-            self.msg('Sorry, that email already exists.')
+            activation = random.randint(1, 10000)
+            hashed = hash(str(activation))
 
-        if auth.username_exists(form.d.username):
-            self.msg('Sorry, that username already exists.')
+            birthday = '{}-{}-{}'.format(form.d.year, form.d.month, form.d.day)
+            user_id = auth.create_user(form.d.email, form.d.password, name=form.d.name, username=form.d.username, activation=activation,
+                                       locale=form.d.language, birthday=birthday)
+            if not user_id:
+                msg = _('Sorry, a database error occurred and we couldn\'t create your account.')
+                return template.tpl('register/reg', form, msg)
+            send_activation_email(form.d.email, hashed, user_id)
+            auth.login_user(session.get_session(), user_id)
+            raise web.seeother('/after-signup')
+        else:
+            message = _('Please enter an username, full name, email, pasword, and birthday and language.')
+            return template.tpl('register/reg', form, message)
 
-        activation = random.randint(1, 10000)
-        hashed = hash(str(activation))
-
-        user_id = auth.create_user(form.d.email, form.d.password, name=form.d.name, username=form.d.username, activation=activation)
-        if not user_id:
-            self.msg('Sorry, a database error occurred and we couldn\'t create your account.')
-
-        send_activation_email(form.d.email, hashed, user_id)
-        auth.login_user(session.get_session(), user_id)
-        raise web.seeother('/after-signup')
 
 
 class PageResendActivation:
@@ -83,7 +107,29 @@ class PageAfterSignup:
         '''
         Select at least 3 categories from the list
         '''
-        return template.atpl('register/aphase1', cached_models.categories_with_thumbnails, phase=1)
+        db = database.get_db()
+        categories_results = db.where(table='categories', order='name')
+        categories = []
+        for category in categories_results:
+            cool_items_resutls = db.select(tables=['pins', 'cool_pins'], what="pins.*",
+                         where='pins.category=$category_id and pins.id=cool_pins.pin_id',
+                         vars={'category_id': category.id})
+            cool_items_list = list(cool_items_resutls)
+            random_cool_items = []
+            if len(cool_items_list) > 0:
+                for _ in range(6):
+                    if len(cool_items_list) == 0:
+                        break
+                    cool_item = random.choice(cool_items_list)
+                    cool_items_list.remove(cool_item)
+                    image_name = os.path.join('static', 'tmp', str(cool_item.id)) + '_cool.png'
+                    if not os.path.exists(image_name):
+                        continue
+                    random_cool_items.append(cool_item)
+                if len(random_cool_items) > 0:
+                    category.cool_items = random_cool_items
+                    categories.append(category)
+        return template.atpl('register/aphase1', categories, phase=1)
 
     _form1 = web.form.Form(web.form.Hidden('ids'))
 
@@ -96,8 +142,17 @@ class PageAfterSignup:
         cool_pins = db.select(tables=['pins', 'cool_pins', 'user_prefered_categories'], what='pins.*',
                               where='pins.id=cool_pins.pin_id and cool_pins.category_id=user_prefered_categories.category_id'
                               ' and user_prefered_categories.user_id=$user_id',
+                              order='timestamp desc',
                               vars={'user_id': sess.user_id})
-        return template.atpl('register/aphase2', cool_pins, phase=2)
+        cols = [[] for _ in range(3)]
+        for i, cp in enumerate(cool_pins):
+            image_name = os.path.join('static', 'tmp', str(cp.id)) + '.png'
+            if not os.path.exists(image_name):
+                continue
+            cols[i % 3].append(cp)
+            if not cp.name:
+                cp.name = cp.description
+        return template.atpl('register/aphase2', cols[0], cols[1], cols[2], phase=2)
 
     def phase3(self):
         '''
@@ -168,7 +223,15 @@ class ApiRegisterCoolPinForUser(object):
         sess = session.get_session()
         auth.force_login(sess)
         db = database.get_db()
-        db.insert(tablename='user_prefered_pins', user_id=sess.user_id, pin_id=pin_id)
+        test_pin_exists = db.where(table='pins', repin=pin_id, user_id=sess.user_id)
+        for _ in test_pin_exists:
+            web.header('Content-Type', 'application/json')
+            return json.dumps({'status': 'ok'})
+        old_pin = db.where(table='pins', id=pin_id)[0]
+        new_id = db.insert(tablename='pins', name=old_pin.name, description=old_pin.description,
+                           user_id=sess.user_id, repin=pin_id, link=old_pin.link, category=old_pin.category,
+                           views=0, tsv=old_pin.tsv)
+        db.insert(tablename='likes', pin_id=new_id, user_id=sess.user_id)
         web.header('Content-Type', 'application/json')
         return json.dumps({'status': 'ok'})
 
@@ -179,8 +242,11 @@ class ApiRegisterCoolPinForUser(object):
         sess = session.get_session()
         auth.force_login(sess)
         db = database.get_db()
-        db.delete(table='user_prefered_pins', where='user_id=$user_id and pin_id=$pin_id',
-                  vars={'user_id': sess.user_id, 'pin_id': pin_id})
+        new_pin = db.where(table='pins', repin=pin_id)[0]
+        db.delete(table='likes', where='user_id=$user_id and pin_id=$pin_id',
+                  vars={'user_id': sess.user_id, 'pin_id': new_pin.id})
+        db.delete(table='pins', where='user_id=$user_id and id=$pin_id',
+                  vars={'user_id': sess.user_id, 'pin_id': new_pin.id})
         web.header('Content-Type', 'application/json')
         return json.dumps({'status': 'ok'})
 

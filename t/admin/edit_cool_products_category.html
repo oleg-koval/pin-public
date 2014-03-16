@@ -1,144 +1,96 @@
-$def with (category, pins)
-<div class="category">
+$def with (category, pins, prev, next)
+<h2>
 	Category: <strong>$category.name</strong>
-</div>
-<div><button id="search_for_cool_pins_button" class="btn">Add a cool product</button></div>
-<div id="pin_list" class="pins container-fluid">
-</div>
-<div id="search_dialog" title="Search cool items">
-	<input type="text" id="search_terms"/>
-	<button id="search_button" class="btn">Search</button>
-	<div id="search_pin_list" class="container-fluid"></div>
-	<div id="search_navigation" class="container-fluid"><div class="row"></div></div>
+</h2>
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-xs-10">
+			<div class="container-fluid">
+				<div class="row" id="items">
+					<div class="col-xs-3" id="itemcol0"></div>
+					<div class="col-xs-3" id="itemcol1"></div>
+					<div class="col-xs-3" id="itemcol2"></div>
+					<div class="col-xs-3" id="itemcol3"></div>
+				</div>
+			</div>
+			<div class="container-fluid septop">
+				<div class="row">
+					<div class="col-xs-2"></div>
+					<div class="col-xs-1"><a href="?offset=$prev" class="btn">Prev</a></div>
+					<div class="col-xs-6"></div>
+					<div class="col-xs-1"><a href="?offset=$next" class="btn">Next</a></div>
+					<div class="col-xs-2"></div>
+				</div>
+			</div>
+		</div>
+		<div class="col-xs-2 sep">
+			<h3>Cool pins</h3>
+			<div id="cool-items"></div>
+		</div>
+	</div>
 </div>
 <style>
-.box_pin {
-	border: 2px dotted lightgray;
-	padding: 4px;
+.small-text {
+	font-size: 10px;
 }
+.pinimg {cursor:pointer;}
+.sep {border-left: 1px solid black}
+.septop {border-top: 1px solid black}
 </style>
 <script language="javascript">
 $$(document).ready(function (){
-	$$( "#pin_list" ).on('click', '.remove', function () {
-		var pin_id = $$( this ).attr('pin');
-		remove_pin_from_category( pin_id );
-	});
+	function pintemplate(pin) {
+		if (pin.name == null) {
+			pin.name = pin.description
+		}
+		return '<div id="pinbox' + pin.id + '"><img src="/static/tmp/' + pin.id + '.png" pinid="' + pin.id + '" class="pinimg img-responsive"/>' +
+			'<div class="small-text">' + pin.name + '</div>' +
+			'<div class="small-text" style="padding-bottom:2px;border-bottom:1px solid lightgray;margin-bottom:6px;"><a href="' + pin.link + '" title="' + pin.link + '">Link</a></div></div>'
+	};
 	
-	function remove_pin_from_category( pin_id ) {
-		$$.ajax({
-			method: 'DELETE',
-			url: '/admin/api/categories/$category.id/cool_pins/' + pin_id + '/'
-		}).done(function( data ) {
-			remove_from_pin_list( pin_id );
+	$$.current_column = 0;
+	function add_pin(pin) {
+		template = pintemplate(pin);
+		$$('#itemcol' + $$.current_column).append(template);
+		$$.current_column += 1;
+		if ($$.current_column % 4 == 0) {
+			$$.current_column = 0;
+		}
+	};
+	
+	$$("#items").on('click', '.pinimg', function() {
+		var pinid = $$(this).attr('pinid');
+		$$.div_to_remove = $$('#pinbox' + pinid);
+		$$.ajax({url: '/admin/api/categories/$category.id/cool_pins/' + pinid + '/',
+				 method: 'PUT',
+				 success: function(data) {
+					$$.div_to_remove.remove();
+					load_cool_pins();
+				 }
 		});
-	}
-	
-	function remove_from_pin_list( pin_id ) {
-		console.log('remove');
-		console.log("#pin" + pin_id);
-		$$( "#pin" + pin_id ).remove();
-	}
-
-	function add_to_pin_list( pin ) {
-		$$("#pin_list").grow('append', pin);
-	}
-	
-	$$( "#search_dialog" ).dialog({autoOpen: false, minWidth: 500,
-		position: { my: "center", at: "top", of: window }, modal: true});
-	
-	$$( "#search_for_cool_pins_button" ).click( function() {
-		$$( "#search_dialog" ).dialog( "open" );
 	});
 	
-	$$("#search_button").click(function() {
-		console.log("search...")
-		perform_search($$( "#search_terms" ).val(), '', '');
-	});
-	
-	$$("#search_pin_list").grow({
-		templateURL: '/static/jstemplates/admin/cat_coolpin_search_pin_list.html',
-		cache: true,
-	    animation: 'slide',
-	    speed: 10
-	});
-	
-	$$("#pin_list").grow({
-		templateURL: '/static/jstemplates/admin/cat_coolpin_search_add_cool.html',
-		cache: true,
-	    animation: 'slide',
-	    speed: 10
-	});
-	
-	function perform_search(search_terms, offset, limit) {
-		$$( "#search_pin_list" ).html( "" );
-		$$( "#search_navigation .row div" ).remove();
-		var request_data = {'search_terms': $$( "#search_terms" ).val(),
-				'offset': offset, 'limit': limit}
-		$$.get( '/admin/api/categories/$category.id/pins', request_data, function( data ) {
-			var list_of_pins = data['list_of_pins']
-			if (list_of_pins.length > 0) {
-				$$.search_results = new Array();
-				list_of_pins.forEach( function( pin ) {
-					add_search_pin( pin );
-					$$.search_results[pin['id']] = pin;
-				});
-				var offset = data['offset'];
-				var limit = data['limit'];
-				if ( offset <= 0 ) {
-					$$("#search_navigation .row").append('<div class="col-xs-4"/>');
-				} else {
-					var new_offset = offset - limit;
-					$$("#search_navigation .row").append('<div class="col-xs-4"><button class="btn navigate" search_terms="' + search_terms 
-							+ '" offset="' + new_offset + '" limit="' + limit + '">prev</button></div>');
-				}
-				$$("#search_navigation .row").append('<div class="col-xs-4"/>');
-				var new_offset = offset + limit;
-				$$("#search_navigation .row").append('<div class="col-xs-4"><button class="btn navigate" search_terms="' + search_terms 
-						+ '" offset="' + new_offset + '" limit="' + limit + '">next</button></div>');
-			} else {
-				$$( "#search_pin_list" ).html('No elements for this search');
-				$$( "#search_navigation .row" ).html('');
-				$$.search_results = new Array()
-			}
-		}, 'json');
-	}
-	
-	$$( "#search_navigation" ).on('click', '.navigate', function() {
-		var search_terms = $$( this ).attr('search_terms');
-		var offset = $$( this ).attr('offset');
-		var limit = $$( this ).attr('limit');
-		console.log('search naveiga', search_terms, offset, limit);
-		perform_search(search_terms, offset, limit);
-	});
-	
-	function add_search_pin(pin) {
-		$$("#search_pin_list").grow('append', pin);
-	}
-
-	$$( "#search_pin_list" ).on('click', ".add_pin_button", function() {
-		pin_id = $$( this ).attr('pin');
-		pin = $$.search_results[pin_id];
-		add_searched_pin_to_cool(pin)
-	});
-	
-	function add_searched_pin_to_cool( pin ) {
-		$$.ajax({
-			method: 'PUT',
-			url: '/admin/api/categories/$category.id/cool_pins/' + pin['id'] + '/'
-		}).done(function( data ) {
-			add_to_pin_list( pin );
-			remove_from_search_pin_list( pin );
+	$$("#cool-items").on('click', '.remove', function() {
+		var pinid = $$(this).attr('pinid');
+		$$.div_to_remove = $$('#pinbox' + pinid);
+		$$.ajax({url: '/admin/api/categories/$category.id/cool_pins/' + pinid + '/',
+				 method: 'DELETE',
+				 success: function(data) {
+					$$.div_to_remove.remove();
+					location.reload(true);
+				 }
 		});
-	}
+	});
 	
-	function remove_from_search_pin_list( pin ) {
-		console.log('remove..');
-		$$( "#search_pin" + pin['id'] ).remove();
-	}
-	
-	var data;
+	function load_cool_pins() {
+		$$.get('/admin/category-cool-items/$category.id/',
+			function(data) {
+				$$('#cool-items').html(data);
+			});
+	};
+	load_cool_pins();
+
 $for pin in pins:
-	data = {'id': $pin['id'], 'name': '$pin['name']', 'description': '$pin['description']', 'link': '$pin['link']'}
-	add_to_pin_list(data);
+	add_pin($:pin)
 });
 </script>

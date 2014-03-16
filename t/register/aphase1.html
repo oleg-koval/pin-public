@@ -3,20 +3,34 @@ $def with (categories)
 <center>
   <h1>Let's get started! Pick three categories you're passionate about.</h1>
   <br/>
-  <div class="categorylist">
+  <table>
       $for category in categories:
-      	<div class="categorybox_$loop.parity">
-      		<div class="categorytop">
-          <button class='loldongs' style='margin-bottom: 10px;' categoryid="$category['id']">$category['name']</button>&nbsp;
-          	</div>
-          	<div class="categorythumbs">
-          		$for thumb in category['thumbs']:
-	          		<div class="thumbimg">
-	          			<img src="/static/cat_reg_thmb/$thumb['image_name']"/>
-	          		</div>
-          	</div>
-        </div>
-  </div>
+      	$if loop.odd:
+      	  <tr>
+      	<td width="50%" style="vertical-align:top;">
+      		<div class="categorybox">
+	      		<div class="categorytop">
+	          		<button class='loldongs' style='margin-bottom: 10px;' categoryid="$category['id']">$category['name']</button>&nbsp;
+	          	</div>
+	          	<div class="categorythumbs">
+	          		<table>
+	          		$for cool_item in category.cool_items:
+	          			$if loop.index % 3 == 1:
+	          				<tr>
+	          			<td>
+		          		<div class="thumbimg">
+		          			<img width="72" height="72" src="/static/tmp/$(cool_item.id)_cool.png"/>
+		          		</div>
+		          		</td>
+		          		$if loop.index % 3 == 0 or loop.last:
+		          			</tr>
+		          	</table>
+	          	</div>
+	        </div>
+        </td>
+        $if loop.even:
+          </tr>
+  </table>
   <div>
   	Select at least 3 to continue
   </div>

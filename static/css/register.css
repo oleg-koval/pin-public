@@ -1,0 +1,72 @@
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; }
+
+div.register_columns_container {
+  *zoom: 1;
+  max-width: 68em;
+  margin-left: auto;
+  margin-right: auto; }
+  div.register_columns_container:before, div.register_columns_container:after {
+    content: " ";
+    display: table; }
+  div.register_columns_container:after {
+    clear: both; }
+  div.register_columns_container div.space_column {
+    float: left;
+    display: block;
+    margin-right: 2.35765%;
+    width: 6.17215%; }
+    div.register_columns_container div.space_column:last-child {
+      margin-right: 0; }
+  div.register_columns_container div.first_column {
+    float: left;
+    display: block;
+    margin-right: 2.35765%;
+    width: 57.35098%; }
+    div.register_columns_container div.first_column:last-child {
+      margin-right: 0; }
+  div.register_columns_container div.second_column {
+    float: left;
+    display: block;
+    margin-right: 2.35765%;
+    width: 31.76157%; }
+    div.register_columns_container div.second_column:last-child {
+      margin-right: 0; }
+
+div.register_services_column {
+  margin-top: 100px; }
+
+div.login_services_column {
+  margin-top: 45px; }
+
+.signupbutton, a.signupfb, a.signupgg {
+  display: inline-block;
+  min-width: 240px;
+  min-height: 40px;
+  padding: 9px 10px;
+  padding-left: 75px;
+  color: #fff;
+  background-repeat: no-repeat;
+  background-position: 0 50%;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  -ms-border-radius: 3px;
+  -o-border-radius: 3px;
+  border-radius: 3px;
+  -webkit-box-shadow: 0px 0px 1px #ccc;
+  -moz-box-shadow: 0px 0px 1px #ccc;
+  -o-box-shadow: 0px 0px 1px #ccc;
+  box-shadow: 0px 0px 1px #ccc;
+  margin: 10px 10px; }
+
+a.signupfb {
+  background-color: #2b4d7e;
+  background-image: url(/static/img/facebook.png), -webkit-linear-gradient(top, #4875b6, #2b4d7e);
+  border: 1px solid #1A3E71; }
+
+a.signupgg {
+  background-color: #dd4b39;
+  background-image: url(/static/img/google.png), -webkit-linear-gradient(top, #e9897d, #dd4b39);
+  border: 1px solid #972822; }

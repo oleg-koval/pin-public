@@ -1,23 +1,42 @@
-$def with (pins)
+$def with (col1, col2, col3)
 <link rel="stylesheet" href="/static/css/register_select_pins.css" />
 <center>
   <h1>Let's get started! Pick at least five items that interest you.</h1>
   <br/>
-  <div class="container-fluid">
-  	<div class="row">
-		$for pin in pins:
-	      	<div class="col-xs-4">
-	      		<div class="pin-add-button add-space">
-	          		<button class='select_pins' style='margin-bottom: 10px;' pinid="$pin['id']">$pin['description']</button>&nbsp;
-	          	</div>
-	          	<div class="pin-image">
-	          		<img class="img-responsive" src='/static/tmp/$(pin.id).png' alt=''/>
-	          	</div>
-	        </div>
-	        $if loop.index % 3 == 0:
-	        	</div>
-	        	<div class="row">
-	</div>
+  <div class="columns_container">
+   	<div class="column1">
+	$for pin in col1:
+		<div class="shadowbox">
+			<div class="pin-add-button">
+				<button class='select_pins' style='margin-bottom: 10px;' pinid="$pin['id']">$pin['name']</button>&nbsp;
+			</div>
+			<div class="pin-image">
+				<img class="img-responsive" src='/static/tmp/$(pin.id).png' alt=''/>
+			</div>
+		</div>
+    </div>
+   	<div class="column2">
+	$for pin in col2:
+		<div class="shadowbox">
+			<div class="pin-add-button add-space">
+				<button class='select_pins' style='margin-bottom: 10px;' pinid="$pin['id']">$pin['name']</button>&nbsp;
+			</div>
+			<div class="pin-image">
+				<img class="img-responsive" src='/static/tmp/$(pin.id).png' alt=''/>
+			</div>
+		</div>
+    </div>
+   	<div class="column3">
+	$for pin in col3:
+		<div class="shadowbox">
+			<div class="pin-add-button add-space">
+				<button class='select_pins' style='margin-bottom: 10px;' pinid="$pin['id']">$pin['name']</button>&nbsp;
+			</div>
+			<div class="pin-image">
+				<img class="img-responsive" src='/static/tmp/$(pin.id).png' alt=''/>
+			</div>
+		</div>
+    </div>
   </div>
   <div>
   	Select at least 5 to continue

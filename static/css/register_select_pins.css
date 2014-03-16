@@ -1,6 +1,50 @@
-.add-space {
-  padding-top: 50px;
-  padding-bottom: 5px; }
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; }
+
+div.columns_container {
+  *zoom: 1;
+  max-width: 68em;
+  margin-left: auto;
+  margin-right: auto; }
+  div.columns_container:before, div.columns_container:after {
+    content: " ";
+    display: table; }
+  div.columns_container:after {
+    clear: both; }
+  div.columns_container div.column1 {
+    float: left;
+    display: block;
+    margin-right: 2.35765%;
+    width: 31.76157%; }
+    div.columns_container div.column1:last-child {
+      margin-right: 0; }
+  div.columns_container div.column2 {
+    float: left;
+    display: block;
+    margin-right: 2.35765%;
+    width: 31.76157%; }
+    div.columns_container div.column2:last-child {
+      margin-right: 0; }
+  div.columns_container div.column3 {
+    float: left;
+    display: block;
+    margin-right: 2.35765%;
+    width: 31.76157%; }
+    div.columns_container div.column3:last-child {
+      margin-right: 0; }
 
 .selected {
   color: lightblue; }
+
+.img-responsive {
+  width: inherit;
+  max-width: 100%;
+  height: auto; }
+
+.shadowbox {
+  box-shadow: 0 0 5px #446688;
+  padding: 0px;
+  margin: 0px;
+  margin-bottom: 18px; }
