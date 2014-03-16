@@ -18,6 +18,7 @@ from mypinnings import template
 from mypinnings import session
 from mypinnings import database
 from mypinnings import auth
+from mypinnings.register import valid_email
 
 
 urls = ('/register/?', 'Register',
@@ -28,6 +29,11 @@ urls = ('/register/?', 'Register',
         )
 
 logger = logging.getLogger('mypinnings.facebook')
+
+
+def redirect_to_register(msg='Error login with Facebook.'):
+    url = '/register?msg={}'.format(msg)
+    return web.seeother(url=url, absolute=True)
 
 
 class FacebookOauthStart(object):
@@ -41,17 +47,22 @@ class FacebookOauthStart(object):
         '''
         Redirects to facebook login page
         '''
-        base_url = 'https://www.facebook.com/dialog/oauth?'
-        state = str(random.randrange(99999999))
-        sess = session.get_session()
-        sess['state'] = state
-        parameters = {'state': state,
-                      'client_id': settings.FACEBOOK['application_id'],
-                      'redirect_uri': self.return_url,
-                      'scope': 'email,user_birthday,publish_actions,user_hometown',
-                      }
-        url_redirect = base_url + urllib.urlencode(parameters)
-        raise web.seeother(url=url_redirect, absolute=True)
+        try:
+            base_url = 'https://www.facebook.com/dialog/oauth?'
+            state = str(random.randrange(99999999))
+            sess = session.get_session()
+            sess['state'] = state
+            parameters = {'state': state,
+                          'client_id': settings.FACEBOOK['application_id'],
+                          'redirect_uri': self.return_url,
+                          'scope': 'email,user_birthday,publish_actions,user_hometown',
+                          }
+            url_redirect = base_url + urllib.urlencode(parameters)
+            return web.seeother(url=url_redirect, absolute=True)
+        except Exception:
+            logger.error('Cannot construct the URL to redirect to Facebook login', exc_info=True)
+            return redirect_to_register(_('There is a misconfiguration in our server. We are not'
+                                          ' able to login to Facebook now. Please try another method'))
 
 
 class FacebookOauthReturnMixin(object):
@@ -66,10 +77,14 @@ class FacebookOauthReturnMixin(object):
         Check that the state we send to facebook is the same that facebook
         returns back.
         '''
-        sess = session.get_session()
-        state = sess['state']
-        returned_state = web.input(state=None)['state']
-        return state == returned_state
+        try:
+            sess = session.get_session()
+            state = sess['state']
+            returned_state = web.input(state=None)['state']
+            return state == returned_state
+        except:
+            logger.error('Session has no state value to check. Possible request forgery')
+            return False
 
     def _exchange_code_for_access_token(self):
         '''
@@ -106,7 +121,7 @@ class FacebookOauthReturnMixin(object):
             self.profile = json.load(urllib.urlopen(url=url_profile))
             return True
         except:
-            logger.error('Cannot cannot obtain user profile. Access token: %s', self.access_token, exc_info=True)
+            logger.error('Cannot obtain user profile. Access token: %s', self.access_token, exc_info=True)
             return False
 
     def _get_user_from_db(self):
@@ -114,15 +129,19 @@ class FacebookOauthReturnMixin(object):
         Obtains the user_id from the database and return if exists.
         Else returns false.
         '''
-        db = database.get_db()
-        query_result = db.select(tables='users', where="facebook=$username and login_source=$login_source",
-                                   vars={'username': self.profile['username'],
-                                         'login_source': auth.LOGIN_SOURCE_FACEBOOK})
-        for row in query_result:
-            self.user_id = row['id']
-            self.username = row['username']
-            return self.user_id
-        return False
+        try:
+            db = database.get_db()
+            query_result = db.select(tables='users', where="facebook=$username and login_source=$login_source",
+                                       vars={'username': self.profile['username'],
+                                             'login_source': auth.LOGIN_SOURCE_FACEBOOK})
+            for row in query_result:
+                self.user_id = row['id']
+                self.username = row['username']
+                return self.user_id
+            return False
+        except:
+            logger.error('Cannot obtain user from the DB. User id: %s', self.user_id, exc_info=True)
+            return False
 
 
 class Register(FacebookOauthStart):
@@ -148,17 +167,19 @@ class RegisterReturn(FacebookOauthReturnMixin, auth.UniqueUsernameMixin):
         sess = session.get_session()
         error = web.input(error=None)['error']
         if error:
-            errors = web.input()
-            template.ltpl('facebook/no-login', **errors)
+            error = web.input(error_description='')['error_description']
+            full_error = _('There was a problem with login with Facebook. You can try'
+                           ' again or user another login method: {}').format(error)
+            return redirect_to_register(full_error)
         else:
             self.code = web.input(code=None)['code']
             if self.code:
                 if not self._check_state_parameter():
-                    return template.lmsg(_('Detected a possible request forge'))
+                    return redirect_to_register(_('Detected a possible request forge'))
                 if not self._exchange_code_for_access_token():
-                    return template.lmsg(_('Invalid facebook login'))
+                    return redirect_to_register(_('Invalid facebook login'))
                 if not self._obtain_user_profile():
-                    return template.lmsg(_('Invalid facebook login'))
+                    return redirect_to_register(_('Invalid facebook login'))
                 user_id = self._get_user_from_db()
                 if not user_id:
                     sess['fb_profile'] = self.profile
@@ -167,7 +188,9 @@ class RegisterReturn(FacebookOauthReturnMixin, auth.UniqueUsernameMixin):
                     # user already registered, perform a login instead of registration
                     web.seeother(url='/login/')
             else:
-                return template.lmsg(_('Failure in the OAuth protocol with facebook. Try again'))
+                error = _('Failure in the OAuth protocol with Facebook. You can try again'
+                          ' or user another login method')
+                return redirect_to_register(error)
 
 
 class Username(auth.UniqueUsernameMixin):
@@ -177,8 +200,9 @@ class Username(auth.UniqueUsernameMixin):
     username_form = web.form.Form(web.form.Textbox('username', web.form.notnull, autocomplete='off',
                                                  id='username', placeholder=_('Select a username for your profile.'),
                                                  ),
-                                web.form.Textbox('email', autocomplete='off', id='email', placeholder='Where we\'ll never spam you.'),
-                                web.form.Password('password', id='password', autocomplete='off',
+                                web.form.Textbox('email', valid_email, web.form.notnull, autocomplete='off', id='email',
+                                                 placeholder='Where we\'ll never spam you.'),
+                                web.form.Password('password', web.form.notnull, id='password', autocomplete='off',
                                                   placeholder='Something you\'ll remember but others won\'t guess.'),
                                 web.form.Button(_('Next')))
 
@@ -294,17 +318,18 @@ class LoginReturn(FacebookOauthReturnMixin):
     def GET(self):
         error = web.input(error=None)['error']
         if error:
-            errors = web.input()
-            template.ltpl('facebook/no-login', **errors)
+            error = web.input(error_description='')['error_description']
+            full_error = _('There was a problem with login with Facebook. You can try again or user another login method: {}').format(error)
+            return redirect_to_register(full_error)
         else:
             self.code = web.input(code=None)['code']
             if self.code:
                 if not self._check_state_parameter():
-                    return template.lmsg(_('Detected a possible request forge'))
+                    return redirect_to_register(_('Detected a possible request forge'))
                 if not self._exchange_code_for_access_token():
-                    return template.lmsg(_('Invalid facebook login'))
+                    return redirect_to_register(_('Invalid facebook login'))
                 if not self._obtain_user_profile():
-                    return template.lmsg(_('Invalid facebook login'))
+                    return redirect_to_register(_('Invalid facebook login'))
                 user_id = self._get_user_from_db()
                 if not user_id:
                     # user not registered, let's register
@@ -314,7 +339,8 @@ class LoginReturn(FacebookOauthReturnMixin):
                     auth.login_user(sess, user_id)
                     web.seeother(url='/{}'.format(self.username), absolute=True)
             else:
-                return template.lmsg(_('Failure in the OAuth protocol with facebook. Try again'))
+                error = _('Failure in the OAuth protocol with Facebook. You can try again or user another login method')
+                return redirect_to_register(error)
 
 
 # register the app for using in the main urls

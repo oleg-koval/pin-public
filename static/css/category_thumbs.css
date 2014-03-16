@@ -5,23 +5,19 @@
   width: 520px;
   overflow: hidden; }
 
-.categorybox, .categorybox_odd, .categorybox_even {
+.categorybox {
   border: 2px solid lightgrey;
   border-radius: 6px;
   width: 232px;
   margin: 0px;
-  padding: 0px; }
+  padding: 0px;
+  text-align: center; }
 
-.categorybox_odd {
-  float: left; }
-
-.categorybox_even {
-  margin-left: 228px; }
-
-.categorythumb {
+.categorythumbs {
   margin: 0px;
   padding: 0px;
-  border: 0px; }
+  border: 0px;
+  text-align: center; }
 
 .thumbimg {
   margin: 0px;

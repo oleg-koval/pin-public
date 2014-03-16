@@ -13,6 +13,8 @@ from mypinnings import session
 from mypinnings import template
 from mypinnings import auth
 from mypinnings import database
+from mypinnings.facebook import redirect_to_register
+from mypinnings.register import valid_email
 
 
 logger = logging.getLogger('mypinnings.google')
@@ -39,18 +41,23 @@ class GoogleOauthStart(object):
         '''
         Starts the authorization
         '''
-        sess = session.get_session()
-        oAuth_url = 'https://accounts.google.com/o/oauth2/auth?'
-        sess['state'] = str(random.randrange(999999))
-        sess['redirect_uri'] = self.redirect_uri
-        parameters = {'response_type': 'code',
-                      'client_id': settings.GOOGLE['client_id'],
-                      'redirect_uri': self.redirect_uri,
-                      'scope': 'profile email',
-                      'state': sess['state'],
-                      }
-        url_redirect = oAuth_url + urllib.urlencode(parameters)
-        raise web.seeother(url=url_redirect, absolute=True)
+        try:
+            sess = session.get_session()
+            oAuth_url = 'https://accounts.google.com/o/oauth2/auth?'
+            sess['state'] = str(random.randrange(999999))
+            sess['redirect_uri'] = self.redirect_uri
+            parameters = {'response_type': 'code',
+                          'client_id': settings.GOOGLE['client_id'],
+                          'redirect_uri': self.redirect_uri,
+                          'scope': 'profile email',
+                          'state': sess['state'],
+                          }
+            url_redirect = oAuth_url + urllib.urlencode(parameters)
+            return web.seeother(url=url_redirect, absolute=True)
+        except Exception:
+            logger.error('Cannot construct the URL to redirect to Facebook login', exc_info=True)
+            return redirect_to_register(_('There is a misconfiguration in our server. We are not'
+                                          ' able to login to Facebook now. Please try another method'))
 
 
 class GoogleOauthReturnMixin(object):
@@ -74,11 +81,11 @@ class GoogleOauthReturnMixin(object):
         Code parameter is mandatory.
         '''
         if not self.state or self.state != self.sess['state']:
-            return template.lmsg(_('Detected a possible request forge'))
+            return redirect_to_register(_('Detected a possible request forge'))
         if self.error:
-            return template.lmsg(self.error)
+            return redirect_to_register(self.error)
         if not self.code:
-            return template.lmsg(_('Invalid google login'))
+            return redirect_to_register(_('Invalid google login'))
         return False
 
     def exchange_authorization_code(self):
@@ -129,22 +136,26 @@ class GoogleOauthReturnMixin(object):
         Looks if the google nickname is in the DB. If the profile does not have a nickname,
         look if the email is in the DB.
         '''
-        db = database.get_db()
-        if 'nickname' in self.profile:
-            query_result = db.select(tables='users', where="gplus=$username and login_source=$login_source",
-                                       vars={'username': self.profile['nickname'],
-                                             'login_source': auth.LOGIN_SOURCE_GOOGLE})
-        elif 'emails' in self.profile:
-            email = self.profile['emails'][0]['value']
-            query_result = db.select(tables='users', where="email=$email",
-                                       vars={'email': email})
-        else:
+        try:
+            db = database.get_db()
+            if 'nickname' in self.profile:
+                query_result = db.select(tables='users', where="gplus=$username and login_source=$login_source",
+                                           vars={'username': self.profile['nickname'],
+                                                 'login_source': auth.LOGIN_SOURCE_GOOGLE})
+            elif 'emails' in self.profile:
+                email = self.profile['emails'][0]['value']
+                query_result = db.select(tables='users', where="email=$email",
+                                           vars={'email': email})
+            else:
+                return False
+            for row in query_result:
+                self.user_id = row['id']
+                self.username = row['username']
+                return self.user_id
             return False
-        for row in query_result:
-            self.user_id = row['id']
-            self.username = row['username']
-            return self.user_id
-        return False
+        except:
+            logger.error('Cannot obtain user from the DB. User id: %s', self.user_id, exc_info=True)
+            return False
 
 
 class Register(GoogleOauthStart):
@@ -169,9 +180,9 @@ class RegisterReturn(GoogleOauthReturnMixin):
         if errors:
             return errors
         if not self.exchange_authorization_code():
-            return template.lmsg(_('Invalid google login'))
+            return redirect_to_register(_('Invalid google login'))
         if not self.obtain_user_profile():
-            return template.lmsg(_('Invalid google login'))
+            return redirect_to_register(_('Invalid google login'))
         if not self.get_user_from_db():
             self.sess['profile'] = self.profile
             web.seeother(url='/username', absolute=False)
@@ -187,8 +198,9 @@ class SelectAUsernameAndPassword(auth.UniqueUsernameMixin):
     username_form = web.form.Form(web.form.Textbox('username', web.form.notnull, autocomplete='off',
                                                  id='username', placeholder=_('Select a username for your profile.'),
                                                  ),
-                                web.form.Textbox('email', autocomplete='off', id='email', placeholder='Where we\'ll never spam you.'),
-                                web.form.Password('password', id='password', autocomplete='off',
+                                web.form.Textbox('email', valid_email, web.form.notnull, autocomplete='off', id='email',
+                                                 placeholder='Where we\'ll never spam you.'),
+                                web.form.Password('password', web.form.notnull, id='password', autocomplete='off',
                                                   placeholder='Something you\'ll remember but others won\'t guess.'),
                                 web.form.Button(_('Next')))
 
@@ -332,9 +344,9 @@ class LoginReturn(GoogleOauthReturnMixin):
         if errors:
             return errors
         if not self.exchange_authorization_code():
-            return template.lmsg(_('Invalid google login'))
+            return redirect_to_register(_('Invalid google login'))
         if not self.obtain_user_profile():
-            return template.lmsg(_('Invalid google login'))
+            return redirect_to_register(_('Invalid google login'))
         if not self.get_user_from_db():
             # user not registered, go to registration
             web.seeother(url='/register/')

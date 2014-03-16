@@ -6,7 +6,11 @@ import string
 import hashlib
 import json
 import logging
-# #
+import os
+import os.path
+
+from PIL import Image
+
 from mypinnings import database
 from mypinnings import session
 from mypinnings import template
@@ -30,7 +34,8 @@ urls = ('', 'admin.PageIndex',
         '/logout', 'admin.PageLogout',
         '/relationships', 'admin.PageRelationships',
         '/categories', 'ListCategories',
-        '/cool-items-category/(\d*)', 'EditCoolProductsForCategory',
+        '/category-manage_cool/(\d*)', 'EditCoolProductsForCategory',
+        '/category-cool-items/(\d*)/?', 'ListCoolProductsForCategory',
         '/api/categories/(\d*)/pins/?', 'ApiCategoryListPins',
         '/api/categories/(\d*)/pins/(\d*)/?', 'ApiCategoryPins',
 #         '/api/categories/(\d*)/cool_pins', 'ApiategoryCoolPins'
@@ -328,6 +333,8 @@ class ListCategories(object):
         return template.admin.list_categories(cached_models.all_categories)
 
 
+COOL_LIST_LIMIT = 50
+
 class EditCoolProductsForCategory(object):
     '''
     Allows edition of cool products for one category
@@ -335,13 +342,34 @@ class EditCoolProductsForCategory(object):
     @login_required
     def GET(self, category_id):
         db = database.get_db()
-        pins = db.select(tables=['pins', 'cool_pins'], order='pins.name',
-                         where='cool_pins.category_id=$category_id and cool_pins.pin_id=pins.id',
-                         vars={'category_id': category_id})
+        offset = int(web.input(offset=0)['offset'])
+        if offset < 0:
+            offset = 0
+        pins = db.select(tables=['pins'], what="pins.*", order='timestamp desc',
+                         where='pins.category=$category_id and pins.id not in (select pin_id from cool_pins where cool_pins.category_id=$category_id)',
+                         vars={'category_id': category_id}, offset=offset, limit=COOL_LIST_LIMIT)
         categories = db.where(table='categories', id=category_id)
         for c in categories:
             category = c
-        return template.admin.edit_cool_products_category(category, pins)
+        json_pins = []
+        for pin in pins:
+            json_pins.append(json.dumps(pin))
+        prev = offset - COOL_LIST_LIMIT if offset > COOL_LIST_LIMIT else 0
+        next = offset + COOL_LIST_LIMIT
+        return template.admin.edit_cool_products_category(category, json_pins, prev, next)
+
+
+class ListCoolProductsForCategory(object):
+    @login_required
+    def GET(self, category_id):
+        db = database.get_db()
+        offset = int(web.input(offset=0)['offset'])
+        if offset < 0:
+            offset = 0
+        pins = db.select(tables=['pins', 'cool_pins'], what="pins.*", order='timestamp desc',
+                         where='pins.category=$category_id and pins.id=cool_pins.pin_id',
+                         vars={'category_id': category_id})
+        return web.template.frender('t/admin/category_cool_items_list.html')(pins)
 
 
 class ApiCategoryListPins(object):
@@ -418,7 +446,26 @@ class ApiCategoryCoolPins(object):
         db = database.get_db()
         try:
             db.insert(tablename='cool_pins', category_id=category_id, pin_id=pin_id)
+            image_name = os.path.join('static', 'tmp', str(pin_id)) + '.png'
+            image = Image.open(image_name)
+            if image.size[0] <= image.size[1]:
+                ratio = 72.0 / float(image.size[0])
+                height = int(ratio * image.size[1])
+                image = image.resize((72, height), Image.ANTIALIAS)
+                margin = (height - 72) / 2
+                crop_box = (0, margin, 72, 72 + margin)
+            else:
+                ratio = 72.0 / float(image.size[1])
+                width = int(ratio * image.size[0])
+                image = image.resize((width, 72), Image.ANTIALIAS)
+                margin = (width - 72) / 2
+                crop_box = (margin, 0, 72 + margin, 72)
+            image = image.crop(crop_box)
+            new_name = os.path.join('static', 'tmp', str(pin_id)) + '_cool.png'
+            image.save(new_name)
         except:
+            db.delete(table='cool_pins', where='category_id=$category_id and pin_id=$pin_id',
+                      vars={'category_id': category_id, 'pin_id': pin_id})
             logger.error('Could not add pin ({}) to cool pins for category ({})'.format(pin_id, category_id), exc_info=True)
             raise web.NotFound('Could not add pin to cool pins')
         web.header('Content-Type', 'application/json')
@@ -433,6 +480,11 @@ class ApiCategoryCoolPins(object):
         try:
             db.delete(table='cool_pins', where='category_id=$category_id and pin_id=$pin_id',
                       vars={'category_id': category_id, 'pin_id': pin_id})
+            image_name = os.path.join('static', 'tmp', str(pin_id)) + '_cool.png'
+            os.unlink(image_name)
+        except OSError:
+            # could not delete the image, nothing happens
+            pass
         except:
             logger.error('Could not delete pin ({}) from cool pins for category ({})'.format(pin_id, category_id), exc_info=True)
             raise web.NotFound('Could not delete pin from cool pins')

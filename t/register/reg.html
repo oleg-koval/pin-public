@@ -4,6 +4,7 @@ $def with (form, message=None)
   <head>
     <title>MyPinnings</title>
     <link rel='stylesheet' type='text/css' href='/static/main.css'/>
+    <link rel='stylesheet' type='text/css' href='/static/css/register.css'/>
     <link href='//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' rel='stylesheet'>
   </head>
   <body>
@@ -12,27 +13,41 @@ $def with (form, message=None)
         <a class='logo' href='/'>MyPinnings</a>
       </div>
     </div>
-    <div class='content'>
-      <h1 class='center large pad-top pad-bottom'>Sign up for a MyPinnings account</h1>
-      <form class='width-auto' method='post' action=''>
-        $if message is not None:
-          <div class='notice'>$:message</div>
-        $:form.render()
-      </form>
-      <br/>
-      <p class='center bold'>
-        <a href='/login'>Login</a>
-        &nbsp;
-        &nbsp;
-        <a href='/'>Back to Home</a>
-      </p>
-    </div>
-    
-    <div>
-    <a href="/facebook/register/">Signup with Facebook</a>
-    </div>
-    <div>
-    <a href="/google/register/">Signup with Google+</a>
+    <div class='content register_columns_container'>
+      <div class='first_column'>
+	      <h1 class='center large pad-top pad-bottom'>Sign up for a MyPinnings account</h1>
+	      <form class='width-auto' method='post' action=''>
+	        $if message is not None:
+	          <div class='notice'>$:message</div>
+<table>
+    <tr><th><label for="username">username</label></th><td>$:form['username'].render()</td></tr>
+    <tr><th><label for="name">Complete name</label></th><td>$:form['name'].render()</td></tr>
+    <tr><th><label for="email">email</label></th><td>$:form['email'].render()</td></tr>
+    <tr><th><label for="password">password</label></th><td>$:form['password'].render()</td></tr>
+    <tr><th><label for="day">Birthday</label></th><td>$:form['day'].render() $:form['month'].render() $:form['year'].render()</td></tr>
+    <tr><th><label for="language">language</label></th><td>$:form['language'].render()</td></tr>
+    <tr><th><label for="Let's get started!"></label></th><td><button id="Let&#39;s get started!" name="Let&#39;s get started!">Let&#39;s get started!</button></td></tr>
+</table>
+	      </form>
+	      <br/>
+	      <p class='center bold'>
+	        <a href='/login'>Login</a>
+	        &nbsp;
+	        &nbsp;
+	        <a href='/'>Back to Home</a>
+	      </p>
+      </div>
+      <div class='space_column'></div>
+      <div class='second_column'>
+        <div class='register_services_column'>
+		    <div>
+		    <a href="/facebook/register/" class='signupfb'>Signup with Facebook</a>
+		    </div>
+		    <div>
+		    <a href="/google/register/" class='signupgg'>Signup with Google+</a>
+		    </div>
+	    </div>
+      </div>
     </div>
     
     <script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
