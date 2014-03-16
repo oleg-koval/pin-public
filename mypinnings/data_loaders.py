@@ -22,8 +22,10 @@ logger = logging.getLogger('mypinnings.data_loaders')
 
 class PinLoaderPage(object):
     def get_form(self):
+        sess = session.get_session()
+        current_category = sess.get('category', None)
         categories = tuple((cat.id, cat.name) for cat in cached_models.all_categories)
-        form = web.form.Form(web.form.Dropdown('category', categories, web.form.notnull),
+        form = web.form.Form(web.form.Dropdown('category', categories, web.form.notnull, value=current_category),
                              web.form.Textbox('imageurl1'),
                              web.form.Textbox('imageurl2'),
                              web.form.Textbox('imageurl3'),
@@ -100,9 +102,9 @@ class PinLoaderPage(object):
         form = self.get_form()
         errors = []
         if form.validates():
-            category = form.d.category
+            sess.category = int(form.d.category)
             for i in range(10):
-                error = self.save_pin(form, str(i + 1), category)
+                error = self.save_pin(form, str(i + 1), sess.category)
                 if error:
                     errors.append(error)
             if errors:
