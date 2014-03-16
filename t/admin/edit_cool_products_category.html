@@ -43,7 +43,7 @@ $$(document).ready(function (){
 		if (pin.name == null) {
 			pin.name = pin.description
 		}
-		return '<div id="pinbox' + pin.id + '"><img src="/static/tmp/' + pin.id + '.png" pinid="' + pin.id + '" class="pinimg img-responsive"/>' +
+		return '<div id="pinbox' + pin.id + '"><img src="' + pin.image_name + '" pinid="' + pin.id + '" class="pinimg img-responsive"/>' +
 			'<div class="small-text">' + pin.name + '</div>' +
 			'<div class="small-text" style="padding-bottom:2px;border-bottom:1px solid lightgray;margin-bottom:6px;"><a href="' + pin.link + '" title="' + pin.link + '">Link</a></div></div>'
 	};

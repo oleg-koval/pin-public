@@ -1,7 +1,7 @@
 $def with(pins)
 $for pin in pins:
 	<div id="pinbox$(pin.id)">
-		<img src="/static/tmp/$(pin.id).png" class="img-responsive"/>
+		<img src="$pin.image_name" class="img-responsive"/>
 		$if pin.name:
 			<div class="small-text">$pin.name</div>
 		$else:
