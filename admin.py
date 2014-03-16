@@ -167,9 +167,9 @@ class PageSearch:
                 return query + (' order by %s desc' % order)
             return query
 
+        db = database.get_db()
         if allusers is not None:
             query = make_query(USERS_QUERY % '')
-            db = database.get_db()
             results = db.query(query)
             return template.admin.search(results)
 
