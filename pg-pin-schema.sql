@@ -119,6 +119,89 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: admin_roles; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE admin_roles (
+    id integer NOT NULL,
+    name character varying(30)
+);
+
+
+ALTER TABLE public.admin_roles OWNER TO postgres;
+
+--
+-- Name: admin_roles_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE admin_roles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.admin_roles_id_seq OWNER TO postgres;
+
+--
+-- Name: admin_roles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE admin_roles_id_seq OWNED BY admin_roles.id;
+
+
+--
+-- Name: admin_users; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE admin_users (
+    id integer NOT NULL,
+    username text NOT NULL,
+    pwsalt text NOT NULL,
+    pwhash text NOT NULL,
+    super boolean DEFAULT false,
+    manager boolean DEFAULT false,
+    site_user_id integer
+);
+
+
+ALTER TABLE public.admin_users OWNER TO postgres;
+
+--
+-- Name: admin_users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE admin_users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.admin_users_id_seq OWNER TO postgres;
+
+--
+-- Name: admin_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE admin_users_id_seq OWNED BY admin_users.id;
+
+
+--
+-- Name: admin_users_roles; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE admin_users_roles (
+    user_id integer NOT NULL,
+    rol_id integer NOT NULL
+);
+
+
+ALTER TABLE public.admin_users_roles OWNER TO postgres;
+
+--
 -- Name: albums; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -387,6 +470,41 @@ CREATE TABLE likes (
 ALTER TABLE public.likes OWNER TO postgres;
 
 --
+-- Name: media_servers; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE media_servers (
+    id integer NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    url text NOT NULL,
+    path text NOT NULL
+);
+
+
+ALTER TABLE public.media_servers OWNER TO postgres;
+
+--
+-- Name: media_servers_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE media_servers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.media_servers_id_seq OWNER TO postgres;
+
+--
+-- Name: media_servers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE media_servers_id_seq OWNED BY media_servers.id;
+
+
+--
 -- Name: messages; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -465,7 +583,9 @@ ALTER SEQUENCE notifs_id_seq OWNED BY notifs.id;
 
 CREATE TABLE photos (
     id integer NOT NULL,
-    album_id integer
+    album_id integer,
+    filename text DEFAULT ''::text NOT NULL,
+    sizes text DEFAULT ''::text NOT NULL
 );
 
 
@@ -491,6 +611,19 @@ ALTER TABLE public.photos_id_seq OWNER TO postgres;
 
 ALTER SEQUENCE photos_id_seq OWNED BY photos.id;
 
+
+--
+-- Name: pin_loader_log; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE pin_loader_log (
+    pin_loader_id integer NOT NULL,
+    pin_id integer NOT NULL,
+    tstamp timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.pin_loader_log OWNER TO postgres;
 
 --
 -- Name: pins; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
@@ -533,6 +666,18 @@ ALTER TABLE public.pins_id_seq OWNER TO postgres;
 
 ALTER SEQUENCE pins_id_seq OWNED BY pins.id;
 
+
+--
+-- Name: pins_photos; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE pins_photos (
+    pin_id integer,
+    photo_id integer
+);
+
+
+ALTER TABLE public.pins_photos OWNER TO postgres;
 
 --
 -- Name: ratings; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
@@ -655,7 +800,10 @@ CREATE TABLE users (
     activation integer DEFAULT 0,
     tsv tsvector,
     login_source character(2) DEFAULT 'MP'::bpchar NOT NULL,
-    birthday date
+    birthday date,
+    headerbgx integer DEFAULT 0 NOT NULL,
+    headerbgy integer DEFAULT 0 NOT NULL,
+    locale character(2) DEFAULT 'en'::bpchar NOT NULL
 );
 
 
@@ -680,6 +828,20 @@ ALTER TABLE public.users_id_seq OWNER TO postgres;
 --
 
 ALTER SEQUENCE users_id_seq OWNED BY users.id;
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY admin_roles ALTER COLUMN id SET DEFAULT nextval('admin_roles_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY admin_users ALTER COLUMN id SET DEFAULT nextval('admin_users_id_seq'::regclass);
 
 
 --
@@ -728,6 +890,13 @@ ALTER TABLE ONLY convos ALTER COLUMN id SET DEFAULT nextval('convos_id_seq'::reg
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
+ALTER TABLE ONLY media_servers ALTER COLUMN id SET DEFAULT nextval('media_servers_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
 ALTER TABLE ONLY messages ALTER COLUMN id SET DEFAULT nextval('messages_id_seq'::regclass);
 
 
@@ -764,6 +933,30 @@ ALTER TABLE ONLY temp_pins ALTER COLUMN id SET DEFAULT nextval('temp_pins_id_seq
 --
 
 ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regclass);
+
+
+--
+-- Name: admin_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY admin_roles
+    ADD CONSTRAINT admin_roles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: admin_users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY admin_users
+    ADD CONSTRAINT admin_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: admin_users_username_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY admin_users
+    ADD CONSTRAINT admin_users_username_key UNIQUE (username);
 
 
 --
@@ -836,6 +1029,14 @@ ALTER TABLE ONLY friends
 
 ALTER TABLE ONLY likes
     ADD CONSTRAINT likes_pkey PRIMARY KEY (user_id, pin_id);
+
+
+--
+-- Name: media_servers_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY media_servers
+    ADD CONSTRAINT media_servers_pkey PRIMARY KEY (id);
 
 
 --
@@ -917,6 +1118,13 @@ CREATE UNIQUE INDEX id_unique_cool_pins ON cool_pins USING btree (category_id, p
 
 
 --
+-- Name: pk_admin_users_roles; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE UNIQUE INDEX pk_admin_users_roles ON admin_users_roles USING btree (user_id, rol_id);
+
+
+--
 -- Name: unique_user_prefered_categories; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -952,6 +1160,30 @@ CREATE TRIGGER tsvectorupdate_users BEFORE INSERT OR UPDATE ON users FOR EACH RO
 
 
 --
+-- Name: admin_users_roles_rol_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY admin_users_roles
+    ADD CONSTRAINT admin_users_roles_rol_id_fkey FOREIGN KEY (rol_id) REFERENCES admin_roles(id);
+
+
+--
+-- Name: admin_users_roles_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY admin_users_roles
+    ADD CONSTRAINT admin_users_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES admin_users(id);
+
+
+--
+-- Name: admin_users_site_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY admin_users
+    ADD CONSTRAINT admin_users_site_user_id_fkey FOREIGN KEY (site_user_id) REFERENCES users(id);
+
+
+--
 -- Name: category_register_thumbnails_category_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -973,6 +1205,38 @@ ALTER TABLE ONLY cool_pins
 
 ALTER TABLE ONLY cool_pins
     ADD CONSTRAINT cool_pins_pin_id_fkey FOREIGN KEY (pin_id) REFERENCES pins(id);
+
+
+--
+-- Name: pin_loader_log_pin_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY pin_loader_log
+    ADD CONSTRAINT pin_loader_log_pin_id_fkey FOREIGN KEY (pin_id) REFERENCES pins(id);
+
+
+--
+-- Name: pin_loader_log_pin_loader_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY pin_loader_log
+    ADD CONSTRAINT pin_loader_log_pin_loader_id_fkey FOREIGN KEY (pin_loader_id) REFERENCES admin_users(id);
+
+
+--
+-- Name: pins_photos_photo_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY pins_photos
+    ADD CONSTRAINT pins_photos_photo_id_fkey FOREIGN KEY (photo_id) REFERENCES photos(id);
+
+
+--
+-- Name: pins_photos_pin_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY pins_photos
+    ADD CONSTRAINT pins_photos_pin_id_fkey FOREIGN KEY (pin_id) REFERENCES pins(id);
 
 
 --
@@ -1007,12 +1271,6 @@ ALTER TABLE ONLY user_prefered_pins
     ADD CONSTRAINT user_prefered_pins_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
 
 
-ALTER TABLE users 
-    ADD headerbgx INT NOT NULL DEFAULT 0;
-
-ALTER TABLE users 
-    ADD headerbgy INT NOT NULL DEFAULT 0;
-
 --
 -- Name: public; Type: ACL; Schema: -; Owner: postgres
 --
@@ -1027,6 +1285,3 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 -- PostgreSQL database dump complete
 --
 
-
---- For the registration process
-alter table users add locale char(2) not null default 'en';

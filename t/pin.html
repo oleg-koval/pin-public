@@ -1,4 +1,4 @@
-$def with (pin, comments, rating, img_src)
+$def with (pin, comments, rating)
 <div class='pin-display'>
   <div class='display'>
     <h1>$pin.description</h1>
@@ -13,9 +13,10 @@ $def with (pin, comments, rating, img_src)
       $if pin.link:
         <a class='button' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i> Visit Product</a>
     </p>
-	$ imgs = list(img_src)
-    $for src in imgs:
-      <img src='$src' alt=''/>
+    $if pin.repin == 0:
+      <img src='/static/tmp/$(pin.id).png' alt=''/>
+    $else:
+      <img src='/static/tmp/$(pin.repin).png' alt=''/>
 
     <div class='comments'>
       $ comments = list(comments)
