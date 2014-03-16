@@ -1,5 +1,17 @@
+
+#$('.edit_thumbnail_menu').mouseout(function() {
+#    return $('#menu5').hide();
+#  });
+rePin = (e) ->
+  desc = $(e).attr("data-description")
+  id = $(e).attr("data-id")
+  $("#repin-image").attr "src", "/static/tmp/pinthumb" + id + ".png"
+  $("#description").html desc
+  $("#repin-form").attr "action", "/add-to-your-own-getlist/" + id
+  $(".category-list").val $(e).attr("data-category")
+  return
 (->
-  dragging = undefined
+  dragging_header_background = undefined
   otherX = undefined
   otherY = undefined
   upload = undefined
@@ -16,12 +28,12 @@
       return
 
 
-  dragging = false
+  dragging_header_background = false
   x = 0
   y = 0
   otherX = 0
   otherY = 0
-  $("#user_pic_placeholder").mousedown (e) ->
+  $("#header_background").mousedown (e) ->
     _ref = undefined
     x = e.pageX
     y = e.pageY
@@ -29,15 +41,15 @@
     otherX = _ref[0]
     otherY = _ref[1]
 
-    dragging = true
+    dragging_header_background = true
 
   $("body").mouseup ->
     tempX = undefined
     tempY = undefined
     _ref = undefined
-    if dragging
-      dragging = false
-      _ref = $("#user_pic_placeholder").css("background-position").split(" ")
+    if dragging_header_background
+      dragging_header_background = false
+      _ref = $("#header_background").css("background-position").split(" ")
       otherX = _ref[0]
       otherY = _ref[1]
 
@@ -48,9 +60,9 @@
         y: tempY
 
 
-  $("#user_pic_placeholder").mousemove (e) ->
+  $("#header_background").mousemove (e) ->
     tempY = undefined
-    if dragging
+    if dragging_header_background
       upload = false
       tempY = parseInt(otherY.slice(0, +(otherY.length - 2) + 1 or 9e9))
       $(this).css "background-position", otherX + " " + (tempY + (e.pageY - y)) + "px"  if tempY + (e.pageY - y) < 0
@@ -63,3 +75,7 @@
 
   return
 ).call this
+$("#myTab a").click (e) ->
+  e.preventDefault()
+  $(this).tab "show"
+  return

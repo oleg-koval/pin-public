@@ -16,3 +16,50 @@ $else:
       <a href='/category/$cat.url_name/$cat.id'>$cat.name</a>
   </div>
 </div>
+
+      <div class="modal fade" id="addToGetListModal">
+            <div class="modal-dialog">
+              <div class="modal-content">
+              <form action="/add-to-your-own-getlist/664" class='modal-form' id="repin-form" method='post' autocomplete='off'>
+                <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h1 class='center pad-bottom'>Adding <a href='#' id="repin-description"></a> to your Getlist</h1>
+                </div>
+                <div class="modal-body">
+
+                  <table>
+    <tbody><tr><th><label for="description">description</label></th><td>
+    <textarea id="description" name="description">
+      
+    </textarea></td></tr>
+    <tr><th><label for="category">category</label></th><td>
+    <select id="category" name="category" class="category-list">
+  <option value="1">MyPinnings Recommendations</option>
+  $for cat in categories:
+    <option value="$cat.id">$cat.name</option>
+</select>
+</td></tr>
+    <tr><th><label for="tags">tags (optional)</label></th><td><input type="text" placeholder="#this #is #awesome" id="tags" name="tags"></td></tr>
+</tbody>
+</table>
+
+<h2 class="center">Image Preview</h2>
+<div class="pin-display">
+  <img id="repin-image" src="" alt="">
+</div>
+
+
+
+                </div>
+
+
+                <div class="modal-footer">
+                <button id="add to getlist" name="add to getlist" type="submit">add to getlist</button>
+              </div>
+
+              </form>
+              </div><!-- /.modal-content -->
+              
+            </div><!-- /.modal-dialog -->
+        
+        </div>

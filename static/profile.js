@@ -82,3 +82,17 @@ $('#myTab a').click(function (e) {
   e.preventDefault()
   $(this).tab('show')
 })
+
+
+
+
+function rePin(e){
+desc = $(e).attr('data-description');
+id = $(e).attr('data-id');
+$('#repin-image').attr('src','/static/tmp/pinthumb'+id+'.png');
+$('#description').html(desc);
+$('#repin-form').attr('action','/add-to-your-own-getlist/'+id); 
+$('.category-list').val($(e).attr('data-category'));
+}
+
+
