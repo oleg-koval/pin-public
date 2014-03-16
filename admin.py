@@ -39,6 +39,7 @@ urls = ('', 'admin.PageIndex',
         '/logout', 'admin.PageLogout',
         '/relationships', 'admin.PageRelationships',
         '/categories', 'ListCategories',
+        '/category-manage_cool/(\d*)/more/?', 'EditMoreCoolProductsForCategory',
         '/category-manage_cool/(\d*)', 'EditCoolProductsForCategory',
         '/category-cool-items/(\d*)/?', 'ListCoolProductsForCategory',
         '/api/categories/(\d*)/pins/?', 'ApiCategoryListPins',
@@ -375,7 +376,9 @@ class ListCategories(object):
         return template.admin.list_categories(cached_models.all_categories)
 
 
-COOL_LIST_LIMIT = 50
+FIRST_PRODUCT_LIST_LIMIT = 32
+ADDITIONAL_PRODUCT_LIST_LIMIT = 12
+
 
 class EditCoolProductsForCategory(object):
     '''
@@ -384,12 +387,11 @@ class EditCoolProductsForCategory(object):
     @login_required
     def GET(self, category_id):
         db = database.get_db()
-        offset = int(web.input(offset=0)['offset'])
-        if offset < 0:
-            offset = 0
+        sess = session.get_session()
+        sess.offset = 0
         pins = db.select(tables=['pins'], what="pins.*", order='timestamp desc',
                          where='pins.category=$category_id and pins.id not in (select pin_id from cool_pins where cool_pins.category_id=$category_id)',
-                         vars={'category_id': category_id}, offset=offset, limit=COOL_LIST_LIMIT)
+                         vars={'category_id': category_id}, offset=sess.offset, limit=FIRST_PRODUCT_LIST_LIMIT)
         categories = db.where(table='categories', id=category_id)
         for c in categories:
             category = c
@@ -404,9 +406,36 @@ class EditCoolProductsForCategory(object):
             else:
                 continue
             json_pins.append(json.dumps(pin))
-        prev = offset - COOL_LIST_LIMIT if offset > COOL_LIST_LIMIT else 0
-        next = offset + COOL_LIST_LIMIT
-        return template.admin.edit_cool_products_category(category, json_pins, prev, next)
+        sess.offset = FIRST_PRODUCT_LIST_LIMIT
+        return template.admin.edit_cool_products_category(category, json_pins)
+
+
+class EditMoreCoolProductsForCategory(object):
+    '''
+    Allows edition of cool products for one category
+    '''
+    @login_required
+    def GET(self, category_id):
+        db = database.get_db()
+        sess = session.get_session()
+        pins = db.select(tables=['pins'], what="pins.*", order='timestamp desc',
+                         where='pins.category=$category_id and pins.id not in (select pin_id from cool_pins where cool_pins.category_id=$category_id)',
+                         vars={'category_id': category_id}, offset=sess.offset, limit=ADDITIONAL_PRODUCT_LIST_LIMIT)
+        json_pins = []
+        for pin in pins:
+            image_name = 'static/tmp/{}.png'.format(pin.id)
+            thumb_image_name = 'static/tmp/pinthumb{}.png'.format(pin.id)
+            if os.path.exists(thumb_image_name):
+                pin.image_name = '/' + thumb_image_name
+            elif os.path.exists(image_name):
+                pin.image_name = '/' + image_name
+            else:
+                continue
+            json_pins.append(pin)
+        sess.offset += ADDITIONAL_PRODUCT_LIST_LIMIT
+        web.header('Content-Type', 'application/json')
+        print(len(json_pins))
+        return json.dumps(json_pins)
 
 
 class ListCoolProductsForCategory(object):

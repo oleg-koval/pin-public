@@ -1,11 +1,12 @@
-$def with (category, pins, prev, next)
+$def with (category, pins)
 <h2>
 	Category: <strong>$category.name</strong>
 </h2>
 <div class="container-fluid">
 	<div class="row">
 		<div class="col-xs-10">
-			<div class="container-fluid">
+			<div
+			<div class="container-fluid" id="pin_columns_container">
 				<div class="row" id="items">
 					<div class="col-xs-3" id="itemcol0"></div>
 					<div class="col-xs-3" id="itemcol1"></div>
@@ -13,15 +14,8 @@ $def with (category, pins, prev, next)
 					<div class="col-xs-3" id="itemcol3"></div>
 				</div>
 			</div>
-			<div class="container-fluid septop">
-				<div class="row">
-					<div class="col-xs-2"></div>
-					<div class="col-xs-1"><a href="?offset=$prev" class="btn">Prev</a></div>
-					<div class="col-xs-6"></div>
-					<div class="col-xs-1"><a href="?offset=$next" class="btn">Next</a></div>
-					<div class="col-xs-2"></div>
-				</div>
-			</div>
+			<button id="more" class="btn btn-primary">more...</button>
+			<span id="no_more_items" style="visibility: hidden;">No more items</span>
 		</div>
 		<div class="col-xs-2 sep">
 			<h3>Cool pins</h3>
@@ -89,6 +83,42 @@ $$(document).ready(function (){
 			});
 	};
 	load_cool_pins();
+	
+	$$('#more').click(function() {
+		$$.get('/admin/category-manage_cool/$category.id/more/',
+				function(data) {
+					data.forEach(function(pin) {
+						add_pin(pin)
+					});
+					if (data.length == 0) {
+						$$(window).off('scroll');
+						$$('#no_more_items').css('visibility', 'visible');
+					} else {
+						$$('#no_more_items').css('visibility', 'hidden');
+					}
+				},
+				'json');
+	});
+
+	$$.not_loading = true;
+	$$(window).scroll(function() {
+		var items_pos = $$("#more").offset().top;
+		var current_scroll = $$(window).scrollTop() + $$(window).height();
+		if($$.not_loading && current_scroll > items_pos - 200) {
+			$$.not_loading = false;
+			$$.get('/admin/category-manage_cool/$category.id/more/',
+				function(data) {
+					data.forEach(function(pin) {
+						add_pin(pin)
+					});
+					$$.not_loading = true;
+					if (data.length == 0) {
+						$$(window).off('scroll');
+					}
+				},
+				'json');
+		}
+	});
 
 $for pin in pins:
 	add_pin($:pin)
