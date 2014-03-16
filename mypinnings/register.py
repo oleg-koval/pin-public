@@ -147,11 +147,19 @@ class PageAfterSignup:
         cols = [[] for _ in range(3)]
         for i, cp in enumerate(cool_pins):
             image_name = os.path.join('static', 'tmp', str(cp.id)) + '.png'
-            if not os.path.exists(image_name):
+            image_name_thumb = os.path.join('static', 'tmp', 'pinthumb{}'.format(cp.id)) + '.png'
+            if os.path.exists(image_name_thumb):
+                cp.image_name = '/' + image_name_thumb
+            elif os.path.exists(image_name):
+                cp.image_name = '/' + image_name
+            else:
                 continue
             cols[i % 3].append(cp)
             if not cp.name:
                 cp.name = cp.description
+        random.shuffle(cols[0])
+        random.shuffle(cols[1])
+        random.shuffle(cols[2])
         return template.atpl('register/aphase2', cols[0], cols[1], cols[2], phase=2)
 
     def phase3(self):

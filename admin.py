@@ -353,6 +353,14 @@ class EditCoolProductsForCategory(object):
             category = c
         json_pins = []
         for pin in pins:
+            image_name = 'static/tmp/{}.png'.format(pin.id)
+            thumb_image_name = 'static/tmp/pinthumb{}.png'.format(pin.id)
+            if os.path.exists(thumb_image_name):
+                pin.image_name = '/' + thumb_image_name
+            elif os.path.exists(image_name):
+                pin.image_name = '/' + image_name
+            else:
+                continue
             json_pins.append(json.dumps(pin))
         prev = offset - COOL_LIST_LIMIT if offset > COOL_LIST_LIMIT else 0
         next = offset + COOL_LIST_LIMIT
@@ -369,7 +377,18 @@ class ListCoolProductsForCategory(object):
         pins = db.select(tables=['pins', 'cool_pins'], what="pins.*", order='timestamp desc',
                          where='pins.category=$category_id and pins.id=cool_pins.pin_id',
                          vars={'category_id': category_id})
-        return web.template.frender('t/admin/category_cool_items_list.html')(pins)
+        pins_list = []
+        for pin in pins:
+            image_name = 'static/tmp/{}.png'.format(pin.id)
+            thumb_image_name = 'static/tmp/pinthumb{}.png'.format(pin.id)
+            if os.path.exists(thumb_image_name):
+                pin.image_name = '/' + thumb_image_name
+            elif os.path.exists(image_name):
+                pin.image_name = '/' + image_name
+            else:
+                pin.image_name = ''
+            pins_list.append(pin)
+        return web.template.frender('t/admin/category_cool_items_list.html')(pins_list)
 
 
 class ApiCategoryListPins(object):
