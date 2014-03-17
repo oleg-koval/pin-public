@@ -3,6 +3,10 @@ $def with (categories)
 <center>
   <h1>Let's get started! Pick three categories you're passionate about.</h1>
   <br/>
+  <div>
+  	Select at least 3 to continue
+  </div>
+  <br/>
   <table>
       $for category in categories:
       	$if loop.odd:
@@ -31,9 +35,6 @@ $def with (categories)
         $if loop.even:
           </tr>
   </table>
-  <div>
-  	Select at least 3 to continue
-  </div>
   <div>
   	<button id="continue_button" disabled>Continue</button>
   </div>
