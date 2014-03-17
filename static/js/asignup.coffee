@@ -12,7 +12,7 @@ $('body').on 'click', '.cover', ->
         original_div.remove()
         
 show_cover = (original_div, category_id) ->
-    $('body').append('<div class="cover" categoryid="' + category_id + '"></div>')
+    $('body').append('<div class="cover" categoryid="' + category_id + '"><div class="txtselected">selected</div></div>')
     cover_div = $('div.cover[categoryid="' + category_id + '"]')
     cover_div.offset(original_div.offset())
     cover_div.width(original_div.width() + 3)

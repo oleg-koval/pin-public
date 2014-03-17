@@ -22,7 +22,7 @@
 
   show_cover = function(original_div, category_id) {
     var cover_div;
-    $('body').append('<div class="cover" categoryid="' + category_id + '"></div>');
+    $('body').append('<div class="cover" categoryid="' + category_id + '"><div class="txtselected">selected</div></div>');
     cover_div = $('div.cover[categoryid="' + category_id + '"]');
     cover_div.offset(original_div.offset());
     cover_div.width(original_div.width() + 3);

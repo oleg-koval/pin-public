@@ -34,3 +34,10 @@
   visibility: hidden;
   z-index: 2;
   border-radius: 5px; }
+
+.txtselected {
+  margin-top: 30%;
+  font-size: 30px;
+  color: white;
+  text-align: center;
+  text-weight: bold; }
