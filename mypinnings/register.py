@@ -27,10 +27,6 @@ valid_email = web.form.regexp(r"[^@]+@[^@]+\.[^@]+", "Must be a valid email addr
 
 
 class PageRegister:
-    days = tuple((x, x) for x in range(1, 32))
-    months = tuple((i + 1, month) for i, month in enumerate(calendar.month_name[1:]))
-    current_year = datetime.date.today().year
-    years = tuple((x, x) for x in range(current_year, current_year - 100, -1))
     if not hasattr(settings, 'LANGUAGES') or not settings.LANGUAGES:
         languages = (('en', 'English'),)
     else:
@@ -42,9 +38,6 @@ class PageRegister:
         web.form.Textbox('email', valid_email, web.form.notnull, autocomplete='off', id='email', placeholder='Where we\'ll never spam you.'),
         web.form.Password('password', web.form.notnull, id='password', autocomplete='off', placeholder='Something you\'ll remember but others won\'t guess.'),
         web.form.Dropdown('language', languages, web.form.notnull),
-        web.form.Dropdown('day', days, web.form.notnull),
-        web.form.Dropdown('month', months, web.form.notnull),
-        web.form.Dropdown('year', years, web.form.notnull),
         web.form.Button('Let\'s get started!')
     )
 
@@ -70,9 +63,8 @@ class PageRegister:
             activation = random.randint(1, 10000)
             hashed = hash(str(activation))
 
-            birthday = '{}-{}-{}'.format(form.d.year, form.d.month, form.d.day)
             user_id = auth.create_user(form.d.email, form.d.password, name=form.d.name, username=form.d.username, activation=activation,
-                                       locale=form.d.language, birthday=birthday)
+                                       locale=form.d.language)
             if not user_id:
                 msg = _('Sorry, a database error occurred and we couldn\'t create your account.')
                 return template.tpl('register/reg', form, msg)
@@ -80,7 +72,7 @@ class PageRegister:
             auth.login_user(session.get_session(), user_id)
             raise web.seeother('/after-signup')
         else:
-            message = _('Please enter an username, full name, email, pasword, and birthday and language.')
+            message = _('Please enter an username, full name, email, pasword, and language.')
             return template.tpl('register/reg', form, message)
 
 
