@@ -699,3 +699,9 @@ background-color: #fff;
 #profile-about-box{
   margin-top: 10px;
 }
+
+ .modal-form{
+          padding: 0;
+      box-shadow:none;
+      display: block;
+        }

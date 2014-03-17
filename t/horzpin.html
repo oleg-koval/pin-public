@@ -2,10 +2,12 @@ $def with (pin)
 $if pin.id and pin.category:
   <div class='pin horz-pin'>
     <div class='buttons'>
+      <a id="repinlink" onclick=rePin(this) data-category="$pin.category" data-description="$pin.description" href='#' data-toggle="modal" data-target="#addToGetListModal"
       $if pin.repin == 0:
-        <a href='/add-to-your-own-getlist/$pin.id' target='_blank' class='button small-pad'>Add to Getlist</a>
+        data-id="$pin.id" 
       $else:
-        <a target='_blank' href='/add-to-your-own-getlist/$pin.repin' class='button small-pad'>Add to Getlist</a>
+        data-id="$pin.repin" 
+      class='repinlink button small-pad'>Add to Your Getlist</a>
       <a href='/share/$pin.id' class='button small-pad'><i class='fa fa-share-square'></i></a>
       $if pin.link:
         <a class='button small-pad' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i></a>

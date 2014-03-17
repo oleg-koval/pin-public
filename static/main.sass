@@ -1,62 +1,79 @@
-@import 'bourbon/bourbon'
-$theme: #234
-$pad: 10px
-$width: 90%
 body
-  font: normal 80%/normal helvetica, arial, sans-serif
+  font: normal 80% / normal helvetica, arial, sans-serif
   margin: 0
-  background-color: lighten($theme, 75%)
+  background-color: #eef2f6
+
 a, .link
-  color: $theme
+  color: #223344
   text-decoration: none
   cursor: pointer
-  &:hover
-    text-decoration: underline
+
+a:hover, .link:hover
+  text-decoration: underline
+
 .bold
   font-weight: bold
+
 .pad-top
-  padding-top: 1.0em
+  padding-top: 1em
+
 .pad-bottom
-  padding-bottom: 1.0em
+  padding-bottom: 1em
+
 .clearfix
   zoom: 1
-  &:before, &:after
-    content: ''
+  &:before
+    content: ""
     display: table
   &:after
+    content: ""
+    display: table
     clear: both
+
 .left
   float: left
+
 .right
   float: right
+
 .center
   text-align: center
-h1, h2, h3, h4, h5, h6, p
+
+h1, h2, h3, h4, h5, h6
   margin: 0 0 0.5em 0
-p:last-of-type
-  margin-bottom: 0
+
+p
+  margin: 0 0 0.5em 0
+  &:last-of-type
+    margin-bottom: 0
+
 h1
   font-size: 120%
   &.large
     font-size: 140%
+
 h2
   font-size: 110%
+
 hr
   margin: 0.75em 0
   border-style: none
-  border-bottom: solid 1px #ccc
+  border-bottom: solid 1px #cccccc
+
 th
   text-transform: capitalize
   text-align: right
   vertical-align: top
   padding: 4px 10px 0 0
+
 td
   input, textarea, select
     margin-bottom: 8px
+
 form
-  padding: $pad * 2
+  padding: 20px
   background-color: white
-  box-shadow: 0 0 2px lighten($theme, 40%)
+  box-shadow: 0 0 2px #7799bb
   display: inline-block
   &.width-auto
     display: block
@@ -72,11 +89,12 @@ form
   &.no-back
     box-shadow: none
     background: none
+
 .settings
   width: 800px
-  padding: $pad * 2
+  padding: 20px
   background-color: white
-  box-shadow: 0 0 2px lighten($theme, 40%)
+  box-shadow: 0 0 2px #7799bb
   .nav
     width: 150px
     font-weight: bold
@@ -85,66 +103,114 @@ form
       padding: 5px
       text-decoration: none
       border-radius: 4px
-      color: $theme
+      color: #223344
       cursor: pointer
-      &:hover
-        background-color: $theme
-        color: white
+    span:hover, a:hover
+      background-color: #223344
+      color: white
   .right
-    border-left: solid 1px #ccc
+    border-left: solid 1px #cccccc
     padding-left: 20px
     width: 620px
+
 .invis
   display: none
+
 .button, button
-  @include button($theme)
+  border: 1px solid #090f16
+  border-radius: 3px
+  box-shadow: inset 0 1px 0 0 #435970
+  color: white
+  display: inline-block
+  font-size: 11px
+  font-weight: bold
+  background-color: #223344
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #223344), color-stop(100%, #0d1721))
+  background-image: -webkit-linear-gradient(#223344, #0d1721)
+  background-image: linear-gradient(#223344, #0d1721)
+  padding: 7px 18px
+  text-decoration: none
+  text-shadow: 0 1px 0 #030508
+  background-clip: padding-box
   text-transform: capitalize
   font: inherit
   font-weight: bold
   text-decoration: none !important
-  &.small-pad
-    padding: 0.3em 0.5em
-input[type='text'],
-input[type='password'],
-textarea
+
+.button:hover:not(:disabled), button:hover:not(:disabled)
+  box-shadow: inset 0 1px 0 0 #2f4051
+  cursor: pointer
+  background-color: #1b2631
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #1b2631), color-stop(100%, #090f16))
+  background-image: -webkit-linear-gradient(#1b2631, #090f16)
+  background-image: linear-gradient(#1b2631, #090f16)
+
+.button:active:not(:disabled), button:active:not(:disabled)
+  border: 1px solid #090f16
+  box-shadow: inset 0 0 8px 4px #05080b, inset 0 0 8px 4px #05080b, 0 1px 1px 0 #eeeeee
+
+.button:disabled, button:disabled
+  opacity: 0.5
+  cursor: not-allowed
+
+.button.small-pad, button.small-pad
+  padding: 0.3em 0.5em
+
+input
+  &[type='text'], &[type='password']
+    width: 300px
+    border: solid 1px #888888
+    padding: 4px
+    font: inherit
+    background-color: white
+    box-shadow: 0 1px 0px #aaaaaa
+
+textarea, .input
   width: 300px
-  border: solid 1px #888
+  border: solid 1px #888888
   padding: 4px
   font: inherit
   background-color: white
-  box-shadow: 0 1px 0px #aaa
+  box-shadow: 0 1px 0px #aaaaaa
+
 .with-newlines
   white-space: pre-wrap
+
 .red
   color: maroon
+
 .faded
-  color: #888
+  color: #888888
+
 .small
   font-size: 90%
   line-height: 1.15em
 
 .header
   text-align: center
-  padding: 1.0em
-  border-bottom: solid 1px #aaa
-  background-color: $theme
+  padding: 1em
+  border-bottom: solid 1px #aaaaaa
+  background-color: #223344
   color: white
-  .white-links
-    a
-      color: white
-      margin: 0 0.5em
+  .white-links a
+    color: white
+    margin: 0 0.5em
   .nav
     font-weight: bold
     font-size: 100%
-    width: $width
+    width: 90%
     margin: 0 auto
     padding: 0.5em 0
     text-align: center
     position: relative
     .left
-      @include position(absolute, 5px 0 0 0px)
+      position: absolute
+      top: 5px
+      left: 0px
     .right
-      @include position(absolute, 0px 0px 0 0)
+      position: absolute
+      top: 0px
+      right: 0px
     .nav-item
       display: inline-block
       position: relative
@@ -168,24 +234,22 @@ textarea
         padding: 0
         box-shadow: none
         margin: 0
-    .avatar
-      max-width: 44px
-      max-height: 44px
+    .avatar!
     .item
       cursor: pointer
-      padding: $pad * 2 / 3
+      padding: 6.66667px
       border-radius: 2px
       &:hover
-        background-color: lighten($theme, 20%)
-    .menu 
+        background-color: #446688
+    .menu
       text-align: left
       position: absolute
       top: 100%
       width: 500px
       z-index: 230847023
       background-color: white
-      border: solid 1px #abc
-      padding: $pad
+      border: solid 1px #aabbcc
+      padding: 10px
       left: 0
       &.add-to-getlist
         width: 200px
@@ -193,22 +257,20 @@ textarea
         left: auto
         right: 0
         width: 200px
-      &.left-side,
-      &.right-side
-        a
-          display: block
-          padding: 0.3em
-          border-radius: 3px
-          font-weight: bold
-          text-decoration: none
-          &:hover
-            background-color: $theme
-            color: white
+      &.left-side a, &.right-side a
+        display: block
+        padding: 0.3em
+        border-radius: 3px
+        font-weight: bold
+        text-decoration: none
+      &.left-side a:hover, &.right-side a:hover
+        background-color: #223344
+        color: white
       img.avatar
-        line-height: 1.0em
+        line-height: 1em
         display: inline-block
         max-width: 80px
-        border: solid 1px #345
+        border: solid 1px #334455
     i.fa
       font-size: 120%
     .logo
@@ -218,10 +280,11 @@ textarea
       padding: 0.4em 0.7em
       &:hover
         text-decoration: none
-        background-color: lighten($theme, 20%)
+        background-color: #446688
         border-radius: 4px
+
 .content
-  width: $width
+  width: 1100px
   margin: 20px auto
   .pins
     padding: 10px 0 10px 10px
@@ -230,14 +293,14 @@ textarea
       display: block
       width: 202px
       margin-bottom: 20px
-      box-shadow: 0 0 5px lighten($theme, 20%)
+      box-shadow: 0 0 5px #446688
       &.horz-pin
         width: 400px
         .info
-          padding: $pad * 2
+          padding: 20px
       &.horz-pin2
-        width: $width - $pad * 5
-        padding: $pad * 2.5 $pad
+        width: 1050px
+        padding: 25px 10px
         background: none
         box-shadow: none
         border-style: none
@@ -249,7 +312,7 @@ textarea
           line-height: 40px
           font-weight: bold
           text-align: center
-          background-color: $theme
+          background-color: #223344
           margin: 20px 30px 0 0
           color: white
           border-radius: 999px
@@ -261,12 +324,12 @@ textarea
             border-radius: 4px
         .info
           width: 500px
-          margin-left: $pad
+          margin-left: 10px
         .buttons
           display: block
           left: auto
-          top: $pad
-          right: $pad
+          top: 10px
+          right: 10px
           width: 150px
           button, .button
             display: block
@@ -276,64 +339,64 @@ textarea
         width: 100%
         display: block
       .info
-        padding: $pad
+        padding: 10px
         .user
           .left
             width: 40px
-            border: solid 1px #888
+            border: solid 1px #888888
             height: 40px
           .right
             width: 130px
       .buttons
         display: none
         position: absolute
-        left: $pad
-        top: $pad
-      &:hover
-        .buttons
-          display: inline-block
+        left: 10px
+        top: 10px
+      &:hover .buttons
+        display: inline-block
   .pin-display
     text-align: center
     a
       font-weight: bold
     img
       max-width: 100%
-      margin-top: $pad * 2
+      margin-top: 20px
       background-color: white
-      box-shadow: 0 0 8px lighten($theme, 30%)
-      padding: $pad * 2
+      box-shadow: 0 0 8px #557faa
+      padding: 20px
     .comments
-      margin: $pad * 2 auto
+      margin: 20px auto
       width: 455px
       text-align: left
       .links
-        color: #888
+        color: #888888
         a, .link
           font-weight: bold
-          color: $theme
+          color: #223344
         label
-          color: $theme
+          color: #223344
           font-weight: bold
           cursor: pointer
           &:hover
             text-decoration: underline
       .comment
-        padding: $pad * 1.5 0
-        border-bottom: solid 1px #bbc
+        padding: 15px 0
+        border-bottom: solid 1px #bbbbcc
         &:last-of-type
           border-bottom-style: none
       form
-        width: 455 - $pad * 4
+        width: 415px
         padding: 0
         background: none
         border-style: none
         box-shadow: none
         textarea
           width: 455px
+
 .new-message
   width: 500px
   .textarea
-    border: solid 1px #888
+    border: solid 1px #888888
     height: 100px
     padding: 0.5em
     textarea
@@ -345,24 +408,27 @@ textarea
       background: none
       outline: none
       resize: none
-.preview
-  img
-    max-height: 300px
-    margin: 5px
-    &.selected
-      border: solid 4px maroon
+
+.preview img
+  max-height: 300px
+  margin: 5px
+  &.selected
+    border: solid 4px maroon
+
 #ratings
-  margin-right: $pad
+  margin-right: 10px
   .rating
     margin-left: 3px
-    color: #888
+    color: #888888
     cursor: pointer
     &.selected
-      color: $theme
+      color: #223344
+
 .backnext
   text-align: center
   font-weight: bold
   font-size: 120%
+
 .notifs
   width: 455px
   a
@@ -374,7 +440,7 @@ textarea
     cursor: pointer
     display: block
     &:hover
-      background-color: $theme
+      background-color: #223344
       color: white
       b
         color: white
@@ -383,33 +449,35 @@ textarea
       &:hover
         background: none
         text-decoration: underline
-        color: $theme
+        color: #223344
     b
-      color: $theme
+      color: #223344
+
 .notif-count
   padding: 1px 3px !important
   margin-top: -30px !important
   border-radius: 3px
   font-weight: bold
   color: white
-  background-color: #a22
+  background-color: #aa2222
+
 .album
   width: 1000px
   padding: 10px
   margin-top: 10px
   background-color: #e2e2f2
-  border: solid 1px #123
+  border: solid 1px #112233
   a.photo
     width: 188px
     margin: 5px
-    background-color: $theme
-    border: solid 1px #123
+    background-color: #223344
+    border: solid 1px #112233
     img
       max-width: 100%
       max-height: 100%
+
 .user-heading
   padding: 20px
-  height: 140px
   cursor: pointer
   display: block
   border-radius: 3px
@@ -422,28 +490,29 @@ textarea
   img.avatar
     max-width: 80px
     margin-right: 10px
-    border: solid 1px #345
+    border: solid 1px #334455
   .faded b
-    color: lighten($theme, 15%)
+    color: #3c5977
     &:after
-      content: ' \00B7 '
+      content: " \00B7 "
     &:last-of-type:after
-      content: ''
+      content: ""
   .right
     text-align: right
     .button
       margin-bottom: 5px
-.user-grid
-  .user
-    width: 250px
-    margin: 8px
-    img.left
-      max-height: 78px
-      max-width: 78px
-      margin-right: 10px
-      border: solid 1px #888
-    b.left
-      width: 160px
+
+.user-grid .user
+  width: 250px
+  margin: 8px
+  img.left
+    max-height: 78px
+    max-width: 78px
+    margin-right: 10px
+    border: solid 1px #888888
+  b.left
+    width: 160px
+
 .pick-people
   width: 870px
   margin: 0 auto
@@ -451,7 +520,7 @@ textarea
     width: 260px
     padding: 10px
     background-color: white
-    border: solid 1px #888
+    border: solid 1px #888888
     margin: 5px
     text-align: left
     border-radius: 4px
@@ -463,14 +532,16 @@ textarea
     b.left
       width: 150px
     &.selected
-      background-color: $theme
-      border-color: $theme
+      background-color: #223344
+      border-color: #223344
       color: white
       a
         color: white
+
 .invisform
   position: absolute
   top: -9999px
+
 #lolbg
   -webkit-touch-callout: none
   -webkit-user-select: none
@@ -478,6 +549,7 @@ textarea
   -moz-user-select: none
   -ms-user-select: none
   user-select: none
+
 .signup-helper
   width: 900px
   margin: 20px auto
@@ -486,7 +558,7 @@ textarea
     padding: 20px
     background-color: #d3dde3
     border-radius: 5px
-    color: #567
+    color: #556677
     h1
       font-size: 110%
     hr
@@ -494,32 +566,35 @@ textarea
   .signup-helper-content
     width: 640px
     padding-left: 20px
+
 .first-time
-  width: $width - $pad * 4
-  padding: $pad * 2
-  margin: $pad * 4 auto
+  width: 1060px
+  padding: 20px
+  margin: 40px auto
   background-color: rgba(255, 255, 255, 0.75)
-  box-shadow: 0 0 15px lighten($theme, 20%)
+  box-shadow: 0 0 15px #446688
   font-size: 130%
-  color: #234
+  color: #223344
   text-align: center
+
 .notice
   text-align: center
-  color: #def
-  background-color: lighten($theme, 20%)
+  color: #ddeeff
+  background-color: #446688
   border-radius: 4px
-  padding: $pad
-  margin-bottom: $pad * 2
+  padding: 10px
+  margin-bottom: 20px
   a
     text-decoration: underline
     color: white
     font-weight: bold
+
 .category-disp
   .horz-pins
     width: 854px
-    padding-right: $pad
+    padding-right: 10px
   .categories
-    padding-left: $pad
+    padding-left: 10px
     width: 210px
     h1
       margin-left: 0.4em
@@ -529,18 +604,17 @@ textarea
       padding: 0.5em
       border-radius: 4px
       &:hover
-        background-color: $theme
+        background-color: #223344
         color: white
         text-decoration: none
+
 .user_pic_placeholder
   background-repeat: no-repeat
   width: 80px
-  height: 100px
-
-.user_pic_placeholder.avatar
-  background-repeat: no-repeat
-  width: 80px
-  height: 30px !important
+  height: 40px
+  &.avatar
+    background-repeat: no-repeat
+    background-size: auto 40px
 
 #user_pic_placeholder
   background-repeat: no-repeat
@@ -579,14 +653,6 @@ textarea
     text-decoration: none
     &:hover
       text-decoration: underline
-.edit_thumbnail_menu a
-  display: block
-  padding: 0.3em
-  border-radius: 3px
-  font-weight: bold
-  text-decoration: none
-  &:hover
-    text-decoration: underline
 
 .next_carousel_btn
   margin-top: 30%
@@ -613,3 +679,21 @@ textarea
   background-color: transparent !important
   box-shadow: none
   display: block !important
+
+.nav-icons
+  top: -15px
+  img
+    height: 30px
+    &:hover
+      -webkit-transition: width 2s
+      /* For Safari 3.1 to 6.0
+      transition: width 2s
+      background-color: #fff
+
+#profile-about-box
+  margin-top: 10px
+
+.modal-form
+  padding: 0
+  box-shadow: none
+  display: block

@@ -519,7 +519,7 @@ class PageRepin:
 
         form = self.make_form()
         if not form.validates():
-            return 'shit done fucked up'
+            return 'please fill out all the form fields'
 
         pin_id = db.insert('pins',
             description=form.d.description,
@@ -531,8 +531,12 @@ class PageRepin:
             tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
             db.insert('tags', pin_id=pin_id, tags=tags)
 
+        cid = int(form.d.category)
+        cat = dbget('categories', cid)
+        print cat
         make_notif(pin.user_id, 'Someone has added your item to their Getlist!', '/pin/%d' % pin_id)
-        raise web.seeother('/pin/%d' % pin_id)
+        #raise web.seeother('/pin/%d' % pin_id)
+        raise web.seeother('/category/%s/%d' % (cat.name, cat.id))
 
 
 countries = [
