@@ -70,3 +70,6 @@ a.signupgg {
   background-color: #dd4b39;
   background-image: url(/static/img/google.png), -webkit-linear-gradient(top, #e9897d, #dd4b39);
   border: 1px solid #972822; }
+
+.red {
+  color: red; }

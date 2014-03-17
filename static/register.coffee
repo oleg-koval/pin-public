@@ -3,22 +3,22 @@ $username = $('#username')
 $password = $('#password')
 
 $emailInfo = $('<div/>').insertAfter($email).addClass('faded pad-bottom invis')
-$usernameInfo = $('<div/>').insertAfter($username).addClass('faded pad-bottom invis')
+$usernameInfo = $('<div/>').insertAfter($username).addClass('faded pad-bottom').html('Your URL: <span class="link">http://mypinnings.com/USERNAME</span>')
 $passwordInfo = $('<div/>').insertAfter($password).addClass('faded pad-bottom invis').text('Your password is encrypted. For example, (abc123 shows up as ny203cyaca2 in our database.)')
 
 
 $email.blur ->
-  $emailInfo.show()
-
   e = $email.val()
   if not e
     $emailInfo.text('Please enter an email!')
   else
     $.get '/reg-checkemail', {e: e}, (data) ->
       if data == 'taken'
-        $emailInfo.text('Sorry, that email is taken.')
+        $emailInfo.show()
+        $emailInfo.html('<span class="red">This email is already registered. Want to <a href="/login">login</a> or <a href="/recover_password">recover your password</a></span>')
       else
-        $emailInfo.text('That email is available!')
+        $emailInfo.hide()
+        $emailInfo.html('')
 
 timer = null
 taken = false
@@ -38,11 +38,11 @@ lolfunc = ->
     timer = setInterval (->
       $.get '/reg-checkuser', {u: u}, (data) ->
         if data == 'taken'
-          $usernameInfo.text('Sorry, that username is taken.')
+          $usernameInfo.html('Sorry, that username is taken: <span class="link">http://mypinnings.com/' + u + '</span>')
           taken = true
         else
           taken = false
-          $usernameInfo.html('Your URL: <span class="link">http://mypinnings.com/' + u)
+          $usernameInfo.html('Your URL: <span class="link">http://mypinnings.com/' + u + '</span>')
     ), 500
 
 $username.on 'input', lolfunc
