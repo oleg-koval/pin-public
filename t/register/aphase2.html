@@ -11,21 +11,15 @@ $def with (col1, col2, col3)
    	<div class="column1">
 	$for pin in col1:
 		<div class="shadowbox">
-			<div class="pin-add-button">
-				<button class='select_pins' style='margin-bottom: 10px;' pinid="$pin['id']">$pin['name']</button>&nbsp;
-			</div>
-			<div class="pin-image">
-				<img class="img-responsive" src='$pin.image_name' alt=''/>
+			<div class="pin-image" pinid="$pin['id']">
+				<img class="img-responsive" src='$pin.image_name'/>
 			</div>
 		</div>
     </div>
    	<div class="column2">
 	$for pin in col2:
 		<div class="shadowbox">
-			<div class="pin-add-button add-space">
-				<button class='select_pins' style='margin-bottom: 10px;' pinid="$pin['id']">$pin['name']</button>&nbsp;
-			</div>
-			<div class="pin-image">
+			<div class="pin-image" pinid="$pin['id']">
 				<img class="img-responsive" src='$pin.image_name' alt=''/>
 			</div>
 		</div>
@@ -33,10 +27,7 @@ $def with (col1, col2, col3)
    	<div class="column3">
 	$for pin in col3:
 		<div class="shadowbox">
-			<div class="pin-add-button add-space">
-				<button class='select_pins' style='margin-bottom: 10px;' pinid="$pin['id']">$pin['name']</button>&nbsp;
-			</div>
-			<div class="pin-image">
+			<div class="pin-image" pinid="$pin['id']">
 				<img class="img-responsive" src='$pin.image_name' alt=''/>
 			</div>
 		</div>
