@@ -32,11 +32,11 @@ class PageRegister:
     else:
         languages = settings.LANGUAGES
     _form = web.form.Form(
-        web.form.Textbox('username', web.form.notnull, id='username', autocomplete='off', placeholder='The name in your url.'),
-        web.form.Textbox('name', web.form.notnull, autocomplete='off', placeholder='The name next to your picture.',
+        web.form.Textbox('username', web.form.notnull, id='username', autocomplete='off'),
+        web.form.Textbox('name', web.form.notnull, autocomplete='off',
                          description="Complete name"),
-        web.form.Textbox('email', valid_email, web.form.notnull, autocomplete='off', id='email', placeholder='Where we\'ll never spam you.'),
-        web.form.Password('password', web.form.notnull, id='password', autocomplete='off', placeholder='Something you\'ll remember but others won\'t guess.'),
+        web.form.Textbox('email', valid_email, web.form.notnull, autocomplete='off', id='email'),
+        web.form.Password('password', web.form.notnull, id='password', autocomplete='off'),
         web.form.Dropdown('language', languages, web.form.notnull),
         web.form.Button('Let\'s get started!')
     )
