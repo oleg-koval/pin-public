@@ -1285,3 +1285,6 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 -- PostgreSQL database dump complete
 --
 
+
+
+alter table users add is_pin_uploader boolean not null default FALSE;
