@@ -1,5 +1,17 @@
 pin_count = 0
 
+$.column_control = 1
+
+$.add_pin_to_page = (pin) ->
+	if ($.column_control > 3)
+		$.column_control = 1
+	$('.column' + $.column_control).append('<div class="shadowbox">' +
+		'<div class="pin-image" pinid="' + pin['id'] + '">' +
+		'<img class="img-responsive" src="' + pin['image_name'] + '"/>' +
+		'</div></div>')
+	$.column_control += 1
+	return
+
 $('body').on 'mouseleave', '.pin-add-button', ->
 		console.log('remove')
 		$(this).remove()
@@ -11,9 +23,6 @@ $('body').on 'click', '.select_pins', (event) ->
         
 $('body').on 'click', '.pin-add-button', ->
 	click_to_add_pin($(this))
-	
-$('img').load ->
-	$(this).addClass('loaded_img')
 
 click_to_add_pin = (elem) ->
         pin_id = elem.attr('pinid')
@@ -45,15 +54,14 @@ hide_buttons = (pin_id) ->
     cover_div = $('.pin-add-button[pinid="' + pin_id + '"]')
     cover_div.css( "visibility", "hidden")
 
-$(".pin-image").mouseenter ->
+$('body').on 'mouseenter', ".pin-image", ->
         console.log('hover')
         image = $(this).children('img:first')
-        if image.hasClass('loaded_img')
-            pin_id = $(this).attr('pinid')
-            if $(this).hasClass("selected")
-        	    show_button_remove($(this), pin_id)
-            else
-        	    show_button_add($(this), pin_id)
+        pin_id = $(this).attr('pinid')
+        if $(this).hasClass("selected")
+    	    show_button_remove($(this), pin_id)
+        else
+    	    show_button_add($(this), pin_id)
         return
         
 $('body').on 'click', '.cover', ->
