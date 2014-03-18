@@ -59,4 +59,10 @@
     return window.location.href = 'after-signup/2';
   });
 
+  $("#skip_button").click(function() {
+    var username;
+    username = $(this).attr('username');
+    return window.location.href = '/' + username;
+  });
+
 }).call(this);

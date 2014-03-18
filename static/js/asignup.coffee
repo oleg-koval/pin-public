@@ -41,3 +41,7 @@ remove_category_from_user = (category_id, button) ->
 
 $("#continue_button").click ->
         window.location.href = 'after-signup/2'
+
+$("#skip_button").click ->
+	username = $(this).attr('username')
+	window.location.href = '/' + username

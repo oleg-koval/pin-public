@@ -115,4 +115,10 @@
     return window.location.href = '3';
   });
 
+  $("#skip_button").click(function() {
+    var username;
+    username = $(this).attr('username');
+    return window.location.href = '/' + username;
+  });
+
 }).call(this);

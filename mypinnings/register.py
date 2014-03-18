@@ -121,7 +121,14 @@ class PageAfterSignup:
                 if len(random_cool_items) > 0:
                     category.cool_items = random_cool_items
                     categories.append(category)
-        return template.atpl('register/aphase1', categories, phase=1)
+        sess = session.get_session()
+        results = db.where(table='users', what='username', id=sess.user_id)
+        for row in results:
+            username = row.username
+            break
+        else:
+            username = ''
+        return template.atpl('register/aphase1', categories, username, phase=1)
 
     _form1 = web.form.Form(web.form.Hidden('ids'))
 
@@ -152,7 +159,13 @@ class PageAfterSignup:
         random.shuffle(cols[0])
         random.shuffle(cols[1])
         random.shuffle(cols[2])
-        return template.atpl('register/aphase2', cols[0], cols[1], cols[2], phase=2)
+        results = db.where(table='users', what='username', id=sess.user_id)
+        for row in results:
+            username = row.username
+            break
+        else:
+            username = ''
+        return template.atpl('register/aphase2', cols[0], cols[1], cols[2], username, phase=2)
 
     def phase3(self):
         '''

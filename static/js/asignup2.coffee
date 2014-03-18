@@ -93,3 +93,7 @@ remove_pin_from_user = (pin_id) ->
 
 $("#continue_button").click ->
         window.location.href = '3'
+
+$("#skip_button").click ->
+	username = $(this).attr('username')
+	window.location.href = '/' + username
