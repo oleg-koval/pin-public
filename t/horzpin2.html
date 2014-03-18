@@ -2,13 +2,16 @@ $def with (pin)
 $if pin.id and pin.category:
   <div class='pin horz-pin2'>
     <div class='buttons'>
+    $if 'logged_in' in sess and sess.user_id == pin.user_id:
+       <a href='/remove-from-own-getlist/$pin.id' class='remove_repin button small-pad'>Remove From Getlist</a>
+    $else:
       $if pin.repin == 0:
         <a href='/add-to-your-own-getlist/$pin.id' target='_blank' class='button small-pad'>Add to Getlist</a>
       $else:
         <a target='_blank' href='/add-to-your-own-getlist/$pin.repin' class='button small-pad'>Add to Getlist</a>
-      <a href='/share/$pin.id' class='button small-pad'>Share</i></a>
-      $if pin.link:
-        <a class='button small-pad' rel='nofollow' href='$pin.link'>Visit Link</a>
+    <a href='/share/$pin.id' class='button small-pad'>Share</i></a>
+    $if pin.link:
+      <a class='button small-pad' rel='nofollow' href='$pin.link'>Visit Link</a>
     </div>
     <div class='clearfix'>
       <div class='count left'></div>
