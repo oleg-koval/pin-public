@@ -1287,4 +1287,4 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
 
-alter table users add is_pin_uploader boolean not null default FALSE;
+alter table users add is_pin_loader boolean not null default FALSE;
