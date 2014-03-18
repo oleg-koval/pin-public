@@ -10,13 +10,12 @@
 
   $emailInfo = $('<div/>').insertAfter($email).addClass('faded pad-bottom invis');
 
-  $usernameInfo = $('<div/>').insertAfter($username).addClass('faded pad-bottom invis');
+  $usernameInfo = $('<div/>').insertAfter($username).addClass('faded pad-bottom').html('Your URL: <span class="link">http://mypinnings.com/USERNAME</span>');
 
   $passwordInfo = $('<div/>').insertAfter($password).addClass('faded pad-bottom invis').text('Your password is encrypted. For example, (abc123 shows up as ny203cyaca2 in our database.)');
 
   $email.blur(function() {
     var e;
-    $emailInfo.show();
     e = $email.val();
     if (!e) {
       return $emailInfo.text('Please enter an email!');
@@ -25,9 +24,11 @@
         e: e
       }, function(data) {
         if (data === 'taken') {
-          return $emailInfo.text('Sorry, that email is taken.');
+          $emailInfo.show();
+          return $emailInfo.html('<span class="red">This email is already registered. Want to <a href="/login">login</a> or <a href="/recover_password">recover your password</a></span>');
         } else {
-          return $emailInfo.text('That email is available!');
+          $emailInfo.hide();
+          return $emailInfo.html('');
         }
       });
     }
@@ -54,11 +55,11 @@
           u: u
         }, function(data) {
           if (data === 'taken') {
-            $usernameInfo.text('Sorry, that username is taken.');
+            $usernameInfo.html('Sorry, that username is taken: <span class="link">http://mypinnings.com/' + u + '</span>');
             return taken = true;
           } else {
             taken = false;
-            return $usernameInfo.html('Your URL: <span class="link">http://mypinnings.com/' + u);
+            return $usernameInfo.html('Your URL: <span class="link">http://mypinnings.com/' + u + '</span>');
           }
         });
       }), 500);
