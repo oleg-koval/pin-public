@@ -18,6 +18,10 @@
     return click_to_add_pin($(this));
   });
 
+  $('img').load(function() {
+    return $(this).addClass('loaded_img');
+  });
+
   click_to_add_pin = function(elem) {
     var pin_id;
     pin_id = elem.attr('pinid');
@@ -28,7 +32,7 @@
 
   show_button_add = function(original_div, pin_id) {
     var cover_div, selection_button;
-    $('body').append('<div class="pin-add-button" pinid="' + pin_id + '">' + '<button class="select_pins" style="margin-bottom: 10px;" pinid="' + pin_id + '">add</button>' + '</div>');
+    $('body').append('<div class="pin-add-button" pinid="' + pin_id + '">' + '<button class="select_pins" style="margin-bottom: 10px;" pinid="' + pin_id + '">Get it</button>' + '</div>');
     cover_div = $('.pin-add-button[pinid="' + pin_id + '"]');
     cover_div.offset(original_div.offset());
     cover_div.width(original_div.width() + 3);
@@ -50,13 +54,16 @@
   };
 
   $(".pin-image").mouseenter(function() {
-    var pin_id;
+    var image, pin_id;
     console.log('hover');
-    pin_id = $(this).attr('pinid');
-    if ($(this).hasClass("selected")) {
-      show_button_remove($(this), pin_id);
-    } else {
-      show_button_add($(this), pin_id);
+    image = $(this).children('img:first');
+    if (image.hasClass('loaded_img')) {
+      pin_id = $(this).attr('pinid');
+      if ($(this).hasClass("selected")) {
+        show_button_remove($(this), pin_id);
+      } else {
+        show_button_add($(this), pin_id);
+      }
     }
   });
 

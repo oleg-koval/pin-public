@@ -11,6 +11,9 @@ $('body').on 'click', '.select_pins', (event) ->
         
 $('body').on 'click', '.pin-add-button', ->
 	click_to_add_pin($(this))
+	
+$('img').load ->
+	$(this).addClass('loaded_img')
 
 click_to_add_pin = (elem) ->
         pin_id = elem.attr('pinid')
@@ -21,7 +24,7 @@ click_to_add_pin = (elem) ->
         
 show_button_add = (original_div, pin_id) ->
 	$('body').append('<div class="pin-add-button" pinid="' + pin_id + '">' +
-		'<button class="select_pins" style="margin-bottom: 10px;" pinid="' + pin_id + '">add</button>' +
+		'<button class="select_pins" style="margin-bottom: 10px;" pinid="' + pin_id + '">Get it</button>' +
 		'</div>')
 	cover_div = $('.pin-add-button[pinid="' + pin_id + '"]')
 	cover_div.offset(original_div.offset())
@@ -44,11 +47,13 @@ hide_buttons = (pin_id) ->
 
 $(".pin-image").mouseenter ->
         console.log('hover')
-        pin_id = $(this).attr('pinid')
-        if $(this).hasClass("selected")
-        	show_button_remove($(this), pin_id)
-        else
-        	show_button_add($(this), pin_id)
+        image = $(this).children('img:first')
+        if image.hasClass('loaded_img')
+            pin_id = $(this).attr('pinid')
+            if $(this).hasClass("selected")
+        	    show_button_remove($(this), pin_id)
+            else
+        	    show_button_add($(this), pin_id)
         return
         
 $('body').on 'click', '.cover', ->
