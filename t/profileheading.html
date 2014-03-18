@@ -232,6 +232,41 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
             </table>
             </form>
         $else:
+             <table>
+
+              <tr>
+                <th>Name</th>
+                <td>$user.name</td>
+              </tr>
+              <tr>
+                <th>Location</th>
+                <td>
+                $if user.hometown:
+                  $user.hometown
+                $else:
+                  N/A
+                </td>
+              </tr>
+              <tr>
+                <th>Website</th>
+                <td>
+                $if user.website: 
+                  $user.website
+                $else:
+                  N/A
+                </td>
+              </tr>
+
+              <tr>
+                <th>Bio</th>
+                <td>
+                $if user.about:
+                  $user.about
+                $else:
+                  N/A
+                </td>
+              </tr>
+            </table>
             <a href='/$user.username?editprofile#profile-about-box' class='button small-pad'>Edit Profile</a>
   $else:
      <table>
