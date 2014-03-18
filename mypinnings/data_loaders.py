@@ -144,11 +144,11 @@ class PinLoaderPage(object):
         return result_info
 
     def validate_errors(self, title, description, link, imageurl, image, tags):
-        if not description or not description.value:
+        if not description.value:
             return _("No description")
-        if not link or not link.value:
+        if not link.value:
             return _("No link")
-        if not image and not imageurl and not imageurl.value:
+        if not image.filename and not imageurl.value:
             return _("No image URL or no uploaded image file")
         return None
 
