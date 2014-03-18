@@ -91,31 +91,27 @@ class PinLoaderPage(object):
         return form()
 
     def GET(self):
-        auth.force_login(session.get_session())
+        sess = session.get_session()
+        auth.force_login(sess)
         form = self.get_form()
-        errors = web.input(errors=None)['errors']
-        return template.ltpl('pin_loader', form, errors)
+        result_info = sess.get('result_info', [])
+        return template.ltpl('pin_loader', form, result_info)
 
     def POST(self):
         sess = session.get_session()
         auth.force_login(sess)
         form = self.get_form()
-        errors = []
+        result_info = []
         if form.validates():
             sess.category = int(form.d.category)
             for i in range(10):
-                error = self.save_pin(form, str(i + 1), sess.category)
-                if error:
-                    errors.append(error)
-            if errors:
-                str_errors = ' - '.join(errors)
-                return web.seeother('?errors={}'.format(urllib.quote_plus(str_errors)))
-            else:
-                return web.seeother('')
-        else:
-            return template.ltpl('pin_loader', form)
+                result = self.save_pin(form, str(i + 1), sess.category)
+                result_info.append(result)
+        sess.result_info = result_info
+        return web.seeother('')
 
     def save_pin(self, form, i, category):
+        result_info = {'index': i}
         title = form['title' + i]
         if title and title.value:
             description = form['description' + i]
@@ -124,25 +120,36 @@ class PinLoaderPage(object):
             image = web.input(**{'image' + i: {}}).get('image' + i, None)
             tags = form['tags' + i]
             error = self.validate_errors(title, description, link, imageurl, image, tags)
+            result_info['title'] = title.value
+            result_info['description'] = description.value
+            result_info['link'] = link.value
+            result_info['imageurl'] = imageurl.value
+            result_info['image'] = image.filename
+            result_info['tags'] = tags.value
             pin_id = None
             if error:
-                return error
+                result_info['error'] = error
+                return result_info
             try:
                 pin_id = self.save_pin_in_db(category, title.value, description.value, link.value, tags.value)
+                result_info['pin_id'] = pin_id
                 self.save_image(pin_id, imageurl, image)
             except Exception as e:
                 if pin_id:
                     self.delete_pin_from_db(pin_id)
-                return str(e)
-        return None
+                    del result_info['pin_id']
+                result_info['error'] = str(e)
+        else:
+            result_info['error'] = ''
+        return result_info
 
     def validate_errors(self, title, description, link, imageurl, image, tags):
         if not description or not description.value:
-            return _("No description for pin with title: {}").format(title.value)
+            return _("No description")
         if not link or not link.value:
-            return _("No link for pin with title: {}").format(title.value)
+            return _("No link")
         if not image and not imageurl and not imageurl.value:
-            return _("No image URL for pin with title: {}").format(title.value)
+            return _("No image URL or no uploaded image file")
         return None
 
     def save_pin_in_db(self, category, title, description, link, tags):
