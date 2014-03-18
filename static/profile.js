@@ -96,3 +96,16 @@ $('.category-list').val($(e).attr('data-category'));
 }
 
 
+$(document).ready(function(){
+
+  $('.remove_repin').click(function(e){
+    result = window.confirm("Are you sure you want to remove this from your Getlist ?");
+    if(!result){
+      e.preventDefault()
+      e.event.stopPropagation();
+      return false;
+    }
+    e.event.stopPropagation();
+  })
+
+});

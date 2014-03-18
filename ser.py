@@ -58,6 +58,7 @@ urls = (
     '/addpin', 'PageAddPin',
     '/add-from-website', 'PageAddPinUrl',
     '/add-to-your-own-getlist/(\d*)', 'PageRepin',
+    '/remove-from-own-getlist/(\d*)', 'PageRemoveRepin',
     '/settings', 'PageEditProfile',
     '/settings/(email)', 'PageEditProfile',
     '/settings/(profile)', 'PageEditProfile',
@@ -475,6 +476,22 @@ class PageAddPinUrl:
         raise web.seeother('/pin/%d' % pin_id)
 
 
+class PageRemoveRepin:
+    def GET(self, pin_id):
+        global all_categories
+
+        force_login(sess)
+
+        pin_id = int(pin_id)
+        pin = dbget('pins', pin_id)
+        if pin is None:
+            return 'pin doesn\'t exist'
+        else:
+            db.delete('pins', where='user_id = $uid and repin = $pid', vars={'uid': sess.user_id, 'pid': pin_id})
+        user = dbget('users', sess.user_id)
+        raise web.seeother('/%s' % user.username)
+
+
 class PageRepin:
     def make_form(self, pin=None, categories=None):
         categories = categories or []
@@ -580,6 +597,7 @@ class PageEditProfile:
         return ltpl('editprofile', user, countries, name, photos)
 
     def POST(self, name=None):
+        user = dbget('users', sess.user_id)
         force_login(sess)
 
         form = self._form()
@@ -591,7 +609,9 @@ class PageEditProfile:
             zip=(form.d.zip or None), website=form.d.website, country=form.d.country,
             hometown=form.d.hometown, city=form.d.city,
             vars={'id': sess.user_id})
-
+        get_input = web.input(_method='get')
+        if 'user_profile' in get_input:
+            raise web.seeother('/%s?editprofile' % user.username)
         raise web.seeother('/settings/profile')
 
 
@@ -847,6 +867,10 @@ class PageProfile2:
         hashed = rs()
 
         if logged_in(sess):
+            get_input = web.input(_method='get')
+            edit_profile = False
+            if 'editprofile' in get_input:
+                edit_profile = True
             ids = [user.id, sess.user_id]
             ids.sort()
             ids = {'id1': ids[0], 'id2': ids[1]}
@@ -862,7 +886,7 @@ class PageProfile2:
                           vars={'follow': int(user.id), 'follower': sess.user_id}))
             photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id}, order="id DESC")
 
-            return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos)
+            return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos, edit_profile)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
 

@@ -1,4 +1,4 @@
-$def with (user, hashed, friend_status=None, is_following=None, photos=None)
+$def with (user, hashed, friend_status=None, is_following=None, photos=None, edit_profile=None)
 <div class='clearfix user-heading'
   $if 'logged_in' in sess and sess.user_id == user.id:
   $if user.bg:
@@ -183,45 +183,56 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None)
 
 <div class="profile-tab-navigation">
     <ul id="myTab" class="nav nav-tabs">
-      <li class="active"><a href="#pin-box" data-toggle="tab">My Getlist</a></li>
-      <li class=""><a href="#profile-about-box" data-toggle="tab">About</a></li>
+      $if edit_profile: 
+        <li class=""><a href="#pin-box" data-toggle="tab">My Getlist</a></li>
+        <li class="active"><a href="#profile-about-box" data-toggle="tab">About</a></li>
+      $else:
+        <li class="active"><a href="#pin-box" data-toggle="tab">My Getlist</a></li>
+        <li class=""><a href="#profile-about-box" data-toggle="tab">About</a></li>
     </ul>
     </div>
-<div class="tab-pane fade" id="profile-about-box">
-  $if 'logged_in' in sess and user.id == sess.user_id:
-        <form method="post" action="/settings/profile">
-        <table>
-        <tr>
-          <th>Name</th>
-          <td><input type='text' name='name' value='$user.name' /></td>
-        </tr>
-        <input type='hidden' name='username'  value='$user.username'/>
-        <tr>
-          <th>Location</th>
-          <td>
-            <input type='text' name='hometown' value='$user.hometown'/>
-          </td>
-        </tr>
-        <tr>
-          <th>Website</th>
-          <td>
-            <input type='url' class="input" name='website' value='$user.website'/>
-          </td>
-        </tr>
+    $if edit_profile: 
+      <div class="tab-pane fade active in" id="profile-about-box">
+    $else:
+      <div class="tab-pane fade" id="profile-about-box">
 
-        <tr>
-          <th>Bio</th>
-          <td>
-            <textarea name='about'>$user.about</textarea>
-          </td>
-        </tr>
-        
-        <tr>
-          <th>&nbsp;</th>
-          <td><button>Save</button></td>
-        </tr>
-      </table>
-      </form>
+  $if 'logged_in' in sess and user.id == sess.user_id:
+       $if edit_profile: 
+              <form method="post" action="/settings/profile?user_profile">
+              <table>
+              <tr>
+                <th>Name</th>
+                <td><input type='text' name='name' value='$user.name' /></td>
+              </tr>
+              <input type='hidden' name='username'  value='$user.username'/>
+              <tr>
+                <th>Location</th>
+                <td>
+                  <input type='text' name='hometown' value='$user.hometown'/>
+                </td>
+              </tr>
+              <tr>
+                <th>Website</th>
+                <td>
+                  <input type='url' class="input" name='website' value='$user.website'/>
+                </td>
+              </tr>
+
+              <tr>
+                <th>Bio</th>
+                <td>
+                  <textarea name='about'>$user.about</textarea>
+                </td>
+              </tr>
+              
+              <tr>
+                <th>&nbsp;</th>
+                <td><button>Save</button></td>
+              </tr>
+            </table>
+            </form>
+        $else:
+            <a href='/$user.username?editprofile#profile-about-box' class='button small-pad'>Edit Profile</a>
   $else:
      <table>
 
