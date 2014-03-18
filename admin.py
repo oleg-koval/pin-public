@@ -298,6 +298,7 @@ class PageCreateUser:
         form.Textbox('name'),
         form.Textbox('username'),
         form.Password('password'),
+        form.Checkbox('is_pin_loader', value='on'),
         form.Button('create account')
     )
 
@@ -318,7 +319,8 @@ class PageCreateUser:
         if username_exists(form.d.username):
             return 'username already exists'
 
-        user_id = create_user(form.d.email, form.d.password, name=form.d.name, username=form.d.username)
+        user_id = create_user(form.d.email, form.d.password, name=form.d.name, username=form.d.username,
+                              is_pin_loader=form['is_pin_loader'].checked)
         if not user_id:
             return 'couldn\'t create user'
 
