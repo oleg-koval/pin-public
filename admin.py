@@ -228,6 +228,7 @@ class PageEditUser:
             form.Textbox('name', value=user.get('name')),
             form.Textbox('email', value=user.get('email')),
             form.Textarea('about', value=user.get('about')),
+            form.Checkbox('is_pin_loader', value='on', checked=user.get('is_pin_loader')),
             form.Button('update'))()
 
     def GET(self, user_id):
