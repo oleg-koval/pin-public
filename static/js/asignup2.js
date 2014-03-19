@@ -4,6 +4,16 @@
 
   pin_count = 0;
 
+  $.column_control = 1;
+
+  $.add_pin_to_page = function(pin) {
+    if ($.column_control > 3) {
+      $.column_control = 1;
+    }
+    $('.column' + $.column_control).append('<div class="shadowbox">' + '<div class="pin-image" pinid="' + pin['id'] + '">' + '<img class="img-responsive" src="' + pin['image_name'] + '"/>' + '</div></div>');
+    $.column_control += 1;
+  };
+
   $('body').on('mouseleave', '.pin-add-button', function() {
     console.log('remove');
     $(this).remove();
@@ -16,10 +26,6 @@
 
   $('body').on('click', '.pin-add-button', function() {
     return click_to_add_pin($(this));
-  });
-
-  $('img').load(function() {
-    return $(this).addClass('loaded_img');
   });
 
   click_to_add_pin = function(elem) {
@@ -53,17 +59,15 @@
     return cover_div.css("visibility", "hidden");
   };
 
-  $(".pin-image").mouseenter(function() {
+  $('body').on('mouseenter', ".pin-image", function() {
     var image, pin_id;
     console.log('hover');
     image = $(this).children('img:first');
-    if (image.hasClass('loaded_img')) {
-      pin_id = $(this).attr('pinid');
-      if ($(this).hasClass("selected")) {
-        show_button_remove($(this), pin_id);
-      } else {
-        show_button_add($(this), pin_id);
-      }
+    pin_id = $(this).attr('pinid');
+    if ($(this).hasClass("selected")) {
+      show_button_remove($(this), pin_id);
+    } else {
+      show_button_add($(this), pin_id);
     }
   });
 

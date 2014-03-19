@@ -22,6 +22,8 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
           
                 <a href='/addpin'>Upload to Getlist</a>
                 <a href='/add-from-website'>Add to Getlist from Website</a>
+                $if user and user.is_pin_loader:
+                	<a href='/admin/input/'>Pin Uploaders page</a>
               </div>
             </div>
             &nbsp;

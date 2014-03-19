@@ -264,6 +264,10 @@ class PageLogin:
             self.msg('That login was not correct, sorry. (You can login with your username or email.)')
 
         login_user(sess, user_id)
+        results = db.where(table='users', what='is_pin_loader', id=user_id)
+        for row in results:
+            if row.is_pin_loader:
+                raise web.seeother('/admin/input/', absolute=True)
         raise web.seeother('/dashboard')
 
 class PageCheckUsername:
@@ -552,7 +556,7 @@ class PageRepin:
         cat = dbget('categories', cid)
         print cat
         make_notif(pin.user_id, 'Someone has added your item to their Getlist!', '/pin/%d' % pin_id)
-        #raise web.seeother('/pin/%d' % pin_id)
+        # raise web.seeother('/pin/%d' % pin_id)
         raise web.seeother('/category/%s/%d' % (cat.name, cat.id))
 
 

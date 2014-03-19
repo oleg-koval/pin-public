@@ -1,4 +1,4 @@
-$def with (col1, col2, col3, username)
+$def with (pins, username)
 <link rel="stylesheet" href="/static/css/register_select_pins.css" />
 <center>
   <h1>Let's get started! Pick at least five items that interest you.</h1>
@@ -8,33 +8,18 @@ $def with (col1, col2, col3, username)
   </div>
   <br/>
   <div class="columns_container">
-   	<div class="column1">
-	$for pin in col1:
-		<div class="shadowbox">
-			<div class="pin-image" pinid="$pin['id']">
-				<img class="img-responsive" src='$pin.image_name'/>
-			</div>
-		</div>
-    </div>
-   	<div class="column2">
-	$for pin in col2:
-		<div class="shadowbox">
-			<div class="pin-image" pinid="$pin['id']">
-				<img class="img-responsive" src='$pin.image_name' alt=''/>
-			</div>
-		</div>
-    </div>
-   	<div class="column3">
-	$for pin in col3:
-		<div class="shadowbox">
-			<div class="pin-image" pinid="$pin['id']">
-				<img class="img-responsive" src='$pin.image_name' alt=''/>
-			</div>
-		</div>
-    </div>
+   	<div class="column1"></div>
+   	<div class="column2"></div>
+   	<div class="column3"></div>
   </div>
   <div class="add-space">
   	<button id="continue_button" disabled>Continue</button>
   </div>
 </center>
 <script type='text/javascript' src='/static/js/asignup2.js'></script>
+<script>
+$$(document).ready(function() {
+$for pin in pins:
+	$$.add_pin_to_page($:pin)
+})	
+</script>
