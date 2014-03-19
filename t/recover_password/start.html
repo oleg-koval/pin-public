@@ -6,12 +6,7 @@ $def with (form, message=None)
 <form method='post' action=''>
 	$if message is not None:
 		<div class='notice'>$:message</div>
-	<table>
-		<tr><th><label for="email">Email/Username</label></th><td>$:form['email'].render()</td></tr>
-		<tr><th><label for="pwd">password</label></th><td>$:form['password'].render()</td></tr>
-		<tr><th><label for="login"></label></th><td><button id="login" name="login">login</button></td></tr>
-		<tr><th></th><td><a href="/recover_password">Forgot password?</a></td></tr>
-	</table>
+	$:form.render()
 </form>
   </div>
   <div class='space_column'>&nbsp;</div>

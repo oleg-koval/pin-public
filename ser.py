@@ -128,6 +128,8 @@ urls = (
     '/search/items', 'PageSearchItems',
     '/search/people', 'PageSearchPeople',
 
+    '/recover_password/?', 'mypinnings.recover_password.PasswordRecoveryStart',
+
     '/(.*?)', 'PageProfile2',
 )
 
@@ -234,7 +236,7 @@ class PageIndex:
 class PageLogin:
     _form = form.Form(
         form.Textbox('email', description='Email/Username', id='email'),
-        form.Password('password', id='email'),
+        form.Password('password', id='pwd'),
         form.Button('login')
     )
 
