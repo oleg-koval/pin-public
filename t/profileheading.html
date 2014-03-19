@@ -1,10 +1,10 @@
-$def with (user, hashed, friend_status=None, is_following=None, photos=None, edit_profile=None)
+$def with (user, hashed, friend_status=None, is_following=None, photos=None, edit_profile=None,  edit_profile_done = None)
 <div class='clearfix user-heading'
   $if 'logged_in' in sess and sess.user_id == user.id:
   $if user.bg:
     data-bg="true"
     id='header_background'
-    style='background-position: $(user.headerbgx)px $(user.headerbgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);$('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')";'
+    style='background-size:100% auto;background-position: $(user.headerbgx)px $(user.headerbgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);$('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')";'
   $else:
     data-nobg='true'
     style='background: #333842;'
@@ -197,7 +197,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
       <div class="tab-pane fade" id="profile-about-box">
 
   $if 'logged_in' in sess and user.id == sess.user_id:
-       $if edit_profile: 
+       $if edit_profile and not edit_profile_done: 
               <form method="post" action="/settings/profile?user_profile">
               <table>
               <tr>

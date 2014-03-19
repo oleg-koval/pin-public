@@ -58,7 +58,7 @@ urls = (
     '/addpin', 'PageAddPin',
     '/add-from-website', 'PageAddPinUrl',
     '/add-to-your-own-getlist/(\d*)', 'PageRepin',
-    '/remove-from-own-getlist/(\d*)', 'PageRemoveRepin',
+    '/remove-from-own-getlist', 'PageRemoveRepin',
     '/settings', 'PageEditProfile',
     '/settings/(email)', 'PageEditProfile',
     '/settings/(profile)', 'PageEditProfile',
@@ -481,19 +481,22 @@ class PageAddPinUrl:
 
 
 class PageRemoveRepin:
-    def GET(self, pin_id):
+    def GET(self):
         global all_categories
 
         force_login(sess)
+        info = {'error':True}
+        ajax = int(web.input(ajax=0).ajax)
+        get_input = web.input(_method='get')
+        if 'repinid' in get_input and 'pinid' in get_input:
+            pin_id = int(get_input['pinid'])
+            repin_id = int(get_input['repinid'])
+            pin = dbget('pins', pin_id)
+            if pin:
+                info = {'error':False}
+                db.delete('pins', where='user_id = $uid and repin = $repin and id = $pid', vars={'uid': sess.user_id, 'pid': pin_id , 'repin':repin_id})
+        return json.dumps(info)
 
-        pin_id = int(pin_id)
-        pin = dbget('pins', pin_id)
-        if pin is None:
-            return 'pin doesn\'t exist'
-        else:
-            db.delete('pins', where='user_id = $uid and repin = $pid', vars={'uid': sess.user_id, 'pid': pin_id})
-        user = dbget('users', sess.user_id)
-        raise web.seeother('/%s' % user.username)
 
 
 class PageRepin:
@@ -615,7 +618,7 @@ class PageEditProfile:
             vars={'id': sess.user_id})
         get_input = web.input(_method='get')
         if 'user_profile' in get_input:
-            raise web.seeother('/%s?editprofile' % user.username)
+            raise web.seeother('/%s?editprofile=1' % user.username)
         raise web.seeother('/settings/profile')
 
 
@@ -872,9 +875,12 @@ class PageProfile2:
 
         if logged_in(sess):
             get_input = web.input(_method='get')
-            edit_profile = False
+            edit_profile = edit_profile_done = None
             if 'editprofile' in get_input:
                 edit_profile = True
+                if get_input['editprofile']:
+                    edit_profile_done = True
+
             ids = [user.id, sess.user_id]
             ids.sort()
             ids = {'id1': ids[0], 'id2': ids[1]}
@@ -890,7 +896,7 @@ class PageProfile2:
                           vars={'follow': int(user.id), 'follower': sess.user_id}))
             photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id}, order="id DESC")
 
-            return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos, edit_profile)
+            return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos, edit_profile, edit_profile_done)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
 
