@@ -130,6 +130,7 @@ urls = (
 
     '/recover_password/?', 'mypinnings.recover_password.PasswordRecoveryStart',
     '/recover_password_username_test/', 'mypinnings.recover_password.UsernameOrEmailValidator',
+    '/recover_password_sent/?', 'mypinnings.recover_password.EmailSentPage',
 
     '/(.*?)', 'PageProfile2',
 )

@@ -1288,3 +1288,14 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
 alter table users add is_pin_loader boolean not null default FALSE;
+
+
+create table password_change_tokens (
+	id serial primary key,
+	user_id integer not null,
+	token char(20) not null,
+	created_on timestamp not null default now(),
+	valid_hours int not null default 48,
+	used boolean not null default(FALSE),
+	used_on timestamp null
+);
