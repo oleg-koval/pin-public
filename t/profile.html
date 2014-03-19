@@ -1,4 +1,4 @@
-$def with (user, pins, offset, pin_count, hashed, friend_status=None, is_following=None, photos=None, edit_profile=None)
-$:tpl('profileheading', user, hashed, friend_status, is_following, photos, edit_profile)
+$def with (user, pins, offset, pin_count, hashed, friend_status=None, is_following=None, photos=None, edit_profile=None, edit_profile_done=None)
+$:tpl('profileheading', user, hashed, friend_status, is_following, photos, edit_profile,edit_profile_done)
 <hr/>
 $:tpl('pins', pins, 'horzpin2',None,edit_profile)
