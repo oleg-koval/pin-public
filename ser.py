@@ -129,6 +129,7 @@ urls = (
     '/search/people', 'PageSearchPeople',
 
     '/recover_password/?', 'mypinnings.recover_password.PasswordRecoveryStart',
+    '/recover_password_username_test/', 'mypinnings.recover_password.UsernameOrEmailValidator',
 
     '/(.*?)', 'PageProfile2',
 )
