@@ -225,7 +225,7 @@
       $.loading_more_pins = false;
     };
     get_pin_html_text = function(pin) {
-      return '<div class="pin_image"><a href="/static/tmp/' + pin['id'] + '.png" target="_blank" title="See full size">' + '<img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></a></div>' + '<table>' + '<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' + '<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' + '<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' + '<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>' + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table>';
+      return '<div class="pin_image"><a href="/pin/' + pin['id'] + '" target="_blank" title="See full size">' + '<img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></a></div>' + '<table>' + '<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' + '<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' + '<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' + '<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>' + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table>';
     };
     $('body').on('click', '.button_pin_delete', function() {
       var confirmation, pinid;
@@ -266,7 +266,7 @@
       $("#link11").val(pin['link']);
       $("#tags11").val(pin['tags']);
       $("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png');
-      $("#imgfulllink11").attr('href', '/static/tmp/' + pin['id'] + '.png');
+      $("#imgfulllink11").attr('href', '/pin/' + pin['id']);
       $("#category11").val(pin['category']);
       $("#imageurl11").val('');
       $("#image11").val('');

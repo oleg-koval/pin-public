@@ -220,7 +220,7 @@ jQuery ->
 		
 		
 	get_pin_html_text = (pin) ->
-		return '<div class="pin_image"><a href="/static/tmp/' + pin['id'] + '.png" target="_blank" title="See full size">' +
+		return '<div class="pin_image"><a href="/pin/' + pin['id'] + '" target="_blank" title="See full size">' +
 					'<img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></a></div>' +
 				'<table>' +
 				'<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' +
@@ -269,7 +269,7 @@ jQuery ->
 		$("#link11").val(pin['link'])
 		$("#tags11").val(pin['tags'])
 		$("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png')
-		$("#imgfulllink11").attr('href', '/static/tmp/' + pin['id'] + '.png')
+		$("#imgfulllink11").attr('href', '/pin/' + pin['id'])
 		$("#category11").val(pin['category'])
 		$("#imageurl11").val('')
 		$("#image11").val('')
