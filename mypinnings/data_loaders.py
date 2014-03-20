@@ -5,6 +5,7 @@ import logging
 import urllib
 import os
 import os.path
+import json
 from gettext import gettext as _
 from PIL import Image
 
@@ -208,3 +209,37 @@ class PinLoaderPage(object):
         img.thumbnail((width, int(height)), Image.ANTIALIAS)
         img.save('static/tmp/pinthumb{}.png'.format(pin_id))
         os.unlink(filename)
+
+
+PIN_LIST_LIMIT = 20
+PIN_LIST_FIRST_LIMIT = 50
+class LoadersEditAPI(object):
+    def GET(self, pin_id=None):
+        if pin_id:
+            return self.get_by_id(pin_id)
+        else:
+            return self.get_by_list()
+
+    def get_by_id(self, id):
+        sess = session.get_session()
+        db = database.get_db()
+        results = db.where(table='pins', id=id, user_id=sess.user_id)
+        for row in results:
+            web.header('Content-Type', 'application/json')
+            return json.dumps(row)
+        raise web.notfound()
+
+    def get_by_list(self):
+        sess = session.get_session()
+        sess.offset = int(web.input(offset=None)['offset'] or sess.get('offset', 0))
+        db = database.get_db()
+        if sess.offset == 0:
+            limit = PIN_LIST_FIRST_LIMIT
+        else:
+            limit = PIN_LIST_LIMIT
+        results = db.where(table='pins', user_id=sess.user_id, order='timestamp desc', offset=sess.offset, limit=limit)
+        sess.offset += limit
+        json_pins = json.dumps([row for row in results if os.path.exists('static/tmp/pinthumb{}.png'.format(row.id))])
+        print(json_pins)
+        web.header('Content-Type', 'application/json')
+        return json_pins

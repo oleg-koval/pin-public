@@ -2,7 +2,7 @@
 (function() {
 
   jQuery(function() {
-    var all_fields_blank, ensure_tags_has_hash_symbol, remove_all_errors, remove_error_from_field, show_error_for_field, validate_errors, validate_image, validate_link;
+    var all_fields_blank, ensure_tags_has_hash_symbol, load_more_pins, put_more_pins_into_the_page, remove_all_errors, remove_error_from_field, show_error_for_field, validate_errors, validate_image, validate_link;
     $("#tabs").tabs();
     $('.urllink,.imagelink').change(function(e) {
       var i, value;
@@ -158,11 +158,73 @@
         field.val(new_value);
       }
     };
-    return $('.tagwords').on('change', function() {
+    $('.tagwords').on('change', function() {
       if ($(this).val() !== '') {
         return ensure_tags_has_hash_symbol($(this));
       }
     });
+    $(window).scroll(function() {
+      var doc_height, height, sensitivity, top;
+      top = $(window).scrollTop();
+      height = $(window).innerHeight();
+      doc_height = $(document).height();
+      sensitivity = 300;
+      console.log('top' + top);
+      console.log('h' + height);
+      console.log('dh' + doc_height);
+      if (top + height + sensitivity > doc_height) {
+        console.log('load more');
+        load_more_pins();
+      }
+    });
+    $.loading_more_pins = true;
+    $.ajax({
+      type: 'GET',
+      url: '/admin/input/pins/',
+      dataType: 'json',
+      data: {
+        'offset': '0'
+      },
+      success: function(d) {
+        put_more_pins_into_the_page(d);
+      },
+      error: function(x, textStatus, errorThrown) {
+        $.loading_more_pins = false;
+        console.log("Error:" + textStatus + ', ' + errorThrown);
+      }
+    });
+    load_more_pins = function() {
+      if (!$.loading_more_pins) {
+        $.loading_more_pins = true;
+        $.ajax({
+          type: 'GET',
+          url: '/admin/input/pins/',
+          dataType: 'json',
+          success: function(d) {
+            put_more_pins_into_the_page(d);
+          },
+          error: function(x, textStatus, errorThrown) {
+            $.loading_more_pins = false;
+            console.log("Error:" + textStatus + ', ' + errorThrown);
+          }
+        });
+        return;
+      }
+    };
+    $.column_control = 1;
+    put_more_pins_into_the_page = function(data) {
+      var column, pin, _i, _len;
+      for (_i = 0, _len = data.length; _i < _len; _i++) {
+        pin = data[_i];
+        column = $('#column' + $.column_control);
+        column.append('<div><div class="pin_image"><img src="/static/tmp/pinthumb' + pin['id'] + '.png"></div></div>');
+        $.column_control += 1;
+        if ($.column_control > 5) {
+          $.column_control = 1;
+        }
+      }
+      $.loading_more_pins = false;
+    };
   });
 
 }).call(this);

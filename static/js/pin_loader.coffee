@@ -163,3 +163,62 @@ jQuery ->
 	$('.tagwords').on 'change', ->
 		if $(this).val() isnt ''
 			ensure_tags_has_hash_symbol($(this))
+			
+			
+	$(window).scroll ->
+		top = $(window).scrollTop()
+		height = $(window).innerHeight();
+		doc_height = $(document).height()
+		sensitivity = 300
+		console.log('top' + top)
+		console.log('h' + height)
+		console.log('dh' + doc_height)
+		if top + height + sensitivity > doc_height
+			console.log('load more')
+			load_more_pins()
+		return
+			
+			
+	$.loading_more_pins = true
+	$.ajax type: 'GET'
+		,url: '/admin/input/pins/'
+		,dataType: 'json'
+		,data: {'offset': '0'}
+		,success: (d)->
+			put_more_pins_into_the_page(d)
+			return
+		,error: (x, textStatus, errorThrown) ->
+			$.loading_more_pins = false
+			console.log("Error:" + textStatus + ', ' + errorThrown)
+			return
+	
+	load_more_pins = ->
+		if not $.loading_more_pins
+			$.loading_more_pins = true
+			$.ajax type: 'GET'
+				,url: '/admin/input/pins/'
+				,dataType: 'json'
+				,success: (d)->
+					put_more_pins_into_the_page(d)
+					return
+				,error: (x, textStatus, errorThrown) ->
+					$.loading_more_pins = false
+					console.log("Error:" + textStatus + ', ' + errorThrown)
+					return
+			return
+		return
+		
+	
+	$.column_control = 1
+	put_more_pins_into_the_page = (data) ->
+		for pin in data
+			column = $('#column' + $.column_control)
+			column.append('<div><div class="pin_image"><img src="/static/tmp/pinthumb' + pin['id'] + '.png"></div></div>')
+			$.column_control += 1
+			if $.column_control > 5
+				$.column_control = 1
+		$.loading_more_pins = false
+		return
+	
+	
+	return
