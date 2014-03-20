@@ -2,7 +2,7 @@
 (function() {
 
   jQuery(function() {
-    var all_fields_blank, ensure_tags_has_hash_symbol, load_more_pins, open_edit_dialog_for, put_more_pins_into_the_page, remove_all_errors, remove_error_from_field, show_error_for_field, update_pin_in_backgroud, validate_errors, validate_image, validate_link;
+    var all_fields_blank, ensure_tags_has_hash_symbol, load_more_pins, open_edit_dialog_for, put_more_pins_into_the_page, refresh_pin, remove_all_errors, remove_error_from_field, show_error_for_field, update_pin_in_backgroud, validate_errors, validate_image, validate_link;
     $("#tabs").tabs();
     $('.urllink,.imagelink').change(function(e) {
       var i, value;
@@ -267,6 +267,7 @@
       $("#category11").val(pin['category']);
       $("#imageurl11").val('');
       $("#image11").val('');
+      remove_all_errors();
       return $('#pin_edit_dialog').dialog('open');
     };
     $('#pin_edit_form').submit(function() {
@@ -330,10 +331,30 @@
         success: function(data) {
           if (data['status'] !== 'ok') {
             return window.alert('Server error in your last update: ' + data['status']);
+          } else {
+            return refresh_pin(pinid.val());
           }
         },
         error: function(x, err, ex) {
           return window.alert('Server error in your last update: ' + err + ' ' + ex);
+        }
+      });
+    };
+    refresh_pin = function(pin_id) {
+      $.ajax({
+        type: 'GET',
+        url: '/admin/input/pins/' + pin_id + '/',
+        dataType: 'json',
+        success: function(pin) {
+          var box, text;
+          box = $('div.pinbox[pinid="' + pin_id + '"');
+          text = '<div class="pin_image"><img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></div>' + '<table>' + '<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' + '<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' + '<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' + '<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>' + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table>';
+          console.log(text);
+          console.log(box.html());
+          box.html(text);
+        },
+        error: function(x, textStatus, errorThrown) {
+          console.log("Error:" + textStatus + ', ' + errorThrown);
         }
       });
     };

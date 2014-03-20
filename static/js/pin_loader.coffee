@@ -270,6 +270,7 @@ jQuery ->
 		$("#category11").val(pin['category'])
 		$("#imageurl11").val('')
 		$("#image11").val('')
+		remove_all_errors()
 		$('#pin_edit_dialog').dialog('open')
 		
 		
@@ -329,8 +330,37 @@ jQuery ->
 			,success: (data) ->
 				if data['status'] isnt 'ok'
 					window.alert('Server error in your last update: ' + data['status'])
+				else
+					refresh_pin(pinid.val())
 			,error: (x, err, ex) ->
 				window.alert('Server error in your last update: ' + err + ' ' + ex)
+		return
+	
+	
+	refresh_pin = (pin_id) ->
+		$.ajax type: 'GET'
+			,url: '/admin/input/pins/' + pin_id + '/'
+			,dataType: 'json'
+			,success: (pin) ->
+				box = $('div.pinbox[pinid="' + pin_id + '"')
+				#box.remove('div,table')
+				text = '<div class="pin_image"><img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></div>' +
+					'<table>' +
+					'<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' +
+					'<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' +
+					'<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' +
+					'<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>' +
+					'<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' +
+					'<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> '+
+					'<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' +
+					'</table>'
+				console.log(text)
+				console.log(box.html())
+				box.html(text)
+				return
+			,error: (x, textStatus, errorThrown) ->
+				console.log("Error:" + textStatus + ', ' + errorThrown)
+				return
 		return
 	
 	

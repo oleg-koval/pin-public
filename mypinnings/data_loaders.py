@@ -209,7 +209,10 @@ class PinLoaderPage(object):
         height *= ratio
         img.thumbnail((width, int(height)), Image.ANTIALIAS)
         img.save('static/tmp/pinthumb{}.png'.format(pin_id))
-        os.unlink(filename)
+        try:
+            os.unlink(filename)
+        except:
+            pass
 
 
 PIN_LIST_LIMIT = 20
@@ -224,7 +227,10 @@ class LoadersEditAPI(PinLoaderPage):
     def get_by_id(self, id):
         sess = session.get_session()
         db = database.get_db()
-        results = db.query('select pins.*, tags.tags from pins left join tags on pins.id = tags.pin_id where id=$id and user_id=$user_id',
+        results = db.query('''select pins.*, tags.tags, categories.name as category_name
+                            from pins join categories on pins.category=categories.id
+                            left join tags on pins.id = tags.pin_id
+                            where pins.id=$id and user_id=$user_id''',
                             vars={'id': id, 'user_id': sess.user_id})
         for row in results:
             web.header('Content-Type', 'application/json')
