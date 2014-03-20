@@ -326,11 +326,14 @@
         type: 'POST',
         url: '/admin/input/pins/' + pinid.val() + '/',
         data: pin_data,
-        success: function() {
-          return console.log('edited');
+        dataType: 'json',
+        success: function(data) {
+          if (data['status'] !== 'ok') {
+            return window.alert('Server error in your last update: ' + data['status']);
+          }
         },
         error: function(x, err, ex) {
-          return console.log(err + ' ' + ex);
+          return window.alert('Server error in your last update: ' + err + ' ' + ex);
         }
       });
     };

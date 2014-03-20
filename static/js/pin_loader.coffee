@@ -324,10 +324,12 @@ jQuery ->
 		$.ajax type: 'POST'
 			,url: '/admin/input/pins/' + pinid.val() + '/'
 			,data: pin_data
-			,success: ->
-				console.log('edited')
+			,dataType: 'json'
+			,success: (data) ->
+				if data['status'] isnt 'ok'
+					window.alert('Server error in your last update: ' + data['status'])
 			,error: (x, err, ex) ->
-				console.log(err + ' ' + ex)
+				window.alert('Server error in your last update: ' + err + ' ' + ex)
 		return
 	
 	

@@ -274,6 +274,7 @@ class LoadersEditAPI(PinLoaderPage):
     def POST(self, pin_id):
         form = self.get_form()
         if form.validates():
+            web.header('Content-Type', 'application/json')
             sess = session.get_session()
             db = database.get_db()
             db.update(tables='pins', where='id=$id and user_id=$user_id', vars={'id': pin_id, 'user_id': sess.user_id},
@@ -287,9 +288,9 @@ class LoadersEditAPI(PinLoaderPage):
             if form.d.imageurl:
                 try:
                     self.save_image_from_url(pin_id, form.d.imageurl)
-                except:
+                except Exception as e:
                     logger.error('Could not save the image for pin: {} from URL: {}'.format(pin_id, form.d.imageurl), exc_info=True)
-            web.header('Content-Type', 'application/json')
+                    return json.dumps({'status': str(e)})
             return json.dumps({'status': 'ok'})
         else:
             return web.notfound()
