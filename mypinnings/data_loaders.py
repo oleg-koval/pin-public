@@ -27,7 +27,7 @@ class PinLoaderPage(object):
         current_category = sess.get('category', None)
         categories = tuple((cat.id, cat.name) for cat in cached_models.all_categories)
         form = web.form.Form(web.form.Dropdown('category', categories, web.form.notnull, value=current_category),
-                             web.form.Dropdown('category11', categories, web.form.notnull, value=current_category),
+                             web.form.Dropdown('category11', categories, value=current_category),
                              web.form.Textbox('imageurl1', **{'class': 'imagelink', 'i': 1}),
                              web.form.Textbox('imageurl2', **{'class': 'imagelink', 'i': 2}),
                              web.form.Textbox('imageurl3', **{'class': 'imagelink', 'i': 3}),
