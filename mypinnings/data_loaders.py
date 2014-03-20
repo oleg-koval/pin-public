@@ -106,7 +106,8 @@ class PinLoaderPage(object):
             sess.category = int(form.d.category)
             for i in range(10):
                 result = self.save_pin(form, str(i + 1), sess.category)
-                result_info.append(result)
+                if not result.get('pin_id', False) and result.get('error', False):
+                    result_info.append(result)
         sess.result_info = result_info
         return web.seeother('')
 

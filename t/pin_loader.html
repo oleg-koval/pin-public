@@ -11,7 +11,7 @@ $def with (form, result_info)
 	<form id='form' autocomplete='off' enctype='multipart/form-data' method='post' action=''>
 		<h1>Category for these Pins: </h1>$:form['category'].render()
 		<p>All the items you upload will belong to the same category, so carefully select the category.</p>
-		<p>You must provide, for each pin you upload: Title, Description, Link to the original source, Tags  (#rolex, #coolstuff) and an image via URL or upload.</p>
+		<p>You must provide, for each pin you upload: Title, Description, Link to the original source, Tags (#rolex #coolstuff) and an image via URL or upload.</p>
 		<p>For the image you can put the URL or upload the image, don't use both.</p>
 		<p>You can upload up to 10 images at a time, using the fields below. You can view the results in the 'Items Added' tab.</p>
 		<table cellpadding="20">
@@ -83,30 +83,7 @@ $def with (form, result_info)
 	<table border="1" cellpadding="30">
 	$for ri in result_info:
 		<tr>
-		$if ri.get('pin_id', False):
-			<td><img src="/static/tmp/pinthumb$(ri['pin_id']).png"></td>
 			<td>
-				<table>
-					<tr>
-						<th>[$ri['index']] Success:</th><td></td>
-					</tr><tr>
-						<th>Title:</th><td>$ri['title']</td>
-					</tr><tr>
-						<th>Description:</th><td>$ri['description']</td>
-					</tr><tr>
-						<th>Link:</th><td><a href="$ri['link']">$ri['link']</a></td>
-					</tr><tr>
-						<th>Tags:</th><td>$ri['tags']</td>
-					</tr><tr>
-						$if ri['imageurl']:
-							<th>Image from URL:</th><td><a href="$ri['imageurl']">$ri['imageurl']</a></td>
-						$else:
-							<th>Image Uploaded by you:</th><td><a href="$ri['image']">$ri['image']</a></td>
-					</tr>
-				</table>
-			</td>
-		$else:
-			<td colspan="2">
 			$if ri['error']:
 				<table>
 					<tr>
@@ -128,9 +105,16 @@ $def with (form, result_info)
 							<th></th><td><strong>You did not provided an image!</strong></th>
 					</tr>
 				</table>
-			$else:
-				[$ri['index']] Not used
 			</td>
+		</tr>
+	</table>
+	<table>
+		<tr>
+			<td id="column1"></td>
+			<td id="column2"></td>
+			<td id="column3"></td>
+			<td id="column4"></td>
+			<td id="column5"></td>
 		</tr>
 	</table>
 </div><!-- added -->
