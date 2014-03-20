@@ -172,11 +172,7 @@
       height = $(window).innerHeight();
       doc_height = $(document).height();
       sensitivity = 300;
-      console.log('top' + top);
-      console.log('h' + height);
-      console.log('dh' + doc_height);
       if (top + height + sensitivity > doc_height) {
-        console.log('load more');
         load_more_pins();
       }
     });
