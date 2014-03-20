@@ -2,7 +2,7 @@
 (function() {
 
   jQuery(function() {
-    var all_fields_blank, ensure_tags_has_hash_symbol, load_more_pins, open_edit_dialog_for, put_more_pins_into_the_page, refresh_pin, remove_all_errors, remove_error_from_field, show_error_for_field, update_pin_in_backgroud, validate_errors, validate_image, validate_link;
+    var all_fields_blank, ensure_tags_has_hash_symbol, get_pin_html_text, load_more_pins, open_edit_dialog_for, put_more_pins_into_the_page, refresh_pin, remove_all_errors, remove_error_from_field, show_error_for_field, update_pin_in_backgroud, validate_errors, validate_image, validate_link;
     $("#tabs").tabs();
     $('.urllink,.imagelink').change(function(e) {
       var i, value;
@@ -216,13 +216,16 @@
       for (_i = 0, _len = data.length; _i < _len; _i++) {
         pin = data[_i];
         column = $('.column' + $.column_control);
-        column.append('<div class="pinbox" pinid="' + pin['id'] + '">' + '<div class="pin_image"><img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></div>' + '<table>' + '<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' + '<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' + '<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' + '<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>' + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table></div>');
+        column.append('<div class="pinbox" pinid="' + pin['id'] + '">' + get_pin_html_text(pin) + '</div>');
         $.column_control += 1;
         if ($.column_control > 4) {
           $.column_control = 1;
         }
       }
       $.loading_more_pins = false;
+    };
+    get_pin_html_text = function(pin) {
+      return '<div class="pin_image"><a href="/static/tmp/' + pin['id'] + '.png" target="_blank" title="See full size">' + '<img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></a></div>' + '<table>' + '<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' + '<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' + '<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' + '<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>' + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table>';
     };
     $('body').on('click', '.button_pin_delete', function() {
       var confirmation, pinid;
@@ -263,6 +266,7 @@
       $("#link11").val(pin['link']);
       $("#tags11").val(pin['tags']);
       $("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png');
+      $("#imgfulllink11").attr('href', '/static/tmp/' + pin['id'] + '.png');
       $("#category11").val(pin['category']);
       $("#imageurl11").val('');
       $("#image11").val('');
@@ -347,7 +351,7 @@
         success: function(pin) {
           var box, text;
           box = $('div.pinbox[pinid="' + pin_id + '"]');
-          text = '<div class="pin_image"><img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></div>' + '<table>' + '<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' + '<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' + '<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' + '<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>' + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table>';
+          text = get_pin_html_text(pin);
           box.html(text);
         },
         error: function(x, textStatus, errorThrown) {
