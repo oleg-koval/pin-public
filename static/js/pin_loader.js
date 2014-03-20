@@ -217,7 +217,7 @@
       for (_i = 0, _len = data.length; _i < _len; _i++) {
         pin = data[_i];
         column = $('#column' + $.column_control);
-        column.append('<div><div class="pin_image"><img src="/static/tmp/pinthumb' + pin['id'] + '.png"></div></div>');
+        column.append('<div class="pinbox" pinid="' + pin['id'] + '">' + '<div class="pin_image"><img src="/static/tmp/pinthumb' + pin['id'] + '.png"></div>' + '<table>' + '<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' + '<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' + '<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>' + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table></div>');
         $.column_control += 1;
         if ($.column_control > 5) {
           $.column_control = 1;
@@ -225,6 +225,18 @@
       }
       $.loading_more_pins = false;
     };
+    $('body').on('click', '.button_pin_delete', function() {
+      var confirmation, pinid;
+      confirmation = window.confirm('Are you sure to delete this pin?');
+      if (confirmation) {
+        pinid = $(this).attr('pinid');
+        $.ajax({
+          type: 'DELETE',
+          url: '/admin/input/pins/' + pinid + '/'
+        });
+        $('div.pinbox[pinid="' + pinid + '"]').remove();
+      }
+    });
   });
 
 }).call(this);

@@ -243,3 +243,14 @@ class LoadersEditAPI(object):
         print(json_pins)
         web.header('Content-Type', 'application/json')
         return json_pins
+
+    def DELETE(self, pin_id):
+        try:
+            sess = session.get_session()
+            db = database.get_db()
+            db.delete(table='pins', id=pin_id, user_id=sess.user_id)
+            web.header('Content-Type', 'application/json')
+            return json.dumps({'status': 'ok'})
+        except:
+            logger.info('Cannot delete a pin: {}'.format(pin_id), exc_info=True)
+            return web.notfound()
