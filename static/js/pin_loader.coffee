@@ -216,6 +216,7 @@ jQuery ->
 			column.append('<div class="pinbox" pinid="' + pin['id'] + '">'+
 				'<div class="pin_image"><img src="/static/tmp/pinthumb' + pin['id'] + '.png"></div>' +
 				'<table>' +
+				'<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' +
 				'<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' +
 				'<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' +
 				'<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>' +

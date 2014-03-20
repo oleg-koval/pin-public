@@ -239,7 +239,10 @@ class LoadersEditAPI(PinLoaderPage):
             limit = PIN_LIST_FIRST_LIMIT
         else:
             limit = PIN_LIST_LIMIT
-        results = db.query('''select pins.*, tags.tags from pins left join tags on pins.id = tags.pin_id where user_id=$user_id
+        results = db.query('''select pins.*, tags.tags, categories.name as category_name
+                            from pins join categories on pins.category=categories.id
+                            left join tags on pins.id = tags.pin_id
+                            where user_id=$user_id
                             order by timestamp desc offset $offset limit $limit''',
                             vars={'user_id': sess.user_id, 'offset': sess.offset, 'limit': limit})
         sess.offset += limit
