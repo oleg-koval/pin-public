@@ -212,7 +212,7 @@ jQuery ->
 	$.column_control = 1
 	put_more_pins_into_the_page = (data) ->
 		for pin in data
-			column = $('#column' + $.column_control)
+			column = $('.column' + $.column_control)
 			column.append('<div class="pinbox" pinid="' + pin['id'] + '">'+
 				'<div class="pin_image"><img src="/static/tmp/pinthumb' + pin['id'] + '.png"></div>' +
 				'<table>' +
@@ -224,7 +224,7 @@ jQuery ->
 				'<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' +
 				'</table></div>')
 			$.column_control += 1
-			if $.column_control > 5
+			if $.column_control > 4
 				$.column_control = 1
 		$.loading_more_pins = false
 		return

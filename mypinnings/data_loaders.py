@@ -248,7 +248,7 @@ class LoadersEditAPI(object):
         try:
             sess = session.get_session()
             db = database.get_db()
-            db.delete(table='pins', id=pin_id, user_id=sess.user_id)
+            db.delete(table='pins', where='id=$id and user_id=$user_id', vars={'id': pin_id, 'user_id': sess.user_id})
             web.header('Content-Type', 'application/json')
             return json.dumps({'status': 'ok'})
         except:

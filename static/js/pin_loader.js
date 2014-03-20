@@ -216,10 +216,10 @@
       var column, pin, _i, _len;
       for (_i = 0, _len = data.length; _i < _len; _i++) {
         pin = data[_i];
-        column = $('#column' + $.column_control);
+        column = $('.column' + $.column_control);
         column.append('<div class="pinbox" pinid="' + pin['id'] + '">' + '<div class="pin_image"><img src="/static/tmp/pinthumb' + pin['id'] + '.png"></div>' + '<table>' + '<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' + '<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' + '<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>' + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table></div>');
         $.column_control += 1;
-        if ($.column_control > 5) {
+        if ($.column_control > 4) {
           $.column_control = 1;
         }
       }
