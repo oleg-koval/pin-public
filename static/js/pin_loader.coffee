@@ -40,6 +40,8 @@ jQuery ->
 				no_error = validate_errors(i)
 				if can_submit
 					can_submit = no_error
+			if not can_submit
+				window.alert('Errors pending, please check')
 			return can_submit
 		catch error
 			alert(error)

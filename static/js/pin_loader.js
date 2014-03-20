@@ -40,6 +40,9 @@
             can_submit = no_error;
           }
         }
+        if (!can_submit) {
+          window.alert('Errors pending, please check');
+        }
         return can_submit;
       } catch (error) {
         alert(error);
