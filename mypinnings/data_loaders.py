@@ -214,7 +214,7 @@ class PinLoaderPage(object):
 
 PIN_LIST_LIMIT = 20
 PIN_LIST_FIRST_LIMIT = 50
-class LoadersEditAPI(object):
+class LoadersEditAPI(PinLoaderPage):
     def GET(self, pin_id=None):
         if pin_id:
             return self.get_by_id(pin_id)
@@ -263,12 +263,33 @@ class LoadersEditAPI(object):
         sess = session.get_session()
         current_category = sess.get('category', None)
         categories = tuple((cat.id, cat.name) for cat in cached_models.all_categories)
-        form = web.form.Form(web.form.Dropdown('category11', categories, web.form.notnull, value=current_category),
-                             web.form.Textbox('imageurl11', web.form.notnull),
-                             web.form.Textbox('title11', web.form.notnull),
-                             web.form.Textarea('description11', web.form.notnull),
-                             web.form.Textbox('link11', web.form.notnull),
-                             web.form.Textbox('tags11', web.form.notnull))
+        form = web.form.Form(web.form.Dropdown('category', categories, web.form.notnull, value=current_category),
+                             web.form.Textbox('imageurl'),
+                             web.form.Textbox('title', web.form.notnull),
+                             web.form.Textarea('description', web.form.notnull),
+                             web.form.Textbox('link', web.form.notnull),
+                             web.form.Textbox('tags', web.form.notnull))
+        return form()
 
     def POST(self, pin_id):
-        pass
+        form = self.get_form()
+        if form.validates():
+            sess = session.get_session()
+            db = database.get_db()
+            db.update(tables='pins', where='id=$id and user_id=$user_id', vars={'id': pin_id, 'user_id': sess.user_id},
+                      name=form.d.title, description=form.d.description, link=form.d.link, category=form.d.category)
+            results = db.where(table='tags', pin_id=pin_id)
+            for _ in results:
+                db.update(tables='tags', where='pin_id=pin_id', vars={'id': pin_id}, tags=form.d.tags)
+                break
+            else:
+                db.insert(tablename='tags', pin_id=pin_id, tags=form.d.tags)
+            if form.d.imageurl:
+                try:
+                    self.save_image_from_url(pin_id, form.d.imageurl)
+                except:
+                    logger.error('Could not save the image for pin: {} from URL: {}'.format(pin_id, form.d.imageurl), exc_info=True)
+            web.header('Content-Type', 'application/json')
+            return json.dumps({'status': 'ok'})
+        else:
+            return web.notfound()

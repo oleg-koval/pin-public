@@ -267,8 +267,8 @@
       $("#category11").val(pin['category']);
       return $('#pin_edit_dialog').dialog('open');
     };
-    $('#pin_edit_form.submit').submit(function() {
-      var description, image, imageurl, link, no_error, pinid, tags, title;
+    $('#pin_edit_form').submit(function() {
+      var category, description, image, imageurl, link, no_error, pinid, tags, title;
       no_error = true;
       pinid = $('#id11');
       title = $('#title11');
@@ -277,6 +277,7 @@
       imageurl = $('#imageurl11');
       image = $('#image11');
       tags = $('#tags11');
+      category = $('#category11');
       if (title.val() === '') {
         no_error = false;
         show_error_for_field(title, 'Empty title', 11);
@@ -303,25 +304,32 @@
         if (image.val() !== '' && imageurl.val() === '') {
           return true;
         } else {
-          update_pin_in_backgroud(pinid, title, description, link, imageurl, tags);
+          update_pin_in_backgroud(pinid, title, description, link, imageurl, tags, category);
           $('#pin_edit_dialog').dialog('close');
         }
       }
       return false;
     });
-    update_pin_in_backgroud = function(pinid, title, description, link, imageurl, tags) {
+    update_pin_in_backgroud = function(pinid, title, description, link, imageurl, tags, category) {
       var pin_data;
       pin_data = {
-        'title': title,
-        'description': description,
-        'link': link,
-        'imageurl': imageurl,
-        'tags': tags
+        'title': title.val(),
+        'description': description.val(),
+        'link': link.val(),
+        'imageurl': imageurl.val(),
+        'tags': tags.val(),
+        'category': category.val()
       };
       $.ajax({
-        type: POST,
+        type: 'POST',
+        url: '/admin/input/pins/' + pinid.val() + '/',
         data: pin_data,
-        url: '/admin/input/pins/' + pinid + '/'
+        success: function() {
+          return console.log('edited');
+        },
+        error: function(x, err, ex) {
+          return console.log(err + ' ' + ex);
+        }
       });
     };
   });

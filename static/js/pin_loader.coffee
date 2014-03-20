@@ -270,7 +270,7 @@ jQuery ->
 		$('#pin_edit_dialog').dialog('open')
 		
 		
-	$('#pin_edit_form.submit').submit ->
+	$('#pin_edit_form').submit ->
 		no_error = true
 		pinid = $('#id11')
 		title = $('#title11')
@@ -279,6 +279,7 @@ jQuery ->
 		imageurl = $('#imageurl11')
 		image = $('#image11')
 		tags = $('#tags11')
+		category = $('#category11')
 		# should have title
 		if title.val() == ''
 			no_error = false
@@ -306,20 +307,25 @@ jQuery ->
 				# submit to upload the image
 				return true
 			else
-				update_pin_in_backgroud(pinid, title, description, link, imageurl, tags)
+				update_pin_in_backgroud(pinid, title, description, link, imageurl, tags, category)
 				$('#pin_edit_dialog').dialog('close')
 		return false
 		
 		
-	update_pin_in_backgroud = (pinid, title, description, link, imageurl, tags) ->
-		pin_data = 'title': title
-			,'description': description
-			,'link': link
-			,'imageurl': imageurl
-			,'tags': tags
-		$.ajax type: POST
+	update_pin_in_backgroud = (pinid, title, description, link, imageurl, tags, category) ->
+		pin_data = 'title': title.val()
+			,'description': description.val()
+			,'link': link.val()
+			,'imageurl': imageurl.val()
+			,'tags': tags.val()
+			,'category': category.val()
+		$.ajax type: 'POST'
+			,url: '/admin/input/pins/' + pinid.val() + '/'
 			,data: pin_data
-			,url: '/admin/input/pins/' + pinid + '/'
+			,success: ->
+				console.log('edited')
+			,error: (x, err, ex) ->
+				console.log(err + ' ' + ex)
 		return
 	
 	
