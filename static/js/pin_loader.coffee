@@ -70,6 +70,13 @@ jQuery ->
 			show_error_for_field(description, 'Empty description', i)
 		else
 			remove_error_from_field(description, i)
+		# should have tags
+		if tags.val() == ''
+			no_error = false
+			show_error_for_field(tags, 'Empty tags', i)
+		else
+			remove_error_from_field(tags, i)
+			ensure_tags_has_hash_symbol(tags)
 		# should have a valid link
 		if not validate_link(link, i)
 			no_error = false
@@ -132,3 +139,27 @@ jQuery ->
 					 	value.indexOf('.svg') == -1
 					show_error_for_field(image, 'Image doesn\'t seem to be in a internet friendly format: .png, ,jpg, .gif, .svn', i)
 		return true
+		
+		
+	ensure_tags_has_hash_symbol = (field) ->
+		value = field.val()
+		new_value = ''
+		some_has_no_hash_symbol = false
+		for tag in value.split(" ")
+			if tag.indexOf('#') isnt 0
+				some_has_no_hash_symbol = true
+				new_tag = '#' + tag
+			else
+				new_tag = tag
+			if new_value is ''
+				new_value = new_tag
+			else
+				new_value = new_value + ' ' + new_tag
+		if some_has_no_hash_symbol
+			field.val(new_value)
+		return
+
+		
+	$('.tagwords').on 'change', ->
+		if $(this).val() isnt ''
+			ensure_tags_has_hash_symbol($(this))

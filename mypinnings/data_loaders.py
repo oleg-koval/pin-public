@@ -76,16 +76,16 @@ class PinLoaderPage(object):
                              web.form.Textbox('link8', **{'class': 'urllink', 'i': 1}),
                              web.form.Textbox('link9', **{'class': 'urllink', 'i': 1}),
                              web.form.Textbox('link10', **{'class': 'urllink', 'i': 1}),
-                             web.form.Textbox('tags1', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags2', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags3', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags4', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags5', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags6', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags7', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags8', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags9', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags10', placeholder='#this #is #awesome'),
+                             web.form.Textbox('tags1', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 1}),
+                             web.form.Textbox('tags2', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 2}),
+                             web.form.Textbox('tags3', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 3}),
+                             web.form.Textbox('tags4', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 4}),
+                             web.form.Textbox('tags5', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 5}),
+                             web.form.Textbox('tags6', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 6}),
+                             web.form.Textbox('tags7', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 7}),
+                             web.form.Textbox('tags8', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 8}),
+                             web.form.Textbox('tags9', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 9}),
+                             web.form.Textbox('tags10', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 10}),
                              web.form.Button('add', id='btn-add')
                              )
         return form()
@@ -148,6 +148,8 @@ class PinLoaderPage(object):
             return _("No description")
         if not link.value:
             return _("No link")
+        if not tags.value:
+            return _("No tags")
         if not image.filename and not imageurl.value:
             return _("No image URL or no uploaded image file")
         return None

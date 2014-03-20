@@ -2,7 +2,7 @@
 (function() {
 
   jQuery(function() {
-    var all_fields_blank, remove_all_errors, remove_error_from_field, show_error_for_field, validate_errors, validate_image, validate_link;
+    var all_fields_blank, ensure_tags_has_hash_symbol, remove_all_errors, remove_error_from_field, show_error_for_field, validate_errors, validate_image, validate_link;
     $("#tabs").tabs();
     $('.urllink,.imagelink').change(function(e) {
       var i, value;
@@ -70,6 +70,13 @@
       } else {
         remove_error_from_field(description, i);
       }
+      if (tags.val() === '') {
+        no_error = false;
+        show_error_for_field(tags, 'Empty tags', i);
+      } else {
+        remove_error_from_field(tags, i);
+        ensure_tags_has_hash_symbol(tags);
+      }
       if (!validate_link(link, i)) {
         no_error = false;
       }
@@ -104,7 +111,7 @@
       }
       return true;
     };
-    return validate_image = function(imageurl, image, i) {
+    validate_image = function(imageurl, image, i) {
       var value;
       if (imageurl.val() === '' && image.val() === '') {
         show_error_for_field(imageurl, 'Empty image', i);
@@ -127,6 +134,35 @@
       }
       return true;
     };
+    ensure_tags_has_hash_symbol = function(field) {
+      var new_tag, new_value, some_has_no_hash_symbol, tag, value, _i, _len, _ref;
+      value = field.val();
+      new_value = '';
+      some_has_no_hash_symbol = false;
+      _ref = value.split(" ");
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        tag = _ref[_i];
+        if (tag.indexOf('#') !== 0) {
+          some_has_no_hash_symbol = true;
+          new_tag = '#' + tag;
+        } else {
+          new_tag = tag;
+        }
+        if (new_value === '') {
+          new_value = new_tag;
+        } else {
+          new_value = new_value + ' ' + new_tag;
+        }
+      }
+      if (some_has_no_hash_symbol) {
+        field.val(new_value);
+      }
+    };
+    return $('.tagwords').on('change', function() {
+      if ($(this).val() !== '') {
+        return ensure_tags_has_hash_symbol($(this));
+      }
+    });
   });
 
 }).call(this);
