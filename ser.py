@@ -132,6 +132,7 @@ urls = (
     '/recover_password_username_test/', 'mypinnings.recover_password.UsernameOrEmailValidator',
     '/recover_password_sent/?', 'mypinnings.recover_password.EmailSentPage',
     '/pwreset/(\d*)/(\d*)/(.*)/', 'mypinnings.recover_password.PasswordReset',
+    '/recover_password_complete/', 'mypinnings.recover_password.RecoverPasswordComplete',
 
     '/(.*?)', 'PageProfile2',
 )

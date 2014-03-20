@@ -1,4 +1,5 @@
 import json
+import datetime
 from gettext import gettext as _
 
 import web
@@ -84,7 +85,8 @@ class PasswordReset(object):
     PwdResetForm = web.form.Form(web.form.Password('pwd1', web.form.notnull, description=_('New password')),
                                  web.form.Password('pwd2', web.form.notnull, description=_('Verify your password')),
                                  web.form.Button('send', description=_('Send')),
-                                 validators=[web.form.Validator("Passwords don't match", lambda i: i.pwd1 == i.pwd2)])
+                                 validators=[web.form.Validator("Passwords don't match", lambda i: i.pwd1 == i.pwd2),
+                                             web.form.Validator('Passwords must have at least 6 characters', lambda i: len(i.pwd1) >= 6)])
 
     def GET(self, user_id, token_id, token):
         user_id = int(user_id)
@@ -92,7 +94,9 @@ class PasswordReset(object):
         db = database.get_db()
         results = db.where(table='password_change_tokens', id=token_id)
         for row in results:
-            if user_id == row.user_id and token == row.token:
+            if (user_id == row.user_id and token == row.token
+                    and not row.used
+                    and datetime.datetime.now() < (row.created_on + datetime.timedelta(hours=row.valid_hours))):
                 form = self.PwdResetForm()
                 sess = session.get_session()
                 sess['pwdrecov_user_id'] = user_id
@@ -101,3 +105,31 @@ class PasswordReset(object):
                 return template.ltpl('recover_password/change_pwd_form', form)
         message = _('Sorry! We cannot verify that this user requested a password reset. Please try to reset your passord again.')
         web.seeother(url='/recover_password?msg={}'.format(message), absolute=True)
+
+    def POST(self, user_id, token_id, token):
+        user_id = int(user_id)
+        token_id = int(token_id)
+        form = self.PwdResetForm()
+        if form.validates():
+            sess = session.get_session()
+            if sess['pwdrecov_token_id'] != token_id or sess['pwdrecov_user_id'] != user_id or sess['pwdrecov_token'] != token:
+                message = _('Sorry! We cannot verify that this user requested a password reset. Please try to reset your passord again.')
+                return web.seeother(url='/recover_password?msg={}'.format(message), absolute=True)
+            password = form.d.pwd1
+            auth.chage_user_password(user_id, password)
+            db = database.get_db()
+            db.update(tables='password_change_tokens', where='id=$id', vars={'id': token_id}, used=True, used_on=datetime.datetime.now())
+            auth.login_user(sess, user_id)
+            return web.seeother('/recover_password_complete/')
+        else:
+            return template.ltpl('recover_password/change_pwd_form', form)
+
+
+class RecoverPasswordComplete(object):
+    def GET(self):
+        db = database.get_db()
+        sess = session.get_session()
+        results = db.where('users', what='username', id=sess.user_id)
+        for row in results:
+            username = row.username
+        return template.ltpl('recover_password/complete', username)
