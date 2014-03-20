@@ -267,6 +267,8 @@ jQuery ->
 		$("#tags11").val(pin['tags'])
 		$("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png')
 		$("#category11").val(pin['category'])
+		$("#imageurl11").val('')
+		$("#image11").val('')
 		$('#pin_edit_dialog').dialog('open')
 		
 		
