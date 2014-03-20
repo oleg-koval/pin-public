@@ -106,7 +106,7 @@ jQuery ->
 		
 	pwd1_strength_changed = (strength, percentage) ->
 		$('#pwd1').nextAll('div').remove()
-		if $('pwd1').val() == ''
+		if $('#pwd1').val() == ''
 			return
 		if percentage < 25
 			message = 'poor'
