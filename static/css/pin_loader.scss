@@ -16,3 +16,10 @@ div.pins_columns_container {
 		@include span-columns(3);
 	}
 }
+
+.pinbox {
+	padding: 6px;
+	border-radius: 5px;
+	box-shadow: 0px 0px 6px gray;
+	margin-top: 16px;
+}

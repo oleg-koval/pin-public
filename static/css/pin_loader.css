@@ -41,3 +41,9 @@ div.pins_columns_container {
     width: 23.23176%; }
     div.pins_columns_container div.column4:last-child {
       margin-right: 0; }
+
+.pinbox {
+  padding: 6px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 6px gray;
+  margin-top: 16px; }
