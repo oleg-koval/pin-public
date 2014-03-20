@@ -120,9 +120,20 @@ class PasswordReset(object):
             db = database.get_db()
             db.update(tables='password_change_tokens', where='id=$id', vars={'id': token_id}, used=True, used_on=datetime.datetime.now())
             auth.login_user(sess, user_id)
+            self.send_email()
             return web.seeother('/recover_password_complete/')
         else:
             return template.ltpl('recover_password/change_pwd_form', form)
+
+    def send_email(self):
+        db = database.get_db()
+        sess = session.get_session()
+        results = db.where('users', id=sess.user_id)
+        for row in results:
+            self.user = row
+        html_message = str(web.template.frender('t/recover_password/email_pwd_changed.html')(self.user))
+        web.sendmail('noreply@mypinnings.com', self.user.email, 'Your MyPinnings password has been changed',
+                 html_message, headers={'Content-Type': 'text/html;charset=utf-8'})
 
 
 class RecoverPasswordComplete(object):
