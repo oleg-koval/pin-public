@@ -1,0 +1,16 @@
+$def with (form, message=None)
+<link rel='stylesheet' type='text/css' href='/static/css/register.css'/>
+<div class='register_columns_container'>
+  <div class='first_column'>
+<h1>Select your new password</h1>
+<form method='post' action='' id='change_pwd_form'>
+	$if message is not None:
+		<div class='notice'>$:message</div>
+	$:form.render()
+</form>
+  </div>
+  <div class='space_column'>&nbsp;</div>
+  <div class='second_column'>
+  </div>
+</div>
+<script type='text/javascript' src='/static/js/recover_password.js'></script>

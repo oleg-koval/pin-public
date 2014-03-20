@@ -2,7 +2,7 @@
 (function() {
 
   jQuery(function() {
-    var clear_any_notification, show_verification_notfound, show_verification_ok, show_verifying, verification_callback, verification_error_callback, verify_username;
+    var clear_any_notification, clear_pwd2_notifications, notify_pwd2_dont_match, show_verification_notfound, show_verification_ok, show_verifying, verification_callback, verification_error_callback, verify_passwords_match, verify_username;
     $.verification_running = false;
     $.last_value_verified = '';
     $('#username').keyup(function() {
@@ -81,6 +81,29 @@
     clear_any_notification = function() {
       $('#username').nextAll('span.green,span.red,span.black').remove();
     };
+    $('#change_pwd_form').submit(function() {
+      verify_passwords_match();
+    });
+    verify_passwords_match = function() {
+      var pwd1, pwd2;
+      pwd1 = $('#pwd1').val();
+      pwd2 = $('#pwd2').val();
+      clear_pwd2_notifications();
+      if (pwd1 !== pwd2) {
+        notify_pwd2_dont_match();
+        return false;
+      }
+      return true;
+    };
+    notify_pwd2_dont_match = function() {
+      $('#pwd2').after('<span class="red">Password don\'t match</span>');
+    };
+    clear_pwd2_notifications = function() {
+      $('#pwd2').nextAll('span.green,span.red,span.black').remove();
+    };
+    $('#pwd2').keyup(function() {
+      verify_passwords_match();
+    });
   });
 
 }).call(this);

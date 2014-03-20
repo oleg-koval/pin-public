@@ -78,3 +78,25 @@ class UsernameOrEmailValidator(object):
         result = json.dumps(result)
         web.header('Content-Type', 'application/json')
         return result
+
+
+class PasswordReset(object):
+    PwdResetForm = web.form.Form(web.form.Password('pwd1', web.form.notnull, description=_('New password')),
+                                 web.form.Password('pwd2', web.form.notnull, description=_('Verify your password')),
+                                 web.form.Button('send', description=_('Send')))
+
+    def GET(self, user_id, token_id, token):
+        user_id = int(user_id)
+        token_id = int(token_id)
+        db = database.get_db()
+        results = db.where(table='password_change_tokens', id=token_id)
+        for row in results:
+            if user_id == row.user_id and token == row.token:
+                form = self.PwdResetForm()
+                sess = session.get_session()
+                sess['pwdrecov_user_id'] = user_id
+                sess['pwdrecov_token_id'] = token_id
+                sess['pwdrecov_token'] = token
+                return template.ltpl('recover_password/change_pwd_form', form)
+        message = _('Sorry! We cannot verify that this user requested a password reset. Please try to reset your passord again.')
+        web.seeother(url='/recover_password?msg={}'.format(message), absolute=True)

@@ -73,6 +73,36 @@ jQuery ->
 	clear_any_notification = ->
 		$('#username').nextAll('span.green,span.red,span.black').remove()
 		return
+		
+		
+	$('#change_pwd_form').submit ->
+		verify_passwords_match()
+		return
+	
+	
+	verify_passwords_match = ->
+		pwd1 = $('#pwd1').val()
+		pwd2 = $('#pwd2').val()
+		clear_pwd2_notifications()
+		if pwd1 isnt pwd2
+			notify_pwd2_dont_match()
+			return false
+		return true
+		
+		
+	notify_pwd2_dont_match = ->
+		$('#pwd2').after('<span class="red">Password don\'t match</span>')
+		return
+		
+		
+	clear_pwd2_notifications = ->
+		$('#pwd2').nextAll('span.green,span.red,span.black').remove()
+		return
+		
+
+	$('#pwd2').keyup ->
+		verify_passwords_match()
+		return
 	
 	
 	return
