@@ -2,7 +2,131 @@
 (function() {
 
   jQuery(function() {
-    return $("#tabs").tabs();
+    var all_fields_blank, remove_all_errors, remove_error_from_field, show_error_for_field, validate_errors, validate_image, validate_link;
+    $("#tabs").tabs();
+    $('.urllink,.imagelink').change(function(e) {
+      var i, value;
+      i = $(this).attr('i');
+      remove_error_from_field($(this), i);
+      value = $(this).val().toLowerCase();
+      if (value.indexOf('http://') !== 0 && value.indexOf('https://') !== 0) {
+        show_error_for_field($(this), 'Link lacks http:// or https://, seems invalid', i);
+      }
+    });
+    $('.imagefile').on('change', function(e) {
+      var i, value;
+      i = $(this).attr('i');
+      remove_error_from_field($(this), i);
+      value = $(this).val().toLowerCase();
+      if (value.indexOf('.png') === -1 && value.indexOf('.jpg') === -1 && value.indexOf('.jpeg') === -1 && value.indexOf('.gif') === -1 && value.indexOf('.svg') === -1) {
+        show_error_for_field($(this), 'Image doesn\'t seem to be in a internet friendly format: .png, ,jpg, .gif, .svn', i);
+      }
+    });
+    $('.titleentry,.descrentry').on('change', function() {
+      var i;
+      i = $(this).attr('i');
+      if ($(this).val() !== '') {
+        remove_error_from_field($(this), i);
+      }
+    });
+    $('#form').submit(function(e) {
+      var can_submit, i, no_error, _i;
+      try {
+        can_submit = true;
+        remove_all_errors();
+        for (i = _i = 1; _i <= 10; i = ++_i) {
+          no_error = validate_errors(i);
+          if (can_submit) {
+            can_submit = no_error;
+          }
+        }
+        return can_submit;
+      } catch (error) {
+        alert(error);
+        return false;
+      }
+    });
+    validate_errors = function(i) {
+      var description, image, imageurl, link, no_error, tags, title;
+      no_error = true;
+      title = $('#title' + i);
+      description = $('#description' + i);
+      link = $('#link' + i);
+      imageurl = $('#imageurl' + i);
+      image = $('#image' + i);
+      tags = $('#tags' + i);
+      if (all_fields_blank(title, description, link, imageurl, image, tags)) {
+        return no_error;
+      }
+      if (title.val() === '') {
+        no_error = false;
+        show_error_for_field(title, 'Empty title', i);
+      } else {
+        remove_error_from_field(title, i);
+      }
+      if (description.val() === '') {
+        no_error = false;
+        show_error_for_field(description, 'Empty description', i);
+      } else {
+        remove_error_from_field(description, i);
+      }
+      if (!validate_link(link, i)) {
+        no_error = false;
+      }
+      if (!validate_image(imageurl, image, i)) {
+        no_error = false;
+      }
+      return no_error;
+    };
+    all_fields_blank = function(title, description, link, imageurl, image, tags) {
+      return title.val() === '' && description.val() === '' && link.val() === '' && imageurl.val() === '' && tags.val() === '' && image.val() === '';
+    };
+    show_error_for_field = function(field, text, i) {
+      field.addClass('field_error');
+      return field.after('<div class="error_text">' + text + '</div>');
+    };
+    remove_error_from_field = function(field, i) {
+      field.removeClass('field_error');
+      return field.nextAll('.error_text').remove();
+    };
+    remove_all_errors = function() {
+      return $('div.error_text').remove();
+    };
+    validate_link = function(field, i) {
+      if (field.val() === '') {
+        show_error_for_field(field, 'Empty link', i);
+        return false;
+      } else {
+        remove_error_from_field(field, i);
+        if (field.val().toLowerCase().indexOf('http://') !== 0 && field.val().toLowerCase().indexOf('https://') !== 0) {
+          show_error_for_field(field, 'Link lacks http:// or https://, seems invalid', i);
+        }
+      }
+      return true;
+    };
+    return validate_image = function(imageurl, image, i) {
+      var value;
+      if (imageurl.val() === '' && image.val() === '') {
+        show_error_for_field(imageurl, 'Empty image', i);
+        show_error_for_field(image, 'Empty image', i);
+        return false;
+      } else {
+        remove_error_from_field(imageurl, i);
+        remove_error_from_field(image, i);
+        value = imageurl.val().toLowerCase();
+        if (value) {
+          if (value.indexOf('http://') !== 0 && value.indexOf('https://') !== 0) {
+            show_error_for_field(imageurl, 'Link lacks http:// or https://, seems invalid', i);
+          }
+        } else {
+          value = image.val().toLowerCase();
+          if (value.indexOf('.png') === -1 && value.indexOf('.jpg') === -1 && value.indexOf('.jpeg') === -1 && value.indexOf('.gif') === -1 && value.indexOf('.svg') === -1) {
+            show_error_for_field(image, 'Image doesn\'t seem to be in a internet friendly format: .png, ,jpg, .gif, .svn', i);
+          }
+        }
+      }
+      return true;
+    };
   });
 
 }).call(this);

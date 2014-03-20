@@ -87,19 +87,17 @@
     $(this).tab("show");
   });
 
+  $(document).ready(function() {
+    $(".remove_repin").click(function(e) {
+      var result;
+      result = window.confirm("Are you sure you want to remove this from your Getlist ?");
+      if (!result) {
+        e.preventDefault();
+        e.event.stopPropagation();
+        return false;
+      }
+      e.event.stopPropagation();
+    });
+  });
+
 }).call(this);
-
-
-function removeRePin(e,y){
-  var result = window.confirm("Are you sure you want to remove this picture ?");
-  if (result) {
-  return $.get("/remove-from-own-getlist",{ pinid: e, repinid: y },function(response) {
-            if (response.error) {
-              alert("An error occured, please refresh the page and try again later");
-            }else{
-              var id = '#horz-pin'+e;
-              $(id).slideToggle();
-            }
-      });
-  }
-}
