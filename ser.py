@@ -128,6 +128,12 @@ urls = (
     '/search/items', 'PageSearchItems',
     '/search/people', 'PageSearchPeople',
 
+    '/recover_password/?', 'mypinnings.recover_password.PasswordRecoveryStart',
+    '/recover_password_username_test/', 'mypinnings.recover_password.UsernameOrEmailValidator',
+    '/recover_password_sent/?', 'mypinnings.recover_password.EmailSentPage',
+    '/pwreset/(\d*)/(\d*)/(.*)/', 'mypinnings.recover_password.PasswordReset',
+    '/recover_password_complete/', 'mypinnings.recover_password.RecoverPasswordComplete',
+
     '/(.*?)', 'PageProfile2',
 )
 
@@ -234,7 +240,7 @@ class PageIndex:
 class PageLogin:
     _form = form.Form(
         form.Textbox('email', description='Email/Username', id='email'),
-        form.Password('password', id='email'),
+        form.Password('password', id='pwd'),
         form.Button('login')
     )
 

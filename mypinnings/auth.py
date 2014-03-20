@@ -138,6 +138,14 @@ def logout_user(sess):
         web.setcookie(x, '', expires=-1)
 
 
+def chage_user_password(user_id, password):
+    pw_hash = str(hash(password))
+    pw_salt = generate_salt()
+    pw_hash = str(hash(pw_hash + pw_salt))
+
+    return database.get_db().update('users', where='id=$id', vars={'id': user_id}, pw_hash=pw_hash, pw_salt=pw_salt)
+
+
 class UniqueUsernameMixin(object):
 
     def username_already_exists(self, username):

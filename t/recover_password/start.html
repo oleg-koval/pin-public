@@ -1,17 +1,13 @@
 $def with (form, message=None)
 <link rel='stylesheet' type='text/css' href='/static/css/register.css'/>
+
 <div class='register_columns_container'>
   <div class='first_column'>
-<h1>Login</h1>
+<h1>Forgot Password?</h1>
 <form method='post' action=''>
 	$if message is not None:
 		<div class='notice'>$:message</div>
-	<table>
-		<tr><th><label for="email">Email/Username</label></th><td>$:form['email'].render()</td></tr>
-		<tr><th><label for="pwd">password</label></th><td>$:form['password'].render()</td></tr>
-		<tr><th><label for="login"></label></th><td><button id="login" name="login">login</button></td></tr>
-		<tr><th></th><td><a href="/recover_password">Forgot password?</a></td></tr>
-	</table>
+	$:form.render()
 </form>
   </div>
   <div class='space_column'>&nbsp;</div>
@@ -26,3 +22,4 @@ $def with (form, message=None)
  	</div>
   </div>
 </div>
+<script type='text/javascript' src='/static/js/recover_password.js'></script>
