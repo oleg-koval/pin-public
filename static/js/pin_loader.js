@@ -2,7 +2,7 @@
 (function() {
 
   jQuery(function() {
-    var all_fields_blank, ensure_tags_has_hash_symbol, load_more_pins, open_edit_dialog_for, put_more_pins_into_the_page, remove_all_errors, remove_error_from_field, show_error_for_field, validate_errors, validate_image, validate_link;
+    var all_fields_blank, ensure_tags_has_hash_symbol, load_more_pins, open_edit_dialog_for, put_more_pins_into_the_page, remove_all_errors, remove_error_from_field, show_error_for_field, update_pin_in_backgroud, validate_errors, validate_image, validate_link;
     $("#tabs").tabs();
     $('.urllink,.imagelink').change(function(e) {
       var i, value;
@@ -264,7 +264,65 @@
       $("#link11").val(pin['link']);
       $("#tags11").val(pin['tags']);
       $("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png');
+      $("#category11").val(pin['category']);
       return $('#pin_edit_dialog').dialog('open');
+    };
+    $('#pin_edit_form.submit').submit(function() {
+      var description, image, imageurl, link, no_error, pinid, tags, title;
+      no_error = true;
+      pinid = $('#id11');
+      title = $('#title11');
+      description = $('#description11');
+      link = $('#link11');
+      imageurl = $('#imageurl11');
+      image = $('#image11');
+      tags = $('#tags11');
+      if (title.val() === '') {
+        no_error = false;
+        show_error_for_field(title, 'Empty title', 11);
+      } else {
+        remove_error_from_field(title, 11);
+      }
+      if (description.val() === '') {
+        no_error = false;
+        show_error_for_field(description, 'Empty description', 11);
+      } else {
+        remove_error_from_field(description, 11);
+      }
+      if (tags.val() === '') {
+        no_error = false;
+        show_error_for_field(tags, 'Empty tags', 11);
+      } else {
+        remove_error_from_field(tags, 11);
+        ensure_tags_has_hash_symbol(tags);
+      }
+      if (!validate_link(link, 11)) {
+        no_error = false;
+      }
+      if (no_error) {
+        if (image.val() !== '' && imageurl.val() === '') {
+          return true;
+        } else {
+          update_pin_in_backgroud(pinid, title, description, link, imageurl, tags);
+          $('#pin_edit_dialog').dialog('close');
+        }
+      }
+      return false;
+    });
+    update_pin_in_backgroud = function(pinid, title, description, link, imageurl, tags) {
+      var pin_data;
+      pin_data = {
+        'title': title,
+        'description': description,
+        'link': link,
+        'imageurl': imageurl,
+        'tags': tags
+      };
+      $.ajax({
+        type: POST,
+        data: pin_data,
+        url: '/admin/input/pins/' + pinid + '/'
+      });
     };
   });
 

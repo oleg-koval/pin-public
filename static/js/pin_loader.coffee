@@ -266,7 +266,61 @@ jQuery ->
 		$("#link11").val(pin['link'])
 		$("#tags11").val(pin['tags'])
 		$("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png')
+		$("#category11").val(pin['category'])
 		$('#pin_edit_dialog').dialog('open')
+		
+		
+	$('#pin_edit_form.submit').submit ->
+		no_error = true
+		pinid = $('#id11')
+		title = $('#title11')
+		description = $('#description11')
+		link = $('#link11')
+		imageurl = $('#imageurl11')
+		image = $('#image11')
+		tags = $('#tags11')
+		# should have title
+		if title.val() == ''
+			no_error = false
+			show_error_for_field(title, 'Empty title', 11)
+		else
+			remove_error_from_field(title, 11)
+		# should have description
+		if description.val() == ''
+			no_error = false
+			show_error_for_field(description, 'Empty description', 11)
+		else
+			remove_error_from_field(description, 11)
+		# should have tags
+		if tags.val() == ''
+			no_error = false
+			show_error_for_field(tags, 'Empty tags', 11)
+		else
+			remove_error_from_field(tags, 11)
+			ensure_tags_has_hash_symbol(tags)
+		# should have a valid link
+		if not validate_link(link, 11)
+			no_error = false
+		if no_error
+			if image.val() != '' and imageurl.val() == ''
+				# submit to upload the image
+				return true
+			else
+				update_pin_in_backgroud(pinid, title, description, link, imageurl, tags)
+				$('#pin_edit_dialog').dialog('close')
+		return false
+		
+		
+	update_pin_in_backgroud = (pinid, title, description, link, imageurl, tags) ->
+		pin_data = 'title': title
+			,'description': description
+			,'link': link
+			,'imageurl': imageurl
+			,'tags': tags
+		$.ajax type: POST
+			,data: pin_data
+			,url: '/admin/input/pins/' + pinid + '/'
+		return
 	
 	
 	return

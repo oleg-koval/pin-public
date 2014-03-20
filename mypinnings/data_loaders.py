@@ -27,6 +27,7 @@ class PinLoaderPage(object):
         current_category = sess.get('category', None)
         categories = tuple((cat.id, cat.name) for cat in cached_models.all_categories)
         form = web.form.Form(web.form.Dropdown('category', categories, web.form.notnull, value=current_category),
+                             web.form.Dropdown('category11', categories, web.form.notnull, value=current_category),
                              web.form.Textbox('imageurl1', **{'class': 'imagelink', 'i': 1}),
                              web.form.Textbox('imageurl2', **{'class': 'imagelink', 'i': 2}),
                              web.form.Textbox('imageurl3', **{'class': 'imagelink', 'i': 3}),
@@ -223,7 +224,8 @@ class LoadersEditAPI(object):
     def get_by_id(self, id):
         sess = session.get_session()
         db = database.get_db()
-        results = db.where(table='pins', id=id, user_id=sess.user_id)
+        results = db.query('select pins.*, tags.tags from pins left join tags on pins.id = tags.pin_id where id=$id and user_id=$user_id',
+                            vars={'id': id, 'user_id': sess.user_id})
         for row in results:
             web.header('Content-Type', 'application/json')
             return json.dumps(row)
@@ -237,7 +239,9 @@ class LoadersEditAPI(object):
             limit = PIN_LIST_FIRST_LIMIT
         else:
             limit = PIN_LIST_LIMIT
-        results = db.where(table='pins', user_id=sess.user_id, order='timestamp desc', offset=sess.offset, limit=limit)
+        results = db.query('''select pins.*, tags.tags from pins left join tags on pins.id = tags.pin_id where user_id=$user_id
+                            order by timestamp desc offset $offset limit $limit''',
+                            vars={'user_id': sess.user_id, 'offset': sess.offset, 'limit': limit})
         sess.offset += limit
         json_pins = json.dumps([row for row in results if os.path.exists('static/tmp/pinthumb{}.png'.format(row.id))])
         print(json_pins)
@@ -254,3 +258,17 @@ class LoadersEditAPI(object):
         except:
             logger.info('Cannot delete a pin: {}'.format(pin_id), exc_info=True)
             return web.notfound()
+
+    def get_form(self):
+        sess = session.get_session()
+        current_category = sess.get('category', None)
+        categories = tuple((cat.id, cat.name) for cat in cached_models.all_categories)
+        form = web.form.Form(web.form.Dropdown('category11', categories, web.form.notnull, value=current_category),
+                             web.form.Textbox('imageurl11', web.form.notnull),
+                             web.form.Textbox('title11', web.form.notnull),
+                             web.form.Textarea('description11', web.form.notnull),
+                             web.form.Textbox('link11', web.form.notnull),
+                             web.form.Textbox('tags11', web.form.notnull))
+
+    def POST(self, pin_id):
+        pass
