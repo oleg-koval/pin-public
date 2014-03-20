@@ -235,9 +235,38 @@ jQuery ->
 		if confirmation
 			pinid = $(this).attr('pinid')
 			$.ajax type: 'DELETE'
-					,url: '/admin/input/pins/' + pinid + '/'
+				,url: '/admin/input/pins/' + pinid + '/'
 			$('div.pinbox[pinid="' + pinid + '"]').remove()
 		return
+	
+	
+	$('#pin_edit_dialog').dialog autoOpen: false
+								,minWidth: 500
+	
+	
+	$('body').on 'click', '.button_pin_edit', ->
+		pinid = $(this).attr('pinid')
+		$.ajax type: 'GET'
+			,url: '/admin/input/pins/' + pinid + '/'
+			,dataType: 'json'
+			,success: (pin) ->
+				open_edit_dialog_for(pin)
+				return
+			,error: (x, textStatus, errorThrown) ->
+				$.loading_more_pins = false
+				console.log("Error:" + textStatus + ', ' + errorThrown)
+				return
+		return
+		
+		
+	open_edit_dialog_for = (pin) ->
+		$("#id11").val(pin['id'])
+		$("#title11").val(pin['name'])
+		$("#description11").val(pin['description'])
+		$("#link11").val(pin['link'])
+		$("#tags11").val(pin['tags'])
+		$("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png')
+		$('#pin_edit_dialog').dialog('open')
 	
 	
 	return

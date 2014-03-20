@@ -116,5 +116,43 @@ $def with (form, result_info)
 		<div class="column4"></div>
 	</div>
 	<div id="scroll_mark"></div>
+	<div id="pin_edit_dialog" title="Edit pin">
+		<form id="pin_edit_form">
+			<table style="box-shadow:0px 0px 10px gray">
+				<tr>
+					<td colspan="2"><center><img id="imgtag11" src=""/></center></td>
+				</tr>
+				<tr>
+					<th><label for="title11">Title</label></th>
+					<td><input i="11" type="text" class="titleentry" name="title11" id="title11"/></td>
+				</tr>
+				<tr>
+					<th><label for="description11">Description</label></th>
+					<td><textarea i="11" class="descrentry" name="description11" id="description11"></textarea></td>
+				</tr>
+				<tr>
+					<th><label for="link11">Link URL</label></th>
+					<td><input i="11" type="text" class="urllink" name="link11" id="link11"/></td>
+				</tr>
+				<tr>
+					<th><label for="imageurl11">Image URL</label></th>
+					<td><input i="11" type="text" class="imagelink" name="imageurl11" id="imageurl11"/></td>
+				</tr>
+				<tr>
+					<th><label for="image11">Image File</label></th>
+					<td><input i="1" type="file" class="imagefile" name="image1" id="image1"/></td>
+				</tr>
+				<tr>
+					<th><label for="tags11">Tags</label></th>
+					<td><input name="tags1" i="1" placeholder="#this #is #awesome" id="tags1" type="text" class="tagwords"/></td>
+				</tr>
+				<tr>
+					<th></th>
+					<td><button id="btn-save" name="save">Save</button></td>
+				</tr>
+			</table>
+			<input i="11" type="hidden" name="id11" id="id11"/>
+		</form>
+	</div>
 </div><!-- added -->
 </div><!-- tabs -->

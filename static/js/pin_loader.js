@@ -2,7 +2,7 @@
 (function() {
 
   jQuery(function() {
-    var all_fields_blank, ensure_tags_has_hash_symbol, load_more_pins, put_more_pins_into_the_page, remove_all_errors, remove_error_from_field, show_error_for_field, validate_errors, validate_image, validate_link;
+    var all_fields_blank, ensure_tags_has_hash_symbol, load_more_pins, open_edit_dialog_for, put_more_pins_into_the_page, remove_all_errors, remove_error_from_field, show_error_for_field, validate_errors, validate_image, validate_link;
     $("#tabs").tabs();
     $('.urllink,.imagelink').change(function(e) {
       var i, value;
@@ -237,6 +237,35 @@
         $('div.pinbox[pinid="' + pinid + '"]').remove();
       }
     });
+    $('#pin_edit_dialog').dialog({
+      autoOpen: false,
+      minWidth: 500
+    });
+    $('body').on('click', '.button_pin_edit', function() {
+      var pinid;
+      pinid = $(this).attr('pinid');
+      $.ajax({
+        type: 'GET',
+        url: '/admin/input/pins/' + pinid + '/',
+        dataType: 'json',
+        success: function(pin) {
+          open_edit_dialog_for(pin);
+        },
+        error: function(x, textStatus, errorThrown) {
+          $.loading_more_pins = false;
+          console.log("Error:" + textStatus + ', ' + errorThrown);
+        }
+      });
+    });
+    open_edit_dialog_for = function(pin) {
+      $("#id11").val(pin['id']);
+      $("#title11").val(pin['name']);
+      $("#description11").val(pin['description']);
+      $("#link11").val(pin['link']);
+      $("#tags11").val(pin['tags']);
+      $("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png');
+      return $('#pin_edit_dialog').dialog('open');
+    };
   });
 
 }).call(this);
