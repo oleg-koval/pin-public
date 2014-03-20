@@ -54,30 +54,29 @@ jQuery ->
 	
 	show_verification_ok = ->
 		clear_any_notification()
-		$('#username').after('<span class="green">Looks good!</span>')
+		$('#username').after('<div class="green">Looks good!</div>')
 		return
 		
 		
 	show_verification_notfound = ->
 		clear_any_notification()
-		$('#username').after('<span class="red">Invalid username or email</span>')
+		$('#username').after('<div class="red">Invalid username or email</div>')
 		return
 		
 		
 	show_verifying = ->
 		clear_any_notification()
-		$('#username').after('<span class="black">Verifying</span>')
+		$('#username').after('<div class="black">Verifying</div>')
 		return
 	
 	
 	clear_any_notification = ->
-		$('#username').nextAll('span.green,span.red,span.black').remove()
+		$('#username').nextAll('div').remove()
 		return
 		
 		
 	$('#change_pwd_form').submit ->
 		verify_passwords_match()
-		return
 	
 	
 	verify_passwords_match = ->
@@ -91,18 +90,40 @@ jQuery ->
 		
 		
 	notify_pwd2_dont_match = ->
-		$('#pwd2').after('<span class="red">Password don\'t match</span>')
+		$('#pwd2').after('<div class="red">Password don\'t match</div>')
 		return
 		
 		
 	clear_pwd2_notifications = ->
-		$('#pwd2').nextAll('span.green,span.red,span.black').remove()
+		$('#pwd2').nextAll('div').remove()
 		return
 		
 
-	$('#pwd2').keyup ->
+	$('#pwd2, #pwd1').keyup ->
 		verify_passwords_match()
 		return
+		
+		
+	pwd1_strength_changed = (strength, percentage) ->
+		$('#pwd1').nextAll('div').remove()
+		if percentage < 25
+			message = 'poor'
+			color = 'red'
+		else if percentage < 50
+			message = 'good enough'
+			color = 'yellow'
+		else if percentage < 75
+			message = 'good'
+			color = 'black'
+		else
+			message = 'strong'
+			color = 'green'
+		$('#pwd1').after('<div class="' + color + '">' + message + ' (' + percentage + '%)</div>')
+		return
+	
+	
+	$('#pwd1').pStrength 'changeBackground': false
+						,'onPasswordStrengthChanged': pwd1_strength_changed
 	
 	
 	return

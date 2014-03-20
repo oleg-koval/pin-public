@@ -83,7 +83,8 @@ class UsernameOrEmailValidator(object):
 class PasswordReset(object):
     PwdResetForm = web.form.Form(web.form.Password('pwd1', web.form.notnull, description=_('New password')),
                                  web.form.Password('pwd2', web.form.notnull, description=_('Verify your password')),
-                                 web.form.Button('send', description=_('Send')))
+                                 web.form.Button('send', description=_('Send')),
+                                 validators=[web.form.Validator("Passwords don't match", lambda i: i.pwd1 == i.pwd2)])
 
     def GET(self, user_id, token_id, token):
         user_id = int(user_id)

@@ -2,7 +2,7 @@
 (function() {
 
   jQuery(function() {
-    var clear_any_notification, clear_pwd2_notifications, notify_pwd2_dont_match, show_verification_notfound, show_verification_ok, show_verifying, verification_callback, verification_error_callback, verify_passwords_match, verify_username;
+    var clear_any_notification, clear_pwd2_notifications, notify_pwd2_dont_match, pwd1_strength_changed, show_verification_notfound, show_verification_ok, show_verifying, verification_callback, verification_error_callback, verify_passwords_match, verify_username;
     $.verification_running = false;
     $.last_value_verified = '';
     $('#username').keyup(function() {
@@ -68,21 +68,21 @@
     };
     show_verification_ok = function() {
       clear_any_notification();
-      $('#username').after('<span class="green">Looks good!</span>');
+      $('#username').after('<div class="green">Looks good!</div>');
     };
     show_verification_notfound = function() {
       clear_any_notification();
-      $('#username').after('<span class="red">Invalid username or email</span>');
+      $('#username').after('<div class="red">Invalid username or email</div>');
     };
     show_verifying = function() {
       clear_any_notification();
-      $('#username').after('<span class="black">Verifying</span>');
+      $('#username').after('<div class="black">Verifying</div>');
     };
     clear_any_notification = function() {
-      $('#username').nextAll('span.green,span.red,span.black').remove();
+      $('#username').nextAll('div').remove();
     };
     $('#change_pwd_form').submit(function() {
-      verify_passwords_match();
+      return verify_passwords_match();
     });
     verify_passwords_match = function() {
       var pwd1, pwd2;
@@ -96,13 +96,35 @@
       return true;
     };
     notify_pwd2_dont_match = function() {
-      $('#pwd2').after('<span class="red">Password don\'t match</span>');
+      $('#pwd2').after('<div class="red">Password don\'t match</div>');
     };
     clear_pwd2_notifications = function() {
-      $('#pwd2').nextAll('span.green,span.red,span.black').remove();
+      $('#pwd2').nextAll('div').remove();
     };
-    $('#pwd2').keyup(function() {
+    $('#pwd2, #pwd1').keyup(function() {
       verify_passwords_match();
+    });
+    pwd1_strength_changed = function(strength, percentage) {
+      var color, message;
+      $('#pwd1').nextAll('div').remove();
+      if (percentage < 25) {
+        message = 'poor';
+        color = 'red';
+      } else if (percentage < 50) {
+        message = 'good enough';
+        color = 'yellow';
+      } else if (percentage < 75) {
+        message = 'good';
+        color = 'black';
+      } else {
+        message = 'strong';
+        color = 'green';
+      }
+      $('#pwd1').after('<div class="' + color + '">' + message + ' (' + percentage + '%)</div>');
+    };
+    $('#pwd1').pStrength({
+      'changeBackground': false,
+      'onPasswordStrengthChanged': pwd1_strength_changed
     });
   });
 
