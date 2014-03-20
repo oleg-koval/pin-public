@@ -89,7 +89,7 @@
       pwd1 = $('#pwd1').val();
       pwd2 = $('#pwd2').val();
       clear_pwd2_notifications();
-      if (pwd1 !== pwd2) {
+      if (pwd2 !== '' && pwd1 !== pwd2) {
         notify_pwd2_dont_match();
         return false;
       }
@@ -107,6 +107,9 @@
     pwd1_strength_changed = function(strength, percentage) {
       var color, message;
       $('#pwd1').nextAll('div').remove();
+      if ($('pwd1').val() === '') {
+        return;
+      }
       if (percentage < 25) {
         message = 'poor';
         color = 'red';

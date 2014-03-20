@@ -83,7 +83,7 @@ jQuery ->
 		pwd1 = $('#pwd1').val()
 		pwd2 = $('#pwd2').val()
 		clear_pwd2_notifications()
-		if pwd1 isnt pwd2
+		if pwd2 != '' && pwd1 isnt pwd2
 			notify_pwd2_dont_match()
 			return false
 		return true
@@ -106,6 +106,8 @@ jQuery ->
 		
 	pwd1_strength_changed = (strength, percentage) ->
 		$('#pwd1').nextAll('div').remove()
+		if $('pwd1').val() == ''
+			return
 		if percentage < 25
 			message = 'poor'
 			color = 'red'
