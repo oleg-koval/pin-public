@@ -214,7 +214,7 @@ jQuery ->
 		for pin in data
 			column = $('.column' + $.column_control)
 			column.append('<div class="pinbox" pinid="' + pin['id'] + '">'+
-				'<div class="pin_image"><img src="/static/tmp/pinthumb' + pin['id'] + '.png"></div>' +
+				'<div class="pin_image"><img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></div>' +
 				'<table>' +
 				'<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' +
 				'<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' +
@@ -342,8 +342,7 @@ jQuery ->
 			,url: '/admin/input/pins/' + pin_id + '/'
 			,dataType: 'json'
 			,success: (pin) ->
-				box = $('div.pinbox[pinid="' + pin_id + '"')
-				#box.remove('div,table')
+				box = $('div.pinbox[pinid="' + pin_id + '"]')
 				text = '<div class="pin_image"><img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></div>' +
 					'<table>' +
 					'<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' +
@@ -354,8 +353,6 @@ jQuery ->
 					'<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> '+
 					'<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' +
 					'</table>'
-				console.log(text)
-				console.log(box.html())
 				box.html(text)
 				return
 			,error: (x, textStatus, errorThrown) ->

@@ -47,3 +47,7 @@ div.pins_columns_container {
   border-radius: 5px;
   box-shadow: 0px 0px 6px gray;
   margin-top: 16px; }
+
+div.pin_image img {
+  width: 100%;
+  height: auto; }
