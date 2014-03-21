@@ -1299,3 +1299,7 @@ create table password_change_tokens (
 	used boolean not null default(FALSE),
 	used_on timestamp null
 );
+
+
+alter table pins add price decimal not null default 0.0;
+alter table pins add image_url text;
