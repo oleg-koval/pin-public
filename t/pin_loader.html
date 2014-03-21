@@ -1,5 +1,6 @@
 $def with (form, result_info)
 <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+<link rel="stylesheet" href="/static/css/pin_loader.css" />
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 <script src="/static/js/pin_loader.js"></script>
 <div id="tabs">
@@ -10,8 +11,10 @@ $def with (form, result_info)
 <div id="upload">
 	<form id='form' autocomplete='off' enctype='multipart/form-data' method='post' action=''>
 		<h1>Category for these Pins: </h1>$:form['category'].render()
-		<p>All the items you upload will belong to the same category, so carefully select the category</p>
-		<p>For the image you can put the URL or upload the image, don't use both</p>
+		<p>All the items you upload will belong to the same category, so carefully select the category.</p>
+		<p>You must provide, for each pin you upload: Title, Description, Link to the original source, Tags (#rolex #coolstuff) and an image via URL or upload.</p>
+		<p>For the image you can put the URL or upload the image, don't use both.</p>
+		<p>You can upload up to 10 images at a time, using the fields below. You can view the results in the 'Items Added' tab.</p>
 		<table cellpadding="20">
 		$for i in range(1, 11, 2):
 			<tr>
@@ -79,57 +82,81 @@ $def with (form, result_info)
 </div><!-- upload -->
 <div id="added">
 	<table border="1" cellpadding="30">
-	$for ri in result_info:
-		<tr>
-		$if ri.get('pin_id', False):
-			<td><img src="/static/tmp/pinthumb$(ri['pin_id']).png"></td>
-			<td>
-				<table>
-					<tr>
-						<th>[$ri['index']] Success:</th><td></td>
-					</tr><tr>
-						<th>Title:</th><td>$ri['title']</td>
-					</tr><tr>
-						<th>Description:</th><td>$ri['description']</td>
-					</tr><tr>
-						<th>Link:</th><td><a href="$ri['link']">$ri['link']</a></td>
-					</tr><tr>
-						<th>Tags:</th><td>$ri['tags']</td>
-					</tr><tr>
-						$if ri['imageurl']:
-							<th>Image from URL:</th><td><a href="$ri['imageurl']">$ri['imageurl']</a></td>
-						$else:
-							<th>Image Uploaded by you:</th><td><a href="$ri['image']">$ri['image']</a></td>
-					</tr>
-				</table>
-			</td>
-		$else:
-			<td colspan="2">
-			$if ri['error']:
-				<table>
-					<tr>
-						<th>[$ri['index']] Failed:</th><td>$ri['error']</td>
-					</tr><tr>
-						<th>Title:</th><td>$ri.get('title', '')</td>
-					</tr><tr>
-						<th>Description:</th><td>$ri.get('description', '')</td>
-					</tr><tr>
-						<th>Link:</th><td><a href="$ri.get('link')">$ri.get('link', '')</a></td>
-					</tr><tr>
-						<th>Tags:</th><td>$ri.get('tags', '')</td>
-					</tr><tr>
-						$if ri.get('imageurl', False):
-							<th>Tried this Image URL:</th><td><a href="$ri['imageurl']">$ri['imageurl']</a></td>
-						$elif ri.get('image', False):
-							<th>Tried this Image uploaded by you:</th><td>$ri.get('image', '')</td>
-						$else:
-							<th></th><td><strong>You did not provided an image!</strong></th>
-					</tr>
-				</table>
-			$else:
-				[$ri['index']] Not used
-			</td>
-		</tr>
+		$for ri in result_info:
+			<tr>
+				<td>
+				$if ri['error']:
+					<table>
+						<tr>
+							<th>[$ri['index']] Failed:</th><td>$ri['error']</td>
+						</tr><tr>
+							<th>Title:</th><td>$ri.get('title', '')</td>
+						</tr><tr>
+							<th>Description:</th><td>$ri.get('description', '')</td>
+						</tr><tr>
+							<th>Link:</th><td><a href="$ri.get('link')">$ri.get('link', '')</a></td>
+						</tr><tr>
+							<th>Tags:</th><td>$ri.get('tags', '')</td>
+						</tr><tr>
+							$if ri.get('imageurl', False):
+								<th>Tried this Image URL:</th><td><a href="$ri['imageurl']">$ri['imageurl']</a></td>
+							$elif ri.get('image', False):
+								<th>Tried this Image uploaded by you:</th><td>$ri.get('image', '')</td>
+							$else:
+								<th></th><td><strong>You did not provided an image!</strong></th>
+						</tr>
+					</table>
+				</td>
+			</tr>
 	</table>
+	<div class="pins_columns_container">
+		<div class="column1"></div>
+		<div class="column2"></div>
+		<div class="column3"></div>
+		<div class="column4"></div>
+	</div>
+	<div id="scroll_mark"></div>
+	<div id="pin_edit_dialog" title="Edit pin">
+		<form id="pin_edit_form" action="/admin/input/update_pin/" method="POST" enctype="multipart/form-data" autocomplete="off">
+			<table style="box-shadow:0px 0px 10px gray">
+				<tr>
+					<td colspan="2"><center><a id="imgfulllink11" href="" target="_blank" title="See full size"><img id="imgtag11" src=""/></a></center></td>
+				</tr>
+				<tr>
+					<th><label for="category11">Category</label></th>
+					<td>$:form['category11'].render()</td>
+				</tr>
+				<tr>
+					<th><label for="title11">Title</label></th>
+					<td><input i="11" type="text" class="titleentry" name="title11" id="title11"/></td>
+				</tr>
+				<tr>
+					<th><label for="description11">Description</label></th>
+					<td><textarea i="11" class="descrentry" name="description11" id="description11"></textarea></td>
+				</tr>
+				<tr>
+					<th><label for="link11">Link URL</label></th>
+					<td><input i="11" type="text" class="urllink" name="link11" id="link11"/></td>
+				</tr>
+				<tr>
+					<th><label for="imageurl11">Image URL</label></th>
+					<td><input i="11" type="text" class="imagelink" name="imageurl11" id="imageurl11"/></td>
+				</tr>
+				<tr>
+					<th><label for="image11">Image File</label></th>
+					<td><input i="11" type="file" class="imagefile" name="image11" id="image11"/></td>
+				</tr>
+				<tr>
+					<th><label for="tags11">Tags</label></th>
+					<td><input name="tags11" i="11" placeholder="#this #is #awesome" id="tags11" type="text" class="tagwords"/></td>
+				</tr>
+				<tr>
+					<th></th>
+					<td><button id="btn-save" name="save">Save</button></td>
+				</tr>
+			</table>
+			<input i="11" type="hidden" name="id11" id="id11"/>
+		</form>
+	</div>
 </div><!-- added -->
 </div><!-- tabs -->

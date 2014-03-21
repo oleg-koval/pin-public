@@ -1,0 +1,30 @@
+@import "bourbon/bourbon";
+@import "neat/neat";
+
+div.pins_columns_container {
+	@include outer-container;
+	div.column1 {
+		@include span-columns(3);
+	}
+	div.column2 {
+		@include span-columns(3);
+	}
+	div.column3 {
+		@include span-columns(3);
+	}
+	div.column4 {
+		@include span-columns(3);
+	}
+}
+
+.pinbox {
+	padding: 6px;
+	border-radius: 5px;
+	box-shadow: 0px 0px 6px gray;
+	margin-top: 16px;
+}
+
+div.pin_image img {
+	width: 100%;
+	height: auto
+}

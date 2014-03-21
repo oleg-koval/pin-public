@@ -109,6 +109,9 @@ urls = (
     '/setprivacy/(\d*)', 'PageSetPrivacy',
 
     '/admin/input/', 'mypinnings.data_loaders.PinLoaderPage',
+    '/admin/input/pins/(\d*)/?', 'mypinnings.data_loaders.LoadersEditAPI',
+    '/admin/input/update_pin/?', 'mypinnings.data_loaders.UpdatePin',
+    '/admin/input/pins/?', 'mypinnings.data_loaders.LoadersEditAPI',
     '/admin', admin.app,
 
     '/fbgm/(.*?)', 'PageHax',

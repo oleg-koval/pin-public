@@ -40,6 +40,8 @@ jQuery ->
 				no_error = validate_errors(i)
 				if can_submit
 					can_submit = no_error
+			if not can_submit
+				window.alert('Errors pending, please check')
 			return can_submit
 		catch error
 			alert(error)
@@ -70,6 +72,13 @@ jQuery ->
 			show_error_for_field(description, 'Empty description', i)
 		else
 			remove_error_from_field(description, i)
+		# should have tags
+		if tags.val() == ''
+			no_error = false
+			show_error_for_field(tags, 'Empty tags', i)
+		else
+			remove_error_from_field(tags, i)
+			ensure_tags_has_hash_symbol(tags)
 		# should have a valid link
 		if not validate_link(link, i)
 			no_error = false
@@ -132,3 +141,218 @@ jQuery ->
 					 	value.indexOf('.svg') == -1
 					show_error_for_field(image, 'Image doesn\'t seem to be in a internet friendly format: .png, ,jpg, .gif, .svn', i)
 		return true
+		
+		
+	ensure_tags_has_hash_symbol = (field) ->
+		value = field.val()
+		new_value = ''
+		some_has_no_hash_symbol = false
+		for tag in value.split(" ")
+			if tag.indexOf('#') isnt 0
+				some_has_no_hash_symbol = true
+				new_tag = '#' + tag
+			else
+				new_tag = tag
+			if new_value is ''
+				new_value = new_tag
+			else
+				new_value = new_value + ' ' + new_tag
+		if some_has_no_hash_symbol
+			field.val(new_value)
+		return
+
+		
+	$('.tagwords').on 'change', ->
+		if $(this).val() isnt ''
+			ensure_tags_has_hash_symbol($(this))
+			
+			
+	$(window).scroll ->
+		top = $(window).scrollTop()
+		height = $(window).innerHeight();
+		doc_height = $(document).height()
+		sensitivity = 300
+		if top + height + sensitivity > doc_height
+			load_more_pins()
+		return
+			
+			
+	$.loading_more_pins = true
+	$.ajax type: 'GET'
+		,url: '/admin/input/pins/'
+		,dataType: 'json'
+		,data: {'offset': '0'}
+		,success: (d)->
+			put_more_pins_into_the_page(d)
+			return
+		,error: (x, textStatus, errorThrown) ->
+			$.loading_more_pins = false
+			console.log("Error:" + textStatus + ', ' + errorThrown)
+			return
+	
+	load_more_pins = ->
+		if not $.loading_more_pins
+			$.loading_more_pins = true
+			$.ajax type: 'GET'
+				,url: '/admin/input/pins/'
+				,dataType: 'json'
+				,success: (d)->
+					put_more_pins_into_the_page(d)
+					return
+				,error: (x, textStatus, errorThrown) ->
+					$.loading_more_pins = false
+					console.log("Error:" + textStatus + ', ' + errorThrown)
+					return
+			return
+		return
+		
+	
+	$.column_control = 1
+	put_more_pins_into_the_page = (data) ->
+		for pin in data
+			column = $('.column' + $.column_control)
+			column.append('<div class="pinbox" pinid="' + pin['id'] + '">'+ get_pin_html_text(pin) + '</div>')
+			$.column_control += 1
+			if $.column_control > 4
+				$.column_control = 1
+		$.loading_more_pins = false
+		return
+		
+		
+	get_pin_html_text = (pin) ->
+		return '<div class="pin_image"><a href="/pin/' + pin['id'] + '" target="_blank" title="See full size">' +
+					'<img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></a></div>' +
+				'<table>' +
+				'<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' +
+				'<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' +
+				'<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' +
+				'<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>' +
+				'<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' +
+				'<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> '+
+				'<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' +
+				'</table>'
+		
+		
+	$('body').on 'click', '.button_pin_delete', ->
+		confirmation = window.confirm('Are you sure to delete this pin?')
+		if confirmation
+			pinid = $(this).attr('pinid')
+			$.ajax type: 'DELETE'
+				,url: '/admin/input/pins/' + pinid + '/'
+			$('div.pinbox[pinid="' + pinid + '"]').remove()
+		return
+	
+	
+	$('#pin_edit_dialog').dialog autoOpen: false
+								,minWidth: 500
+	
+	
+	$('body').on 'click', '.button_pin_edit', ->
+		pinid = $(this).attr('pinid')
+		$.ajax type: 'GET'
+			,url: '/admin/input/pins/' + pinid + '/'
+			,dataType: 'json'
+			,success: (pin) ->
+				open_edit_dialog_for(pin)
+				return
+			,error: (x, textStatus, errorThrown) ->
+				$.loading_more_pins = false
+				console.log("Error:" + textStatus + ', ' + errorThrown)
+				return
+		return
+		
+		
+	open_edit_dialog_for = (pin) ->
+		$("#id11").val(pin['id'])
+		$("#title11").val(pin['name'])
+		$("#description11").val(pin['description'])
+		$("#link11").val(pin['link'])
+		$("#tags11").val(pin['tags'])
+		$("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png')
+		$("#imgfulllink11").attr('href', '/pin/' + pin['id'])
+		$("#category11").val(pin['category'])
+		$("#imageurl11").val('')
+		$("#image11").val('')
+		remove_all_errors()
+		$('#pin_edit_dialog').dialog('open')
+		
+		
+	$('#pin_edit_form').submit ->
+		no_error = true
+		pinid = $('#id11')
+		title = $('#title11')
+		description = $('#description11')
+		link = $('#link11')
+		imageurl = $('#imageurl11')
+		image = $('#image11')
+		tags = $('#tags11')
+		category = $('#category11')
+		# should have title
+		if title.val() == ''
+			no_error = false
+			show_error_for_field(title, 'Empty title', 11)
+		else
+			remove_error_from_field(title, 11)
+		# should have description
+		if description.val() == ''
+			no_error = false
+			show_error_for_field(description, 'Empty description', 11)
+		else
+			remove_error_from_field(description, 11)
+		# should have tags
+		if tags.val() == ''
+			no_error = false
+			show_error_for_field(tags, 'Empty tags', 11)
+		else
+			remove_error_from_field(tags, 11)
+			ensure_tags_has_hash_symbol(tags)
+		# should have a valid link
+		if not validate_link(link, 11)
+			no_error = false
+		if no_error
+			if image.val() != '' and imageurl.val() == ''
+				# submit to upload the image
+				return true
+			else
+				update_pin_in_backgroud(pinid, title, description, link, imageurl, tags, category)
+				$('#pin_edit_dialog').dialog('close')
+		return false
+		
+		
+	update_pin_in_backgroud = (pinid, title, description, link, imageurl, tags, category) ->
+		pin_data = 'title': title.val()
+			,'description': description.val()
+			,'link': link.val()
+			,'imageurl': imageurl.val()
+			,'tags': tags.val()
+			,'category': category.val()
+		$.ajax type: 'POST'
+			,url: '/admin/input/pins/' + pinid.val() + '/'
+			,data: pin_data
+			,dataType: 'json'
+			,success: (data) ->
+				if data['status'] isnt 'ok'
+					window.alert('Server error in your last update: ' + data['status'])
+				else
+					refresh_pin(pinid.val())
+			,error: (x, err, ex) ->
+				window.alert('Server error in your last update: ' + err + ' ' + ex)
+		return
+	
+	
+	refresh_pin = (pin_id) ->
+		$.ajax type: 'GET'
+			,url: '/admin/input/pins/' + pin_id + '/'
+			,dataType: 'json'
+			,success: (pin) ->
+				box = $('div.pinbox[pinid="' + pin_id + '"]')
+				text = get_pin_html_text(pin)
+				box.html(text)
+				return
+			,error: (x, textStatus, errorThrown) ->
+				console.log("Error:" + textStatus + ', ' + errorThrown)
+				return
+		return
+	
+	
+	return

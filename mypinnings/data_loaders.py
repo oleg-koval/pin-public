@@ -5,6 +5,7 @@ import logging
 import urllib
 import os
 import os.path
+import json
 from gettext import gettext as _
 from PIL import Image
 
@@ -20,12 +21,48 @@ from mypinnings import database
 logger = logging.getLogger('mypinnings.data_loaders')
 
 
-class PinLoaderPage(object):
+class FileUploaderMixin(object):
+
+    def save_image(self, pin_id, imageurl, image):
+        if imageurl and imageurl.value:
+            self.save_image_from_url(pin_id, imageurl.value)
+        else:
+            new_filename = 'static/tmp/{}'.format(image.filename)
+            with open(new_filename, 'w') as f:
+                f.write(image.file.read())
+            self.save_image_from_file(pin_id, new_filename)
+
+    def save_image_from_url(self, pin_id, url):
+        filename, _ = urllib.urlretrieve(url)
+        self.save_image_from_file(pin_id, filename)
+
+    def save_image_from_file(self, pin_id, filename):
+        new_filename = 'static/tmp/{}.png'.format(pin_id)
+        if filename.endswith('.png'):
+            os.rename(filename, new_filename)
+        else:
+            img = Image.open(filename)
+            img.save(new_filename)
+        img = Image.open(new_filename)
+        width, height = img.size
+        ratio = 202.0 / float(width)
+        width = 202
+        height *= ratio
+        img.thumbnail((width, int(height)), Image.ANTIALIAS)
+        img.save('static/tmp/pinthumb{}.png'.format(pin_id))
+        try:
+            os.unlink(filename)
+        except:
+            pass
+
+
+class PinLoaderPage(FileUploaderMixin):
     def get_form(self):
         sess = session.get_session()
         current_category = sess.get('category', None)
         categories = tuple((cat.id, cat.name) for cat in cached_models.all_categories)
         form = web.form.Form(web.form.Dropdown('category', categories, web.form.notnull, value=current_category),
+                             web.form.Dropdown('category11', categories, value=current_category),
                              web.form.Textbox('imageurl1', **{'class': 'imagelink', 'i': 1}),
                              web.form.Textbox('imageurl2', **{'class': 'imagelink', 'i': 2}),
                              web.form.Textbox('imageurl3', **{'class': 'imagelink', 'i': 3}),
@@ -76,16 +113,16 @@ class PinLoaderPage(object):
                              web.form.Textbox('link8', **{'class': 'urllink', 'i': 1}),
                              web.form.Textbox('link9', **{'class': 'urllink', 'i': 1}),
                              web.form.Textbox('link10', **{'class': 'urllink', 'i': 1}),
-                             web.form.Textbox('tags1', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags2', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags3', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags4', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags5', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags6', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags7', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags8', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags9', placeholder='#this #is #awesome'),
-                             web.form.Textbox('tags10', placeholder='#this #is #awesome'),
+                             web.form.Textbox('tags1', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 1}),
+                             web.form.Textbox('tags2', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 2}),
+                             web.form.Textbox('tags3', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 3}),
+                             web.form.Textbox('tags4', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 4}),
+                             web.form.Textbox('tags5', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 5}),
+                             web.form.Textbox('tags6', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 6}),
+                             web.form.Textbox('tags7', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 7}),
+                             web.form.Textbox('tags8', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 8}),
+                             web.form.Textbox('tags9', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 9}),
+                             web.form.Textbox('tags10', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 10}),
                              web.form.Button('add', id='btn-add')
                              )
         return form()
@@ -106,7 +143,8 @@ class PinLoaderPage(object):
             sess.category = int(form.d.category)
             for i in range(10):
                 result = self.save_pin(form, str(i + 1), sess.category)
-                result_info.append(result)
+                if not result.get('pin_id', False) and result.get('error', False):
+                    result_info.append(result)
         sess.result_info = result_info
         return web.seeother('')
 
@@ -148,6 +186,8 @@ class PinLoaderPage(object):
             return _("No description")
         if not link.value:
             return _("No link")
+        if not tags.value:
+            return _("No tags")
         if not image.filename and not imageurl.value:
             return _("No image URL or no uploaded image file")
         return None
@@ -177,31 +217,137 @@ class PinLoaderPage(object):
         except:
             logger.error('Cannot delete pin when doing pin uploader interface', exc_info=True)
 
-    def save_image(self, pin_id, imageurl, image):
-        if imageurl and imageurl.value:
-            self.save_image_from_url(pin_id, imageurl.value)
-        else:
-            new_filename = 'static/tmp/{}'.format(image.filename)
-            with open(new_filename, 'w') as f:
-                f.write(image.file.read())
-            self.save_image_from_file(pin_id, new_filename)
 
-    def save_image_from_url(self, pin_id, url):
-        filename, _ = urllib.urlretrieve(url)
-        self.save_image_from_file(pin_id, filename)
-
-    def save_image_from_file(self, pin_id, filename):
-        new_filename = 'static/tmp/{}.png'.format(pin_id)
-        if filename.endswith('.png'):
-            os.rename(filename, new_filename)
+PIN_LIST_LIMIT = 20
+PIN_LIST_FIRST_LIMIT = 50
+class LoadersEditAPI(FileUploaderMixin):
+    def GET(self, pin_id=None):
+        if pin_id:
+            return self.get_by_id(pin_id)
         else:
-            img = Image.open(filename)
-            img.save(new_filename)
-        img = Image.open(new_filename)
-        width, height = img.size
-        ratio = 202.0 / float(width)
-        width = 202
-        height *= ratio
-        img.thumbnail((width, int(height)), Image.ANTIALIAS)
-        img.save('static/tmp/pinthumb{}.png'.format(pin_id))
-        os.unlink(filename)
+            return self.get_by_list()
+
+    def get_by_id(self, id):
+        sess = session.get_session()
+        db = database.get_db()
+        results = db.query('''select pins.*, tags.tags, categories.name as category_name
+                            from pins join categories on pins.category=categories.id
+                            left join tags on pins.id = tags.pin_id
+                            where pins.id=$id and user_id=$user_id''',
+                            vars={'id': id, 'user_id': sess.user_id})
+        for row in results:
+            web.header('Content-Type', 'application/json')
+            return json.dumps(row)
+        raise web.notfound()
+
+    def get_by_list(self):
+        sess = session.get_session()
+        sess.offset = int(web.input(offset=None)['offset'] or sess.get('offset', 0))
+        db = database.get_db()
+        if sess.offset == 0:
+            limit = PIN_LIST_FIRST_LIMIT
+        else:
+            limit = PIN_LIST_LIMIT
+        results = db.query('''select pins.*, tags.tags, categories.name as category_name
+                            from pins join categories on pins.category=categories.id
+                            left join tags on pins.id = tags.pin_id
+                            where user_id=$user_id
+                            order by timestamp desc offset $offset limit $limit''',
+                            vars={'user_id': sess.user_id, 'offset': sess.offset, 'limit': limit})
+        sess.offset += len(results)
+        json_pins = json.dumps([row for row in results if os.path.exists('static/tmp/pinthumb{}.png'.format(row.id))])
+        print(json_pins)
+        web.header('Content-Type', 'application/json')
+        return json_pins
+
+    def DELETE(self, pin_id):
+        try:
+            sess = session.get_session()
+            db = database.get_db()
+            db.delete(table='pins', where='id=$id and user_id=$user_id', vars={'id': pin_id, 'user_id': sess.user_id})
+            web.header('Content-Type', 'application/json')
+            return json.dumps({'status': 'ok'})
+        except:
+            logger.info('Cannot delete a pin: {}'.format(pin_id), exc_info=True)
+            return web.notfound()
+
+    def get_form(self):
+        sess = session.get_session()
+        current_category = sess.get('category', None)
+        categories = tuple((cat.id, cat.name) for cat in cached_models.all_categories)
+        form = web.form.Form(web.form.Dropdown('category', categories, web.form.notnull, value=current_category),
+                             web.form.Textbox('imageurl'),
+                             web.form.Textbox('title', web.form.notnull),
+                             web.form.Textarea('description', web.form.notnull),
+                             web.form.Textbox('link', web.form.notnull),
+                             web.form.Textbox('tags', web.form.notnull))
+        return form()
+
+    def POST(self, pin_id):
+        form = self.get_form()
+        if form.validates():
+            web.header('Content-Type', 'application/json')
+            sess = session.get_session()
+            db = database.get_db()
+            db.update(tables='pins', where='id=$id and user_id=$user_id', vars={'id': pin_id, 'user_id': sess.user_id},
+                      name=form.d.title, description=form.d.description, link=form.d.link, category=form.d.category)
+            results = db.where(table='tags', pin_id=pin_id)
+            for _ in results:
+                db.update(tables='tags', where='pin_id=pin_id', vars={'id': pin_id}, tags=form.d.tags)
+                break
+            else:
+                db.insert(tablename='tags', pin_id=pin_id, tags=form.d.tags)
+            if form.d.imageurl:
+                try:
+                    self.save_image_from_url(pin_id, form.d.imageurl)
+                except Exception as e:
+                    logger.error('Could not save the image for pin: {} from URL: {}'.format(pin_id, form.d.imageurl), exc_info=True)
+                    return json.dumps({'status': str(e)})
+            return json.dumps({'status': 'ok'})
+        else:
+            return web.notfound()
+
+
+class UpdatePin(FileUploaderMixin):
+    def POST(self):
+        result_info = []
+        pin_id = int(web.input(id11=0)['id11'])
+        name = web.input(title11=None)['title11']
+        description = web.input(description11=None)['description11']
+        image = web.input(image11={})['image11']
+        tags = web.input(tags11=None)['tags11']
+        link = web.input(link11=None)['link11']
+        category = web.input(category11=None)['category11']
+        errors = {'error': 'Invalid data',
+                  'index': 11,
+                  'pin_id': pin_id,
+                  'title': name,
+                  'description': description,
+                  'imageurl': '',
+                  'image': image.filename,
+                  'tags': tags,
+                  'link': link}
+        if pin_id > 0 and name and description and tags and link:
+            sess = session.get_session()
+            db = database.get_db()
+            db.update(tables='pins', where='id=$id and user_id=$user_id', vars={'id': pin_id, 'user_id': sess.user_id},
+                      name=name, description=description, link=link, category=category)
+            results = db.where(table='tags', pin_id=pin_id)
+            for _ in results:
+                db.update(tables='tags', where='pin_id=pin_id', vars={'id': pin_id}, tags=tags)
+                break
+            else:
+                db.insert(tablename='tags', pin_id=pin_id, tags=tags)
+            try:
+                new_filename = 'static/tmp/{}'.format(image.filename)
+                with open(new_filename, 'w') as f:
+                    f.write(image.file.read())
+                self.save_image_from_file(pin_id, new_filename)
+            except Exception as e:
+                logger.error('Could not save the image for pin: {} from URL: {}'.format(pin_id, image.filename), exc_info=True)
+                errors['error'] = str(e)
+                result_info.append(errors)
+        else:
+            result_info.append(errors)
+        sess.result_info = result_info
+        return web.seeother(url='/admin/input/', absolute=True)
