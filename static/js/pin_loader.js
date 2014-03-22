@@ -186,6 +186,7 @@
     };
     price_regex = /^\d+(?:\.?\d{0,2})$/;
     have_valid_price = function(price, i) {
+      var value;
       remove_error_from_field(price, i);
       if (price.val() === '') {
         return true;
@@ -194,8 +195,16 @@
         show_error_for_field(price, 'Not a valid price. Use format: 8888.88', i);
         return false;
       } else {
-        return true;
+        value = price.val();
+        if (value.indexOf('.') === -1) {
+          price.val(value + '.00');
+        } else if (value.indexOf('.') === value.length - 1) {
+          price.val(value + '00');
+        } else if (value.indexOf('.') === value.length - 2) {
+          price.val(value + '0');
+        }
       }
+      return true;
     };
     $('.tagwords').on('change', function() {
       var i;

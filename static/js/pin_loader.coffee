@@ -194,7 +194,14 @@ jQuery ->
 			show_error_for_field(price, 'Not a valid price. Use format: 8888.88', i)
 			return false
 		else
-			return true
+			value = price.val()
+			if value.indexOf('.') == -1
+				price.val(value + '.00')
+			else if value.indexOf('.') == value.length - 1
+				price.val(value + '00')
+			else if value.indexOf('.') == value.length - 2
+				price.val(value + '0')
+		return true
 
 	
 	# ensure every tag has # symbol in front
