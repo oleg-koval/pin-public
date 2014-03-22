@@ -314,7 +314,7 @@ class LoadersEditAPI(FileUploaderMixin):
                       price=form.d.price)
             results = db.where(table='tags', pin_id=pin_id)
             for _ in results:
-                db.update(tables='tags', where='pin_id=pin_id', vars={'id': pin_id}, tags=form.d.tags)
+                db.update(tables='tags', where='pin_id=$id', vars={'id': pin_id}, tags=form.d.tags)
                 break
             else:
                 db.insert(tablename='tags', pin_id=pin_id, tags=form.d.tags)
