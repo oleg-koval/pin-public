@@ -270,7 +270,7 @@
       if (pin['image_url'] !== null && pin['image_url'] !== '') {
         html = html + '<tr><th>Image URL</th><td><a href="' + pin['image_url'] + '" title="' + pin['image_url'] + '">Original image</a></td></tr>';
       }
-      html = html + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table>';
+      html = html + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' + '<tr><th>Price</th><td>' + pin['price'] + '</td></tr>' + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table>';
       return html;
     };
     $('body').on('click', '.button_pin_delete', function() {
