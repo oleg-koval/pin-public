@@ -3,7 +3,7 @@ jQuery ->
 	
 	
 	# check that the url for link and image seems valid
-	$('.urllink,.imagelink').change (e) ->
+	$('.urllink,.imagelink,.urlproduct_url').change (e) ->
 		i = $(this).attr('i')
 		remove_error_from_field($(this), i)
 		value = $(this).val().toLowerCase()
@@ -63,12 +63,13 @@ jQuery ->
 		title = $('#title' + i)
 		description = $('#description' + i)
 		link = $('#link' + i)
+		product_url = $('#product_url' + i)
 		imageurl = $('#imageurl' + i)
 		image = $('#image' + i)
 		tags = $('#tags' + i)
 		price = $('#price' + i)
 		# if all of the fields are blank, no more test is needed
-		if all_fields_blank(title, description, link, imageurl, image, tags, price)
+		if all_fields_blank(title, description, link, imageurl, image, tags, price, product_url)
 			return no_error
 		# should have title
 		if title.val() == ''
@@ -95,6 +96,9 @@ jQuery ->
 		# should have a valid link
 		if not validate_link(link, i)
 			no_error = false
+		# the product URL is mandatory
+		if not validate_link(product_url, i)
+			no_error = false
 		# should have a valid image
 		if not validate_image(imageurl, image, i)
 			no_error = false
@@ -102,10 +106,10 @@ jQuery ->
 	
 	
 	# all of the fields are blank
-	all_fields_blank = (title, description, link, imageurl, image, tags, price) ->
+	all_fields_blank = (title, description, link, imageurl, image, tags, price, product_url) ->
 		return title.val() == '' && description.val() == '' and link.val() == '' and
 			imageurl.val() == '' && tags.val() == '' && image.val() == '' and
-			price.val() == ''
+			price.val() == '' and product_url.val() == ''
 			
 	
 	# shows an error for the field
@@ -277,7 +281,8 @@ jQuery ->
 				'<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' +
 				'<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' +
 				'<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' +
-				'<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>'
+				'<tr><th>Source Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">source link</a></td></tr>' +
+				'<tr><th>Product Link</th><td><a href="' + pin['product_url'] + '" title="' + pin['product_url'] + '">product link</a></td></tr>'
 		if pin['image_url'] isnt null and pin['image_url'] isnt ''
 			html = html + '<tr><th>Image URL</th><td><a href="' + pin['image_url'] + '" title="' + pin['image_url'] + '" target="_blank">Original image</a></td></tr>'
 		
@@ -330,6 +335,7 @@ jQuery ->
 		$("#title11").val(pin['name'])
 		$("#description11").val(pin['description'])
 		$("#link11").val(pin['link'])
+		$("#product_url11").val(pin['product_url'])
 		$("#tags11").val(pin['tags'])
 		$("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png')
 		$("#imgfulllink11").attr('href', '/pin/' + pin['id'])
@@ -356,6 +362,7 @@ jQuery ->
 		title = $('#title11')
 		description = $('#description11')
 		link = $('#link11')
+		product_url = $('#product_url11')
 		imageurl = $('#imageurl11')
 		image = $('#image11')
 		tags = $('#tags11')
@@ -383,25 +390,29 @@ jQuery ->
 		# should have a valid price
 		if not have_valid_price(price, 11)
 			no_error = false
-		# should have a valid link
+		# should have a valid source link
 		if not validate_link(link, 11)
+			no_error = false
+		# should have a valid product
+		if not validate_link(product_url, 11)
 			no_error = false
 		if no_error
 			if image.val() != '' and imageurl.val() == ''
 				# submit to upload the image
 				return true
 			else
-				update_pin_in_backgroud(pinid, title, description, link, imageurl, tags, category, price)
+				update_pin_in_backgroud(pinid, title, description, link, product_url, imageurl, tags, category, price)
 				$('#pin_edit_dialog').dialog('close')
 		return false
 		
 		
 	# updates the pin from the edit dialog using ajax, in the background
 	# after changing the item, it is reloaded in the page
-	update_pin_in_backgroud = (pinid, title, description, link, imageurl, tags, category, price) ->
+	update_pin_in_backgroud = (pinid, title, description, link, product_url, imageurl, tags, category, price) ->
 		pin_data = 'title': title.val()
 			,'description': description.val()
 			,'link': link.val()
+			,'product_url': product_url.val()
 			,'imageurl': imageurl.val()
 			,'tags': tags.val()
 			,'category': category.val()

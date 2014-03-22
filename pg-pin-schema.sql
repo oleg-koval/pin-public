@@ -1303,3 +1303,4 @@ create table password_change_tokens (
 
 alter table pins add price decimal;
 alter table pins add image_url text;
+alter table pins add product_url text not null default '';
