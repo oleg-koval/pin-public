@@ -201,8 +201,6 @@ class PinLoaderPage(FileUploaderMixin):
             return _("No link")
         if not tags.value:
             return _("No tags")
-        if not price.value:
-            return _("No price")
         if not image.filename and not imageurl.value:
             return _("No image URL or no uploaded image file")
         return None
@@ -211,6 +209,8 @@ class PinLoaderPage(FileUploaderMixin):
         try:
             db = database.get_db()
             sess = session.get_session()
+            if not price:
+                price = None
             pin_id = db.insert(tablename='pins', name=title, description=description,
                                user_id=sess.user_id, link=link, category=category,
                                views=1, price=price, image_url=imageurl)
@@ -300,7 +300,7 @@ class LoadersEditAPI(FileUploaderMixin):
                              web.form.Textarea('description', web.form.notnull),
                              web.form.Textbox('link', web.form.notnull),
                              web.form.Textbox('tags', web.form.notnull),
-                             web.form.Textbox('price', web.form.notnull))
+                             web.form.Textbox('price'))
         return form()
 
     def POST(self, pin_id):
@@ -309,9 +309,10 @@ class LoadersEditAPI(FileUploaderMixin):
             web.header('Content-Type', 'application/json')
             sess = session.get_session()
             db = database.get_db()
+            price = form.d.price or None
             db.update(tables='pins', where='id=$id and user_id=$user_id', vars={'id': pin_id, 'user_id': sess.user_id},
                       name=form.d.title, description=form.d.description, link=form.d.link, category=form.d.category,
-                      price=form.d.price)
+                      price=price)
             results = db.where(table='tags', pin_id=pin_id)
             for _ in results:
                 db.update(tables='tags', where='pin_id=$id', vars={'id': pin_id}, tags=form.d.tags)
@@ -340,7 +341,7 @@ class UpdatePin(FileUploaderMixin):
         image = web.input(image11={})['image11']
         tags = web.input(tags11=None)['tags11']
         link = web.input(link11=None)['link11']
-        price = web.input(link11=None)['price11']
+        price = web.input(link11=None)['price11'] or None
         category = web.input(category11=None)['category11']
         errors = {'error': 'Invalid data',
                   'index': 11,

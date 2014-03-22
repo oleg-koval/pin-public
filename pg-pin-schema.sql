@@ -1301,5 +1301,5 @@ create table password_change_tokens (
 );
 
 
-alter table pins add price decimal not null default 0.0;
+alter table pins add price decimal;
 alter table pins add image_url text;

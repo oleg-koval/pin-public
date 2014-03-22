@@ -188,8 +188,7 @@
     have_valid_price = function(price, i) {
       remove_error_from_field(price, i);
       if (price.val() === '') {
-        show_error_for_field(price, 'Price required. Use format: 8888.88', i);
-        return false;
+        return true;
       }
       if (!price_regex.test(price.val())) {
         show_error_for_field(price, 'Not a valid price. Use format: 8888.88', i);
@@ -270,7 +269,11 @@
       if (pin['image_url'] !== null && pin['image_url'] !== '') {
         html = html + '<tr><th>Image URL</th><td><a href="' + pin['image_url'] + '" title="' + pin['image_url'] + '" target="_blank">Original image</a></td></tr>';
       }
-      html = html + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' + '<tr><th>Price</th><td>' + pin['price'] + '</td></tr>' + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table>';
+      html = html + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>';
+      if (pin['price'] !== 'None') {
+        html = html + '<tr><th>Price</th><td>' + pin['price'] + '</td></tr>';
+      }
+      html = html + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table>';
       return html;
     };
     $('body').on('click', '.button_pin_delete', function() {
@@ -316,7 +319,11 @@
       $("#category11").val(pin['category']);
       $("#imageurl11").val('');
       $("#image11").val('');
-      $("#price11").val(pin['price']);
+      if (pin['price'] !== 'None') {
+        $("#price11").val(pin['price']);
+      } else {
+        $("#price11").val('');
+      }
       $("#previmageurl11").attr('href', pin['image_url']);
       remove_all_errors();
       return $('#pin_edit_dialog').dialog('open');
