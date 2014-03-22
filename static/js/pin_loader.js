@@ -268,7 +268,7 @@
       var html;
       html = '<div class="pin_image"><a href="/pin/' + pin['id'] + '" target="_blank" title="See full size">' + '<img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></a></div>' + '<table>' + '<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' + '<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' + '<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' + '<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>';
       if (pin['image_url'] !== null && pin['image_url'] !== '') {
-        html = html + '<tr><th>Image URL</th><td><a href="' + pin['image_url'] + '" title="' + pin['image_url'] + '">Original image</a></td></tr>';
+        html = html + '<tr><th>Image URL</th><td><a href="' + pin['image_url'] + '" title="' + pin['image_url'] + '" target="_blank">Original image</a></td></tr>';
       }
       html = html + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' + '<tr><th>Price</th><td>' + pin['price'] + '</td></tr>' + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table>';
       return html;
