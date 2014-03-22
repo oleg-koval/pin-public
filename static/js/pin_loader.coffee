@@ -8,7 +8,10 @@ jQuery ->
 		remove_error_from_field($(this), i)
 		value = $(this).val().toLowerCase()
 		if value.indexOf('http://') != 0 && value.indexOf('https://') != 0
-			show_error_for_field($(this), 'Link lacks http:// or https://, seems invalid', i)
+			if value.indexOf('//') == 0
+				$(this).val('http:' + value)
+			else
+				$(this).val('http://' + value)
 		return
 			
 	
@@ -27,6 +30,12 @@ jQuery ->
 		i = $(this).attr('i')
 		if $(this).val() != ''
 			remove_error_from_field($(this), i)
+		return
+		
+		
+	$('.prodprice').on 'change', ->
+		i = $(this).attr('i')
+		have_valid_price($(this), i)
 		return
 	
 	
@@ -57,8 +66,9 @@ jQuery ->
 		imageurl = $('#imageurl' + i)
 		image = $('#image' + i)
 		tags = $('#tags' + i)
+		price = $('#price' + i)
 		# if all of the fields are blank, no more test is needed
-		if all_fields_blank(title, description, link, imageurl, image, tags)
+		if all_fields_blank(title, description, link, imageurl, image, tags, price)
 			return no_error
 		# should have title
 		if title.val() == ''
@@ -79,6 +89,9 @@ jQuery ->
 		else
 			remove_error_from_field(tags, i)
 			ensure_tags_has_hash_symbol(tags)
+		# should have a valid price
+		if not have_valid_price(price, i)
+			no_error = false
 		# should have a valid link
 		if not validate_link(link, i)
 			no_error = false
@@ -89,9 +102,10 @@ jQuery ->
 	
 	
 	# all of the fields are blank
-	all_fields_blank = (title, description, link, imageurl, image, tags) ->
+	all_fields_blank = (title, description, link, imageurl, image, tags, price) ->
 		return title.val() == '' && description.val() == '' and link.val() == '' and
-			imageurl.val() == '' && tags.val() == '' && image.val() == ''
+			imageurl.val() == '' && tags.val() == '' && image.val() == '' and
+			price.val() == ''
 			
 	
 	# shows an error for the field
@@ -117,8 +131,12 @@ jQuery ->
 			return false
 		else
 			remove_error_from_field(field, i)
-			if field.val().toLowerCase().indexOf('http://') != 0 && field.val().toLowerCase().indexOf('https://') != 0
-				show_error_for_field(field, 'Link lacks http:// or https://, seems invalid', i)
+			value = field.val().toLowerCase()
+			if value.indexOf('http://') != 0 && value.indexOf('https://') != 0
+				if value.indexOf('//') == 0
+					$(this).val('http:' + value)
+				else
+					$(this).val('http://' + value)
 		return true
 			
 	
@@ -134,7 +152,10 @@ jQuery ->
 			value = imageurl.val().toLowerCase()
 			if value
 				if value.indexOf('http://') != 0 && value.indexOf('https://') != 0
-					show_error_for_field(imageurl, 'Link lacks http:// or https://, seems invalid', i)
+					if value.indexOf('//') == 0
+						$(this).val('http:' + value)
+					else
+						$(this).val('http://' + value)
 			else
 				value = image.val().toLowerCase()
 				if value.indexOf('.png') == -1 && value.indexOf('.jpg') == -1 && value.indexOf('.jpeg') == -1 && value.indexOf('.gif') == -1 &&
@@ -160,13 +181,31 @@ jQuery ->
 		if some_has_no_hash_symbol
 			field.val(new_value)
 		return
-
 		
+	
+	# test price has format with only digits and decimal point
+	price_regex  = /^\d+(?:\.?\d{0,2})$/;
+	have_valid_price = (price, i) ->
+		remove_error_from_field(price, i)
+		if price.val() is ''
+			show_error_for_field(price, 'Price required. Use format: 8888.88', i)
+			return false
+		if not price_regex.test(price.val())
+			show_error_for_field(price, 'Not a valid price. Use format: 8888.88', i)
+			return false
+		else
+			return true
+
+	
+	# ensure every tag has # symbol in front
 	$('.tagwords').on 'change', ->
+		i = $(this).attr('i')
+		remove_error_from_field($(this), i)
 		if $(this).val() isnt ''
 			ensure_tags_has_hash_symbol($(this))
 			
-			
+	
+	# detect when scrolling to bottom to load more items
 	$(window).scroll ->
 		top = $(window).scrollTop()
 		height = $(window).innerHeight();
@@ -176,7 +215,8 @@ jQuery ->
 			load_more_pins()
 		return
 			
-			
+		
+	# load first pins when page loads
 	$.loading_more_pins = true
 	$.ajax type: 'GET'
 		,url: '/admin/input/pins/'
@@ -190,6 +230,8 @@ jQuery ->
 			console.log("Error:" + textStatus + ', ' + errorThrown)
 			return
 	
+	
+	# loads more pins with ajax
 	load_more_pins = ->
 		if not $.loading_more_pins
 			$.loading_more_pins = true
@@ -207,6 +249,7 @@ jQuery ->
 		return
 		
 	
+	# dynamically put items in columns, alternating columns
 	$.column_control = 1
 	put_more_pins_into_the_page = (data) ->
 		for pin in data
@@ -218,21 +261,26 @@ jQuery ->
 		$.loading_more_pins = false
 		return
 		
-		
+	
+	# creates the HTML to show one pin in the list
 	get_pin_html_text = (pin) ->
-		return '<div class="pin_image"><a href="/pin/' + pin['id'] + '" target="_blank" title="See full size">' +
+		html = '<div class="pin_image"><a href="/pin/' + pin['id'] + '" target="_blank" title="See full size">' +
 					'<img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></a></div>' +
 				'<table>' +
 				'<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' +
 				'<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' +
 				'<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' +
-				'<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>' +
-				'<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' +
+				'<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>'
+		if pin['image_url'] isnt null and pin['image_url'] isnt ''
+			html = html + '<tr><th>Image URL</th><td><a href="' + pin['image_url'] + '" title="' + pin['image_url'] + '">Original image</a></td></tr>'
+		html = html + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' +
 				'<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> '+
 				'<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' +
 				'</table>'
+		return html
 		
-		
+	
+	# delete one pin from the list
 	$('body').on 'click', '.button_pin_delete', ->
 		confirmation = window.confirm('Are you sure to delete this pin?')
 		if confirmation
@@ -243,10 +291,12 @@ jQuery ->
 		return
 	
 	
+	# dialog div to edit the pin, only configuration here
 	$('#pin_edit_dialog').dialog autoOpen: false
 								,minWidth: 500
 	
 	
+	# opens the dialog to edit a pin
 	$('body').on 'click', '.button_pin_edit', ->
 		pinid = $(this).attr('pinid')
 		$.ajax type: 'GET'
@@ -262,6 +312,7 @@ jQuery ->
 		return
 		
 		
+	# opens the dialog to edit the requested pin
 	open_edit_dialog_for = (pin) ->
 		$("#id11").val(pin['id'])
 		$("#title11").val(pin['name'])
@@ -273,10 +324,17 @@ jQuery ->
 		$("#category11").val(pin['category'])
 		$("#imageurl11").val('')
 		$("#image11").val('')
+		$("#price11").val(pin['price'])
+		$("#previmageurl11").attr('href', pin['image_url'])
 		remove_all_errors()
 		$('#pin_edit_dialog').dialog('open')
 		
-		
+	
+	# edits the pin. If the pin does not have a new image,
+	# or the image comes from an URL, edit in the background
+	# with AJAX.
+	# if the pin has a new image via file upload, submit the
+	# form to be processed in a normal post
 	$('#pin_edit_form').submit ->
 		no_error = true
 		pinid = $('#id11')
@@ -287,6 +345,7 @@ jQuery ->
 		image = $('#image11')
 		tags = $('#tags11')
 		category = $('#category11')
+		price = $('#price11')
 		# should have title
 		if title.val() == ''
 			no_error = false
@@ -306,6 +365,9 @@ jQuery ->
 		else
 			remove_error_from_field(tags, 11)
 			ensure_tags_has_hash_symbol(tags)
+		# should have a valid price
+		if not have_valid_price(price, 11)
+			no_error = false
 		# should have a valid link
 		if not validate_link(link, 11)
 			no_error = false
@@ -314,18 +376,21 @@ jQuery ->
 				# submit to upload the image
 				return true
 			else
-				update_pin_in_backgroud(pinid, title, description, link, imageurl, tags, category)
+				update_pin_in_backgroud(pinid, title, description, link, imageurl, tags, category, price)
 				$('#pin_edit_dialog').dialog('close')
 		return false
 		
 		
-	update_pin_in_backgroud = (pinid, title, description, link, imageurl, tags, category) ->
+	# updates the pin from the edit dialog using ajax, in the background
+	# after changing the item, it is reloaded in the page
+	update_pin_in_backgroud = (pinid, title, description, link, imageurl, tags, category, price) ->
 		pin_data = 'title': title.val()
 			,'description': description.val()
 			,'link': link.val()
 			,'imageurl': imageurl.val()
 			,'tags': tags.val()
 			,'category': category.val()
+			,'price': price.val()
 		$.ajax type: 'POST'
 			,url: '/admin/input/pins/' + pinid.val() + '/'
 			,data: pin_data
@@ -340,6 +405,7 @@ jQuery ->
 		return
 	
 	
+	# refresh the pin in the page after edition
 	refresh_pin = (pin_id) ->
 		$.ajax type: 'GET'
 			,url: '/admin/input/pins/' + pin_id + '/'

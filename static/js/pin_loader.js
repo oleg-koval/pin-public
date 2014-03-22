@@ -2,7 +2,7 @@
 (function() {
 
   jQuery(function() {
-    var all_fields_blank, ensure_tags_has_hash_symbol, get_pin_html_text, load_more_pins, open_edit_dialog_for, put_more_pins_into_the_page, refresh_pin, remove_all_errors, remove_error_from_field, show_error_for_field, update_pin_in_backgroud, validate_errors, validate_image, validate_link;
+    var all_fields_blank, ensure_tags_has_hash_symbol, get_pin_html_text, have_valid_price, load_more_pins, open_edit_dialog_for, price_regex, put_more_pins_into_the_page, refresh_pin, remove_all_errors, remove_error_from_field, show_error_for_field, update_pin_in_backgroud, validate_errors, validate_image, validate_link;
     $("#tabs").tabs();
     $('.urllink,.imagelink').change(function(e) {
       var i, value;
@@ -10,7 +10,11 @@
       remove_error_from_field($(this), i);
       value = $(this).val().toLowerCase();
       if (value.indexOf('http://') !== 0 && value.indexOf('https://') !== 0) {
-        show_error_for_field($(this), 'Link lacks http:// or https://, seems invalid', i);
+        if (value.indexOf('//') === 0) {
+          $(this).val('http:' + value);
+        } else {
+          $(this).val('http://' + value);
+        }
       }
     });
     $('.imagefile').on('change', function(e) {
@@ -28,6 +32,11 @@
       if ($(this).val() !== '') {
         remove_error_from_field($(this), i);
       }
+    });
+    $('.prodprice').on('change', function() {
+      var i;
+      i = $(this).attr('i');
+      have_valid_price($(this), i);
     });
     $('#form').submit(function(e) {
       var can_submit, i, no_error, _i;
@@ -50,7 +59,7 @@
       }
     });
     validate_errors = function(i) {
-      var description, image, imageurl, link, no_error, tags, title;
+      var description, image, imageurl, link, no_error, price, tags, title;
       no_error = true;
       title = $('#title' + i);
       description = $('#description' + i);
@@ -58,7 +67,8 @@
       imageurl = $('#imageurl' + i);
       image = $('#image' + i);
       tags = $('#tags' + i);
-      if (all_fields_blank(title, description, link, imageurl, image, tags)) {
+      price = $('#price' + i);
+      if (all_fields_blank(title, description, link, imageurl, image, tags, price)) {
         return no_error;
       }
       if (title.val() === '') {
@@ -80,6 +90,9 @@
         remove_error_from_field(tags, i);
         ensure_tags_has_hash_symbol(tags);
       }
+      if (!have_valid_price(price, i)) {
+        no_error = false;
+      }
       if (!validate_link(link, i)) {
         no_error = false;
       }
@@ -88,8 +101,8 @@
       }
       return no_error;
     };
-    all_fields_blank = function(title, description, link, imageurl, image, tags) {
-      return title.val() === '' && description.val() === '' && link.val() === '' && imageurl.val() === '' && tags.val() === '' && image.val() === '';
+    all_fields_blank = function(title, description, link, imageurl, image, tags, price) {
+      return title.val() === '' && description.val() === '' && link.val() === '' && imageurl.val() === '' && tags.val() === '' && image.val() === '' && price.val() === '';
     };
     show_error_for_field = function(field, text, i) {
       field.addClass('field_error');
@@ -103,13 +116,19 @@
       return $('div.error_text').remove();
     };
     validate_link = function(field, i) {
+      var value;
       if (field.val() === '') {
         show_error_for_field(field, 'Empty link', i);
         return false;
       } else {
         remove_error_from_field(field, i);
-        if (field.val().toLowerCase().indexOf('http://') !== 0 && field.val().toLowerCase().indexOf('https://') !== 0) {
-          show_error_for_field(field, 'Link lacks http:// or https://, seems invalid', i);
+        value = field.val().toLowerCase();
+        if (value.indexOf('http://') !== 0 && value.indexOf('https://') !== 0) {
+          if (value.indexOf('//') === 0) {
+            $(this).val('http:' + value);
+          } else {
+            $(this).val('http://' + value);
+          }
         }
       }
       return true;
@@ -126,7 +145,11 @@
         value = imageurl.val().toLowerCase();
         if (value) {
           if (value.indexOf('http://') !== 0 && value.indexOf('https://') !== 0) {
-            show_error_for_field(imageurl, 'Link lacks http:// or https://, seems invalid', i);
+            if (value.indexOf('//') === 0) {
+              $(this).val('http:' + value);
+            } else {
+              $(this).val('http://' + value);
+            }
           }
         } else {
           value = image.val().toLowerCase();
@@ -161,7 +184,24 @@
         field.val(new_value);
       }
     };
+    price_regex = /^\d+(?:\.?\d{0,2})$/;
+    have_valid_price = function(price, i) {
+      remove_error_from_field(price, i);
+      if (price.val() === '') {
+        show_error_for_field(price, 'Price required. Use format: 8888.88', i);
+        return false;
+      }
+      if (!price_regex.test(price.val())) {
+        show_error_for_field(price, 'Not a valid price. Use format: 8888.88', i);
+        return false;
+      } else {
+        return true;
+      }
+    };
     $('.tagwords').on('change', function() {
+      var i;
+      i = $(this).attr('i');
+      remove_error_from_field($(this), i);
       if ($(this).val() !== '') {
         return ensure_tags_has_hash_symbol($(this));
       }
@@ -225,7 +265,13 @@
       $.loading_more_pins = false;
     };
     get_pin_html_text = function(pin) {
-      return '<div class="pin_image"><a href="/pin/' + pin['id'] + '" target="_blank" title="See full size">' + '<img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></a></div>' + '<table>' + '<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' + '<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' + '<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' + '<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>' + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table>';
+      var html;
+      html = '<div class="pin_image"><a href="/pin/' + pin['id'] + '" target="_blank" title="See full size">' + '<img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></a></div>' + '<table>' + '<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' + '<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' + '<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' + '<tr><th>Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">link</a></td></tr>';
+      if (pin['image_url'] !== null && pin['image_url'] !== '') {
+        html = html + '<tr><th>Image URL</th><td><a href="' + pin['image_url'] + '" title="' + pin['image_url'] + '">Original image</a></td></tr>';
+      }
+      html = html + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>' + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table>';
+      return html;
     };
     $('body').on('click', '.button_pin_delete', function() {
       var confirmation, pinid;
@@ -270,11 +316,13 @@
       $("#category11").val(pin['category']);
       $("#imageurl11").val('');
       $("#image11").val('');
+      $("#price11").val(pin['price']);
+      $("#previmageurl11").attr('href', pin['image_url']);
       remove_all_errors();
       return $('#pin_edit_dialog').dialog('open');
     };
     $('#pin_edit_form').submit(function() {
-      var category, description, image, imageurl, link, no_error, pinid, tags, title;
+      var category, description, image, imageurl, link, no_error, pinid, price, tags, title;
       no_error = true;
       pinid = $('#id11');
       title = $('#title11');
@@ -284,6 +332,7 @@
       image = $('#image11');
       tags = $('#tags11');
       category = $('#category11');
+      price = $('#price11');
       if (title.val() === '') {
         no_error = false;
         show_error_for_field(title, 'Empty title', 11);
@@ -303,6 +352,9 @@
         remove_error_from_field(tags, 11);
         ensure_tags_has_hash_symbol(tags);
       }
+      if (!have_valid_price(price, 11)) {
+        no_error = false;
+      }
       if (!validate_link(link, 11)) {
         no_error = false;
       }
@@ -310,13 +362,13 @@
         if (image.val() !== '' && imageurl.val() === '') {
           return true;
         } else {
-          update_pin_in_backgroud(pinid, title, description, link, imageurl, tags, category);
+          update_pin_in_backgroud(pinid, title, description, link, imageurl, tags, category, price);
           $('#pin_edit_dialog').dialog('close');
         }
       }
       return false;
     });
-    update_pin_in_backgroud = function(pinid, title, description, link, imageurl, tags, category) {
+    update_pin_in_backgroud = function(pinid, title, description, link, imageurl, tags, category, price) {
       var pin_data;
       pin_data = {
         'title': title.val(),
@@ -324,7 +376,8 @@
         'link': link.val(),
         'imageurl': imageurl.val(),
         'tags': tags.val(),
-        'category': category.val()
+        'category': category.val(),
+        'price': price.val()
       };
       $.ajax({
         type: 'POST',
