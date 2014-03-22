@@ -233,6 +233,7 @@ jQuery ->
 		,url: '/admin/input/pins/'
 		,dataType: 'json'
 		,data: {'offset': '0'}
+		,cache: false
 		,success: (d)->
 			put_more_pins_into_the_page(d)
 			return
@@ -249,6 +250,7 @@ jQuery ->
 			$.ajax type: 'GET'
 				,url: '/admin/input/pins/'
 				,dataType: 'json'
+				,cache: false
 				,success: (d)->
 					put_more_pins_into_the_page(d)
 					return
@@ -258,6 +260,10 @@ jQuery ->
 					return
 			return
 		return
+	
+	
+	$('#load_more_button').on 'click', ->
+		load_more_pins()
 		
 	
 	# dynamically put items in columns, alternating columns
@@ -319,6 +325,7 @@ jQuery ->
 		$.ajax type: 'GET'
 			,url: '/admin/input/pins/' + pinid + '/'
 			,dataType: 'json'
+			,cache: false
 			,success: (pin) ->
 				open_edit_dialog_for(pin)
 				return
@@ -421,6 +428,7 @@ jQuery ->
 			,url: '/admin/input/pins/' + pinid.val() + '/'
 			,data: pin_data
 			,dataType: 'json'
+			,cache: false
 			,success: (data) ->
 				if data['status'] isnt 'ok'
 					window.alert('Server error in your last update: ' + data['status'])
@@ -436,6 +444,7 @@ jQuery ->
 		$.ajax type: 'GET'
 			,url: '/admin/input/pins/' + pin_id + '/'
 			,dataType: 'json'
+			,cache: false
 			,success: (pin) ->
 				box = $('div.pinbox[pinid="' + pin_id + '"]')
 				text = get_pin_html_text(pin)

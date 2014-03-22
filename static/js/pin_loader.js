@@ -236,6 +236,7 @@
       data: {
         'offset': '0'
       },
+      cache: false,
       success: function(d) {
         put_more_pins_into_the_page(d);
       },
@@ -251,6 +252,7 @@
           type: 'GET',
           url: '/admin/input/pins/',
           dataType: 'json',
+          cache: false,
           success: function(d) {
             put_more_pins_into_the_page(d);
           },
@@ -262,6 +264,9 @@
         return;
       }
     };
+    $('#load_more_button').on('click', function() {
+      return load_more_pins();
+    });
     $.column_control = 1;
     put_more_pins_into_the_page = function(data) {
       var column, pin, _i, _len;
@@ -312,6 +317,7 @@
         type: 'GET',
         url: '/admin/input/pins/' + pinid + '/',
         dataType: 'json',
+        cache: false,
         success: function(pin) {
           open_edit_dialog_for(pin);
         },
@@ -410,6 +416,7 @@
         url: '/admin/input/pins/' + pinid.val() + '/',
         data: pin_data,
         dataType: 'json',
+        cache: false,
         success: function(data) {
           if (data['status'] !== 'ok') {
             return window.alert('Server error in your last update: ' + data['status']);
@@ -427,6 +434,7 @@
         type: 'GET',
         url: '/admin/input/pins/' + pin_id + '/',
         dataType: 'json',
+        cache: false,
         success: function(pin) {
           var box, text;
           box = $('div.pinbox[pinid="' + pin_id + '"]');
