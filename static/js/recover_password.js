@@ -2,7 +2,7 @@
 (function() {
 
   jQuery(function() {
-    var clear_any_notification, clear_pwd2_notifications, notify_pwd2_dont_match, pwd1_strength_changed, show_verification_notfound, show_verification_ok, show_verifying, verification_callback, verification_error_callback, verify_passwords_match, verify_username;
+    var clear_any_notification, clear_pwd2_notifications, notify_old_pwd_required, notify_pwd2_dont_match, pwd1_strength_changed, show_verification_notfound, show_verification_ok, show_verifying, verification_callback, verification_error_callback, verify_passwords_match, verify_username;
     $.verification_running = false;
     $.last_value_verified = '';
     $('#username').keyup(function() {
@@ -82,7 +82,18 @@
       $('#username').nextAll('div').remove();
     };
     $('#change_pwd_form').submit(function() {
-      return verify_passwords_match();
+      var oldpwd;
+      if (verify_passwords_match()) {
+        oldpwd = $('#oldpwd').val();
+        if (oldpwd !== null && oldpwd === '') {
+          notify_old_pwd_required();
+          return false;
+        } else {
+          return true;
+        }
+      } else {
+        return false;
+      }
     });
     verify_passwords_match = function() {
       var pwd1, pwd2;
@@ -100,6 +111,9 @@
     };
     clear_pwd2_notifications = function() {
       $('#pwd2').nextAll('div').remove();
+    };
+    notify_old_pwd_required = function() {
+      $('#oldpwd').after('<div class="red">We need your current password to match your user</div>');
     };
     $('#pwd2, #pwd1').keyup(function() {
       verify_passwords_match();

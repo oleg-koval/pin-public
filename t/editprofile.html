@@ -199,19 +199,19 @@ $def with (user, countries, name, photos)
 
 <div class='invis' id='box-password'>
   <h1>Change Password</h1>
-  <form method='post' class='inner-form' action='/changepw' autocomplete='off' enctype='multipart/form-data'>
+  <form method='post' class='inner-form' action='/changepw' autocomplete='off' enctype='multipart/form-data' id='change_pwd_form'>
     <table>
       <tr>
         <th>Old Password</th>
-        <td><input type='password' name='old'/></td>
+        <td><input type='password' name='old' id="oldpwd"/></td>
       </tr>
       <tr>
         <th>New Password</th>
-        <td><input type='password' name='new1'/></td>
+        <td><input type='password' name='pwd1' id="pwd1"/></td>
       </tr>
       <tr>
         <th>Repeat New Password</th>
-        <td><input type='password' name='new2'/></td>
+        <td><input type='password' name='pwd2' id="pwd2"/></td>
       </tr>
       <tr>
         <th>&nbsp;</th>
@@ -273,7 +273,8 @@ $def with (user, countries, name, photos)
 </div>
 
 
-
+<script type='text/javascript' src='/static/js/pStrength.jquery.js'></script>
+<script type='text/javascript' src='/static/js/recover_password.js'></script>
 <script type='text/javascript'>
   $if name is not None:
     document.getElementById('box').innerHTML = document.getElementById('box-$(name)').innerHTML;

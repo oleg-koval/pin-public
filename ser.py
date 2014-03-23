@@ -16,6 +16,7 @@ import HTMLParser
 from mypinnings.database import connect_db, dbget
 db = connect_db()
 
+from mypinnings import auth
 from mypinnings.auth import authenticate_user_email, force_login, logged_in, \
     authenticate_user_username, login_user, username_exists, email_exists, \
     logout_user, generate_salt
@@ -1128,8 +1129,8 @@ class PageNotif:
 class PageChangePw:
     _form = form.Form(
         form.Textbox('old'),
-        form.Textbox('new1'),
-        form.Textbox('new2')
+        form.Textbox('pwd1'),
+        form.Textbox('pwd2')
     )
 
     def POST(self):
@@ -1143,19 +1144,16 @@ class PageChangePw:
         if not user:
             return 'error getting user'
 
-        if form.d.new1 != form.d.new2:
+        if form.d.pwd1 != form.d.pwd2:
             return 'Your passwords don\'t match!'
 
-        if not form.d.new1:
-            return 'Your password cannot be blank.'
+        if not form.d.pwd1 or len(form.d.pwd1) < 6:
+            return 'Your password must have at least 6 characters.'
 
-        if hash(hash(form.d.old) + user.pw_salt) != user.pw_hash:
+        if not auth.authenticate_user_username(user.username, form.d.old):
             return 'Your old password did not match!'
 
-        pw_hash = hash(form.d.new1)
-        pw_hash = hash(pw_hash + user.pw_salt)
-        db.update('users', where='id = $id', vars={'id': sess.user_id},
-                  pw_hash=pw_hash)
+        auth.chage_user_password(sess.user_id, form.d.pwd1)
         raise web.seeother('/settings/password')
 
 
