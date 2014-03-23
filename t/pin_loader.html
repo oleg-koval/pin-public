@@ -11,7 +11,7 @@ $def with (form, result_info)
 <div id="upload">
 	<form id='form' autocomplete='off' enctype='multipart/form-data' method='post' action=''>
 		<h1>Category for these Pins: </h1>$:form['category'].render()
-			$if result_info:
+			$if result_info != None:
 				<p><blockquote><h2>Review your added item in the 'Items Added' tab</h2></blockquote></p>
 			$for ri in result_info:
 				$if ri['error']:
