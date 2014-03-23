@@ -84,6 +84,7 @@
     $('#change_pwd_form').submit(function() {
       var oldpwd;
       if (verify_passwords_match()) {
+        $('#oldpwd').nextAll('div').remove();
         oldpwd = $('#oldpwd').val();
         if (oldpwd !== null && oldpwd === '') {
           notify_old_pwd_required();

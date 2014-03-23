@@ -77,6 +77,7 @@ jQuery ->
 		
 	$('#change_pwd_form').submit ->
 		if verify_passwords_match()
+			$('#oldpwd').nextAll('div').remove()
 			oldpwd = $('#oldpwd').val()
 			if oldpwd isnt null and oldpwd is ''
 				notify_old_pwd_required()
