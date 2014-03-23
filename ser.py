@@ -611,7 +611,8 @@ class PageEditProfile:
         force_login(sess)
         user = dbget('users', sess.user_id)
         photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id})
-        return ltpl('editprofile', user, countries, name, photos)
+        msg = web.input(msg=None)['msg']
+        return ltpl('editprofile', user, countries, name, photos, msg)
 
     def POST(self, name=None):
         user = dbget('users', sess.user_id)
@@ -1138,20 +1139,20 @@ class PageChangePw:
 
         form = self._form()
         if not form.validates():
-            return 'bad input'
+            raise web.seeother('/settings/password?msg=bad input', absolute=True)
 
         user = dbget('users', sess.user_id)
         if not user:
-            return 'error getting user'
+            raise web.seeother('/settings/password?msg=error getting user', absolute=True)
 
         if form.d.pwd1 != form.d.pwd2:
-            return 'Your passwords don\'t match!'
+            raise web.seeother('/settings/password?msg=Your passwords don\'t match!', absolute=True)
 
         if not form.d.pwd1 or len(form.d.pwd1) < 6:
-            return 'Your password must have at least 6 characters.'
+            raise web.seeother('/settings/password?msg=Your password must have at least 6 characters.', absolute=True)
 
         if not auth.authenticate_user_username(user.username, form.d.old):
-            return 'Your old password did not match!'
+            raise web.seeother('/settings/password?msg=Your old password did not match!', absolute=True)
 
         auth.chage_user_password(sess.user_id, form.d.pwd1)
         raise web.seeother('/settings/password')

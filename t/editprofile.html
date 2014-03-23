@@ -1,4 +1,4 @@
-$def with (user, countries, name, photos)
+$def with (user, countries, name, photos, msg=None)
 
 <div class='settings clearfix'>
   <div class='nav left'>
@@ -13,6 +13,10 @@ $def with (user, countries, name, photos)
      <a href='/settings/social-media'>Social Media</a>  
 
 
+  </div>
+  <div class='right red' id='msg'>
+    $if msg != None:
+        $msg
   </div>
   <div class='right' id='box'>
   </div>
