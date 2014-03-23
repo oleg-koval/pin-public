@@ -83,8 +83,8 @@ form {
     background: none; }
     form.inner-form th {
       padding-right: 10px; }
-    form.inner-form input, form.inner-form textarea, form.inner-form select {
-      margin-bottom: 30px; }
+    form.inner-form td {
+      padding-bottom: 30px; }
   form.no-back {
     box-shadow: none;
     background: none; }

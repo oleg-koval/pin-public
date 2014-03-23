@@ -76,7 +76,16 @@ jQuery ->
 		
 		
 	$('#change_pwd_form').submit ->
-		verify_passwords_match()
+		if verify_passwords_match()
+			$('#oldpwd').nextAll('div').remove()
+			oldpwd = $('#oldpwd').val()
+			if oldpwd isnt null and oldpwd is ''
+				notify_old_pwd_required()
+				return false
+			else
+				return true
+		else
+			return false
 	
 	
 	verify_passwords_match = ->
@@ -96,6 +105,11 @@ jQuery ->
 		
 	clear_pwd2_notifications = ->
 		$('#pwd2').nextAll('div').remove()
+		return
+		
+		
+	notify_old_pwd_required = ->
+		$('#oldpwd').after('<div class="red">We need your current password to match your user</div>')
 		return
 		
 

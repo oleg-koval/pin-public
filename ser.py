@@ -16,6 +16,7 @@ import HTMLParser
 from mypinnings.database import connect_db, dbget
 db = connect_db()
 
+from mypinnings import auth
 from mypinnings.auth import authenticate_user_email, force_login, logged_in, \
     authenticate_user_username, login_user, username_exists, email_exists, \
     logout_user, generate_salt
@@ -610,7 +611,8 @@ class PageEditProfile:
         force_login(sess)
         user = dbget('users', sess.user_id)
         photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id})
-        return ltpl('editprofile', user, countries, name, photos)
+        msg = web.input(msg=None)['msg']
+        return ltpl('editprofile', user, countries, name, photos, msg)
 
     def POST(self, name=None):
         user = dbget('users', sess.user_id)
@@ -1128,8 +1130,8 @@ class PageNotif:
 class PageChangePw:
     _form = form.Form(
         form.Textbox('old'),
-        form.Textbox('new1'),
-        form.Textbox('new2')
+        form.Textbox('pwd1'),
+        form.Textbox('pwd2')
     )
 
     def POST(self):
@@ -1137,25 +1139,22 @@ class PageChangePw:
 
         form = self._form()
         if not form.validates():
-            return 'bad input'
+            raise web.seeother('/settings/password?msg=bad input', absolute=True)
 
         user = dbget('users', sess.user_id)
         if not user:
-            return 'error getting user'
+            raise web.seeother('/settings/password?msg=error getting user', absolute=True)
 
-        if form.d.new1 != form.d.new2:
-            return 'Your passwords don\'t match!'
+        if form.d.pwd1 != form.d.pwd2:
+            raise web.seeother('/settings/password?msg=Your passwords don\'t match!', absolute=True)
 
-        if not form.d.new1:
-            return 'Your password cannot be blank.'
+        if not form.d.pwd1 or len(form.d.pwd1) < 6:
+            raise web.seeother('/settings/password?msg=Your password must have at least 6 characters.', absolute=True)
 
-        if hash(hash(form.d.old) + user.pw_salt) != user.pw_hash:
-            return 'Your old password did not match!'
+        if not auth.authenticate_user_username(user.username, form.d.old):
+            raise web.seeother('/settings/password?msg=Your old password did not match!', absolute=True)
 
-        pw_hash = hash(form.d.new1)
-        pw_hash = hash(pw_hash + user.pw_salt)
-        db.update('users', where='id = $id', vars={'id': sess.user_id},
-                  pw_hash=pw_hash)
+        auth.chage_user_password(sess.user_id, form.d.pwd1)
         raise web.seeother('/settings/password')
 
 
