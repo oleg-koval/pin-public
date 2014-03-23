@@ -113,6 +113,16 @@ class PinLoaderPage(FileUploaderMixin):
                              web.form.Textbox('link8', **{'class': 'urllink', 'i': 1}),
                              web.form.Textbox('link9', **{'class': 'urllink', 'i': 1}),
                              web.form.Textbox('link10', **{'class': 'urllink', 'i': 1}),
+                             web.form.Textbox('product_url1', **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url2', **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url3', **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url4', **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url5', **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url6', **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url7', **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url8', **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url9', **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url10', **{'class': 'urlproduct_url', 'i': 1}),
                              web.form.Textbox('tags1', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 1}),
                              web.form.Textbox('tags2', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 2}),
                              web.form.Textbox('tags3', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 3}),
@@ -123,6 +133,16 @@ class PinLoaderPage(FileUploaderMixin):
                              web.form.Textbox('tags8', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 8}),
                              web.form.Textbox('tags9', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 9}),
                              web.form.Textbox('tags10', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 10}),
+                             web.form.Textbox('price1', placeholder='8888.88', **{'class': 'prodprice', 'i': 1}),
+                             web.form.Textbox('price2', placeholder='8888.88', **{'class': 'prodprice', 'i': 2}),
+                             web.form.Textbox('price3', placeholder='8888.88', **{'class': 'prodprice', 'i': 3}),
+                             web.form.Textbox('price4', placeholder='8888.88', **{'class': 'prodprice', 'i': 4}),
+                             web.form.Textbox('price5', placeholder='8888.88', **{'class': 'prodprice', 'i': 5}),
+                             web.form.Textbox('price6', placeholder='8888.88', **{'class': 'prodprice', 'i': 6}),
+                             web.form.Textbox('price7', placeholder='8888.88', **{'class': 'prodprice', 'i': 7}),
+                             web.form.Textbox('price8', placeholder='8888.88', **{'class': 'prodprice', 'i': 8}),
+                             web.form.Textbox('price9', placeholder='8888.88', **{'class': 'prodprice', 'i': 9}),
+                             web.form.Textbox('price10', placeholder='8888.88', **{'class': 'prodprice', 'i': 10}),
                              web.form.Button('add', id='btn-add')
                              )
         return form()
@@ -154,22 +174,28 @@ class PinLoaderPage(FileUploaderMixin):
         if title and title.value:
             description = form['description' + i]
             link = form['link' + i]
+            product_url = form['product_url' + i]
             imageurl = form['imageurl' + i]
             image = web.input(**{'image' + i: {}}).get('image' + i, None)
             tags = form['tags' + i]
-            error = self.validate_errors(title, description, link, imageurl, image, tags)
+            price = form['price' + i]
+            error = self.validate_errors(title, description, link, product_url, imageurl, image, tags, price)
             result_info['title'] = title.value
             result_info['description'] = description.value
             result_info['link'] = link.value
+            result_info['product_url'] = product_url.value
             result_info['imageurl'] = imageurl.value
             result_info['image'] = image.filename
             result_info['tags'] = tags.value
+            result_info['price'] = price.value
             pin_id = None
             if error:
                 result_info['error'] = error
                 return result_info
             try:
-                pin_id = self.save_pin_in_db(category, title.value, description.value, link.value, tags.value)
+                pin_id = self.save_pin_in_db(category, title.value, description.value, link.value,
+                                             tags.value, price.value, imageurl.value,
+                                             product_url.value)
                 result_info['pin_id'] = pin_id
                 self.save_image(pin_id, imageurl, image)
             except Exception as e:
@@ -181,24 +207,28 @@ class PinLoaderPage(FileUploaderMixin):
             result_info['error'] = ''
         return result_info
 
-    def validate_errors(self, title, description, link, imageurl, image, tags):
+    def validate_errors(self, title, description, link, product_url, imageurl, image, tags, price):
         if not description.value:
             return _("No description")
         if not link.value:
-            return _("No link")
+            return _("No source link")
+        if not product_url.value:
+            return _("No product link")
         if not tags.value:
             return _("No tags")
         if not image.filename and not imageurl.value:
             return _("No image URL or no uploaded image file")
         return None
 
-    def save_pin_in_db(self, category, title, description, link, tags):
+    def save_pin_in_db(self, category, title, description, link, tags, price, imageurl, product_url):
         try:
             db = database.get_db()
             sess = session.get_session()
+            if not price:
+                price = None
             pin_id = db.insert(tablename='pins', name=title, description=description,
                                user_id=sess.user_id, link=link, category=category,
-                               views=1)
+                               views=1, price=price, image_url=imageurl, product_url=product_url)
             if tags:
                 db.insert(tablename='tags', pin_id=pin_id, tags=tags)
             db.insert(tablename='likes', pin_id=pin_id, user_id=sess.user_id)
@@ -237,6 +267,7 @@ class LoadersEditAPI(FileUploaderMixin):
                             vars={'id': id, 'user_id': sess.user_id})
         for row in results:
             web.header('Content-Type', 'application/json')
+            row.price = str(row.price)
             return json.dumps(row)
         raise web.notfound()
 
@@ -255,7 +286,10 @@ class LoadersEditAPI(FileUploaderMixin):
                             order by timestamp desc offset $offset limit $limit''',
                             vars={'user_id': sess.user_id, 'offset': sess.offset, 'limit': limit})
         sess.offset += len(results)
-        json_pins = json.dumps([row for row in results if os.path.exists('static/tmp/pinthumb{}.png'.format(row.id))])
+        rows = [row for row in results if os.path.exists('static/tmp/pinthumb{}.png'.format(row.id))]
+        for r in rows:
+            r.price = str(r.price)
+        json_pins = json.dumps(rows)
         print(json_pins)
         web.header('Content-Type', 'application/json')
         return json_pins
@@ -280,7 +314,9 @@ class LoadersEditAPI(FileUploaderMixin):
                              web.form.Textbox('title', web.form.notnull),
                              web.form.Textarea('description', web.form.notnull),
                              web.form.Textbox('link', web.form.notnull),
-                             web.form.Textbox('tags', web.form.notnull))
+                             web.form.Textbox('product_url', web.form.notnull),
+                             web.form.Textbox('tags', web.form.notnull),
+                             web.form.Textbox('price'))
         return form()
 
     def POST(self, pin_id):
@@ -289,17 +325,21 @@ class LoadersEditAPI(FileUploaderMixin):
             web.header('Content-Type', 'application/json')
             sess = session.get_session()
             db = database.get_db()
+            price = form.d.price or None
             db.update(tables='pins', where='id=$id and user_id=$user_id', vars={'id': pin_id, 'user_id': sess.user_id},
-                      name=form.d.title, description=form.d.description, link=form.d.link, category=form.d.category)
+                      name=form.d.title, description=form.d.description, link=form.d.link, category=form.d.category,
+                      price=price, product_url=form.d.product_url)
             results = db.where(table='tags', pin_id=pin_id)
             for _ in results:
-                db.update(tables='tags', where='pin_id=pin_id', vars={'id': pin_id}, tags=form.d.tags)
+                db.update(tables='tags', where='pin_id=$id', vars={'id': pin_id}, tags=form.d.tags)
                 break
             else:
                 db.insert(tablename='tags', pin_id=pin_id, tags=form.d.tags)
             if form.d.imageurl:
                 try:
                     self.save_image_from_url(pin_id, form.d.imageurl)
+                    db.update(tables='pins', where='id=$id and user_id=$user_id', vars={'id': pin_id, 'user_id': sess.user_id},
+                              image_url=form.d.imageurl)
                 except Exception as e:
                     logger.error('Could not save the image for pin: {} from URL: {}'.format(pin_id, form.d.imageurl), exc_info=True)
                     return json.dumps({'status': str(e)})
@@ -317,6 +357,8 @@ class UpdatePin(FileUploaderMixin):
         image = web.input(image11={})['image11']
         tags = web.input(tags11=None)['tags11']
         link = web.input(link11=None)['link11']
+        product_url = web.input(link11=None)['product_url11']
+        price = web.input(link11=None)['price11'] or None
         category = web.input(category11=None)['category11']
         errors = {'error': 'Invalid data',
                   'index': 11,
@@ -326,12 +368,15 @@ class UpdatePin(FileUploaderMixin):
                   'imageurl': '',
                   'image': image.filename,
                   'tags': tags,
-                  'link': link}
-        if pin_id > 0 and name and description and tags and link:
+                  'price': price,
+                  'link': link,
+                  'product_url': product_url}
+        if pin_id > 0 and name and description and tags and link and product_url:
             sess = session.get_session()
             db = database.get_db()
             db.update(tables='pins', where='id=$id and user_id=$user_id', vars={'id': pin_id, 'user_id': sess.user_id},
-                      name=name, description=description, link=link, category=category)
+                      name=name, description=description, link=link, category=category, price=price,
+                      product_url=product_url)
             results = db.where(table='tags', pin_id=pin_id)
             for _ in results:
                 db.update(tables='tags', where='pin_id=pin_id', vars={'id': pin_id}, tags=tags)
