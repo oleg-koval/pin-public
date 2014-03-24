@@ -195,6 +195,9 @@
       if (price.val() === '') {
         return true;
       }
+      if (price.val().indexOf('$') === 0) {
+        price.val(price.val().substring(1, price.val().length));
+      }
       if (!price_regex.test(price.val())) {
         show_error_for_field(price, 'Not a valid price. Use format: 8888.88', i);
         return false;
@@ -289,7 +292,7 @@
       }
       html = html + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>';
       if (pin['price'] !== 'None') {
-        html = html + '<tr><th>Price</th><td>' + pin['price'] + '</td></tr>';
+        html = html + '<tr><th>Price</th><td>$' + pin['price'] + '</td></tr>';
       }
       html = html + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table>';
       return html;
