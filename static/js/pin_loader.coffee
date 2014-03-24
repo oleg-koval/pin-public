@@ -346,7 +346,7 @@ jQuery ->
 		$("#link11").val(pin['link'])
 		$("#product_url11").val(pin['product_url'])
 		$("#tags11").val(pin['tags'])
-		$("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png')
+		$("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime())
 		$("#imgfulllink11").attr('href', '/pin/' + pin['id'])
 		$("#category11").val(pin['category'])
 		$("#imageurl11").val('')

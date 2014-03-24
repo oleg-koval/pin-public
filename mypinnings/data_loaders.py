@@ -398,7 +398,7 @@ class UpdatePin(FileUploaderMixin):
         else:
             result_info.append(errors)
         sess.result_info = result_info
-        return web.seeother(url='/admin/input/', absolute=True)
+        return web.seeother(url='/admin/input/#added', absolute=True)
 
 
 def remove_duplicate_hash_symbol_for(value):
