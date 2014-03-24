@@ -194,6 +194,8 @@ jQuery ->
 		if price.val() is ''
 			# the field is optional, no validation is not given
 			return true
+		if price.val().indexOf('$') == 0
+			price.val(price.val().substring(1, price.val().length))
 		if not price_regex.test(price.val())
 			show_error_for_field(price, 'Not a valid price. Use format: 8888.88', i)
 			return false
@@ -287,15 +289,15 @@ jQuery ->
 				'<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' +
 				'<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' +
 				'<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' +
-				'<tr><th>Source Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">source link</a></td></tr>' +
-				'<tr><th>Product Link</th><td><a href="' + pin['product_url'] + '" title="' + pin['product_url'] + '">product link</a></td></tr>'
+				'<tr><th>Product Link</th><td><a href="' + pin['product_url'] + '" title="' + pin['product_url'] + '">product link</a></td></tr>' +
+				'<tr><th>Source Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">source link</a></td></tr>'
 		if pin['image_url'] isnt null and pin['image_url'] isnt ''
 			html = html + '<tr><th>Image URL</th><td><a href="' + pin['image_url'] + '" title="' + pin['image_url'] + '" target="_blank">Original image</a></td></tr>'
 		
 		html = html + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>'
 		
 		if pin['price'] isnt 'None'
-			html = html + '<tr><th>Price</th><td>' + pin['price'] + '</td></tr>'
+			html = html + '<tr><th>Price</th><td>$' + pin['price'] + '</td></tr>'
 		
 		html = html + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> '+
 				'<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' +
@@ -344,7 +346,7 @@ jQuery ->
 		$("#link11").val(pin['link'])
 		$("#product_url11").val(pin['product_url'])
 		$("#tags11").val(pin['tags'])
-		$("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png')
+		$("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime())
 		$("#imgfulllink11").attr('href', '/pin/' + pin['id'])
 		$("#category11").val(pin['category'])
 		$("#imageurl11").val('')
