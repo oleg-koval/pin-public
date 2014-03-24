@@ -230,6 +230,7 @@ class PinLoaderPage(FileUploaderMixin):
                                user_id=sess.user_id, link=link, category=category,
                                views=1, price=price, image_url=imageurl, product_url=product_url)
             if tags:
+                tags = remove_duplicate_hash_symbol_for(tags)
                 db.insert(tablename='tags', pin_id=pin_id, tags=tags)
             db.insert(tablename='likes', pin_id=pin_id, user_id=sess.user_id)
             return pin_id
@@ -330,11 +331,12 @@ class LoadersEditAPI(FileUploaderMixin):
                       name=form.d.title, description=form.d.description, link=form.d.link, category=form.d.category,
                       price=price, product_url=form.d.product_url)
             results = db.where(table='tags', pin_id=pin_id)
+            tags = remove_duplicate_hash_symbol_for(form.d.tags)
             for _ in results:
-                db.update(tables='tags', where='pin_id=$id', vars={'id': pin_id}, tags=form.d.tags)
+                db.update(tables='tags', where='pin_id=$id', vars={'id': pin_id}, tags=tags)
                 break
             else:
-                db.insert(tablename='tags', pin_id=pin_id, tags=form.d.tags)
+                db.insert(tablename='tags', pin_id=pin_id, tags=tags)
             if form.d.imageurl:
                 try:
                     self.save_image_from_url(pin_id, form.d.imageurl)
@@ -378,6 +380,7 @@ class UpdatePin(FileUploaderMixin):
                       name=name, description=description, link=link, category=category, price=price,
                       product_url=product_url)
             results = db.where(table='tags', pin_id=pin_id)
+            tags = remove_duplicate_hash_symbol_for(tags)
             for _ in results:
                 db.update(tables='tags', where='pin_id=pin_id', vars={'id': pin_id}, tags=tags)
                 break
@@ -396,3 +399,21 @@ class UpdatePin(FileUploaderMixin):
             result_info.append(errors)
         sess.result_info = result_info
         return web.seeother(url='/admin/input/', absolute=True)
+
+
+def remove_duplicate_hash_symbol_for(value):
+    if value:
+        separated = value.split(' ')
+        fixed = []
+        for v in separated:
+            if '###' in v:
+                new_v = v.replace('###', '#')
+            elif '##' in v:
+                new_v = v.replace('##', '#')
+            else:
+                new_v = v
+            if new_v != '#':
+                fixed.append(new_v)
+        return ' '.join(fixed)
+    else:
+        return value
