@@ -10,17 +10,20 @@ $def with (form, result_info)
   </ul>
 <div id="upload">
 	<form id='form' autocomplete='off' enctype='multipart/form-data' method='post' action=''>
-		<h1>Category for these Pins: </h1>$:form['category'].render()
 			$if result_info != None:
-				<p><blockquote><h2>Review your added item in the 'Items Added' tab</h2></blockquote></p>
-			$for ri in result_info:
-				$if ri['error']:
-					<p><blockquote><div class="red">There are errors in you upload, please review the 'Items Added' tab</div></blockquote></p>
+				<div class="notice">
+					<p><h2>Review your added item in the 'Items Added' tab</h2></p>
+				$for ri in result_info:
+					$if ri['error']:
+						<p><blockquote><div class="red">There are errors in you upload, please review the 'Items Added' tab</div></blockquote></p>
+				</div>
 		<p>All the items you upload will belong to the same category, so carefully select the category.</p>
-		<p>You must provide, for each pin you upload: Title, Description, Link to the original source, Tags (#rolex #coolstuff) and an image via URL or upload.</p>
+		<p>You must provide, for each pin you upload: Title, Description, URL from where to buy this item, Link to the original source, Tags (#rolex #coolstuff) and an image via URL or upload.</p>
 		<p>Price is optional, only numbers and decimal point</p>
 		<p>For the image you can put the URL or upload the image, don't use both.</p>
 		<p>You can upload up to 10 images at a time, using the fields below. You can view the results in the 'Items Added' tab.</p>
+		<div style="margin-top: 50px"></div>
+		<h1>Category for these Pins: </h1>$:form['category'].render()
 		<table cellpadding="20">
 		$for i in range(1, 11, 2):
 			<tr>
@@ -35,20 +38,20 @@ $def with (form, result_info)
 							<td>$:form['description{}'.format(i)].render()</td>
 						</tr>
 						<tr>
-							<th><label for="link$i">Source URL</label></th>
-							<td>$:form['link{}'.format(i)].render()</td>
-						</tr>
-						<tr>
-							<th><label for="product_url$i">Product URL</label></th>
-							<td>$:form['product_url{}'.format(i)].render()</td>
-						</tr>
-						<tr>
 							<th><label for="imageurl$i">Image URL</label></th>
 							<td>$:form['imageurl{}'.format(i)].render()</td>
 						</tr>
 						<tr>
 							<th><label for="image$i">Image File</label></th>
 							<td>$:form['image{}'.format(i)].render()</td>
+						</tr>
+						<tr>
+							<th><label for="product_url$i">Product URL</label></th>
+							<td>$:form['product_url{}'.format(i)].render()</td>
+						</tr>
+						<tr>
+							<th><label for="link$i">Source URL</label></th>
+							<td>$:form['link{}'.format(i)].render()</td>
 						</tr>
 						<tr>
 							<th><label for="tags$i">Tags</label></th>
@@ -72,20 +75,20 @@ $def with (form, result_info)
 							<td>$:form['description{}'.format(j)].render()</td>
 						</tr>
 						<tr>
-							<th><label for="link$j">Source URL</label></th>
-							<td>$:form['link{}'.format(j)].render()</td>
-						</tr>
-						<tr>
-							<th><label for="product_url$j">Product URL</label></th>
-							<td>$:form['product_url{}'.format(j)].render()</td>
-						</tr>
-						<tr>
 							<th><label for="imageurl$j">Image URL</label></th>
 							<td>$:form['imageurl{}'.format(j)].render()</td>
 						</tr>
 						<tr>
 							<th><label for="image$j">Image File</label></th>
 							<td>$:form['image{}'.format(j)].render()</td>
+						</tr>
+						<tr>
+							<th><label for="product_url$j">Product URL</label></th>
+							<td>$:form['product_url{}'.format(j)].render()</td>
+						</tr>
+						<tr>
+							<th><label for="link$j">Source URL</label></th>
+							<td>$:form['link{}'.format(j)].render()</td>
 						</tr>
 						<tr>
 							<th><label for="tags$j">Tags</label></th>
@@ -116,18 +119,18 @@ $def with (form, result_info)
 						</tr><tr>
 							<th>Description:</th><td>$ri.get('description', '')</td>
 						</tr><tr>
-							<th>Source URL:</th><td><a href="$ri.get('link')">$ri.get('link', '')</a></td>
-						</tr><tr>
-							<th>Product URL:</th><td><a href="$ri.get('product_url')">$ri.get('product_url', '')</a></td>
-						</tr><tr>
-							<th>Tags:</th><td>$ri.get('tags', '')</td>
-						</tr><tr>
 							$if ri.get('imageurl', False):
 								<th>Tried this Image URL:</th><td><a href="$ri['imageurl']">$ri['imageurl']</a></td>
 							$elif ri.get('image', False):
 								<th>Tried this Image uploaded by you:</th><td>$ri.get('image', '')</td>
 							$else:
 								<th></th><td><strong>You did not provided an image!</strong></th>
+						</tr><tr>
+							<th>Product URL:</th><td><a href="$ri.get('product_url')">$ri.get('product_url', '')</a></td>
+						</tr><tr>
+							<th>Source URL:</th><td><a href="$ri.get('link')">$ri.get('link', '')</a></td>
+						</tr><tr>
+							<th>Tags:</th><td>$ri.get('tags', '')</td>
 						</tr>
 					</table>
 				</td>
@@ -159,14 +162,6 @@ $def with (form, result_info)
 					<td><textarea i="11" class="descrentry" name="description11" id="description11"></textarea></td>
 				</tr>
 				<tr>
-					<th><label for="link11">Source URL</label></th>
-					<td><input i="11" type="text" class="urllink" name="link11" id="link11"/></td>
-				</tr>
-				<tr>
-					<th><label for="product_url11">Product URL</label></th>
-					<td><input i="11" type="text" class="urlproduct_url" name="product_url11" id="product_url11"/></td>
-				</tr>
-				<tr>
 					<th><label for="imageurl11">Prev. image URL</label></th>
 					<td><a id="previmageurl11" target="_blank" href="">Previous Image URL</a></td>
 				</tr>
@@ -179,12 +174,20 @@ $def with (form, result_info)
 					<td><input i="11" type="file" class="imagefile" name="image11" id="image11"/></td>
 				</tr>
 				<tr>
+					<th><label for="product_url11">Product URL</label></th>
+					<td><input i="11" type="text" class="urlproduct_url" name="product_url11" id="product_url11" placeholder="Where can you buy this item? www.rolex.com"/></td>
+				</tr>
+				<tr>
+					<th><label for="link11">Source URL</label></th>
+					<td><input i="11" type="text" class="urllink" name="link11" id="link11" placeholder="The original source for this image"/></td>
+				</tr>
+				<tr>
 					<th><label for="tags11">Tags</label></th>
 					<td><input name="tags11" i="11" placeholder="#this #is #awesome" id="tags11" type="text" class="tagwords"/></td>
 				</tr>
 				<tr>
 					<th><label for="price11">Price</label></th>
-					<td><input name="price11" i="11" placeholder="8888.88" id="price11" type="text" class="prodprice"/></td>
+					<td><input name="price11" i="11" placeholder="$$888.00" id="price11" type="text" class="prodprice"/></td>
 				</tr>
 				<tr>
 					<th></th>

@@ -103,26 +103,26 @@ class PinLoaderPage(FileUploaderMixin):
                              web.form.Textarea('description8', **{'class': 'descrentry', 'i': 8}),
                              web.form.Textarea('description9', **{'class': 'descrentry', 'i': 9}),
                              web.form.Textarea('description10', **{'class': 'descrentry', 'i': 10}),
-                             web.form.Textbox('link1', **{'class': 'urllink', 'i': 1}),
-                             web.form.Textbox('link2', **{'class': 'urllink', 'i': 1}),
-                             web.form.Textbox('link3', **{'class': 'urllink', 'i': 1}),
-                             web.form.Textbox('link4', **{'class': 'urllink', 'i': 1}),
-                             web.form.Textbox('link5', **{'class': 'urllink', 'i': 1}),
-                             web.form.Textbox('link6', **{'class': 'urllink', 'i': 1}),
-                             web.form.Textbox('link7', **{'class': 'urllink', 'i': 1}),
-                             web.form.Textbox('link8', **{'class': 'urllink', 'i': 1}),
-                             web.form.Textbox('link9', **{'class': 'urllink', 'i': 1}),
-                             web.form.Textbox('link10', **{'class': 'urllink', 'i': 1}),
-                             web.form.Textbox('product_url1', **{'class': 'urlproduct_url', 'i': 1}),
-                             web.form.Textbox('product_url2', **{'class': 'urlproduct_url', 'i': 1}),
-                             web.form.Textbox('product_url3', **{'class': 'urlproduct_url', 'i': 1}),
-                             web.form.Textbox('product_url4', **{'class': 'urlproduct_url', 'i': 1}),
-                             web.form.Textbox('product_url5', **{'class': 'urlproduct_url', 'i': 1}),
-                             web.form.Textbox('product_url6', **{'class': 'urlproduct_url', 'i': 1}),
-                             web.form.Textbox('product_url7', **{'class': 'urlproduct_url', 'i': 1}),
-                             web.form.Textbox('product_url8', **{'class': 'urlproduct_url', 'i': 1}),
-                             web.form.Textbox('product_url9', **{'class': 'urlproduct_url', 'i': 1}),
-                             web.form.Textbox('product_url10', **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('link1', placeholder="The original source for this image", **{'class': 'urllink', 'i': 1}),
+                             web.form.Textbox('link2', placeholder="The original source for this image", **{'class': 'urllink', 'i': 1}),
+                             web.form.Textbox('link3', placeholder="The original source for this image", **{'class': 'urllink', 'i': 1}),
+                             web.form.Textbox('link4', placeholder="The original source for this image", **{'class': 'urllink', 'i': 1}),
+                             web.form.Textbox('link5', placeholder="The original source for this image", **{'class': 'urllink', 'i': 1}),
+                             web.form.Textbox('link6', placeholder="The original source for this image", **{'class': 'urllink', 'i': 1}),
+                             web.form.Textbox('link7', placeholder="The original source for this image", **{'class': 'urllink', 'i': 1}),
+                             web.form.Textbox('link8', placeholder="The original source for this image", **{'class': 'urllink', 'i': 1}),
+                             web.form.Textbox('link9', placeholder="The original source for this image", **{'class': 'urllink', 'i': 1}),
+                             web.form.Textbox('link10', placeholder="The original source for this image", **{'class': 'urllink', 'i': 1}),
+                             web.form.Textbox('product_url1', placeholder="Where can you buy this item? www.rolex.com", **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url2', placeholder="Where can you buy this item? www.rolex.com", **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url3', placeholder="Where can you buy this item? www.rolex.com", **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url4', placeholder="Where can you buy this item? www.rolex.com", **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url5', placeholder="Where can you buy this item? www.rolex.com", **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url6', placeholder="Where can you buy this item? www.rolex.com", **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url7', placeholder="Where can you buy this item? www.rolex.com", **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url8', placeholder="Where can you buy this item? www.rolex.com", **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url9', placeholder="Where can you buy this item? www.rolex.com", **{'class': 'urlproduct_url', 'i': 1}),
+                             web.form.Textbox('product_url10', placeholder="Where can you buy this item? www.rolex.com", **{'class': 'urlproduct_url', 'i': 1}),
                              web.form.Textbox('tags1', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 1}),
                              web.form.Textbox('tags2', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 2}),
                              web.form.Textbox('tags3', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 3}),
@@ -133,16 +133,16 @@ class PinLoaderPage(FileUploaderMixin):
                              web.form.Textbox('tags8', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 8}),
                              web.form.Textbox('tags9', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 9}),
                              web.form.Textbox('tags10', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 10}),
-                             web.form.Textbox('price1', placeholder='8888.88', **{'class': 'prodprice', 'i': 1}),
-                             web.form.Textbox('price2', placeholder='8888.88', **{'class': 'prodprice', 'i': 2}),
-                             web.form.Textbox('price3', placeholder='8888.88', **{'class': 'prodprice', 'i': 3}),
-                             web.form.Textbox('price4', placeholder='8888.88', **{'class': 'prodprice', 'i': 4}),
-                             web.form.Textbox('price5', placeholder='8888.88', **{'class': 'prodprice', 'i': 5}),
-                             web.form.Textbox('price6', placeholder='8888.88', **{'class': 'prodprice', 'i': 6}),
-                             web.form.Textbox('price7', placeholder='8888.88', **{'class': 'prodprice', 'i': 7}),
-                             web.form.Textbox('price8', placeholder='8888.88', **{'class': 'prodprice', 'i': 8}),
-                             web.form.Textbox('price9', placeholder='8888.88', **{'class': 'prodprice', 'i': 9}),
-                             web.form.Textbox('price10', placeholder='8888.88', **{'class': 'prodprice', 'i': 10}),
+                             web.form.Textbox('price1', placeholder='$888.00', **{'class': 'prodprice', 'i': 1}),
+                             web.form.Textbox('price2', placeholder='$888.00', **{'class': 'prodprice', 'i': 2}),
+                             web.form.Textbox('price3', placeholder='$888.00', **{'class': 'prodprice', 'i': 3}),
+                             web.form.Textbox('price4', placeholder='$888.00', **{'class': 'prodprice', 'i': 4}),
+                             web.form.Textbox('price5', placeholder='$888.00', **{'class': 'prodprice', 'i': 5}),
+                             web.form.Textbox('price6', placeholder='$888.00', **{'class': 'prodprice', 'i': 6}),
+                             web.form.Textbox('price7', placeholder='$888.00', **{'class': 'prodprice', 'i': 7}),
+                             web.form.Textbox('price8', placeholder='$888.00', **{'class': 'prodprice', 'i': 8}),
+                             web.form.Textbox('price9', placeholder='$888.00', **{'class': 'prodprice', 'i': 9}),
+                             web.form.Textbox('price10', placeholder='$888.00', **{'class': 'prodprice', 'i': 10}),
                              web.form.Button('add', id='btn-add')
                              )
         return form()
@@ -230,6 +230,7 @@ class PinLoaderPage(FileUploaderMixin):
                                user_id=sess.user_id, link=link, category=category,
                                views=1, price=price, image_url=imageurl, product_url=product_url)
             if tags:
+                tags = remove_duplicate_hash_symbol_for(tags)
                 db.insert(tablename='tags', pin_id=pin_id, tags=tags)
             db.insert(tablename='likes', pin_id=pin_id, user_id=sess.user_id)
             return pin_id
@@ -330,11 +331,12 @@ class LoadersEditAPI(FileUploaderMixin):
                       name=form.d.title, description=form.d.description, link=form.d.link, category=form.d.category,
                       price=price, product_url=form.d.product_url)
             results = db.where(table='tags', pin_id=pin_id)
+            tags = remove_duplicate_hash_symbol_for(form.d.tags)
             for _ in results:
-                db.update(tables='tags', where='pin_id=$id', vars={'id': pin_id}, tags=form.d.tags)
+                db.update(tables='tags', where='pin_id=$id', vars={'id': pin_id}, tags=tags)
                 break
             else:
-                db.insert(tablename='tags', pin_id=pin_id, tags=form.d.tags)
+                db.insert(tablename='tags', pin_id=pin_id, tags=tags)
             if form.d.imageurl:
                 try:
                     self.save_image_from_url(pin_id, form.d.imageurl)
@@ -378,6 +380,7 @@ class UpdatePin(FileUploaderMixin):
                       name=name, description=description, link=link, category=category, price=price,
                       product_url=product_url)
             results = db.where(table='tags', pin_id=pin_id)
+            tags = remove_duplicate_hash_symbol_for(tags)
             for _ in results:
                 db.update(tables='tags', where='pin_id=pin_id', vars={'id': pin_id}, tags=tags)
                 break
@@ -395,4 +398,22 @@ class UpdatePin(FileUploaderMixin):
         else:
             result_info.append(errors)
         sess.result_info = result_info
-        return web.seeother(url='/admin/input/', absolute=True)
+        return web.seeother(url='/admin/input/#added', absolute=True)
+
+
+def remove_duplicate_hash_symbol_for(value):
+    if value:
+        separated = value.split(' ')
+        fixed = []
+        for v in separated:
+            if '###' in v:
+                new_v = v.replace('###', '#')
+            elif '##' in v:
+                new_v = v.replace('##', '#')
+            else:
+                new_v = v
+            if new_v != '#':
+                fixed.append(new_v)
+        return ' '.join(fixed)
+    else:
+        return value
