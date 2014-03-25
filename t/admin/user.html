@@ -5,9 +5,76 @@ $def with (user)
     <a href='/admin/closeuser/$user.id'><b>Close user</b></a>
 </p>
 <hr/>
-<p>
-    $user.follower_count followers<br/>
-    following $user.follow_count other people<br/>
-    repinned $user.repin_count times<br/>
-    $user.friend_count friends<br/>
-</p>
+<table class="table">
+	<tbody>
+	<tr>
+		<th width="25%">id</th><td width="75%">$user.id</td>
+	</tr>
+	<tr>
+		<th>Real Name</th><td>$user.name</td>
+	</tr>
+	<tr>
+		<th>Username</th><td>$user.username</td>
+	</tr>
+	<tr>
+		<th>About</th><td>$user.about</td>
+	</tr>
+	<tr>
+		<th>Country</th><td>$user.country</td>
+	</tr>
+	<tr>
+		<th>City</th><td>$user.city</td>
+	</tr>
+	<tr>
+		<th>Home Town</th><td>$user.hometown</td>
+	</tr>
+	<tr>
+		<th>ZIP</th><td>$user.zip</td>
+	</tr>
+	<tr>
+		<th>website</th><td>$user.website</td>
+	</tr>
+	<tr>
+		<th>Facebook</th><td>$user.facebook</td>
+	</tr>
+	<tr>
+		<th>Linkedin</th><td>$user.linkedin</td>
+	</tr>
+	<tr>
+		<th>Twitter</th><td>$user.twitter</td>
+	</tr>
+	<tr>
+		<th>Google+</th><td>$user.gplus</td>
+	</tr>
+	<tr>
+		<th>Private</th><td>$user.private</td>
+	</tr>
+	<tr>
+		<th>Login Source</th><td>$user.login_source</td>
+	</tr>
+	<tr>
+		<th>Birthday</th><td>$user.birthday</td>
+	</tr>
+	<tr>
+		<th>Locale</th><td>$user.locale</td>
+	</tr>
+	<tr>
+		<th>Is Pin Data Loader</th><td>$user.is_pin_loader</td>
+	</tr>
+	<tr>
+		<th>Followers</th><td>$user.follower_count</td>
+	</tr>
+	<tr>
+		<th>Following</th><td>$user.follow_count</td>
+	</tr>
+	<tr>
+		<th>Friend Count</th><td>$user.friend_count</td>
+	</tr>
+	<tr>
+		<th>Repin Count</th><td>$user.repin_count</td>
+	</tr>
+	<tr>
+		<th></th><td></td>
+	</tr>
+    </tbody>
+</table>
