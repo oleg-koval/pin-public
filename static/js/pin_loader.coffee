@@ -289,8 +289,10 @@ jQuery ->
 				'<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' +
 				'<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' +
 				'<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' +
-				'<tr><th>Product Link</th><td><a href="' + pin['product_url'] + '" title="' + pin['product_url'] + '">product link</a></td></tr>' +
-				'<tr><th>Source Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">source link</a></td></tr>'
+				'<tr><th>Product Link</th><td><a href="' + pin['product_url'] + '" title="' + pin['product_url'] + '">' +
+					separate_link_to_fit_small_space(pin['product_url']) + '</a></td></tr>' +
+				'<tr><th>Source Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">' +
+					separate_link_to_fit_small_space(pin['link']) + '</a></td></tr>'
 		if pin['image_url'] isnt null and pin['image_url'] isnt ''
 			html = html + '<tr><th>Image URL</th><td><a href="' + pin['image_url'] + '" title="' + pin['image_url'] + '" target="_blank">Original image</a></td></tr>'
 		
@@ -456,6 +458,16 @@ jQuery ->
 				console.log("Error:" + textStatus + ', ' + errorThrown)
 				return
 		return
+	
+	
+	separate_link_to_fit_small_space = (url) ->
+		sep = Array()
+		last_val = 0
+		for i in [0..url.length] by 16
+			last_val = i
+			slice = url.slice(i, i + 16)
+			sep.push(slice)
+		return sep.join(' ')
 	
 	
 	return
