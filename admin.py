@@ -226,6 +226,7 @@ class PageEditUser:
         user = user or dict()
         return form.Form(
             form.Textbox('name', value=user.get('name')),
+            form.Textbox('username', value=user.get('username')),
             form.Textbox('email', value=user.get('email')),
             form.Textarea('about', value=user.get('about')),
             form.Checkbox('is_pin_loader', value='on', checked=user.get('is_pin_loader')),

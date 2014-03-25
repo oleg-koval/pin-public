@@ -5,6 +5,9 @@ $def with (user)
     <a href='/admin/closeuser/$user.id'><b>Close user</b></a>
 </p>
 <hr/>
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-xs-8">
 <table class="table">
 	<tbody>
 	<tr>
@@ -15,6 +18,9 @@ $def with (user)
 	</tr>
 	<tr>
 		<th>Username</th><td>$user.username</td>
+	</tr>
+	<tr>
+		<th>Email</th><td>$user.email</td>
 	</tr>
 	<tr>
 		<th>About</th><td>$user.about</td>
@@ -47,7 +53,7 @@ $def with (user)
 		<th>Google+</th><td>$user.gplus</td>
 	</tr>
 	<tr>
-		<th>Private</th><td>$user.private</td>
+		<th>Private?</th><td>$user.private</td>
 	</tr>
 	<tr>
 		<th>Login Source</th><td>$user.login_source</td>
@@ -59,7 +65,22 @@ $def with (user)
 		<th>Locale</th><td>$user.locale</td>
 	</tr>
 	<tr>
+		<th>Views</th><td>$user.views</td>
+	</tr>
+	<tr>
+		<th>Show Views?</th><td>$user.show_views</td>
+	</tr>
+	<tr>
 		<th>Is Pin Data Loader</th><td>$user.is_pin_loader</td>
+	</tr>
+	<tr>
+		<th>Activation</th><td>$user.activation</td>
+	</tr>
+	<tr>
+		<th>TSV</th><td>$user.tsv</td>
+	</tr>
+	<tr>
+		<th>BG</th><td>$user.bg ($user.bgx, $user.bgy)</td>
 	</tr>
 	<tr>
 		<th>Followers</th><td>$user.follower_count</td>
@@ -78,3 +99,9 @@ $def with (user)
 	</tr>
     </tbody>
 </table>
+		</div>$#col-xs-8
+		<div class="col-xs-4">
+			<img src="/static/pics/$(user.pic).png"/>
+		</div>
+	</div>$#row
+</div>$#container-fluid
