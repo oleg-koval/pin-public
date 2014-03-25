@@ -1,0 +1,39 @@
+$def with (user, follows, followers, friends, action)
+
+$if action == 'friends':
+  <h1>Friends</h1>
+  $if not followers:
+    <p>You don't have any friends yet!</p>
+  $else:
+    <!-- todo: use tpl('usergrid') -->
+    <div class='user-grid clearfix'>
+      $for friend in friends:
+        $ user_id = friend.id1 if friend.id2 == sess.user_id else friend.id2
+        $ name = friend.u1name if friend.id2 == sess.user_id else friend.u2name
+        $ pic = friend.u1pic if friend.id2 == sess.user_id else friend.u2pic
+        <div class='user left clearfix'>
+          $if pic:
+            <img class='left' src='/static/tmp/$(pic).png' alt=''/>
+          $else:
+            <img class='left' src='/static/default-avatar.png' alt=''/>
+          <b class='left'><a href='/profile/$user_id'>$name</a></b>
+        </div>
+    </div>
+
+  <hr>
+
+$if action == 'following':
+  <h1>Following</h1>
+  $if not follows:
+    <p>$user.username is not following anyone.</p>
+  $else:
+    $:tpl('usergrid', follows)
+
+  <hr>
+
+$if action == 'followers':
+  <h1>Followers</h1>
+  $if not followers:
+    <p>No one is following $user.username .</p>
+  $else:
+    $:tpl('usergrid', followers)

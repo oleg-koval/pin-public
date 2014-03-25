@@ -137,7 +137,7 @@ urls = (
     '/recover_password_sent/?', 'mypinnings.recover_password.EmailSentPage',
     '/pwreset/(\d*)/(\d*)/(.*)/', 'mypinnings.recover_password.PasswordReset',
     '/recover_password_complete/', 'mypinnings.recover_password.RecoverPasswordComplete',
-
+    '/(.*?)/(.*?)', 'PageConnect2',
     '/(.*?)', 'PageProfile2',
 )
 
@@ -849,6 +849,47 @@ class PageProfile:
             return 'User not found.'
         raise web.seeother('/' + user.username)
 
+
+class PageConnect2:
+    def GET(self, username, action):
+        user = db.query('''
+            select users.*,
+                count(distinct f1) as follower_count,
+                count(distinct f2) as follow_count,
+                id as user_id
+            from users
+                left join follows f1 on f1.follow = users.id
+                left join follows f2 on f2.follower = users.id
+            where users.username = $username group by users.id''', vars={'username': username})
+        if not user:
+            return 'Page not found.'
+        else:
+            user = user[0]
+            if 'followers' == action or 'following' == action:
+                follows = db.query('''
+                    select *, users.* from follows
+                        join users on users.id = follows.follow
+                    where follows.follower = $id''',
+                    vars={'id': user.id})
+
+                followers = db.query('''
+                    select *, users.* from follows
+                        join users on users.id = follows.follower
+                    where follows.follow = $id''',
+                    vars={'id': user.id})
+
+                friends = db.query('''
+                    select u1.name as u1name, u2.name as u2name,
+                        u1.pic as u1pic, u2.pic as u2pic,
+                        friends.*
+                    from friends
+                        join users u1 on u1.id = friends.id1
+                        join users u2 on u2.id = friends.id2
+                    where friends.id1 = $id or friends.id2 = $id
+                    ''', vars={'id': user.id})
+            else:
+                return 'Page not found'
+        return ltpl('connect2',user, follows, followers, friends, action)
 
 class PageProfile2:
     def GET(self, username):
