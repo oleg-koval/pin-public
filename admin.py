@@ -18,7 +18,6 @@ from mypinnings import cached_models
 from mypinnings.conf import settings
 from mypinnings import form_controls
 from mypinnings import auth
-import ser
 
 
 logger = logging.getLogger('admin')
@@ -237,13 +236,13 @@ class PageCloseUser:
 class PageEditUser:
     def make_form(self, user=None):
         user = user or dict()
-        countries = [('', '')] + list((c, c) for c in ser.countries)
+        my_countries = [('', '')] + list((c, c) for c in settings.COUNTRIES)
         return form.Form(
             form.Textbox('name', form.notnull, description="Full Name", value=user.get('name'), **{'class': 'form-control'}),
             form.Textbox('username', form.notnull, description="Username", value=user.get('username'), **{'class': 'form-control'}),
             form_controls.EMail('email', form.notnull, description="e-mail", value=user.get('email'), **{'class': 'form-control'}),
             form.Textarea('about', description="About the user", value=user.get('about'), **{'class': 'form-control'}),
-            form.Dropdown('country', args=countries, description="Country", value=user.get('country'), **{'class': 'form-control'}),
+            form.Dropdown('country', args=my_countries, description="Country", value=user.get('country'), **{'class': 'form-control'}),
             form.Textbox('city', description="City", value=user.get('city'), **{'class': 'form-control'}),
             form.Textbox('hometown', description="Home Town", value=user.get('hometown'), **{'class': 'form-control'}),
             form.Textbox('zip', description="ZIP Code", value=user.get('zip'), **{'class': 'form-control'}),
