@@ -71,7 +71,8 @@ $$(document).ready(function (){
 				 method: 'DELETE',
 				 success: function(data) {
 					$$.div_to_remove.remove();
-					location.reload(true);
+					load_cool_pins();
+					reload_pin(pinid);
 				 }
 		});
 	});
@@ -119,7 +120,17 @@ $$(document).ready(function (){
 				'json');
 		}
 	});
+	
+	
+	function reload_pin(pin_id) {
+		$$.get('/admin/api/pin/' + pin_id + '/',
+				function(data) {
+					add_pin(data);
+				},
+				'json');
+	}
 
+	
 $for pin in pins:
 	add_pin($:pin)
 });

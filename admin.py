@@ -42,7 +42,7 @@ urls = ('', 'admin.PageIndex',
         '/category-manage_cool/(\d*)', 'EditCoolProductsForCategory',
         '/category-cool-items/(\d*)/?', 'ListCoolProductsForCategory',
         '/api/categories/(\d*)/pins/?', 'ApiCategoryListPins',
-        '/api/categories/(\d*)/pins/(\d*)/?', 'ApiCategoryPins',
+        '/api/pin/(\d*)/?', 'ApiCategoryPins',
 #         '/api/categories/(\d*)/cool_pins', 'ApiategoryCoolPins'
          '/api/categories/(\d*)/cool_pins/(\d*)/?', 'ApiCategoryCoolPins'
         )
@@ -404,6 +404,7 @@ class EditCoolProductsForCategory(object):
                 pin.image_name = '/' + image_name
             else:
                 continue
+            pin['price'] = str(pin['price'])
             json_pins.append(json.dumps(pin))
         sess.offset = FIRST_PRODUCT_LIST_LIMIT
         return template.admin.edit_cool_products_category(category, json_pins)
@@ -518,6 +519,15 @@ class ApiCategoryPins(object):
         pin = None
         for p in query_results:
             pin = dict(p)
+            pin['price'] = str(pin['price'])
+            image_name = 'static/tmp/{}.png'.format(pin_id)
+            thumb_image_name = 'static/tmp/pinthumb{}.png'.format(pin_id)
+            if os.path.exists(thumb_image_name):
+                pin['image_name'] = '/' + thumb_image_name
+            elif os.path.exists(image_name):
+                pin['image_name'] = '/' + image_name
+            else:
+                pin['image_name'] = ''
         if pin:
             web.header('Content-Type', 'application/json')
             return json.dumps(pin)
