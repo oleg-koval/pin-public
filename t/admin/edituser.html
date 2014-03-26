@@ -1,5 +1,8 @@
-$def with (form)
+$def with (form, user)
 <h1>Edit user</h1>
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-xs-8">
 <form method='post' action='' autocomplete='off' role="form">
     <div class="form-group"><label for="name">Full Name</label>
     $:form['name'].render()</div>
@@ -30,3 +33,12 @@ $def with (form)
     <div class="form-group"><label for="bgy">BG y</label> $:form['bgy'].render()</div>
     <div class="form-group"><label for="update"></label> <button id="update" name="update" class="btn btn-primary">update</button></div>
 </form>
+		</div>
+		<div class="col-xs-4">
+<img src="/static/pics/$(user.pic).png" class="img-responsive"/>
+<br>
+<a href='/admin/closeuser/$user.id' class="btn btn-default" role="button">Close user</a> &middot;
+<a href="/admin/user/$user.id/change_password" class="btn btn-default" role="button">Change password</a>
+		</div>
+	</div>
+</div>

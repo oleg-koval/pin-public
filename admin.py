@@ -16,6 +16,7 @@ from mypinnings import session
 from mypinnings import template
 from mypinnings import cached_models
 from mypinnings.conf import settings
+from mypinnings import form_controls
 import ser
 
 
@@ -237,25 +238,25 @@ class PageEditUser:
         return form.Form(
             form.Textbox('name', form.notnull, description="Full Name", value=user.get('name'), **{'class': 'form-control'}),
             form.Textbox('username', form.notnull, description="Username", value=user.get('username'), **{'class': 'form-control'}),
-            form.Textbox('email', form.notnull, description="e-mail", value=user.get('email'), **{'class': 'form-control'}),
+            form_controls.EMail('email', form.notnull, description="e-mail", value=user.get('email'), **{'class': 'form-control'}),
             form.Textarea('about', description="About the user", value=user.get('about'), **{'class': 'form-control'}),
             form.Dropdown('country', args=countries, description="Country", value=user.get('country'), **{'class': 'form-control'}),
             form.Textbox('city', description="City", value=user.get('city'), **{'class': 'form-control'}),
             form.Textbox('hometown', description="Home Town", value=user.get('hometown'), **{'class': 'form-control'}),
             form.Textbox('zip', description="ZIP Code", value=user.get('zip'), **{'class': 'form-control'}),
-            form.Textbox('website', description="Website URL", value=user.get('website'), **{'class': 'form-control'}),
+            form_controls.URL('website', description="Website URL", value=user.get('website'), **{'class': 'form-control'}),
             form.Textbox('facebook', description="Facebook user", value=user.get('facebook'), **{'class': 'form-control'}),
             form.Textbox('linkedin', description="LinkedIn user", value=user.get('linkedin'), **{'class': 'form-control'}),
             form.Textbox('twitter', description="Twitter user", value=user.get('twitter'), **{'class': 'form-control'}),
             form.Textbox('gplus', description="Google+ user", value=user.get('gplus'), **{'class': 'form-control'}),
             form.Checkbox('private', description="Is private?", value='on', checked=user.get('private')),
             form.Dropdown('login_source', args=LOGIN_SOURCES, description="Login source", value=user.get('login_source'), **{'class': 'form-control'}),
-            form.Textbox('birthday', description="Birthday", value=user.get('birthday'), **{'class': 'form-control'}),
+            form_controls.Date('birthday', description="Birthday", value=user.get('birthday'), **{'class': 'form-control'}),
             form.Dropdown('locale', args=settings.LANGUAGES, description="Locale", value=user.get('locale'), **{'class': 'form-control'}),
-            form.Textbox('views', description="# of views", value=user.get('views')),
+            form_controls.Number('views', description="# of views", value=user.get('views'), **{'class': 'form-control'}),
             form.Checkbox('show_views', description="Show views?", value='on', checked=user.get('show_views')),
             form.Checkbox('is_pin_loader', description="Is a Pin data loader?", value='on', checked=user.get('is_pin_loader')),
-            form.Textbox('activation', description="Activation", value=user.get('activation'), **{'class': 'form-control'}),
+            form_controls.Number('activation', description="Activation", value=user.get('activation'), **{'class': 'form-control'}),
             form.Textbox('tsv', description="TSV", value=user.get('tsv'), **{'class': 'form-control'}),
             form.Checkbox('bg', description="BG", value='on', checked=user.get('bg')),
             form.Textbox('bgx', description="BG x", value=user.get('bgx')),
@@ -266,10 +267,13 @@ class PageEditUser:
         login()
         user_id = int(user_id)
         db = database.get_db()
-        user = db.select('users', where='id = $id', vars={'id': user_id})
-        if not user:
+        results = db.select('users', where='id = $id', vars={'id': user_id})
+        for row in results:
+            user = row
+            break
+        else:
             return 'That user does not exist.'
-        return template.admin.edituser(self.make_form(user[0]))
+        return template.admin.edituser(self.make_form(user), user)
 
     def POST(self, user_id):
         login()
