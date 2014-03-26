@@ -235,9 +235,9 @@ class PageEditUser:
         user = user or dict()
         countries = [('', '')] + list((c, c) for c in ser.countries)
         return form.Form(
-            form.Textbox('name', description="Full Name", size=60, value=user.get('name')),
-            form.Textbox('username', description="Username", size=60, value=user.get('username')),
-            form.Textbox('email', description="e-mail", size=60, value=user.get('email')),
+            form.Textbox('name', form.notnull, description="Full Name", size=60, value=user.get('name')),
+            form.Textbox('username', form.notnull, description="Username", size=60, value=user.get('username')),
+            form.Textbox('email', form.notnull, description="e-mail", size=60, value=user.get('email')),
             form.Textarea('about', description="About the user", value=user.get('about'), cols=60, rows=8),
             form.Dropdown('country', args=countries, description="Country", value=user.get('country')),
             form.Textbox('city', description="City", size=60, value=user.get('city')),
@@ -280,6 +280,8 @@ class PageEditUser:
 
         d = dict(form.d)
         del d['update']
+        d['zip'] = d.get('zip', None) or None
+        d['birthday'] = d.get('birthday', None) or None
         db = database.get_db()
         db.update('users', where='id = $id', vars={'id': user_id}, **d)
         raise web.seeother('/edituser/%d' % user_id)
