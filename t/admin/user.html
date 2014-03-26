@@ -97,7 +97,15 @@ $def with (user)
 </table>
 		</div>$#col-xs-8
 		<div class="col-xs-4">
-			<img src="/static/pics/$(user.pic).png" class="img-responsive"/>
+			<div class="shadow-box">
+				<img src="/static/pics/$(user.pic).png" class="img-responsive center-block"/>
+				<form method="POST" action="/admin/user/$user.id/change_pic/" role="form" enctype="multipart/form-data">
+					<div class="form-group">
+						<input type="file" class="form-control" id="newpic" name="newpic" value="Change Image">
+					</div>
+					<button type="submit" class="btn btn-default btn-xs">Change image</button>
+				</form>
+			</div>
 			<br>
 <a href='/admin/edituser/$user.id' class="btn btn-default" role="button">Edit user</a> &middot;
 <a href='/admin/closeuser/$user.id' class="btn btn-default" role="button">Close user</a> &middot;
