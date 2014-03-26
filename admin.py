@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import os.path
+from gettext import gettext as _
 
 from PIL import Image
 
@@ -31,6 +32,7 @@ urls = ('', 'admin.PageIndex',
         '/search/(all)', 'admin.PageSearch',
         '/create', 'admin.PageCreate',
         '/user/(\d*)/change_password', 'admin.ChangePassword',
+        '/user/(\d*)/change_pic/', 'admin.ChangeUserPicture',
         '/user/(\d*)', 'admin.PageUser',
         '/closeuser/(\d*)', 'admin.PageCloseUser',
         '/edituser/(\d*)', 'admin.PageEditUser',
@@ -607,6 +609,59 @@ class ChangePassword(object):
             web.seeother('/user/{}'.format(user_id), absolute=False)
         else:
             return template.admin.form(self.form(), "Change password", "Password not changed, verify.")
+
+
+class ChangeUserPicture(object):
+    form = web.form.Form(web.form.File('newpic', web.form.notnull, description="New picture", **{'class': 'form-control'}),
+                         web.form.Button('submit', description="Change image", **{'class': 'btn btn-default btn-xs'}))
+    
+    def GET(self, user_id):
+        return template.admin.form(self.form(), 'Change user picture')
+    
+    def POST(self, user_id):
+        try:
+            input = web.input(newpic={})
+            self.file = input.newpic
+            self.user_id = user_id
+            self.update_profile_picture()
+            return web.seeother('/user/{}'.format(user_id), absolute=False)
+        except Exception as e:
+            logger.error('Cannot upload user picture', exc_info=True)
+            return template.admin.upload_form(self.form(), 'Change user picture', str(e))
+        
+    def update_profile_picture(self):
+        '''
+        Grabs the profile image from google into this user
+        '''
+        new_filename = 'static/tmp/{}'.format(self.file.filename)
+        with open(new_filename, 'w') as f:
+            f.write(self.file.file.read())
+        db = database.get_db()
+        results = db.where(table='users', id=self.user_id)
+        for row in results:
+            self.user = row
+        if not self.user.pic:
+            album_id = db.insert(tablename='albums', name=_('Profile Pictures'), user_id=self.user_id)
+            photo_id = db.insert(tablename='photos', album_id=album_id)
+        else:
+            photo_id = self.user.pic
+        picture_filename = 'static/pics/{0}.png'.format(photo_id)
+        filename = new_filename
+        if filename.endswith('.png'):
+            os.renames(old=filename, new=picture_filename)
+        else:
+            img = Image.open(filename)
+            img.save(picture_filename)
+        img = Image.open(picture_filename)
+        width, height = img.size
+        ratio = 80.8 / float(width)
+        width = 80
+        height *= ratio
+        img.thumbnail((width, height), Image.ANTIALIAS)
+        picture_thumb_filename = 'static/pics/userthumb{0}.png'.format(photo_id)
+        if not self.user.pic:
+            db.update(tables='users', where='id=$id', vars={'id': self.user_id}, pic=photo_id)
+        img.save(picture_thumb_filename)
 
 
 app = web.application(urls, locals())

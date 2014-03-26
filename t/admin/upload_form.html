@@ -1,0 +1,5 @@
+$def with (form, title, msg=None)
+<h1>$title</h1>
+$if msg:
+	<p class="bg-danger">$msg</p>
+<form method='post' action='' autocomplete='off' enctype="multipart/form-data">$:form.render()</form>
