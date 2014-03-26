@@ -26,7 +26,8 @@
     var options;
     options = {
       isAnimated: false,
-      transitionDuration: 0
+      transitionDuration: 0,
+      isResizeBound: false
     };
     return box.append(item).masonry('appended', item, options).masonry('layout', options);
   };
@@ -37,6 +38,11 @@
     var $pin, i;
     $pin = $(this);
     i = 0;
+    options = {
+      isAnimated: false,
+      transitionDuration: 0,
+      isResizeBound: false
+    };
     return imagesLoaded($pin, function() {
       var $clone;
       $clone = $pin.clone();
@@ -44,7 +50,7 @@
       $clone.find('.count').text(++numPins);
       addItem($box, $clone);
       if ((++i) === count) {
-        return $box.masonry('layout');
+        return $box.masonry('layout', options);
       }
     });
   });
