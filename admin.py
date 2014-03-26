@@ -15,6 +15,8 @@ from mypinnings import database
 from mypinnings import session
 from mypinnings import template
 from mypinnings import cached_models
+from mypinnings.conf import settings
+import ser
 
 
 logger = logging.getLogger('admin')
@@ -41,6 +43,13 @@ urls = ('', 'admin.PageIndex',
 #         '/api/categories/(\d*)/cool_pins', 'ApiategoryCoolPins'
          '/api/categories/(\d*)/cool_pins/(\d*)/?', 'ApiCategoryCoolPins'
         )
+
+
+LOGIN_SOURCES = (('MP', 'MyPinnings'),
+                 ('FB', 'Facebook'),
+                 ('TW', 'Twitter'),
+                 ('GG', 'Google+'),
+                 )
 
 
 def lmsg(msg):
@@ -224,12 +233,33 @@ class PageCloseUser:
 class PageEditUser:
     def make_form(self, user=None):
         user = user or dict()
+        countries = [('', '')] + list((c, c) for c in ser.countries)
         return form.Form(
-            form.Textbox('name', value=user.get('name')),
-            form.Textbox('username', value=user.get('username')),
-            form.Textbox('email', value=user.get('email')),
-            form.Textarea('about', value=user.get('about')),
-            form.Checkbox('is_pin_loader', value='on', checked=user.get('is_pin_loader')),
+            form.Textbox('name', description="Full Name", size=60, value=user.get('name')),
+            form.Textbox('username', description="Username", size=60, value=user.get('username')),
+            form.Textbox('email', description="e-mail", size=60, value=user.get('email')),
+            form.Textarea('about', description="About the user", value=user.get('about'), cols=60, rows=8),
+            form.Dropdown('country', args=countries, description="Country", value=user.get('country')),
+            form.Textbox('city', description="City", size=60, value=user.get('city')),
+            form.Textbox('hometown', description="Home Town", size=60, value=user.get('hometown')),
+            form.Textbox('zip', description="ZIP Code", size=60, value=user.get('zip')),
+            form.Textbox('website', description="Website URL", size=60, value=user.get('website')),
+            form.Textbox('facebook', description="Facebook user", size=60, value=user.get('facebook')),
+            form.Textbox('linkedin', description="LinkedIn user", size=60, value=user.get('linkedin')),
+            form.Textbox('twitter', description="Twitter user", size=60, value=user.get('twitter')),
+            form.Textbox('gplus', description="Google+ user", size=60, value=user.get('gplus')),
+            form.Checkbox('private', description="Is private?", value='on', checked=user.get('private')),
+            form.Dropdown('login_source', args=LOGIN_SOURCES, description="Login source", value=user.get('login_source')),
+            form.Textbox('birthday', description="Birthday", size=60, value=user.get('birthday')),
+            form.Dropdown('locale', args=settings.LANGUAGES, description="Locale", value=user.get('locale')),
+            form.Textbox('views', description="# of views", value=user.get('views')),
+            form.Checkbox('show_views', description="Show views?", value='on', checked=user.get('show_views')),
+            form.Checkbox('is_pin_loader', description="Is a Pin data loader?", value='on', checked=user.get('is_pin_loader')),
+            form.Textbox('activation', description="Activation", size=60, value=user.get('activation')),
+            form.Textbox('tsv', description="TSV", size=60, value=user.get('tsv')),
+            form.Checkbox('bg', description="BG", value='on', checked=user.get('bg')),
+            form.Textbox('bgx', description="BG x", value=user.get('bgx')),
+            form.Textbox('bgy', description="BG y", value=user.get('bgy')),
             form.Button('update'))()
 
     def GET(self, user_id):
