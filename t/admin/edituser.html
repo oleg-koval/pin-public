@@ -1,5 +1,44 @@
-$def with (form)
+$def with (form, user)
 <h1>Edit user</h1>
-<form method='post' action='' autocomplete='off'>
-    $:form.render()
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-xs-8">
+<form method='post' action='' autocomplete='off' role="form">
+    <div class="form-group"><label for="name">Full Name</label>
+    $:form['name'].render()</div>
+    <div class="form-group"><label for="username">Username</label>
+    $:form['username'].render()</div>
+    <div class="form-group"><label for="email">e-mail</label> $:form['email'].render()</div>
+    <div class="form-group"><label for="about">About the user</label> $:form['about'].render()</div>
+    <div class="form-group"><label for="country">Country</label> $:form['country'].render()</div>
+    <div class="form-group"><label for="city">City</label> $:form['city'].render()</div>
+    <div class="form-group"><label for="hometown">Home Town</label> $:form['hometown'].render()</div>
+    <div class="form-group"><label for="zip">ZIP Code</label> $:form['zip'].render()</div>
+    <div class="form-group"><label for="website">Website URL</label> $:form['website'].render()</div>
+    <div class="form-group"><label for="facebook">Facebook user</label> $:form['facebook'].render()</div>
+    <div class="form-group"><label for="linkedin">LinkedIn user</label> $:form['linkedin'].render()</div>
+    <div class="form-group"><label for="twitter">Twitter user</label> $:form['twitter'].render()</div>
+    <div class="form-group"><label for="gplus">Google+ user</label> $:form['gplus'].render()</div>
+    <div class="checkbox"><label for="private_on">Is private?</label> $:form['private'].render()</div>
+    <div class="form-group"><label for="login_source">Login source</label> $:form['login_source'].render()</div>
+    <div class="form-group"><label for="birthday">Birthday</label> $:form['birthday'].render()</div>
+    <div class="form-group"><label for="locale">Locale</label> $:form['locale'].render()</div>
+    <div class="form-group"><label for="views"># of views</label> $:form['views'].render()</div>
+    <div class="checkbox"><label for="show_views_on">Show views?</label> $:form['show_views'].render()</div>
+    <div class="checkbox"><label for="is_pin_loader_on">Is a Pin data loader?</label> $:form['is_pin_loader'].render()</div>
+    <div class="form-group"><label for="activation">Activation</label> $:form['activation'].render()</div>
+    <div class="form-group"><label for="tsv">TSV</label> $:form['tsv'].render()</div>
+    <div class="checkbox"><label for="bg_on">BG</label> $:form['bg'].render()</div>
+    <div class="form-group"><label for="bgx">BG x</label> $:form['bgx'].render()</div>
+    <div class="form-group"><label for="bgy">BG y</label> $:form['bgy'].render()</div>
+    <div class="form-group"><label for="update"></label> <button id="update" name="update" class="btn btn-primary">update</button></div>
 </form>
+		</div>
+		<div class="col-xs-4">
+<img src="/static/pics/$(user.pic).png" class="img-responsive"/>
+<br>
+<a href='/admin/closeuser/$user.id' class="btn btn-default" role="button">Close user</a> &middot;
+<a href="/admin/user/$user.id/change_password" class="btn btn-default" role="button">Change password</a>
+		</div>
+	</div>
+</div>

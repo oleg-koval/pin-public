@@ -1,13 +1,107 @@
 $def with (user)
 <h1>Viewing user $user.name</h1>
-<p>
-    <a href='/admin/edituser/$user.id'><b>Edit user</b></a> &middot;
-    <a href='/admin/closeuser/$user.id'><b>Close user</b></a>
-</p>
 <hr/>
-<p>
-    $user.follower_count followers<br/>
-    following $user.follow_count other people<br/>
-    repinned $user.repin_count times<br/>
-    $user.friend_count friends<br/>
-</p>
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-xs-8">
+<table class="table">
+	<tbody>
+	<tr>
+		<th width="25%">id</th><td width="75%">$user.id</td>
+	</tr>
+	<tr>
+		<th>Real Name</th><td>$user.name</td>
+	</tr>
+	<tr>
+		<th>Username</th><td>$user.username</td>
+	</tr>
+	<tr>
+		<th>e-mail</th><td>$user.email</td>
+	</tr>
+	<tr>
+		<th>About</th><td>$user.about</td>
+	</tr>
+	<tr>
+		<th>Country</th><td>$user.country</td>
+	</tr>
+	<tr>
+		<th>City</th><td>$user.city</td>
+	</tr>
+	<tr>
+		<th>Home Town</th><td>$user.hometown</td>
+	</tr>
+	<tr>
+		<th>ZIP</th><td>$user.zip</td>
+	</tr>
+	<tr>
+		<th>website</th><td>$user.website</td>
+	</tr>
+	<tr>
+		<th>Facebook</th><td>$user.facebook</td>
+	</tr>
+	<tr>
+		<th>Linkedin</th><td>$user.linkedin</td>
+	</tr>
+	<tr>
+		<th>Twitter</th><td>$user.twitter</td>
+	</tr>
+	<tr>
+		<th>Google+</th><td>$user.gplus</td>
+	</tr>
+	<tr>
+		<th>Private?</th><td>$user.private</td>
+	</tr>
+	<tr>
+		<th>Login Source</th><td>$user.login_source</td>
+	</tr>
+	<tr>
+		<th>Birthday</th><td>$user.birthday</td>
+	</tr>
+	<tr>
+		<th>Locale</th><td>$user.locale</td>
+	</tr>
+	<tr>
+		<th>Views</th><td>$user.views</td>
+	</tr>
+	<tr>
+		<th>Show Views?</th><td>$user.show_views</td>
+	</tr>
+	<tr>
+		<th>Is Pin Data Loader</th><td>$user.is_pin_loader</td>
+	</tr>
+	<tr>
+		<th>Activation</th><td>$user.activation</td>
+	</tr>
+	<tr>
+		<th>TSV</th><td>$user.tsv</td>
+	</tr>
+	<tr>
+		<th>BG</th><td>$user.bg ($user.bgx, $user.bgy)</td>
+	</tr>
+	<tr>
+		<th>Followers</th><td>$user.follower_count</td>
+	</tr>
+	<tr>
+		<th>Following</th><td>$user.follow_count</td>
+	</tr>
+	<tr>
+		<th>Friend Count</th><td>$user.friend_count</td>
+	</tr>
+	<tr>
+		<th>Repin Count</th><td>$user.repin_count</td>
+	</tr>
+	<tr>
+		<th></th><td></td>
+	</tr>
+    </tbody>
+</table>
+		</div>$#col-xs-8
+		<div class="col-xs-4">
+			<img src="/static/pics/$(user.pic).png" class="img-responsive"/>
+			<br>
+<a href='/admin/edituser/$user.id' class="btn btn-default" role="button">Edit user</a> &middot;
+<a href='/admin/closeuser/$user.id' class="btn btn-default" role="button">Close user</a> &middot;
+<a href="/admin/user/$user.id/change_password" class="btn btn-default" role="button">Change password</a>
+		</div>
+	</div>$#row
+</div>$#container-fluid

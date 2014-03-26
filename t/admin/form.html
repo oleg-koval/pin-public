@@ -1,2 +1,4 @@
-$def with (form, title)
+$def with (form, title, msg=None)
+$if msg:
+	<p class="bg-danger">$msg</p>
 <form method='post' action='' autocomplete='off'>$:form.render()</form>

@@ -15,6 +15,9 @@ from mypinnings import database
 from mypinnings import session
 from mypinnings import template
 from mypinnings import cached_models
+from mypinnings.conf import settings
+from mypinnings import form_controls
+from mypinnings import auth
 
 
 logger = logging.getLogger('admin')
@@ -27,6 +30,7 @@ urls = ('', 'admin.PageIndex',
         '/search', 'admin.PageSearch',
         '/search/(all)', 'admin.PageSearch',
         '/create', 'admin.PageCreate',
+        '/user/(\d*)/change_password', 'admin.ChangePassword',
         '/user/(\d*)', 'admin.PageUser',
         '/closeuser/(\d*)', 'admin.PageCloseUser',
         '/edituser/(\d*)', 'admin.PageEditUser',
@@ -34,13 +38,21 @@ urls = ('', 'admin.PageIndex',
         '/logout', 'admin.PageLogout',
         '/relationships', 'admin.PageRelationships',
         '/categories', 'ListCategories',
+        '/category-manage_cool/(\d*)/more/?', 'EditMoreCoolProductsForCategory',
         '/category-manage_cool/(\d*)', 'EditCoolProductsForCategory',
         '/category-cool-items/(\d*)/?', 'ListCoolProductsForCategory',
         '/api/categories/(\d*)/pins/?', 'ApiCategoryListPins',
-        '/api/categories/(\d*)/pins/(\d*)/?', 'ApiCategoryPins',
+        '/api/pin/(\d*)/?', 'ApiCategoryPins',
 #         '/api/categories/(\d*)/cool_pins', 'ApiategoryCoolPins'
          '/api/categories/(\d*)/cool_pins/(\d*)/?', 'ApiCategoryCoolPins'
         )
+
+
+LOGIN_SOURCES = (('MP', 'MyPinnings'),
+                 ('FB', 'Facebook'),
+                 ('TW', 'Twitter'),
+                 ('GG', 'Google+'),
+                 )
 
 
 def lmsg(msg):
@@ -224,21 +236,46 @@ class PageCloseUser:
 class PageEditUser:
     def make_form(self, user=None):
         user = user or dict()
+        my_countries = [('', '')] + list((c, c) for c in settings.COUNTRIES)
         return form.Form(
-            form.Textbox('name', value=user.get('name')),
-            form.Textbox('email', value=user.get('email')),
-            form.Textarea('about', value=user.get('about')),
-            form.Checkbox('is_pin_loader', value='on', checked=user.get('is_pin_loader')),
+            form.Textbox('name', form.notnull, description="Full Name", value=user.get('name'), **{'class': 'form-control'}),
+            form.Textbox('username', form.notnull, description="Username", value=user.get('username'), **{'class': 'form-control'}),
+            form_controls.EMail('email', form.notnull, description="e-mail", value=user.get('email'), **{'class': 'form-control'}),
+            form.Textarea('about', description="About the user", value=user.get('about'), **{'class': 'form-control'}),
+            form.Dropdown('country', args=my_countries, description="Country", value=user.get('country'), **{'class': 'form-control'}),
+            form.Textbox('city', description="City", value=user.get('city'), **{'class': 'form-control'}),
+            form.Textbox('hometown', description="Home Town", value=user.get('hometown'), **{'class': 'form-control'}),
+            form.Textbox('zip', description="ZIP Code", value=user.get('zip'), **{'class': 'form-control'}),
+            form_controls.URL('website', description="Website URL", value=user.get('website'), **{'class': 'form-control'}),
+            form.Textbox('facebook', description="Facebook user", value=user.get('facebook'), **{'class': 'form-control'}),
+            form.Textbox('linkedin', description="LinkedIn user", value=user.get('linkedin'), **{'class': 'form-control'}),
+            form.Textbox('twitter', description="Twitter user", value=user.get('twitter'), **{'class': 'form-control'}),
+            form.Textbox('gplus', description="Google+ user", value=user.get('gplus'), **{'class': 'form-control'}),
+            form.Checkbox('private', description="Is private?", value='on', checked=user.get('private')),
+            form.Dropdown('login_source', args=LOGIN_SOURCES, description="Login source", value=user.get('login_source'), **{'class': 'form-control'}),
+            form_controls.Date('birthday', description="Birthday", value=user.get('birthday'), **{'class': 'form-control'}),
+            form.Dropdown('locale', args=settings.LANGUAGES, description="Locale", value=user.get('locale'), **{'class': 'form-control'}),
+            form_controls.Number('views', description="# of views", value=user.get('views'), **{'class': 'form-control'}),
+            form.Checkbox('show_views', description="Show views?", value='on', checked=user.get('show_views')),
+            form.Checkbox('is_pin_loader', description="Is a Pin data loader?", value='on', checked=user.get('is_pin_loader')),
+            form_controls.Number('activation', description="Activation", value=user.get('activation'), **{'class': 'form-control'}),
+            form.Textbox('tsv', description="TSV", value=user.get('tsv'), **{'class': 'form-control'}),
+            form.Checkbox('bg', description="BG", value='on', checked=user.get('bg')),
+            form.Textbox('bgx', description="BG x", value=user.get('bgx')),
+            form.Textbox('bgy', description="BG y", value=user.get('bgy')),
             form.Button('update'))()
 
     def GET(self, user_id):
         login()
         user_id = int(user_id)
         db = database.get_db()
-        user = db.select('users', where='id = $id', vars={'id': user_id})
-        if not user:
+        results = db.select('users', where='id = $id', vars={'id': user_id})
+        for row in results:
+            user = row
+            break
+        else:
             return 'That user does not exist.'
-        return template.admin.edituser(self.make_form(user[0]))
+        return template.admin.edituser(self.make_form(user), user)
 
     def POST(self, user_id):
         login()
@@ -249,6 +286,8 @@ class PageEditUser:
 
         d = dict(form.d)
         del d['update']
+        d['zip'] = d.get('zip', None) or None
+        d['birthday'] = d.get('birthday', None) or None
         db = database.get_db()
         db.update('users', where='id = $id', vars={'id': user_id}, **d)
         raise web.seeother('/edituser/%d' % user_id)
@@ -336,7 +375,9 @@ class ListCategories(object):
         return template.admin.list_categories(cached_models.all_categories)
 
 
-COOL_LIST_LIMIT = 50
+FIRST_PRODUCT_LIST_LIMIT = 32
+ADDITIONAL_PRODUCT_LIST_LIMIT = 12
+
 
 class EditCoolProductsForCategory(object):
     '''
@@ -345,12 +386,11 @@ class EditCoolProductsForCategory(object):
     @login_required
     def GET(self, category_id):
         db = database.get_db()
-        offset = int(web.input(offset=0)['offset'])
-        if offset < 0:
-            offset = 0
+        sess = session.get_session()
+        sess.offset = 0
         pins = db.select(tables=['pins'], what="pins.*", order='timestamp desc',
                          where='pins.category=$category_id and pins.id not in (select pin_id from cool_pins where cool_pins.category_id=$category_id)',
-                         vars={'category_id': category_id}, offset=offset, limit=COOL_LIST_LIMIT)
+                         vars={'category_id': category_id}, offset=sess.offset, limit=FIRST_PRODUCT_LIST_LIMIT)
         categories = db.where(table='categories', id=category_id)
         for c in categories:
             category = c
@@ -364,10 +404,38 @@ class EditCoolProductsForCategory(object):
                 pin.image_name = '/' + image_name
             else:
                 continue
+            pin['price'] = str(pin['price'])
             json_pins.append(json.dumps(pin))
-        prev = offset - COOL_LIST_LIMIT if offset > COOL_LIST_LIMIT else 0
-        next = offset + COOL_LIST_LIMIT
-        return template.admin.edit_cool_products_category(category, json_pins, prev, next)
+        sess.offset = FIRST_PRODUCT_LIST_LIMIT
+        return template.admin.edit_cool_products_category(category, json_pins)
+
+
+class EditMoreCoolProductsForCategory(object):
+    '''
+    Allows edition of cool products for one category
+    '''
+    @login_required
+    def GET(self, category_id):
+        db = database.get_db()
+        sess = session.get_session()
+        pins = db.select(tables=['pins'], what="pins.*", order='timestamp desc',
+                         where='pins.category=$category_id and pins.id not in (select pin_id from cool_pins where cool_pins.category_id=$category_id)',
+                         vars={'category_id': category_id}, offset=sess.offset, limit=ADDITIONAL_PRODUCT_LIST_LIMIT)
+        json_pins = []
+        for pin in pins:
+            image_name = 'static/tmp/{}.png'.format(pin.id)
+            thumb_image_name = 'static/tmp/pinthumb{}.png'.format(pin.id)
+            if os.path.exists(thumb_image_name):
+                pin.image_name = '/' + thumb_image_name
+            elif os.path.exists(image_name):
+                pin.image_name = '/' + image_name
+            else:
+                continue
+            json_pins.append(pin)
+        sess.offset += ADDITIONAL_PRODUCT_LIST_LIMIT
+        web.header('Content-Type', 'application/json')
+        print(len(json_pins))
+        return json.dumps(json_pins)
 
 
 class ListCoolProductsForCategory(object):
@@ -451,6 +519,15 @@ class ApiCategoryPins(object):
         pin = None
         for p in query_results:
             pin = dict(p)
+            pin['price'] = str(pin['price'])
+            image_name = 'static/tmp/{}.png'.format(pin_id)
+            thumb_image_name = 'static/tmp/pinthumb{}.png'.format(pin_id)
+            if os.path.exists(thumb_image_name):
+                pin['image_name'] = '/' + thumb_image_name
+            elif os.path.exists(image_name):
+                pin['image_name'] = '/' + image_name
+            else:
+                pin['image_name'] = ''
         if pin:
             web.header('Content-Type', 'application/json')
             return json.dumps(pin)
@@ -512,6 +589,24 @@ class ApiCategoryCoolPins(object):
             raise web.NotFound('Could not delete pin from cool pins')
         web.header('Content-Type', 'application/json')
         return json.dumps({'status': 'ok'})
+
+
+class ChangePassword(object):
+    form = web.form.Form(web.form.Password('pwd1', web.form.notnull, description="New password"),
+                         web.form.Password('pwd2', web.form.notnull, description="Repeat password"),
+                         web.form.Button('Change password'),
+                         validators = [web.form.Validator('Password do not match', lambda i: i.pwd1 == i.pwd2)])
+    
+    def GET(self, user_id):
+        return template.admin.form(self.form(), "Change password")
+    
+    def POST(self, user_id):
+        form = self.form()
+        if form.validates():
+            auth.chage_user_password(user_id, form.d.pwd1)
+            web.seeother('/user/{}'.format(user_id), absolute=False)
+        else:
+            return template.admin.form(self.form(), "Change password", "Password not changed, verify.")
 
 
 app = web.application(urls, locals())

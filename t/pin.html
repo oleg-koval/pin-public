@@ -9,7 +9,7 @@ $def with (pin, comments, rating)
           <i class='fa fa-lock'></i>
           $(['Default', 'Private', 'Public'][pin.privacy])
         </a>
-      <a class='button' href='#' data-toggle="modal" data-target="#addToGetListModal"><i class='fa fa-thumb-tack'></i> Add to Your Getlist</a>
+      <a class='button' href='/add-to-your-own-getlist/$pin.id'><i class='fa fa-thumb-tack'></i> Add to Your Getlist</a>
       
       $if pin.link:
         <a class='button' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i> Visit Product</a>

@@ -230,7 +230,7 @@ class PinLoaderPage(FileUploaderMixin):
                                user_id=sess.user_id, link=link, category=category,
                                views=1, price=price, image_url=imageurl, product_url=product_url)
             if tags:
-                tags = remove_duplicate_hash_symbol_for(tags)
+                tags = remove_hash_symbol_from_tags(tags)
                 db.insert(tablename='tags', pin_id=pin_id, tags=tags)
             db.insert(tablename='likes', pin_id=pin_id, user_id=sess.user_id)
             return pin_id
@@ -269,6 +269,7 @@ class LoadersEditAPI(FileUploaderMixin):
         for row in results:
             web.header('Content-Type', 'application/json')
             row.price = str(row.price)
+            row.tags = add_hash_symbol_to_tags(row.tags)
             return json.dumps(row)
         raise web.notfound()
 
@@ -290,6 +291,7 @@ class LoadersEditAPI(FileUploaderMixin):
         rows = [row for row in results if os.path.exists('static/tmp/pinthumb{}.png'.format(row.id))]
         for r in rows:
             r.price = str(r.price)
+            r.tags = add_hash_symbol_to_tags(r.tags)
         json_pins = json.dumps(rows)
         print(json_pins)
         web.header('Content-Type', 'application/json')
@@ -331,7 +333,7 @@ class LoadersEditAPI(FileUploaderMixin):
                       name=form.d.title, description=form.d.description, link=form.d.link, category=form.d.category,
                       price=price, product_url=form.d.product_url)
             results = db.where(table='tags', pin_id=pin_id)
-            tags = remove_duplicate_hash_symbol_for(form.d.tags)
+            tags = remove_hash_symbol_from_tags(form.d.tags)
             for _ in results:
                 db.update(tables='tags', where='pin_id=$id', vars={'id': pin_id}, tags=tags)
                 break
@@ -380,7 +382,7 @@ class UpdatePin(FileUploaderMixin):
                       name=name, description=description, link=link, category=category, price=price,
                       product_url=product_url)
             results = db.where(table='tags', pin_id=pin_id)
-            tags = remove_duplicate_hash_symbol_for(tags)
+            tags = remove_hash_symbol_from_tags(tags)
             for _ in results:
                 db.update(tables='tags', where='pin_id=pin_id', vars={'id': pin_id}, tags=tags)
                 break
@@ -401,18 +403,27 @@ class UpdatePin(FileUploaderMixin):
         return web.seeother(url='/admin/input/#added', absolute=True)
 
 
-def remove_duplicate_hash_symbol_for(value):
+def remove_hash_symbol_from_tags(value):
     if value:
         separated = value.split(' ')
         fixed = []
         for v in separated:
-            if '###' in v:
-                new_v = v.replace('###', '#')
-            elif '##' in v:
-                new_v = v.replace('##', '#')
+            new_v = v.replace('#', '')
+            fixed.append(new_v)
+        return ' '.join(fixed)
+    else:
+        return value
+    
+    
+def add_hash_symbol_to_tags(value):
+    if value:
+        separated = value.split(' ')
+        fixed = []
+        for v in separated:
+            if v.startswith('#'):
+                fixed.append(v)
             else:
-                new_v = v
-            if new_v != '#':
+                new_v = '#{}'.format(v)
                 fixed.append(new_v)
         return ' '.join(fixed)
     else:
