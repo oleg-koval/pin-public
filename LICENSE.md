@@ -1,4 +1,4 @@
-Copyright (c) 2014, {{{fullname}}}
+Copyright (c) 2014, MyGetlist
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
