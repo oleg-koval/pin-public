@@ -17,6 +17,7 @@ from mypinnings import template
 from mypinnings import cached_models
 from mypinnings.conf import settings
 from mypinnings import form_controls
+from mypinnings import auth
 import ser
 
 
@@ -30,6 +31,7 @@ urls = ('', 'admin.PageIndex',
         '/search', 'admin.PageSearch',
         '/search/(all)', 'admin.PageSearch',
         '/create', 'admin.PageCreate',
+        '/user/(\d*)/change_password', 'admin.ChangePassword',
         '/user/(\d*)', 'admin.PageUser',
         '/closeuser/(\d*)', 'admin.PageCloseUser',
         '/edituser/(\d*)', 'admin.PageEditUser',
@@ -549,6 +551,24 @@ class ApiCategoryCoolPins(object):
             raise web.NotFound('Could not delete pin from cool pins')
         web.header('Content-Type', 'application/json')
         return json.dumps({'status': 'ok'})
+
+
+class ChangePassword(object):
+    form = web.form.Form(web.form.Password('pwd1', web.form.notnull, description="New password"),
+                         web.form.Password('pwd2', web.form.notnull, description="Repeat password"),
+                         web.form.Button('Change password'),
+                         validators = [web.form.Validator('Password do not match', lambda i: i.pwd1 == i.pwd2)])
+    
+    def GET(self, user_id):
+        return template.admin.form(self.form(), "Change password")
+    
+    def POST(self, user_id):
+        form = self.form()
+        if form.validates():
+            auth.chage_user_password(user_id, form.d.pwd1)
+            web.seeother('/user/{}'.format(user_id), absolute=False)
+        else:
+            return template.admin.form(self.form(), "Change password", "Password not changed, verify.")
 
 
 app = web.application(urls, locals())
