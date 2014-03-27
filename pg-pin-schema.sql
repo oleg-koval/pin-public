@@ -1307,3 +1307,7 @@ alter table pins add product_url text not null default '';
 
 -- to add price range
 alter table pins add price_range integer not null default 1;
+
+-- allow sub-categories
+alter table categories add is_default_sub_category boolean not null default FALSE;
+alter table categories add parent integer;
