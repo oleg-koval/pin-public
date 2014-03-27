@@ -22,7 +22,25 @@ class ListCategories(object):
     '''
     @login_required
     def GET(self):
-        return template.admin.list_categories(cached_models.all_categories)
+        db = database.get_db()
+        results = db.query('''select root.id, root.name, child.id as child_id, child.name as child_name, child.is_default_sub_category
+                                    from categories root left join categories child on root.id=child.parent
+                                    where root.parent is NULL
+                                    order by root.name, child.name
+                                    '''
+                                  )
+        category_list = []
+        last_root_category = None
+        for row in results:
+            if not last_root_category or last_root_category['id'] != row.id:
+                last_root_category = {'id': row.id, 'name': row.name, 'subcategories': list()}
+                category_list.append(last_root_category)
+            if row.child_id:
+                last_root_category['subcategories'].append({'id': row.child_id,
+                                                            'name': row.child_name,
+                                                            'default': row.is_default_sub_category
+                                                        })
+        return template.admin.list_categories(category_list)
 
 
 FIRST_PRODUCT_LIST_LIMIT = 32

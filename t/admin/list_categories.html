@@ -6,8 +6,8 @@ $def with (categories)
 <ul>
 $for cat in categories:
 	<li>
-        <a href='category-manage_cool/$cat.id'>Cool products</a>
-        $cat.name
+        <a href="category-manage_cool/$cat['id']" class="btn btn-default btn-xs">Cool products</a>
+        <a href="$cat['id']">$cat['name']</a>
     </li>
 </ul>
 		</div>
