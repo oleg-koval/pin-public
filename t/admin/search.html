@@ -6,11 +6,12 @@ $if users:
         <thead>
             <tr>
                 <td><a href='javascript:addToUrl("order", "name");'>Name</a></td>
+                <td><a href='javascript:addToUrl("order", "username");'>Username</a></td>
+                <td><a href='javascript:addToUrl("order", "email");'>Email</a></td>
+                <td><a href='javascript:addToUrl("order", "pin_count");'>Added</a></td>
+                <td><a href='javascript:addToUrl("order", "repin_count");'>Added from</a></td>
                 <td><a href='javascript:addToUrl("order", "follower_count");'>Followers</a></td>
                 <td><a href='javascript:addToUrl("order", "follow_count");'>Follows</a></td>
-                <td><a href='javascript:addToUrl("order", "repin_count");'>Repins</a></td>
-                <td><a href='javascript:addToUrl("order", "pin_count");'>Pins</a></td>
-                <td><a href='javascript:addToUrl("order", "friend_count");'>Friends</a></td>
                 <td><a href='javascript:addToUrl("order", "timestamp");'>Date Created</a></td>
             </tr>
         </thead>
@@ -18,11 +19,12 @@ $if users:
             $for user in users:
                 <tr>
                     <td><a href='/admin/user/$user.id'><b>$user.name</b></a></td>
+                    <td>$user.username</td>
+                    <td>$user.email</td>
+                    <td>$user.pin_count</td>
+                    <td>$user.repin_count</td>
                     <td>$user.follower_count</td>
                     <td>$user.follow_count</td>
-                    <td>$user.repin_count</td>
-                    <td>$user.pin_count</td>
-                    <td>$user.friend_count</td>
                     <td>$user.timestamp</td>
                 </tr>
         </tbody>
