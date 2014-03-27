@@ -2,7 +2,7 @@ offset = 0
 loading = false
 
 $box = $('#pin-box')
-$box.masonry({gutter: 20})
+$box.masonry({gutter: 20,transitionDuration: 0})
 $button = $('#button-more')
 $buffer = $('#pin-buf')
 
@@ -13,15 +13,14 @@ $buffer.find('.pin').each ->
 
 
 addItem = (box, item) ->
-  options = {isAnimated: false, transitionDuration: 0}
-  box.append(item).masonry('appended', item, options).masonry('layout', options)
+  box.append(item).masonry('appended', item).masonry('layout')
 
 numPins = 0
 
 $buffer.find('.pin').each ->
   $pin = $(this)
   i = 0
-
+  
   imagesLoaded $pin,  ->
     $clone = $pin.clone()
     $pin.remove()
