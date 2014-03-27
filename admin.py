@@ -19,6 +19,7 @@ from mypinnings import cached_models
 from mypinnings.conf import settings
 from mypinnings import form_controls
 from mypinnings import auth
+from mypinnings.admin.auth import login
 
 
 logger = logging.getLogger('admin')
@@ -39,14 +40,14 @@ urls = ('', 'admin.PageIndex',
         '/createuser', 'admin.PageCreateUser',
         '/logout', 'admin.PageLogout',
         '/relationships', 'admin.PageRelationships',
-        '/categories', 'ListCategories',
-        '/category-manage_cool/(\d*)/more/?', 'EditMoreCoolProductsForCategory',
-        '/category-manage_cool/(\d*)', 'EditCoolProductsForCategory',
-        '/category-cool-items/(\d*)/?', 'ListCoolProductsForCategory',
-        '/api/categories/(\d*)/pins/?', 'ApiCategoryListPins',
-        '/api/pin/(\d*)/?', 'ApiCategoryPins',
-#         '/api/categories/(\d*)/cool_pins', 'ApiategoryCoolPins'
-         '/api/categories/(\d*)/cool_pins/(\d*)/?', 'ApiCategoryCoolPins'
+        '/categories', 'mypinnings.admin.categories.ListCategories',
+        '/categories/add/?', 'mypinnings.admin.categories.AddCategory',
+        '/category-manage_cool/(\d*)/more/?', 'mypinnings.admin.categories.EditMoreCoolProductsForCategory',
+        '/category-manage_cool/(\d*)', 'mypinnings.admin.categories.EditCoolProductsForCategory',
+        '/category-cool-items/(\d*)/?', 'mypinnings.admin.categories.ListCoolProductsForCategory',
+        '/api/categories/(\d*)/pins/?', 'mypinnings.admin.categories.ApiCategoryListPins',
+        '/api/pin/(\d*)/?', 'mypinnings.admin.categories.ApiCategoryPins',
+         '/api/categories/(\d*)/cool_pins/(\d*)/?', 'mypinnings.admin.categories.ApiCategoryCoolPins'
         )
 
 
@@ -59,24 +60,6 @@ LOGIN_SOURCES = (('MP', 'MyPinnings'),
 
 def lmsg(msg):
     return template.admin.msg(msg)
-
-
-def login():
-    sess = session.get_session()
-    if 'ok' not in sess or not sess['ok']:
-        raise web.seeother('/login')
-
-def login_required(f):
-    '''
-    Decorator to force login
-    '''
-    def not_logged_in(self, *args, **kwargs):
-        sess = session.get_session()
-        if 'ok' not in sess or not sess['ok']:
-            raise web.seeother('/login')
-        else:
-            return f(self, *args, **kwargs)
-    return not_logged_in
 
 
 class PageIndex:
@@ -366,231 +349,6 @@ class PageCreateUser:
             return 'couldn\'t create user'
 
         raise web.seeother('/user/%d' % user_id)
-
-
-class ListCategories(object):
-    '''
-    Shows the category list to edit them and change its properties
-    '''
-    @login_required
-    def GET(self):
-        return template.admin.list_categories(cached_models.all_categories)
-
-
-FIRST_PRODUCT_LIST_LIMIT = 32
-ADDITIONAL_PRODUCT_LIST_LIMIT = 12
-
-
-class EditCoolProductsForCategory(object):
-    '''
-    Allows edition of cool products for one category
-    '''
-    @login_required
-    def GET(self, category_id):
-        db = database.get_db()
-        sess = session.get_session()
-        sess.offset = 0
-        pins = db.select(tables=['pins'], what="pins.*", order='timestamp desc',
-                         where='pins.category=$category_id and pins.id not in (select pin_id from cool_pins where cool_pins.category_id=$category_id)',
-                         vars={'category_id': category_id}, offset=sess.offset, limit=FIRST_PRODUCT_LIST_LIMIT)
-        categories = db.where(table='categories', id=category_id)
-        for c in categories:
-            category = c
-        json_pins = []
-        for pin in pins:
-            image_name = 'static/tmp/{}.png'.format(pin.id)
-            thumb_image_name = 'static/tmp/pinthumb{}.png'.format(pin.id)
-            if os.path.exists(thumb_image_name):
-                pin.image_name = '/' + thumb_image_name
-            elif os.path.exists(image_name):
-                pin.image_name = '/' + image_name
-            else:
-                continue
-            pin['price'] = str(pin['price'])
-            json_pins.append(json.dumps(pin))
-        sess.offset = FIRST_PRODUCT_LIST_LIMIT
-        return template.admin.edit_cool_products_category(category, json_pins)
-
-
-class EditMoreCoolProductsForCategory(object):
-    '''
-    Allows edition of cool products for one category
-    '''
-    @login_required
-    def GET(self, category_id):
-        db = database.get_db()
-        sess = session.get_session()
-        pins = db.select(tables=['pins'], what="pins.*", order='timestamp desc',
-                         where='pins.category=$category_id and pins.id not in (select pin_id from cool_pins where cool_pins.category_id=$category_id)',
-                         vars={'category_id': category_id}, offset=sess.offset, limit=ADDITIONAL_PRODUCT_LIST_LIMIT)
-        json_pins = []
-        for pin in pins:
-            image_name = 'static/tmp/{}.png'.format(pin.id)
-            thumb_image_name = 'static/tmp/pinthumb{}.png'.format(pin.id)
-            if os.path.exists(thumb_image_name):
-                pin.image_name = '/' + thumb_image_name
-            elif os.path.exists(image_name):
-                pin.image_name = '/' + image_name
-            else:
-                continue
-            json_pins.append(pin)
-        sess.offset += ADDITIONAL_PRODUCT_LIST_LIMIT
-        web.header('Content-Type', 'application/json')
-        print(len(json_pins))
-        return json.dumps(json_pins)
-
-
-class ListCoolProductsForCategory(object):
-    @login_required
-    def GET(self, category_id):
-        db = database.get_db()
-        offset = int(web.input(offset=0)['offset'])
-        if offset < 0:
-            offset = 0
-        pins = db.select(tables=['pins', 'cool_pins'], what="pins.*", order='timestamp desc',
-                         where='pins.category=$category_id and pins.id=cool_pins.pin_id',
-                         vars={'category_id': category_id})
-        pins_list = []
-        for pin in pins:
-            image_name = 'static/tmp/{}.png'.format(pin.id)
-            thumb_image_name = 'static/tmp/pinthumb{}.png'.format(pin.id)
-            if os.path.exists(thumb_image_name):
-                pin.image_name = '/' + thumb_image_name
-            elif os.path.exists(image_name):
-                pin.image_name = '/' + image_name
-            else:
-                pin.image_name = ''
-            pins_list.append(pin)
-        return web.template.frender('t/admin/category_cool_items_list.html')(pins_list)
-
-
-class ApiCategoryListPins(object):
-    '''
-    API to list and serach the pins in a category
-    '''
-    @login_required
-    def GET(self, category_id):
-        '''
-        Searches or returns all pins in this category_id.
-
-        The results are paginated using offset and limit
-        '''
-        db = database.get_db()
-        search_terms = web.input(search_terms=None)['search_terms']
-        try:
-            search_limit = int(web.input(limit='10')['limit'])
-        except ValueError:
-            search_limit = 10
-        else:
-            if search_limit > 50: search_limit = 50
-            if search_limit < 5: search_limit = 5
-        try:
-            search_offset = int(web.input(offset='0')['offset'])
-        except ValueError:
-            search_offset = 0
-        else:
-            if search_offset < 0: search_offset = 0
-        if search_terms:
-            search_terms = "%{}%".format(search_terms.lower())
-            pins = db.select(tables=['pins'], order='name',
-                             where='category=$category_id and (lower(name) like $search or lower(description) like $search)'
-                                ' and id not in (select pin_id from cool_pins where category=$category_id)',
-                             vars={'category_id': category_id, 'search': search_terms},
-                             limit=search_limit, offset=search_offset)
-        else:
-            pins = db.select(tables='pins', order='name',
-                             where='category=$category_id'
-                                ' and id not in (select pin_id from cool_pins where category=$category_id)',
-                             vars={'category_id': category_id, 'search': search_terms},
-                             limit=search_limit, offset=search_offset)
-        list_of_pins = []
-        for p in pins:
-            list_of_pins.append(dict(p))
-        web.header('Content-Type', 'application/json')
-        return json.dumps({'limit': search_limit, 'offset': search_offset, 'list_of_pins': list_of_pins,
-                           'search_terms': search_terms})
-
-
-class ApiCategoryPins(object):
-    '''
-    '''
-    @login_required
-    def GET(self, pin_id):
-        db = database.get_db()
-        query_results = db.where(table='pins', id=pin_id)
-        pin = None
-        for p in query_results:
-            pin = dict(p)
-            pin['price'] = str(pin['price'])
-            image_name = 'static/tmp/{}.png'.format(pin_id)
-            thumb_image_name = 'static/tmp/pinthumb{}.png'.format(pin_id)
-            if os.path.exists(thumb_image_name):
-                pin['image_name'] = '/' + thumb_image_name
-            elif os.path.exists(image_name):
-                pin['image_name'] = '/' + image_name
-            else:
-                pin['image_name'] = ''
-        if pin:
-            web.header('Content-Type', 'application/json')
-            return json.dumps(pin)
-
-
-class ApiCategoryCoolPins(object):
-    '''
-    API to manage cool pins in a category
-    '''
-    @login_required
-    def PUT(self, category_id, pin_id):
-        '''
-        Puts the pin in the category's cool pins
-        '''
-        db = database.get_db()
-        try:
-            db.insert(tablename='cool_pins', category_id=category_id, pin_id=pin_id)
-            image_name = os.path.join('static', 'tmp', str(pin_id)) + '.png'
-            image = Image.open(image_name)
-            if image.size[0] <= image.size[1]:
-                ratio = 72.0 / float(image.size[0])
-                height = int(ratio * image.size[1])
-                image = image.resize((72, height), Image.ANTIALIAS)
-                margin = (height - 72) / 2
-                crop_box = (0, margin, 72, 72 + margin)
-            else:
-                ratio = 72.0 / float(image.size[1])
-                width = int(ratio * image.size[0])
-                image = image.resize((width, 72), Image.ANTIALIAS)
-                margin = (width - 72) / 2
-                crop_box = (margin, 0, 72 + margin, 72)
-            image = image.crop(crop_box)
-            new_name = os.path.join('static', 'tmp', str(pin_id)) + '_cool.png'
-            image.save(new_name)
-        except:
-            db.delete(table='cool_pins', where='category_id=$category_id and pin_id=$pin_id',
-                      vars={'category_id': category_id, 'pin_id': pin_id})
-            logger.error('Could not add pin ({}) to cool pins for category ({})'.format(pin_id, category_id), exc_info=True)
-            raise web.NotFound('Could not add pin to cool pins')
-        web.header('Content-Type', 'application/json')
-        return json.dumps({'status': 'ok'})
-
-    @login_required
-    def DELETE(self, category_id, pin_id):
-        '''
-        Deletes the pin from the category's cool pins
-        '''
-        db = database.get_db()
-        try:
-            db.delete(table='cool_pins', where='category_id=$category_id and pin_id=$pin_id',
-                      vars={'category_id': category_id, 'pin_id': pin_id})
-            image_name = os.path.join('static', 'tmp', str(pin_id)) + '_cool.png'
-            os.unlink(image_name)
-        except OSError:
-            # could not delete the image, nothing happens
-            pass
-        except:
-            logger.error('Could not delete pin ({}) from cool pins for category ({})'.format(pin_id, category_id), exc_info=True)
-            raise web.NotFound('Could not delete pin from cool pins')
-        web.header('Content-Type', 'application/json')
-        return json.dumps({'status': 'ok'})
 
 
 class ChangePassword(object):

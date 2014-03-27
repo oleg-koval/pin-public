@@ -1,5 +1,8 @@
 $def with (categories)
 <h1>Categories</h1>
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-8">
 <ul>
 $for cat in categories:
 	<li>
@@ -7,3 +10,9 @@ $for cat in categories:
         $cat.name
     </li>
 </ul>
+		</div>
+		<div class="col-md-4">
+			<a href="/admin/categories/add/" class="btn btn-default">Add Category</a><br>
+		</div>
+	</div>
+</div>
