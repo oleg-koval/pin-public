@@ -1,13 +1,17 @@
 $def with (user, hashed, friend_status=None, is_following=None, photos=None, edit_profile=None,  edit_profile_done = None)
 <div class='clearfix user-heading'
-  $if 'logged_in' in sess and sess.user_id == user.id:
+  
   $if user.bg:
-    data-bg="true"
-    id='header_background'
-    style='background-size:100% auto;background-position: $(user.headerbgx)px $(user.headerbgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);$('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')";'
+    $if 'logged_in' in sess and sess.user_id == user.id:
+      data-bg="true"
+      id='header_background'
+      style='background-size:100% auto;background-position: $(user.headerbgx)px $(user.headerbgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);position:relative;'
+    $else:
+      id='header_background'
+      style='background-size:100% auto;background-position: $(user.headerbgx)px $(user.headerbgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);cursor:default !important;position:relative;'
   $else:
     data-nobg='true'
-    style='background: #333842;'
+    style='background: #333842;position:relative;'
   >
 
 
@@ -178,17 +182,28 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
           <a class='button' href='/follow/$user.id'>Follow</a>
         <br/>
         <a class='button' href='/newconvo/$user.id'>Message</a>
-  </b></div>
+  </b>
+
+  <div style=" position: absolute;
+    bottom: 0;
+    right: 0;margin-right: 15px;">
+    <b><a class="button" href='/$user.username/followers'>$user.follower_count Followers </a></b>
+    <b><a class="button" href='/$user.username/following'>$user.follow_count Following </a></b>
+  </div>
+
+  </div>
 </div>
 
 <div class="profile-tab-navigation">
     <ul id="myTab" class="nav nav-tabs">
       $if edit_profile: 
-        <li class=""><a href="#pin-box" data-toggle="tab">My Getlist</a></li>
+        <li class=""><a id="pin-not-added" href="#pin-box" data-toggle="tab">My Getlist</a></li>
         <li class="active"><a href="#profile-about-box" data-toggle="tab">About</a></li>
+        <li class=""><a id="pin-added" href="#pin-box" data-toggle="tab">Added</a></li>
       $else:
-        <li class="active"><a href="#pin-box" data-toggle="tab">My Getlist</a></li>
+        <li class="active"><a id="pin-not-added" href="#pin-box" data-toggle="tab">My Getlist</a></li>
         <li class=""><a href="#profile-about-box" data-toggle="tab">About</a></li>
+        <li class=""><a id="pin-added" href="#pin-box" data-toggle="tab">Added</a></li>
     </ul>
     </div>
     $if edit_profile: 
