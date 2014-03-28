@@ -1,4 +1,4 @@
-$def with (form, result_info, number_of_items_added)
+$def with (form, result_info, categories, number_of_items_added)
 <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 <link rel="stylesheet" href="/static/css/pin_loader.css" />
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
@@ -10,7 +10,7 @@ $def with (form, result_info, number_of_items_added)
   </ul>
 <div id="upload">
 	<form id='form' autocomplete='off' enctype='multipart/form-data' method='post' action=''>
-			$if result_info != None:
+			$if result_info:
 				<div class="notice">
 					<p><h2>Review your added item in the 'Items Added' tab</h2></p>
 				$for ri in result_info:
@@ -23,7 +23,22 @@ $def with (form, result_info, number_of_items_added)
 		<p>For the image you can put the URL or upload the image, don't use both.</p>
 		<p>You can upload up to 10 images at a time, using the fields below. You can view the results in the 'Items Added' tab.</p>
 		<div style="margin-top: 50px"></div>
-		<h1>Category for these Pins: </h1>$:form['category'].render()
+		<h1>Categories for these Pins: </h1>
+		<table>
+		$for category in categories:
+			$if loop.index0 % 4 == 0:
+				<tr>
+			<td width="25%" class="category_selection_td">
+				<label><input type="checkbox" name='category_check' value="$category['id']">$category['name']</label>
+				$if category['subcategories']:
+					$for subcat in category['subcategories']:
+						<div class="subcategory_checkbox"><label><input type="checkbox" name='category_check' value="$subcat['id']">$subcat['name']</label></div>
+			</td>
+			$if loop.index0 % 4 == 3 or loop.last:
+				</tr>
+		</table>
+		<div id="category_error_message" class="red hide">You must select a category</div>
+		<input type="hidden" value="" name="categories">
 		<table cellpadding="20">
 		$for i in range(1, 11, 2):
 			<tr>

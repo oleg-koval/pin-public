@@ -61,11 +61,8 @@ class FileUploaderMixin(object):
 
 class PinLoaderPage(FileUploaderMixin):
     def get_form(self):
-        sess = session.get_session()
-        current_category = sess.get('category', None)
-        categories = tuple((cat.id, cat.name) for cat in cached_models.all_categories)
-        form = web.form.Form(web.form.Dropdown('category', categories, web.form.notnull, value=current_category),
-                             web.form.Dropdown('category11', categories, value=current_category),
+        form = web.form.Form(web.form.Hidden('categories'),
+                             web.form.Hidden('category11'),
                              web.form.Textbox('imageurl1', **{'class': 'imagelink', 'i': 1}),
                              web.form.Textbox('imageurl2', **{'class': 'imagelink', 'i': 2}),
                              web.form.Textbox('imageurl3', **{'class': 'imagelink', 'i': 3}),
@@ -162,14 +159,28 @@ class PinLoaderPage(FileUploaderMixin):
 
     def GET(self):
         sess = session.get_session()
+        db = database.get_db()
         auth.force_login(sess)
         form = self.get_form()
         result_info = sess.get('result_info', [])
-        db = database.get_db()
         results = db.where(table='pins', what='count(1) as pin_count', user_id=sess.user_id)
         for row in results:
             number_of_items_added = row.pin_count
-        return template.ltpl('pin_loader', form, result_info, number_of_items_added)
+        results = db.query('''
+            select parent.id, parent.name, child.id as child_id, child.name as child_name
+            from categories parent left join categories child on parent.id = child.parent
+            where parent.parent is null
+            order by parent.name, child.name
+            ''')
+        current_parent = None
+        categories = []
+        for row in results:
+            if not current_parent or current_parent['id'] != row.id:
+                current_parent = {'id': row.id, 'name': row.name, 'subcategories': []}
+                categories.append(current_parent)
+            if row.child_id:
+                current_parent['subcategories'].append({'id': row.child_id, 'name': row.child_name})
+        return template.ltpl('pin_loader', form, result_info, categories, number_of_items_added)
 
     def POST(self):
         sess = session.get_session()
@@ -177,15 +188,17 @@ class PinLoaderPage(FileUploaderMixin):
         form = self.get_form()
         result_info = []
         if form.validates():
-            sess.category = int(form.d.category)
+            categories_string = form.d.categories
+            categories_separated = categories_string.split(',')
+            sess.categories = tuple(int(c) for c in categories_separated)
             for i in range(10):
-                result = self.save_pin(form, str(i + 1), sess.category)
+                result = self.save_pin(form, str(i + 1))
                 if not result.get('pin_id', False) and result.get('error', False):
                     result_info.append(result)
         sess.result_info = result_info
         return web.seeother('')
 
-    def save_pin(self, form, i, category):
+    def save_pin(self, form, i):
         result_info = {'index': i}
         title = form['title' + i]
         if title and title.value:
@@ -213,15 +226,17 @@ class PinLoaderPage(FileUploaderMixin):
                 result_info['error'] = error
                 return result_info
             try:
-                pin_id = self.save_pin_in_db(category, title.value, description.value, link.value,
+                pin_id = self.save_pin_in_db(title.value, description.value, link.value,
                                              tags.value, price.value, imageurl.value,
                                              product_url.value, price_range.value)
+                self.save_in_categories(pin_id)
                 result_info['pin_id'] = pin_id
                 self.save_image(pin_id, imageurl, image)
             except Exception as e:
                 if pin_id:
                     self.delete_pin_from_db(pin_id)
-                    del result_info['pin_id']
+                    if 'pin_id' in result_info:
+                        del result_info['pin_id']
                 result_info['error'] = str(e)
         else:
             result_info['error'] = ''
@@ -239,7 +254,7 @@ class PinLoaderPage(FileUploaderMixin):
             return _("No image URL or no uploaded image file")
         return None
 
-    def save_pin_in_db(self, category, title, description, link, tags, price, imageurl, product_url,
+    def save_pin_in_db(self, title, description, link, tags, price, imageurl, product_url,
                        price_range):
         try:
             db = database.get_db()
@@ -247,7 +262,7 @@ class PinLoaderPage(FileUploaderMixin):
             if not price:
                 price = None
             pin_id = db.insert(tablename='pins', name=title, description=description,
-                               user_id=sess.user_id, link=link, category=category,
+                               user_id=sess.user_id, link=link,
                                views=1, price=price, image_url=imageurl, product_url=product_url,
                                price_range=price_range)
             if tags:
@@ -259,12 +274,21 @@ class PinLoaderPage(FileUploaderMixin):
             logger.error('Cannot insert a pin in the DB with the pin loader ingerface',
                          exc_info=True)
             raise
+        
+    def save_in_categories(self, pin_id):
+        values_to_insert = []
+        sess = session.get_session()
+        for category_id in sess.categories:
+            values_to_insert.append({'pin_id': pin_id, 'category_id': category_id})
+        db = database.get_db()
+        db.multiple_insert(tablename='pins_categories', values=values_to_insert)
 
     def delete_pin_from_db(self, pin_id):
         try:
             db = database.get_db()
             db.delete(table='likes', where='pin_id=$id', vars={'id': pin_id})
             db.delete(table='tags', where='pin_id=$id', vars={'id': pin_id})
+            db.delete(table='pins_categories', where='pin_id=$id', vars={'id': pin_id})
             db.delete(table='pins', where='id=$id', vars={'id': pin_id})
         except:
             logger.error('Cannot delete pin when doing pin uploader interface', exc_info=True)

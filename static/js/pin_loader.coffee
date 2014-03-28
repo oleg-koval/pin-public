@@ -49,6 +49,8 @@ jQuery ->
 				no_error = validate_errors(i)
 				if can_submit
 					can_submit = no_error
+			if not category_selected()
+				can_submit = false
 			if not can_submit
 				window.alert('Errors pending, please check')
 			return can_submit
@@ -230,6 +232,23 @@ jQuery ->
 			show_error_for_field($('#price_range' + i), 'Select a price range')
 			return false
 		return true
+
+
+	category_selected = ->
+		checked_categories = $('input[name="category_check"]:checked')
+		$('#category_error_message').hide()
+		if checked_categories.length > 0
+			category_value = ''
+			for c in checked_categories
+				value = c.value
+				if category_value isnt '' and category_value.lastIndexOf(',') isnt category_value.length - 1
+					category_value = category_value + ','
+				category_value = category_value + value
+			$('input[name=categories]').val(category_value)
+			return true
+		else
+			$('#category_error_message').show()
+			return false
 			
 	
 	# detect when scrolling to bottom to load more items

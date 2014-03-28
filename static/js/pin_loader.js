@@ -2,7 +2,7 @@
 (function() {
 
   jQuery(function() {
-    var all_fields_blank, ensure_tags_has_hash_symbol, get_pin_html_text, have_valid_price, load_more_pins, open_edit_dialog_for, price_regex, put_more_pins_into_the_page, refresh_pin, remove_all_errors, remove_error_from_field, selected_a_price_range, separate_link_to_fit_small_space, show_error_for_field, update_pin_in_backgroud, validate_errors, validate_image, validate_link_and_product;
+    var all_fields_blank, category_selected, ensure_tags_has_hash_symbol, get_pin_html_text, have_valid_price, load_more_pins, open_edit_dialog_for, price_regex, put_more_pins_into_the_page, refresh_pin, remove_all_errors, remove_error_from_field, selected_a_price_range, separate_link_to_fit_small_space, show_error_for_field, update_pin_in_backgroud, validate_errors, validate_image, validate_link_and_product;
     $("#tabs").tabs();
     $('.urllink,.imagelink,.urlproduct_url').change(function(e) {
       var i, value;
@@ -48,6 +48,9 @@
           if (can_submit) {
             can_submit = no_error;
           }
+        }
+        if (!category_selected()) {
+          can_submit = false;
         }
         if (!can_submit) {
           window.alert('Errors pending, please check');
@@ -236,6 +239,27 @@
         return false;
       }
       return true;
+    };
+    category_selected = function() {
+      var c, category_value, checked_categories, value, _i, _len;
+      checked_categories = $('input[name="category_check"]:checked');
+      $('#category_error_message').hide();
+      if (checked_categories.length > 0) {
+        category_value = '';
+        for (_i = 0, _len = checked_categories.length; _i < _len; _i++) {
+          c = checked_categories[_i];
+          value = c.value;
+          if (category_value !== '' && category_value.lastIndexOf(',') !== category_value.length - 1) {
+            category_value = category_value + ',';
+          }
+          category_value = category_value + value;
+        }
+        $('input[name=categories]').val(category_value);
+        return true;
+      } else {
+        $('#category_error_message').show();
+        return false;
+      }
     };
     $(window).scroll(function() {
       var doc_height, height, sensitivity, top;
