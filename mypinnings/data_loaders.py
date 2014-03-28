@@ -327,19 +327,28 @@ class LoadersEditAPI(FileUploaderMixin):
             limit = PIN_LIST_FIRST_LIMIT
         else:
             limit = PIN_LIST_LIMIT
-        results = db.query('''select pins.*, tags.tags, categories.name as category_name
-                            from pins join categories on pins.category=categories.id
+        results = db.query('''select pins.*, tags.tags, categories.id as category_id, categories.name as category_name
+                            from pins join pins_categories pc on pins.id = pc.pin_id
+                            join categories on pc.category_id=categories.id
                             left join tags on pins.id = tags.pin_id
                             where user_id=$user_id
                             order by timestamp desc offset $offset limit $limit''',
                             vars={'user_id': sess.user_id, 'offset': sess.offset, 'limit': limit})
         sess.offset += len(results)
-        rows = [row for row in results if os.path.exists('static/tmp/pinthumb{}.png'.format(row.id))]
-        for r in rows:
-            r.price = str(r.price)
-            r.tags = add_hash_symbol_to_tags(r.tags)
-            r.price_range_repr = '$' * r.price_range if r.price_range < 5 else '$$$$+'
-        json_pins = json.dumps(rows)
+        pin_list = []
+        current_pin = None
+        for r in results:
+            if os.path.exists('static/tmp/pinthumb{}.png'.format(r.id)):
+                if not current_pin or current_pin['id'] != r.id:
+                    current_pin = dict(r)
+                    current_pin['price'] = str(r.price)
+                    current_pin['tags'] = add_hash_symbol_to_tags(r.tags)
+                    current_pin['price_range_repr'] = '$' * r.price_range if r.price_range < 5 else '$$$$+'
+                    current_pin['categories'] = []
+                    pin_list.append(current_pin)
+                category = {'id': r.category_id, 'name': r.category_name}
+                current_pin['categories'].append(category)
+        json_pins = json.dumps(pin_list)
         print(json_pins)
         web.header('Content-Type', 'application/json')
         return json_pins

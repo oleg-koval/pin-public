@@ -325,17 +325,23 @@
       $.loading_more_pins = false;
     };
     get_pin_html_text = function(pin) {
-      var html;
-      html = '<div class="pin_image"><a href="/pin/' + pin['id'] + '" target="_blank" title="See full size">' + '<img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></a></div>' + '<table>' + '<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' + '<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' + '<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' + '<tr><th>Product Link</th><td><a href="' + pin['product_url'] + '" title="' + pin['product_url'] + '">' + separate_link_to_fit_small_space(pin['product_url']) + '</a></td></tr>' + '<tr><th>Source Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">' + separate_link_to_fit_small_space(pin['link']) + '</a></td></tr>';
-      if (pin['image_url'] !== null && pin['image_url'] !== '') {
-        html = html + '<tr><th>Image URL</th><td><a href="' + pin['image_url'] + '" title="' + pin['image_url'] + '" target="_blank">Original image</a></td></tr>';
+      var base_html, cat, html, start, _i, _len, _ref;
+      start = true;
+      pin['categories_list'] = '';
+      _ref = pin['categories'];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        cat = _ref[_i];
+        if (start) {
+          start = false;
+        } else {
+          pin['categories_list'] = pin['categories_list'] + ', ';
+        }
+        pin['categories_list'] = pin['categories_list'] + cat['name'];
       }
-      html = html + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>';
-      if (pin['price'] !== 'None') {
-        html = html + '<tr><th>Price</th><td>$' + pin['price'] + '</td></tr>';
-      }
-      html = html + '<tr><th>Price Range</th><td>' + pin['price_range_repr'] + '</td></tr>';
-      html = html + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table>';
+      pin['separate_product'] = separate_link_to_fit_small_space(pin['product_url']);
+      pin['separate_link'] = separate_link_to_fit_small_space(pin['link']);
+      base_html = $('#pin_template').html();
+      html = _.template(base_html, pin);
       return html;
     };
     $('body').on('click', '.button_pin_delete', function() {

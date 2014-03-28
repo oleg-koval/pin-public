@@ -2,6 +2,7 @@ $def with (form, result_info, categories, number_of_items_added)
 <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 <link rel="stylesheet" href="/static/css/pin_loader.css" />
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script src="/static/js/underscore-min.js"></script>
 <script src="/static/js/pin_loader.js"></script>
 <div id="tabs">
   <ul>
@@ -250,3 +251,38 @@ $def with (form, result_info, categories, number_of_items_added)
 	<div><button id="load_more_button">Load more</button></div>
 </div><!-- added -->
 </div><!-- tabs -->
+<script type="text/html" id="pin_template">
+<div class="pin_image">
+	<a href="/pin/<%= id %>" target="_blank" title="See full size">
+		<img src="/static/tmp/pinthumb<%= id %>.png?_=<%= new Date().getTime() %>">
+	</a>
+</div>
+<table>
+	<tr><th>Categories</th><td><%= categories_list %></td></tr>
+	<tr><th>Title</th><td><%= name %></td></tr>
+<% if (description !== null && description !== '') { %>
+	<tr><th>Descr.</th><td><%= description %></td></tr>
+<% } %>
+<% if (product_url !== null && product_url !== '') { %>
+	<tr><th>Product Link</th><td><a href="<%= product_url %>" title="<%= product_url %>">
+			<%= separate_product %>
+		</a></td></tr>
+<% } %>
+<% if (link !== null && link !== '') { %>
+	<tr><th>Source Link</th><td><a href="<%= link %>" title="<%= link %>">
+			<%= separate_link %>
+		</a></td></tr>
+<% } %>
+<% if (image_url !== null && image_url !== '') { %>
+	<tr><th>Image URL</th><td><a href="<%= image_url %>" title="<%= image_url %>" target="_blank">Original image</a></td></tr>
+<% } %>
+	<tr><th>Tags</th><td><%= tags %></td></tr>
+		
+<% if (price !== 'None') { %>
+	<tr><th>Price</th><td>$$<%= price %></td></tr>
+<% } %>
+	<tr><th>Price Range</th><td><%= price_range_repr %></td></tr>
+	<tr><td colspan="2"><button class="button_pin_edit" pinid="<%= id %>">Edit</button>
+		<button class="button_pin_delete" pinid="<%= id %>">Delete</button></td></tr>
+</table>
+</script>
