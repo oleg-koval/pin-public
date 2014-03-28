@@ -1,0 +1,62 @@
+$def with(category, msg=None)
+$if msg:
+	<p class="bg-danger">$msg</p>
+<form role="form" name="category_add" method="POST" action="">
+	<div class="form-group">
+		<label for="name">Name for the Category</label>
+		<input type="text" name="name" id="name" class="form-control" value="$category['name']">
+	</div>
+	$if category['subcategories']:
+		<div id="inline_forms_container">
+		$for i, subcat in enumerate(category['subcategories']):
+				<div class="form-horizontal">
+					<div class="container-fluid">
+						<div class="row">
+							<div class="col-xs-10">
+								<label>Name
+									<input type="text" name="name$i" class="form-control sub-category" value="$subcat['name']">
+									<input type="hidden" name="subid$i" value="$subcat['id']">
+								</label>
+							</div>
+							<div class="col-xs-2">
+								<label>
+									<input type="radio" value="$i" name="default-sub-category"
+									$if subcat['is_default_sub_category']:
+										checked
+									> Default
+								</label>
+							</div>
+						</div>
+					</div>
+				</div>
+		</div>
+	<div>
+	$if not category['parent']:
+		<button class="btn btn-default" id="button_add_sub_category">Add a sub-category</button>
+	</div>
+	<div>
+		<button type="submit" class="btn btn-primary">Save</button>
+		<a href="/admin/categories" class="btn btn-default">Cancel</a>
+	</div>
+	$if category['subcategories']:
+		<input type="hidden" id="number_of_sub_categories" name="number_of_sub_categories" value="$len(category['subcategories'])">
+</form>
+<script type="text/html" id="inline_form_add_subcategory">
+	<div class="form-horizontal">
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-xs-10">
+					<label>Name
+						<input type="text" name="name<%= i %>" class="form-control sub-category">
+					</label>
+				</div>
+				<div class="col-xs-2">
+					<label>
+						<input type="radio" value="<%= i %>" name="default-sub-category"> Default
+					</label>
+				</div>
+			</div>
+		</div>
+	</div>
+</script>
+<script src="/static/js/admin_categories.js"></script>

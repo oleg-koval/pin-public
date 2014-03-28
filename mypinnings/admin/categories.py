@@ -276,7 +276,7 @@ class AddCategory(object):
         try:
             category_id = db.insert(tablename='categories', seqname='categories_id_seq', name=name, is_default_sub_category=False, parent=None)
             number_of_sub_categories = int(number_of_sub_categories)
-            default_sub_category = web_input.get('defualt-sub-category', None)
+            default_sub_category = web_input.get('default-sub-category', None)
             default_sub_category_mark_not_found = True
             last_sub_category_id = None
             for i in range(number_of_sub_categories):
@@ -296,4 +296,64 @@ class AddCategory(object):
             t.rollback()
             logger.info('Cannot create category', exc_info=True)
             return template.admin.category_add(str(e))
-        
+
+
+class EditCategory(object):
+    @login_required
+    def GET(self, category_id):
+        db = database.get_db()
+        results = db.where(table='categories', id=category_id)
+        for row in results:
+            category = dict(row)
+            break
+        else:
+            raise web.notfound("Category not found")
+        if not category['parent']:
+            results = db.where(table='categories', parent=category_id)
+            category['subcategories'] = results
+        else:
+            category['subcategories'] = None
+        message = web.input(message=None)['message']
+        return template.admin.category_edit(category, message)
+    
+    @login_required
+    def POST(self, category_id):
+        web_input = web.input(name=None, number_of_sub_categories=None)
+        name = web_input['name']
+        number_of_sub_categories = web_input['number_of_sub_categories']
+        if name:
+            db = database.get_db()
+            transaction = db.transaction()
+            try:
+                db.update(tables='categories', where='id=$id', vars={'id': category_id}, name=name)
+                if number_of_sub_categories:
+                    number_of_sub_categories = int(number_of_sub_categories)
+                    default_sub_category = int(web_input.get('default-sub-category', 0))
+                    default_sub_category_mark_not_found = True
+                    last_sub_category_id = None
+                    for i in range(number_of_sub_categories):
+                        subid = web_input.get('subid{}'.format(i), None)
+                        name = web_input.get('name{}'.format(i), None)
+                        if default_sub_category_mark_not_found and default_sub_category == i:
+                            is_default = True
+                            default_sub_category_mark_not_found = False
+                        else:
+                            is_default = False
+                        if subid:
+                            db.update(tables='categories', where=('id=$id and parent=$parent'),
+                                      vars={'id': subid, 'parent': category_id},
+                                      name=name, is_default_sub_category=is_default)
+                            last_sub_category_id = subid
+                        elif name:
+                            last_sub_category_id = db.insert(tablename='categories', seqname='categories_id_seq', name=name,
+                                  is_default_sub_category=is_default, parent=category_id)
+                    if default_sub_category_mark_not_found and last_sub_category_id:
+                        db.update(tables='categories', where='id=$id', vars={'id': last_sub_category_id}, is_default_sub_category=True)
+                transaction.commit()
+                web.seeother(url='/admin/categories', absolute=True)
+            except Exception as e:
+                transaction.rollback()
+                logger.error('Cannot update category {}'.format(category_id), exc_info=True)
+                web.seeother(url='?message={}'.format(str(e)), absolute=False)
+        else:
+            web.seeother(url='', absolute=False)
