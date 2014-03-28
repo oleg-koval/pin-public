@@ -380,7 +380,17 @@ class EditCategory(object):
         if ids_to_delete:
             # move all of the sub-category items to the parent category
             ids_to_delete_list = ','.join(ids_to_delete)
-            self.db.update('pins', where='id in ({})'.format(ids_to_delete_list), category=self.category_id)
+            results = self.db.query('''select distinct {new_category} as category_id, pin_id
+                            from pins_categories
+                            where category_id in ({ids_list}) and pin_id not in
+                            (select pin_id from pins_categories
+                            where category_id = {new_category})
+                '''.format(ids_list=ids_to_delete_list, new_category=self.category_id))
+            pins_to_move = []
+            for row in results:
+                pins_to_move.append({'pin_id': row.pin_id, 'category_id': row.category_id})
+            self.db.multiple_insert(tablename='pins_categories', values=pins_to_move)
+            self.db.delete(table='pins_categories', where='category_id in ({})'.format(ids_to_delete_list))
             # remove the sub-categories
             self.db.delete('categories', where='id in ({})'.format(ids_to_delete_list))
             
