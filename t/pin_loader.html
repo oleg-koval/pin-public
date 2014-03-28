@@ -61,6 +61,17 @@ $def with (form, result_info)
 							<th><label for="price$i">Price</label></th>
 							<td>$:form['price{}'.format(i)].render()</td>
 						</tr>
+						<tr>
+							<th>Price Range</th>
+							<td>
+								<label><input type="radio" name="price_range$i" value="1"> $$</label>
+								<label><input type="radio" name="price_range$i" value="2"> $$$$</label>
+								<label><input type="radio" name="price_range$i" value="3"> $$$$$$</label>
+								<label><input type="radio" name="price_range$i" value="4"> $$$$$$$$</label>
+								<label><input type="radio" name="price_range$i" value="5"> $$$$$$$$+</label>
+								<div id="price_range$i"></div>
+							</td>
+						</tr>
 					</table>
 				</td>
 				$ j = i + 1
@@ -97,6 +108,17 @@ $def with (form, result_info)
 						<tr>
 							<th><label for="price$j">Price</label></th>
 							<td>$:form['price{}'.format(j)].render()</td>
+						</tr>
+						<tr>
+							<th>Price Range</th>
+							<td>
+								<label><input type="radio" name="price_range$j" value="1"> $$</label>
+								<label><input type="radio" name="price_range$j" value="2"> $$$$</label>
+								<label><input type="radio" name="price_range$j" value="3"> $$$$$$</label>
+								<label><input type="radio" name="price_range$j" value="4"> $$$$$$$$</label>
+								<label><input type="radio" name="price_range$j" value="5"> $$$$$$$$+</label>
+								<div id="price_range$j"></div>
+							</td>
 						</tr>
 					</table>
 				</td>
@@ -188,6 +210,17 @@ $def with (form, result_info)
 				<tr>
 					<th><label for="price11">Price</label></th>
 					<td><input name="price11" i="11" placeholder="$$888.00" id="price11" type="text" class="prodprice"/></td>
+				</tr>
+				<tr>
+					<th>Price Range</th>
+					<td>
+						<label><input type="radio" name="price_range11" value="1"> $$</label>
+						<label><input type="radio" name="price_range11" value="2"> $$$$</label>
+						<label><input type="radio" name="price_range11" value="3"> $$$$$$</label>
+						<label><input type="radio" name="price_range11" value="4"> $$$$$$$$</label>
+						<label><input type="radio" name="price_range11" value="5"> $$$$$$$$+</label>
+						<div id="price_range11"></div>
+					</td>
 				</tr>
 				<tr>
 					<th></th>

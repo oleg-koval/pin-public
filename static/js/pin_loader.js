@@ -2,7 +2,7 @@
 (function() {
 
   jQuery(function() {
-    var all_fields_blank, ensure_tags_has_hash_symbol, get_pin_html_text, have_valid_price, load_more_pins, open_edit_dialog_for, price_regex, put_more_pins_into_the_page, refresh_pin, remove_all_errors, remove_error_from_field, separate_link_to_fit_small_space, show_error_for_field, update_pin_in_backgroud, validate_errors, validate_image, validate_link_and_product;
+    var all_fields_blank, ensure_tags_has_hash_symbol, get_pin_html_text, have_valid_price, load_more_pins, open_edit_dialog_for, price_regex, put_more_pins_into_the_page, refresh_pin, remove_all_errors, remove_error_from_field, selected_a_price_range, separate_link_to_fit_small_space, show_error_for_field, update_pin_in_backgroud, validate_errors, validate_image, validate_link_and_product;
     $("#tabs").tabs();
     $('.urllink,.imagelink,.urlproduct_url').change(function(e) {
       var i, value;
@@ -89,6 +89,9 @@
         no_error = false;
       }
       if (!validate_link_and_product(link, product_url, i)) {
+        no_error = false;
+      }
+      if (!selected_a_price_range(i)) {
         no_error = false;
       }
       if (!validate_image(imageurl, image, i)) {
@@ -223,6 +226,17 @@
         return ensure_tags_has_hash_symbol($(this));
       }
     });
+    selected_a_price_range = function(i) {
+      var price_range;
+      remove_error_from_field($('#price_range' + i), i);
+      price_range = $('input[name=price_range' + i + ']:checked').val();
+      console.log(price_range);
+      if (price_range === void 0) {
+        show_error_for_field($('#price_range' + i), 'Select a price range');
+        return false;
+      }
+      return true;
+    };
     $(window).scroll(function() {
       var doc_height, height, sensitivity, top;
       top = $(window).scrollTop();
@@ -296,6 +310,7 @@
       if (pin['price'] !== 'None') {
         html = html + '<tr><th>Price</th><td>$' + pin['price'] + '</td></tr>';
       }
+      html = html + '<tr><th>Price Range</th><td>' + pin['price_range_repr'] + '</td></tr>';
       html = html + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table>';
       return html;
     };
@@ -350,11 +365,13 @@
         $("#price11").val('');
       }
       $("#previmageurl11").attr('href', pin['image_url']);
+      $('input[name=price_range11]').prop('checked', false);
+      $('input[name=price_range11][value=' + pin['price_range'] + ']').prop('checked', true);
       remove_all_errors();
       return $('#pin_edit_dialog').dialog('open');
     };
     $('#pin_edit_form').submit(function() {
-      var category, description, image, imageurl, link, no_error, pinid, price, product_url, tags, title;
+      var category, description, image, imageurl, link, no_error, pinid, price, price_range, product_url, tags, title;
       no_error = true;
       pinid = $('#id11');
       title = $('#title11');
@@ -366,6 +383,7 @@
       tags = $('#tags11');
       category = $('#category11');
       price = $('#price11');
+      price_range = $('input[name=price_range11]:checked');
       if (title.val() === '') {
         no_error = false;
         show_error_for_field(title, 'Empty title', 11);
@@ -385,17 +403,20 @@
       if (!validate_link_and_product(link, product_url, 11)) {
         no_error = false;
       }
+      if (!selected_a_price_range(11)) {
+        no_error = false;
+      }
       if (no_error) {
         if (image.val() !== '' && imageurl.val() === '') {
           return true;
         } else {
-          update_pin_in_backgroud(pinid, title, description, link, product_url, imageurl, tags, category, price);
+          update_pin_in_backgroud(pinid, title, description, link, product_url, imageurl, tags, category, price, price_range);
           $('#pin_edit_dialog').dialog('close');
         }
       }
       return false;
     });
-    update_pin_in_backgroud = function(pinid, title, description, link, product_url, imageurl, tags, category, price) {
+    update_pin_in_backgroud = function(pinid, title, description, link, product_url, imageurl, tags, category, price, price_range) {
       var pin_data;
       pin_data = {
         'title': title.val(),
@@ -405,7 +426,8 @@
         'imageurl': imageurl.val(),
         'tags': tags.val(),
         'category': category.val(),
-        'price': price.val()
+        'price': price.val(),
+        'price_range': price_range.val()
       };
       $.ajax({
         type: 'POST',
