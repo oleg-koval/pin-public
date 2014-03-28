@@ -436,12 +436,20 @@ class DeleteCategory(object):
             db = database.get_db()
             transaction = db.transaction()
             try:
-                db.update(tables='pins', where='category=$id', vars={'id': category_id}, category=category_for_orphan_pins)
                 subcategories = db.where(table='categories', parent=category_id)
-                list_to_delete = ','.join((str(c.id) for c in subcategories))
-                db.update(tables='pins', where='category in ({})'.format(list_to_delete), category=category_for_orphan_pins)
+                list_to_delete = ','.join([str(c.id) for c in subcategories] + [category_id])
+                results = db.query('''select distinct {new_category} as category_id, pin_id
+                            from pins_categories
+                            where category_id in ({ids_list}) and pin_id not in
+                            (select pin_id from pins_categories
+                            where category_id = {new_category})
+                    '''.format(ids_list=list_to_delete, new_category=category_for_orphan_pins))
+                pins_to_move = []
+                for row in results:
+                    pins_to_move.append({'pin_id': row.pin_id, 'category_id': row.category_id})
+                db.multiple_insert(tablename='pins_categories', values=pins_to_move)
+                db.delete(table='pins_categories', where='category_id in ({})'.format(list_to_delete))
                 db.delete(table='categories', where='id in ({})'.format(list_to_delete))
-                db.delete(table='categories', where='id=$id', vars={'id': category_id})
                 transaction.commit()
                 web.seeother(url='/admin/categories', absolute=True)
             except Exception as e:
