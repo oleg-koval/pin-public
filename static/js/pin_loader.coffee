@@ -374,7 +374,7 @@ jQuery ->
 		$("#tags11").val(pin['tags'])
 		$("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime())
 		$("#imgfulllink11").attr('href', '/pin/' + pin['id'])
-		$("#category11").val(pin['category'])
+		$("#category11").val('')
 		$("#imageurl11").val('')
 		$("#image11").val('')
 		if pin['price'] isnt 'None'
@@ -384,8 +384,12 @@ jQuery ->
 		$("#previmageurl11").attr('href', pin['image_url'])
 		$('input[name=price_range11]').prop('checked', false)
 		$('input[name=price_range11][value=' + pin['price_range'] + ']').prop('checked', true)
+		$('input[name=category_check11]:checked').prop('checked', false)
+		for cat in pin['categories']
+			$('input[name=category_check11][value=' + cat['id'] + ']').prop('checked', true)
 		remove_all_errors()
 		$('#pin_edit_dialog').dialog('open')
+		return
 		
 	
 	# edits the pin. If the pin does not have a new image,

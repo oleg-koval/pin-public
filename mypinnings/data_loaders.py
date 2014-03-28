@@ -306,9 +306,8 @@ class LoadersEditAPI(FileUploaderMixin):
     def get_by_id(self, id):
         sess = session.get_session()
         db = database.get_db()
-        results = db.query('''select pins.*, tags.tags, categories.name as category_name
-                            from pins join categories on pins.category=categories.id
-                            left join tags on pins.id = tags.pin_id
+        results = db.query('''select pins.*, tags.tags
+                            from pins left join tags on pins.id = tags.pin_id
                             where pins.id=$id and user_id=$user_id''',
                             vars={'id': id, 'user_id': sess.user_id})
         for row in results:
@@ -316,6 +315,10 @@ class LoadersEditAPI(FileUploaderMixin):
             row.price = str(row.price)
             row.tags = add_hash_symbol_to_tags(row.tags)
             row.price_range_repr = '$' * row.price_range if row.price_range < 5 else '$$$$+'
+            results = db.select(tables=['categories', 'pins_categories'],
+                                        where='categories.id = pins_categories.category_id and pins_categories.pin_id=$id',
+                                        vars={'id': id})
+            row['categories'] = [{'id': catrow.id, 'name': catrow.name} for catrow in results]
             return json.dumps(row)
         raise web.notfound()
 
