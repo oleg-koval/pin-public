@@ -7,7 +7,13 @@ $def with (categories)
 $for cat in categories:
 	<li>
         <a href="category-manage_cool/$cat['id']" class="btn btn-default btn-xs">Cool products</a>
-        <a href="$cat['id']">$cat['name']</a>
+        <a href="categories/$cat['id']">$cat['name']</a>
+        $if cat['subcategories']:
+        	<ul>
+        	$for subcat in cat['subcategories']:
+        		<li><a href="category-manage_cool/$subcat['id']" class="btn btn-default btn-xs">Cool products</a>
+        		<a href="categories/$subcat['id']">$subcat['name']</a>
+        	</ul>
     </li>
 </ul>
 		</div>
