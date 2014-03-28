@@ -7,7 +7,7 @@ jQuery ->
 		i = $(this).attr('i')
 		remove_error_from_field($(this), i)
 		value = $(this).val().toLowerCase()
-		if value.indexOf('http://') != 0 && value.indexOf('https://') != 0
+		if value != '' and value.indexOf('http://') != 0 && value.indexOf('https://') != 0
 			if value.indexOf('//') == 0
 				$(this).val('http:' + value)
 			else
@@ -26,7 +26,7 @@ jQuery ->
 		return
 			
 			
-	$('.titleentry,.descrentry').on 'change', ->
+	$('.titleentry').on 'change', ->
 		i = $(this).attr('i')
 		if $(this).val() != ''
 			remove_error_from_field($(this), i)
@@ -77,12 +77,6 @@ jQuery ->
 			show_error_for_field(title, 'Empty title', i)
 		else
 			remove_error_from_field(title, i)
-		# should have description
-		if description.val() == ''
-			no_error = false
-			show_error_for_field(description, 'Empty description', i)
-		else
-			remove_error_from_field(description, i)
 		# should have tags
 		if tags.val() == ''
 			no_error = false
@@ -93,11 +87,8 @@ jQuery ->
 		# should have a valid price
 		if not have_valid_price(price, i)
 			no_error = false
-		# should have a valid link
-		if not validate_link(link, i)
-			no_error = false
-		# the product URL is mandatory
-		if not validate_link(product_url, i)
+		# should have a valid link or valid product
+		if not validate_link_and_product(link, product_url, i)
 			no_error = false
 		# should have a valid image
 		if not validate_image(imageurl, image, i)
@@ -129,18 +120,27 @@ jQuery ->
 		
 	
 	# validates that link field
-	validate_link = (field, i) ->
-		if field.val() == ''
-			show_error_for_field(field, 'Empty link', i)
+	validate_link_and_product = (link, product_url, i) ->
+		remove_error_from_field(link, i)
+		remove_error_from_field(product_url, i)
+		if link.val() == '' and product_url.val() == ''
+			message = 'Provide source link or product link'
+			show_error_for_field(link, message, i)
+			show_error_for_field(product_url, message, i)
 			return false
 		else
-			remove_error_from_field(field, i)
-			value = field.val().toLowerCase()
-			if value.indexOf('http://') != 0 && value.indexOf('https://') != 0
+			value = link.val().toLowerCase()
+			if value != '' and value.indexOf('http://') != 0 && value.indexOf('https://') != 0
 				if value.indexOf('//') == 0
-					$(this).val('http:' + value)
+					link.val('http:' + value)
 				else
-					$(this).val('http://' + value)
+					link.val('http://' + value)
+			value = product_url.val().toLowerCase()
+			if value != '' and value.indexOf('http://') != 0 && value.indexOf('https://') != 0
+				if value.indexOf('//') == 0
+					product_url.val('http:' + value)
+				else
+					product_url.val('http://' + value)
 		return true
 			
 	
@@ -386,11 +386,6 @@ jQuery ->
 		else
 			remove_error_from_field(title, 11)
 		# should have description
-		if description.val() == ''
-			no_error = false
-			show_error_for_field(description, 'Empty description', 11)
-		else
-			remove_error_from_field(description, 11)
 		# should have tags
 		if tags.val() == ''
 			no_error = false
@@ -401,11 +396,8 @@ jQuery ->
 		# should have a valid price
 		if not have_valid_price(price, 11)
 			no_error = false
-		# should have a valid source link
-		if not validate_link(link, 11)
-			no_error = false
-		# should have a valid product
-		if not validate_link(product_url, 11)
+		# should have a valid source link or product link
+		if not validate_link_and_product(link, product_url, 11)
 			no_error = false
 		if no_error
 			if image.val() != '' and imageurl.val() == ''

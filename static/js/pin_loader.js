@@ -2,14 +2,14 @@
 (function() {
 
   jQuery(function() {
-    var all_fields_blank, ensure_tags_has_hash_symbol, get_pin_html_text, have_valid_price, load_more_pins, open_edit_dialog_for, price_regex, put_more_pins_into_the_page, refresh_pin, remove_all_errors, remove_error_from_field, separate_link_to_fit_small_space, show_error_for_field, update_pin_in_backgroud, validate_errors, validate_image, validate_link;
+    var all_fields_blank, ensure_tags_has_hash_symbol, get_pin_html_text, have_valid_price, load_more_pins, open_edit_dialog_for, price_regex, put_more_pins_into_the_page, refresh_pin, remove_all_errors, remove_error_from_field, separate_link_to_fit_small_space, show_error_for_field, update_pin_in_backgroud, validate_errors, validate_image, validate_link_and_product;
     $("#tabs").tabs();
     $('.urllink,.imagelink,.urlproduct_url').change(function(e) {
       var i, value;
       i = $(this).attr('i');
       remove_error_from_field($(this), i);
       value = $(this).val().toLowerCase();
-      if (value.indexOf('http://') !== 0 && value.indexOf('https://') !== 0) {
+      if (value !== '' && value.indexOf('http://') !== 0 && value.indexOf('https://') !== 0) {
         if (value.indexOf('//') === 0) {
           $(this).val('http:' + value);
         } else {
@@ -26,7 +26,7 @@
         show_error_for_field($(this), 'Image doesn\'t seem to be in a internet friendly format: .png, ,jpg, .gif, .svn', i);
       }
     });
-    $('.titleentry,.descrentry').on('change', function() {
+    $('.titleentry').on('change', function() {
       var i;
       i = $(this).attr('i');
       if ($(this).val() !== '') {
@@ -78,12 +78,6 @@
       } else {
         remove_error_from_field(title, i);
       }
-      if (description.val() === '') {
-        no_error = false;
-        show_error_for_field(description, 'Empty description', i);
-      } else {
-        remove_error_from_field(description, i);
-      }
       if (tags.val() === '') {
         no_error = false;
         show_error_for_field(tags, 'Empty tags', i);
@@ -94,10 +88,7 @@
       if (!have_valid_price(price, i)) {
         no_error = false;
       }
-      if (!validate_link(link, i)) {
-        no_error = false;
-      }
-      if (!validate_link(product_url, i)) {
+      if (!validate_link_and_product(link, product_url, i)) {
         no_error = false;
       }
       if (!validate_image(imageurl, image, i)) {
@@ -119,19 +110,30 @@
     remove_all_errors = function() {
       return $('div.error_text').remove();
     };
-    validate_link = function(field, i) {
-      var value;
-      if (field.val() === '') {
-        show_error_for_field(field, 'Empty link', i);
+    validate_link_and_product = function(link, product_url, i) {
+      var message, value;
+      remove_error_from_field(link, i);
+      remove_error_from_field(product_url, i);
+      if (link.val() === '' && product_url.val() === '') {
+        message = 'Provide source link or product link';
+        show_error_for_field(link, message, i);
+        show_error_for_field(product_url, message, i);
         return false;
       } else {
-        remove_error_from_field(field, i);
-        value = field.val().toLowerCase();
-        if (value.indexOf('http://') !== 0 && value.indexOf('https://') !== 0) {
+        value = link.val().toLowerCase();
+        if (value !== '' && value.indexOf('http://') !== 0 && value.indexOf('https://') !== 0) {
           if (value.indexOf('//') === 0) {
-            $(this).val('http:' + value);
+            link.val('http:' + value);
           } else {
-            $(this).val('http://' + value);
+            link.val('http://' + value);
+          }
+        }
+        value = product_url.val().toLowerCase();
+        if (value !== '' && value.indexOf('http://') !== 0 && value.indexOf('https://') !== 0) {
+          if (value.indexOf('//') === 0) {
+            product_url.val('http:' + value);
+          } else {
+            product_url.val('http://' + value);
           }
         }
       }
@@ -370,12 +372,6 @@
       } else {
         remove_error_from_field(title, 11);
       }
-      if (description.val() === '') {
-        no_error = false;
-        show_error_for_field(description, 'Empty description', 11);
-      } else {
-        remove_error_from_field(description, 11);
-      }
       if (tags.val() === '') {
         no_error = false;
         show_error_for_field(tags, 'Empty tags', 11);
@@ -386,10 +382,7 @@
       if (!have_valid_price(price, 11)) {
         no_error = false;
       }
-      if (!validate_link(link, 11)) {
-        no_error = false;
-      }
-      if (!validate_link(product_url, 11)) {
+      if (!validate_link_and_product(link, product_url, 11)) {
         no_error = false;
       }
       if (no_error) {

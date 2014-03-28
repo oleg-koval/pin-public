@@ -208,12 +208,8 @@ class PinLoaderPage(FileUploaderMixin):
         return result_info
 
     def validate_errors(self, title, description, link, product_url, imageurl, image, tags, price):
-        if not description.value:
-            return _("No description")
-        if not link.value:
-            return _("No source link")
-        if not product_url.value:
-            return _("No product link")
+        if not link.value and not product_url.value:
+            return _("You must provide at least one of source link or product link")
         if not tags.value:
             return _("No tags")
         if not image.filename and not imageurl.value:
@@ -315,11 +311,13 @@ class LoadersEditAPI(FileUploaderMixin):
         form = web.form.Form(web.form.Dropdown('category', categories, web.form.notnull, value=current_category),
                              web.form.Textbox('imageurl'),
                              web.form.Textbox('title', web.form.notnull),
-                             web.form.Textarea('description', web.form.notnull),
-                             web.form.Textbox('link', web.form.notnull),
-                             web.form.Textbox('product_url', web.form.notnull),
+                             web.form.Textarea('description'),
+                             web.form.Textbox('link'),
+                             web.form.Textbox('product_url'),
                              web.form.Textbox('tags', web.form.notnull),
-                             web.form.Textbox('price'))
+                             web.form.Textbox('price'),
+                             validators =[web.form.Validator("Provide source Link", lambda f: f.link or f.product_url)
+                                          ])
         return form()
 
     def POST(self, pin_id):
