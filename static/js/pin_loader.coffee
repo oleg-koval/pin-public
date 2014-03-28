@@ -7,7 +7,7 @@ jQuery ->
 		i = $(this).attr('i')
 		remove_error_from_field($(this), i)
 		value = $(this).val().toLowerCase()
-		if value.indexOf('http://') != 0 && value.indexOf('https://') != 0
+		if value != '' and value.indexOf('http://') != 0 && value.indexOf('https://') != 0
 			if value.indexOf('//') == 0
 				$(this).val('http:' + value)
 			else
@@ -26,7 +26,7 @@ jQuery ->
 		return
 			
 			
-	$('.titleentry,.descrentry').on 'change', ->
+	$('.titleentry').on 'change', ->
 		i = $(this).attr('i')
 		if $(this).val() != ''
 			remove_error_from_field($(this), i)
@@ -77,12 +77,6 @@ jQuery ->
 			show_error_for_field(title, 'Empty title', i)
 		else
 			remove_error_from_field(title, i)
-		# should have description
-		if description.val() == ''
-			no_error = false
-			show_error_for_field(description, 'Empty description', i)
-		else
-			remove_error_from_field(description, i)
 		# should have tags
 		if tags.val() == ''
 			no_error = false
@@ -93,11 +87,11 @@ jQuery ->
 		# should have a valid price
 		if not have_valid_price(price, i)
 			no_error = false
-		# should have a valid link
-		if not validate_link(link, i)
+		# should have a valid link or valid product
+		if not validate_link_and_product(link, product_url, i)
 			no_error = false
-		# the product URL is mandatory
-		if not validate_link(product_url, i)
+		# should have a price range
+		if not selected_a_price_range(i)
 			no_error = false
 		# should have a valid image
 		if not validate_image(imageurl, image, i)
@@ -129,18 +123,27 @@ jQuery ->
 		
 	
 	# validates that link field
-	validate_link = (field, i) ->
-		if field.val() == ''
-			show_error_for_field(field, 'Empty link', i)
+	validate_link_and_product = (link, product_url, i) ->
+		remove_error_from_field(link, i)
+		remove_error_from_field(product_url, i)
+		if link.val() == '' and product_url.val() == ''
+			message = 'Provide source link or product link'
+			show_error_for_field(link, message, i)
+			show_error_for_field(product_url, message, i)
 			return false
 		else
-			remove_error_from_field(field, i)
-			value = field.val().toLowerCase()
-			if value.indexOf('http://') != 0 && value.indexOf('https://') != 0
+			value = link.val().toLowerCase()
+			if value != '' and value.indexOf('http://') != 0 && value.indexOf('https://') != 0
 				if value.indexOf('//') == 0
-					$(this).val('http:' + value)
+					link.val('http:' + value)
 				else
-					$(this).val('http://' + value)
+					link.val('http://' + value)
+			value = product_url.val().toLowerCase()
+			if value != '' and value.indexOf('http://') != 0 && value.indexOf('https://') != 0
+				if value.indexOf('//') == 0
+					product_url.val('http:' + value)
+				else
+					product_url.val('http://' + value)
 		return true
 			
 	
@@ -216,6 +219,17 @@ jQuery ->
 		remove_error_from_field($(this), i)
 		if $(this).val() isnt ''
 			ensure_tags_has_hash_symbol($(this))
+			
+			
+	# ensure a price range is selected
+	selected_a_price_range = (i) ->
+		remove_error_from_field($('#price_range' + i), i) 
+		price_range = $('input[name=price_range' + i + ']:checked').val()
+		console.log(price_range)
+		if price_range is undefined
+			show_error_for_field($('#price_range' + i), 'Select a price range')
+			return false
+		return true
 			
 	
 	# detect when scrolling to bottom to load more items
@@ -300,6 +314,8 @@ jQuery ->
 		
 		if pin['price'] isnt 'None'
 			html = html + '<tr><th>Price</th><td>$' + pin['price'] + '</td></tr>'
+			
+		html = html + '<tr><th>Price Range</th><td>' + pin['price_range_repr'] + '</td></tr>'
 		
 		html = html + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> '+
 				'<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' +
@@ -358,6 +374,8 @@ jQuery ->
 		else
 			$("#price11").val('')
 		$("#previmageurl11").attr('href', pin['image_url'])
+		$('input[name=price_range11]').prop('checked', false)
+		$('input[name=price_range11][value=' + pin['price_range'] + ']').prop('checked', true)
 		remove_all_errors()
 		$('#pin_edit_dialog').dialog('open')
 		
@@ -379,6 +397,7 @@ jQuery ->
 		tags = $('#tags11')
 		category = $('#category11')
 		price = $('#price11')
+		price_range = $('input[name=price_range11]:checked')
 		# should have title
 		if title.val() == ''
 			no_error = false
@@ -386,11 +405,6 @@ jQuery ->
 		else
 			remove_error_from_field(title, 11)
 		# should have description
-		if description.val() == ''
-			no_error = false
-			show_error_for_field(description, 'Empty description', 11)
-		else
-			remove_error_from_field(description, 11)
 		# should have tags
 		if tags.val() == ''
 			no_error = false
@@ -401,25 +415,25 @@ jQuery ->
 		# should have a valid price
 		if not have_valid_price(price, 11)
 			no_error = false
-		# should have a valid source link
-		if not validate_link(link, 11)
+		# should have a valid source link or product link
+		if not validate_link_and_product(link, product_url, 11)
 			no_error = false
-		# should have a valid product
-		if not validate_link(product_url, 11)
+		# should select a price range
+		if not selected_a_price_range(11)
 			no_error = false
 		if no_error
 			if image.val() != '' and imageurl.val() == ''
 				# submit to upload the image
 				return true
 			else
-				update_pin_in_backgroud(pinid, title, description, link, product_url, imageurl, tags, category, price)
+				update_pin_in_backgroud(pinid, title, description, link, product_url, imageurl, tags, category, price, price_range)
 				$('#pin_edit_dialog').dialog('close')
 		return false
 		
 		
 	# updates the pin from the edit dialog using ajax, in the background
 	# after changing the item, it is reloaded in the page
-	update_pin_in_backgroud = (pinid, title, description, link, product_url, imageurl, tags, category, price) ->
+	update_pin_in_backgroud = (pinid, title, description, link, product_url, imageurl, tags, category, price, price_range) ->
 		pin_data = 'title': title.val()
 			,'description': description.val()
 			,'link': link.val()
@@ -428,6 +442,7 @@ jQuery ->
 			,'tags': tags.val()
 			,'category': category.val()
 			,'price': price.val()
+			,'price_range': price_range.val()
 		$.ajax type: 'POST'
 			,url: '/admin/input/pins/' + pinid.val() + '/'
 			,data: pin_data

@@ -21,6 +21,9 @@ from mypinnings import database
 logger = logging.getLogger('mypinnings.data_loaders')
 
 
+PRICE_RANGES = ((1, '$'), (2, '$$'), (3, '$$$'), (4, '$$$$'), (5, '$$$$+'))
+
+
 class FileUploaderMixin(object):
 
     def save_image(self, pin_id, imageurl, image):
@@ -143,6 +146,16 @@ class PinLoaderPage(FileUploaderMixin):
                              web.form.Textbox('price8', placeholder='$888.00', **{'class': 'prodprice', 'i': 8}),
                              web.form.Textbox('price9', placeholder='$888.00', **{'class': 'prodprice', 'i': 9}),
                              web.form.Textbox('price10', placeholder='$888.00', **{'class': 'prodprice', 'i': 10}),
+                             web.form.Radio('price_range1', PRICE_RANGES, **{'class': 'prodprice_range', 'i': 1}),
+                             web.form.Radio('price_range2', PRICE_RANGES, **{'class': 'prodprice_range', 'i': 2}),
+                             web.form.Radio('price_range3', PRICE_RANGES, **{'class': 'prodprice_range', 'i': 3}),
+                             web.form.Radio('price_range4', PRICE_RANGES, **{'class': 'prodprice_range', 'i': 4}),
+                             web.form.Radio('price_range5', PRICE_RANGES, **{'class': 'prodprice_range', 'i': 5}),
+                             web.form.Radio('price_range6', PRICE_RANGES, **{'class': 'prodprice_range', 'i': 6}),
+                             web.form.Radio('price_range7', PRICE_RANGES, **{'class': 'prodprice_range', 'i': 7}),
+                             web.form.Radio('price_range8', PRICE_RANGES, **{'class': 'prodprice_range', 'i': 8}),
+                             web.form.Radio('price_range9', PRICE_RANGES, **{'class': 'prodprice_range', 'i': 9}),
+                             web.form.Radio('price_range10', PRICE_RANGES, **{'class': 'prodprice_range', 'i': 10}),
                              web.form.Button('add', id='btn-add')
                              )
         return form()
@@ -152,7 +165,11 @@ class PinLoaderPage(FileUploaderMixin):
         auth.force_login(sess)
         form = self.get_form()
         result_info = sess.get('result_info', [])
-        return template.ltpl('pin_loader', form, result_info)
+        db = database.get_db()
+        results = db.where(table='pins', what='count(1) as pin_count', user_id=sess.user_id)
+        for row in results:
+            number_of_items_added = row.pin_count
+        return template.ltpl('pin_loader', form, result_info, number_of_items_added)
 
     def POST(self):
         sess = session.get_session()
@@ -179,7 +196,9 @@ class PinLoaderPage(FileUploaderMixin):
             image = web.input(**{'image' + i: {}}).get('image' + i, None)
             tags = form['tags' + i]
             price = form['price' + i]
-            error = self.validate_errors(title, description, link, product_url, imageurl, image, tags, price)
+            price_range = form['price_range' + i]
+            error = self.validate_errors(title, description, link, product_url, imageurl, image, tags, price,
+                                         price_range)
             result_info['title'] = title.value
             result_info['description'] = description.value
             result_info['link'] = link.value
@@ -188,6 +207,7 @@ class PinLoaderPage(FileUploaderMixin):
             result_info['image'] = image.filename
             result_info['tags'] = tags.value
             result_info['price'] = price.value
+            result_info['price_range'] = price_range.value
             pin_id = None
             if error:
                 result_info['error'] = error
@@ -195,7 +215,7 @@ class PinLoaderPage(FileUploaderMixin):
             try:
                 pin_id = self.save_pin_in_db(category, title.value, description.value, link.value,
                                              tags.value, price.value, imageurl.value,
-                                             product_url.value)
+                                             product_url.value, price_range.value)
                 result_info['pin_id'] = pin_id
                 self.save_image(pin_id, imageurl, image)
             except Exception as e:
@@ -207,20 +227,20 @@ class PinLoaderPage(FileUploaderMixin):
             result_info['error'] = ''
         return result_info
 
-    def validate_errors(self, title, description, link, product_url, imageurl, image, tags, price):
-        if not description.value:
-            return _("No description")
-        if not link.value:
-            return _("No source link")
-        if not product_url.value:
-            return _("No product link")
+    def validate_errors(self, title, description, link, product_url, imageurl, image, tags, price,
+                        price_range):
+        if not link.value and not product_url.value:
+            return _("You must provide at least one of source link or product link")
         if not tags.value:
             return _("No tags")
+        if not price_range.value:
+            return _("No price range")
         if not image.filename and not imageurl.value:
             return _("No image URL or no uploaded image file")
         return None
 
-    def save_pin_in_db(self, category, title, description, link, tags, price, imageurl, product_url):
+    def save_pin_in_db(self, category, title, description, link, tags, price, imageurl, product_url,
+                       price_range):
         try:
             db = database.get_db()
             sess = session.get_session()
@@ -228,7 +248,8 @@ class PinLoaderPage(FileUploaderMixin):
                 price = None
             pin_id = db.insert(tablename='pins', name=title, description=description,
                                user_id=sess.user_id, link=link, category=category,
-                               views=1, price=price, image_url=imageurl, product_url=product_url)
+                               views=1, price=price, image_url=imageurl, product_url=product_url,
+                               price_range=price_range)
             if tags:
                 tags = remove_hash_symbol_from_tags(tags)
                 db.insert(tablename='tags', pin_id=pin_id, tags=tags)
@@ -270,6 +291,7 @@ class LoadersEditAPI(FileUploaderMixin):
             web.header('Content-Type', 'application/json')
             row.price = str(row.price)
             row.tags = add_hash_symbol_to_tags(row.tags)
+            row.price_range_repr = '$' * row.price_range if row.price_range < 5 else '$$$$+'
             return json.dumps(row)
         raise web.notfound()
 
@@ -292,6 +314,7 @@ class LoadersEditAPI(FileUploaderMixin):
         for r in rows:
             r.price = str(r.price)
             r.tags = add_hash_symbol_to_tags(r.tags)
+            r.price_range_repr = '$' * r.price_range if r.price_range < 5 else '$$$$+'
         json_pins = json.dumps(rows)
         print(json_pins)
         web.header('Content-Type', 'application/json')
@@ -315,11 +338,14 @@ class LoadersEditAPI(FileUploaderMixin):
         form = web.form.Form(web.form.Dropdown('category', categories, web.form.notnull, value=current_category),
                              web.form.Textbox('imageurl'),
                              web.form.Textbox('title', web.form.notnull),
-                             web.form.Textarea('description', web.form.notnull),
-                             web.form.Textbox('link', web.form.notnull),
-                             web.form.Textbox('product_url', web.form.notnull),
+                             web.form.Textarea('description'),
+                             web.form.Textbox('link'),
+                             web.form.Textbox('product_url'),
                              web.form.Textbox('tags', web.form.notnull),
-                             web.form.Textbox('price'))
+                             web.form.Textbox('price'),
+                             web.form.Radio('price_range', PRICE_RANGES, web.form.notnull),
+                             validators =[web.form.Validator("Provide source Link", lambda f: f.link or f.product_url)
+                                          ])
         return form()
 
     def POST(self, pin_id):
@@ -331,7 +357,7 @@ class LoadersEditAPI(FileUploaderMixin):
             price = form.d.price or None
             db.update(tables='pins', where='id=$id and user_id=$user_id', vars={'id': pin_id, 'user_id': sess.user_id},
                       name=form.d.title, description=form.d.description, link=form.d.link, category=form.d.category,
-                      price=price, product_url=form.d.product_url)
+                      price=price, product_url=form.d.product_url, price_range=form.d.price_range)
             results = db.where(table='tags', pin_id=pin_id)
             tags = remove_hash_symbol_from_tags(form.d.tags)
             for _ in results:
@@ -354,6 +380,7 @@ class LoadersEditAPI(FileUploaderMixin):
 
 class UpdatePin(FileUploaderMixin):
     def POST(self):
+        sess = session.get_session()
         result_info = []
         pin_id = int(web.input(id11=0)['id11'])
         name = web.input(title11=None)['title11']
@@ -361,8 +388,9 @@ class UpdatePin(FileUploaderMixin):
         image = web.input(image11={})['image11']
         tags = web.input(tags11=None)['tags11']
         link = web.input(link11=None)['link11']
-        product_url = web.input(link11=None)['product_url11']
-        price = web.input(link11=None)['price11'] or None
+        product_url = web.input(product_url11=None)['product_url11']
+        price = web.input(price11=None)['price11'] or None
+        price_range = web.input(price_range11=None)['price_range11']
         category = web.input(category11=None)['category11']
         errors = {'error': 'Invalid data',
                   'index': 11,
@@ -375,12 +403,11 @@ class UpdatePin(FileUploaderMixin):
                   'price': price,
                   'link': link,
                   'product_url': product_url}
-        if pin_id > 0 and name and description and tags and link and product_url:
-            sess = session.get_session()
+        if pin_id > 0 and name  and tags and (link or product_url) and price_range:
             db = database.get_db()
             db.update(tables='pins', where='id=$id and user_id=$user_id', vars={'id': pin_id, 'user_id': sess.user_id},
                       name=name, description=description, link=link, category=category, price=price,
-                      product_url=product_url)
+                      product_url=product_url, price_range=price_range)
             results = db.where(table='tags', pin_id=pin_id)
             tags = remove_hash_symbol_from_tags(tags)
             for _ in results:
