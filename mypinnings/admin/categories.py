@@ -383,3 +383,64 @@ class EditCategory(object):
             self.db.update('pins', where='id in ({})'.format(ids_to_delete_list), category=self.category_id)
             # remove the sub-categories
             self.db.delete('categories', where='id in ({})'.format(ids_to_delete_list))
+            
+            
+class DeleteCategory(object):
+    def GET(self, category_id):
+        db = database.get_db()
+        results = db.where(table='categories', id=category_id)
+        for row in results:
+            category = row
+        subcategories = db.where(table='categories', parent=category_id)
+        results = db.query('''select root.id, root.name, child.id as child_id, child.name as child_name, child.is_default_sub_category
+                                    from categories root left join categories child on root.id=child.parent
+                                    where root.parent is NULL
+                                        and root.id <> $id
+                                    order by root.name, child.name
+                                    ''',
+                                    vars={'id': category_id}
+                                  )
+        self.others = []
+        current_category_id = None
+        for row in results:
+            root_id = row.id
+            if not current_category_id or root_id != current_category_id:
+                current_category_id = root_id
+                self.others.append((root_id, row.name))
+            if row.child_id:
+                self.others.append((row.child_id, '{} - {}'.format(row.name, row.child_name)))
+        form = self.get_form()
+        msg = web.input(msg=None)['msg']
+        return template.admin.category_delete(category, subcategories, form, msg)
+        
+    def get_form(self):
+        F = web.form.Form(web.form.Dropdown('category', self.others, web.form.notnull, description='Category for orphan items'),
+                          web.form.Button('Delete category'))
+        return F()
+    
+    def POST(self, category_id):
+        self.others = tuple()
+        form = self.get_form()
+        if form.validates():
+            category_for_orphan_pins = form.d.category
+            db = database.get_db()
+            transaction = db.transaction()
+            try:
+                db.update(tables='pins', where='category=$id', vars={'id': category_id}, category=category_for_orphan_pins)
+                subcategories = db.where(table='categories', parent=category_id)
+                list_to_delete = ','.join((str(c.id) for c in subcategories))
+                db.update(tables='pins', where='category in ({})'.format(list_to_delete), category=category_for_orphan_pins)
+                db.delete(table='categories', where='id in ({})'.format(list_to_delete))
+                db.delete(table='categories', where='id=$id', vars={'id': category_id})
+                transaction.commit()
+                web.seeother(url='/admin/categories', absolute=True)
+            except Exception as e:
+                logger.error('Cannot delete category {}'.format(category_id), exc_info=True)
+                transaction.rollback()
+                try:
+                    error = urllib.urlencode(('msg', str(e)))
+                except:
+                    error = '?msg=Cannot delete category'
+                web.seeother(url='?{}'.format(error), absolute=False)
+        else:
+            web.seeother(url='?msg=Select a category for orphan pins', absolute=False)

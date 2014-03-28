@@ -14,11 +14,17 @@
       $('#inline_forms_container').append(html);
       $('#number_of_sub_categories').val(index + 1);
     });
-    return $('body').on('click', '.button_remove_subcategory', function(event) {
+    $('body').on('click', '.button_remove_subcategory', function(event) {
       var i;
       event.preventDefault();
       i = $(this).attr('i');
       $('#subcategory_form' + i).remove();
+    });
+    return $('.button_remove_category').on('click', function(event) {
+      var category_id;
+      event.preventDefault();
+      category_id = $(this).attr('category_id');
+      window.location = '/admin/categories/' + category_id + '/delete/';
     });
   });
 

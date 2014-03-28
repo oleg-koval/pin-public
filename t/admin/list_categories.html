@@ -8,6 +8,7 @@ $for cat in categories:
 	<li>
         <a href="category-manage_cool/$cat['id']" class="btn btn-default btn-xs">Cool products</a>
         <a href="categories/$cat['id']">$cat['name']</a>
+        <button type="button" class="close button_remove_category" category_id="$cat['id']" title="remove $cat['name']">&times;</button>
         $if cat['subcategories']:
         	<ul>
         	$for subcat in cat['subcategories']:
@@ -22,3 +23,4 @@ $for cat in categories:
 		</div>
 	</div>
 </div>
+<script src="/static/js/admin_categories.js"></script>

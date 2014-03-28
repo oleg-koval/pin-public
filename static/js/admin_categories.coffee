@@ -16,3 +16,9 @@ jQuery ->
 		$('#subcategory_form' + i).remove()
 		return
 		
+	
+	$('.button_remove_category').on 'click', (event) ->
+		event.preventDefault()
+		category_id = $(this).attr('category_id')
+		window.location = '/admin/categories/' + category_id + '/delete/'
+		return
