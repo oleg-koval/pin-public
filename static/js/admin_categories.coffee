@@ -9,3 +9,10 @@ jQuery ->
 		$('#number_of_sub_categories').val(index + 1)
 		return
 		
+	
+	$('body').on 'click', '.button_remove_subcategory', (event) ->
+		event.preventDefault()
+		i = $(this).attr('i')
+		$('#subcategory_form' + i).remove()
+		return
+		

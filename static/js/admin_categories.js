@@ -2,7 +2,7 @@
 (function() {
 
   jQuery(function() {
-    return $('#button_add_sub_category').on('click', function(event) {
+    $('#button_add_sub_category').on('click', function(event) {
       var data, form_template, html, index;
       event.preventDefault();
       index = parseInt($('#number_of_sub_categories').val());
@@ -13,6 +13,12 @@
       html = _.template(form_template, data);
       $('#inline_forms_container').append(html);
       $('#number_of_sub_categories').val(index + 1);
+    });
+    return $('body').on('click', '.button_remove_subcategory', function(event) {
+      var i;
+      event.preventDefault();
+      i = $(this).attr('i');
+      $('#subcategory_form' + i).remove();
     });
   });
 

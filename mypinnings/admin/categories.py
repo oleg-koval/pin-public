@@ -2,6 +2,7 @@ import os
 import os.path
 import json
 import logging
+import urllib
 
 import web
 from PIL import Image
@@ -318,42 +319,67 @@ class EditCategory(object):
     
     @login_required
     def POST(self, category_id):
-        web_input = web.input(name=None, number_of_sub_categories=None)
-        name = web_input['name']
-        number_of_sub_categories = web_input['number_of_sub_categories']
+        self.category_id = category_id
+        self.web_input = web.input(name=None, number_of_sub_categories=None)
+        name = self.web_input['name']
+        self.number_of_sub_categories = self.web_input['number_of_sub_categories']
         if name:
-            db = database.get_db()
-            transaction = db.transaction()
+            self.db = database.get_db()
+            transaction = self.db.transaction()
             try:
-                db.update(tables='categories', where='id=$id', vars={'id': category_id}, name=name)
-                if number_of_sub_categories:
-                    number_of_sub_categories = int(number_of_sub_categories)
-                    default_sub_category = int(web_input.get('default-sub-category', 0))
-                    default_sub_category_mark_not_found = True
-                    last_sub_category_id = None
-                    for i in range(number_of_sub_categories):
-                        subid = web_input.get('subid{}'.format(i), None)
-                        name = web_input.get('name{}'.format(i), None)
-                        if default_sub_category_mark_not_found and default_sub_category == i:
-                            is_default = True
-                            default_sub_category_mark_not_found = False
-                        else:
-                            is_default = False
-                        if subid:
-                            db.update(tables='categories', where=('id=$id and parent=$parent'),
-                                      vars={'id': subid, 'parent': category_id},
-                                      name=name, is_default_sub_category=is_default)
-                            last_sub_category_id = subid
-                        elif name:
-                            last_sub_category_id = db.insert(tablename='categories', seqname='categories_id_seq', name=name,
-                                  is_default_sub_category=is_default, parent=category_id)
-                    if default_sub_category_mark_not_found and last_sub_category_id:
-                        db.update(tables='categories', where='id=$id', vars={'id': last_sub_category_id}, is_default_sub_category=True)
+                self.db.update(tables='categories', where='id=$id', vars={'id': category_id}, name=name)
+                if self.number_of_sub_categories:
+                    self.save_sub_categories()
                 transaction.commit()
                 web.seeother(url='/admin/categories', absolute=True)
             except Exception as e:
                 transaction.rollback()
                 logger.error('Cannot update category {}'.format(category_id), exc_info=True)
-                web.seeother(url='?message={}'.format(str(e)), absolute=False)
+                try:
+                    error = urllib.urlencode(('message', str(e)))
+                except:
+                    error = 'message=Cannot update category'
+                web.seeother(url='?{}'.format(error), absolute=False)
         else:
             web.seeother(url='', absolute=False)
+            
+    def save_sub_categories(self):
+        number_of_sub_categories = int(self.number_of_sub_categories)
+        default_sub_category = int(self.web_input.get('default-sub-category', 0))
+        default_sub_category_mark_not_found = True
+        last_sub_category_id = None
+        self.ids_found = []
+        for i in range(number_of_sub_categories):
+            subid = self.web_input.get('subid{}'.format(i), None)
+            name = self.web_input.get('name{}'.format(i), None)
+            if default_sub_category_mark_not_found and default_sub_category == i:
+                is_default = True
+                default_sub_category_mark_not_found = False
+            else:
+                is_default = False
+            if subid:
+                self.db.update(tables='categories', where=('id=$id and parent=$parent'),
+                          vars={'id': subid, 'parent': self.category_id},
+                          name=name, is_default_sub_category=is_default)
+                last_sub_category_id = subid
+                self.ids_found.append(int(subid))
+            elif name:
+                last_sub_category_id = self.db.insert(tablename='categories', seqname='categories_id_seq', name=name,
+                      is_default_sub_category=is_default, parent=self.category_id)
+                self.ids_found.append(last_sub_category_id)
+        if default_sub_category_mark_not_found and last_sub_category_id:
+            self.db.update(tables='categories', where='id=$id', vars={'id': last_sub_category_id}, is_default_sub_category=True)
+        self.delete_subcategories_not_found()
+        
+    def delete_subcategories_not_found(self):
+        ids_to_delete = []
+        results = self.db.where(table='categories', parent=self.category_id)
+        for row in results:
+            if row.id not in self.ids_found:
+                ids_to_delete.append(str(row.id))
+        if ids_to_delete:
+            # move all of the sub-category items to the parent category
+            ids_to_delete_list = ','.join(ids_to_delete)
+            self.db.update('pins', where='id in ({})'.format(ids_to_delete_list), category=self.category_id)
+            # remove the sub-categories
+            self.db.delete('categories', where='id in ({})'.format(ids_to_delete_list))
