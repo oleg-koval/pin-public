@@ -178,7 +178,7 @@ class PageSearch:
 
         def make_query(query):
             if order is not None:
-                return query + (' order by %s desc' % order)
+                return query + (' order by %s' % order)
             return query
 
         db = database.get_db()
