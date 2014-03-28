@@ -165,7 +165,11 @@ class PinLoaderPage(FileUploaderMixin):
         auth.force_login(sess)
         form = self.get_form()
         result_info = sess.get('result_info', [])
-        return template.ltpl('pin_loader', form, result_info)
+        db = database.get_db()
+        results = db.where(table='pins', what='count(1) as pin_count', user_id=sess.user_id)
+        for row in results:
+            number_of_items_added = row.pin_count
+        return template.ltpl('pin_loader', form, result_info, number_of_items_added)
 
     def POST(self):
         sess = session.get_session()
