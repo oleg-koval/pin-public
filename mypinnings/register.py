@@ -103,8 +103,11 @@ class PageAfterSignup:
         categories_results = db.where(table='categories', order='name')
         categories = []
         for category in categories_results:
-            cool_items_resutls = db.select(tables=['pins', 'cool_pins'], what="pins.*",
-                         where='pins.category=$category_id and pins.id=cool_pins.pin_id',
+            cool_items_resutls = db.select(tables=['pins', 'pins_categories', 'categories', 'cool_pins'], what="pins.*",
+                         where='pins.id=pins_categories.pin_id and pins_categories.category_id=categories.id'
+                            ' and categories.id=$category_id'
+                            ' and pins.id=cool_pins.pin_id'
+                            ' and categories.id not in (select parent from categories where parent is not null)',
                          vars={'category_id': category.id})
             cool_items_list = list(cool_items_resutls)
             random_cool_items = []
