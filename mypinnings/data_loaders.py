@@ -425,11 +425,11 @@ class LoadersEditAPI(FileUploaderMixin, CategorySelectionMixin):
             return web.notfound()
 
 
-class UpdatePin(FileUploaderMixin):
+class UpdatePin(FileUploaderMixin, CategorySelectionMixin):
     def POST(self):
         sess = session.get_session()
         result_info = []
-        pin_id = int(web.input(id11=0)['id11'])
+        self.pin_id = int(web.input(id11=0)['id11'])
         name = web.input(title11=None)['title11']
         description = web.input(description11=None)['description11']
         image = web.input(image11={})['image11']
@@ -438,10 +438,10 @@ class UpdatePin(FileUploaderMixin):
         product_url = web.input(product_url11=None)['product_url11']
         price = web.input(price11=None)['price11'] or None
         price_range = web.input(price_range11=None)['price_range11']
-        category = web.input(category11=None)['category11']
+        categories = web.input(category11=None)['categories11']
         errors = {'error': 'Invalid data',
                   'index': 11,
-                  'pin_id': pin_id,
+                  'pin_id': self.pin_id,
                   'title': name,
                   'description': description,
                   'imageurl': '',
@@ -450,25 +450,27 @@ class UpdatePin(FileUploaderMixin):
                   'price': price,
                   'link': link,
                   'product_url': product_url}
-        if pin_id > 0 and name  and tags and (link or product_url) and price_range:
-            db = database.get_db()
-            db.update(tables='pins', where='id=$id and user_id=$user_id', vars={'id': pin_id, 'user_id': sess.user_id},
-                      name=name, description=description, link=link, category=category, price=price,
+        if self.pin_id > 0 and name  and tags and (link or product_url) and price_range:
+            self.db = database.get_db()
+            self.db.update(tables='pins', where='id=$id and user_id=$user_id', vars={'id': self.pin_id, 'user_id': sess.user_id},
+                      name=name, description=description, link=link, price=price,
                       product_url=product_url, price_range=price_range)
-            results = db.where(table='tags', pin_id=pin_id)
+            self.categories = [int(c) for c in categories.split(',')]
+            self.update_categories()
+            results = self.db.where(table='tags', pin_id=self.pin_id)
             tags = remove_hash_symbol_from_tags(tags)
             for _ in results:
-                db.update(tables='tags', where='pin_id=pin_id', vars={'id': pin_id}, tags=tags)
+                self.db.update(tables='tags', where='pin_id=pin_id', vars={'id': self.pin_id}, tags=tags)
                 break
             else:
-                db.insert(tablename='tags', pin_id=pin_id, tags=tags)
+                self.db.insert(tablename='tags', pin_id=self.pin_id, tags=tags)
             try:
                 new_filename = 'static/tmp/{}'.format(image.filename)
                 with open(new_filename, 'w') as f:
                     f.write(image.file.read())
-                self.save_image_from_file(pin_id, new_filename)
+                self.save_image_from_file(self.pin_id, new_filename)
             except Exception as e:
-                logger.error('Could not save the image for pin: {} from URL: {}'.format(pin_id, image.filename), exc_info=True)
+                logger.error('Could not save the image for pin: {} from URL: {}'.format(self.pin_id, image.filename), exc_info=True)
                 errors['error'] = str(e)
                 result_info.append(errors)
         else:
