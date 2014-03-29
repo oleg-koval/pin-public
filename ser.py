@@ -843,7 +843,7 @@ class PageBuyList:
 def get_pins(user_id, offset=None, limit=None, show_private=False):
     query = '''
         select
-            tags.tags, pins.*, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+            tags.tags, pins.*, users.pic as user_pic, users.username as user_username, users.name as user_name,
             count(distinct p1) as repin_count,
             count(distinct l1) as like_count
         from users
@@ -851,9 +851,8 @@ def get_pins(user_id, offset=None, limit=None, show_private=False):
             left join tags on tags.pin_id = pins.id
             left join pins p1 on p1.repin = pins.id
             left join likes l1 on l1.pin_id = pins.id
-            left join categories on categories.id = pins.category
         where users.id = $id ''' + ('' if show_private else 'and not users.private') + '''
-        group by categories.id, tags.tags, pins.id, users.id
+        group by tags.tags, pins.id, users.id
         order by timestamp desc'''
 
     if offset is not None:
