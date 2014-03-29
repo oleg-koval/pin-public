@@ -689,24 +689,26 @@ class PagePin:
 
         pin = db.query('''
             select
-                tags.tags, pins.*, users.name as user_name, categories.name as cat_name, users.pic as user_pic, users.username as user_username,
+                tags.tags, pins.*, users.name as user_name, users.pic as user_pic, users.username as user_username,
                 ''' + query1 + ''' as liked,
                 count(distinct l2) as likes,
                 count(distinct p1) as repin_count
             from pins
                 left join tags on tags.pin_id = pins.id
                 left join users on users.id = pins.user_id
-                left join categories on categories.id = pins.category
                 ''' + query2 + '''
                 left join likes l2 on l2.pin_id = pins.id
                 left join pins p1 on p1.repin = pins.id
             where pins.id = $id and (not users.private or pins.user_id = $uid)
-            group by pins.id, tags.tags, users.id, categories.id''', vars=qvars)
+            group by pins.id, tags.tags, users.id''', vars=qvars)
         if not pin:
             return 'pin not found'
 
         pin = pin[0]
-        if not pin.category:
+        pin.categories = db.select(tables=['pins_categories', 'categories'], what="categories.*",
+                            where='pins_categories.category_id=categories.id and pins_categories.pin_id=$id',
+                            vars={'id': pin.id})
+        if not pin.categories:
             return 'pin not found'
 
         if logged and sess.user_id != pin.user_id:
