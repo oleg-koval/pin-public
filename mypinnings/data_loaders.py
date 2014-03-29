@@ -368,8 +368,10 @@ class LoadersEditAPI(FileUploaderMixin, CategorySelectionMixin):
     def DELETE(self, pin_id):
         try:
             sess = session.get_session()
-            db = database.get_db()
-            db.delete(table='pins', where='id=$id and user_id=$user_id', vars={'id': pin_id, 'user_id': sess.user_id})
+            self.db = database.get_db()
+            self.pin_id = pin_id
+            self.remove_categories()
+            self.db.delete(table='pins', where='id=$id and user_id=$user_id', vars={'id': pin_id, 'user_id': sess.user_id})
             web.header('Content-Type', 'application/json')
             return json.dumps({'status': 'ok'})
         except:
