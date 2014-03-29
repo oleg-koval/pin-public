@@ -49,7 +49,7 @@
             can_submit = no_error;
           }
         }
-        if (!category_selected()) {
+        if (!category_selected('categories', 'category_check', $('#category_error_message'))) {
           can_submit = false;
         }
         if (!can_submit) {
@@ -240,10 +240,10 @@
       }
       return true;
     };
-    category_selected = function() {
+    category_selected = function(field_to_fill_name, check_fields_name, error_object) {
       var c, category_value, checked_categories, value, _i, _len;
-      checked_categories = $('input[name="category_check"]:checked');
-      $('#category_error_message').hide();
+      checked_categories = $('input[name="' + check_fields_name + '"]:checked');
+      error_object.hide();
       if (checked_categories.length > 0) {
         category_value = '';
         for (_i = 0, _len = checked_categories.length; _i < _len; _i++) {
@@ -254,10 +254,10 @@
           }
           category_value = category_value + value;
         }
-        $('input[name=categories]').val(category_value);
+        $('input[name=' + field_to_fill_name + ']').val(category_value);
         return true;
       } else {
-        $('#category_error_message').show();
+        error_object.show();
         return false;
       }
     };
@@ -418,7 +418,7 @@
       imageurl = $('#imageurl11');
       image = $('#image11');
       tags = $('#tags11');
-      category = $('#category11');
+      category = $('#categories11');
       price = $('#price11');
       price_range = $('input[name=price_range11]:checked');
       if (title.val() === '') {
@@ -443,6 +443,9 @@
       if (!selected_a_price_range(11)) {
         no_error = false;
       }
+      if (!category_selected('categories11', 'category_check11', $('#category_error_message11'))) {
+        no_error = false;
+      }
       if (no_error) {
         if (image.val() !== '' && imageurl.val() === '') {
           return true;
@@ -462,7 +465,7 @@
         'product_url': product_url.val(),
         'imageurl': imageurl.val(),
         'tags': tags.val(),
-        'category': category.val(),
+        'categories': category.val(),
         'price': price.val(),
         'price_range': price_range.val()
       };

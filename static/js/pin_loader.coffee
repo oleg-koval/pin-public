@@ -49,7 +49,7 @@ jQuery ->
 				no_error = validate_errors(i)
 				if can_submit
 					can_submit = no_error
-			if not category_selected()
+			if not category_selected('categories', 'category_check', $('#category_error_message'))
 				can_submit = false
 			if not can_submit
 				window.alert('Errors pending, please check')
@@ -234,9 +234,9 @@ jQuery ->
 		return true
 
 
-	category_selected = ->
-		checked_categories = $('input[name="category_check"]:checked')
-		$('#category_error_message').hide()
+	category_selected = (field_to_fill_name, check_fields_name, error_object) ->
+		checked_categories = $('input[name="' + check_fields_name + '"]:checked')
+		error_object.hide()
 		if checked_categories.length > 0
 			category_value = ''
 			for c in checked_categories
@@ -244,10 +244,10 @@ jQuery ->
 				if category_value isnt '' and category_value.lastIndexOf(',') isnt category_value.length - 1
 					category_value = category_value + ','
 				category_value = category_value + value
-			$('input[name=categories]').val(category_value)
+			$('input[name=' + field_to_fill_name + ']').val(category_value)
 			return true
 		else
-			$('#category_error_message').show()
+			error_object.show()
 			return false
 			
 	
@@ -407,7 +407,7 @@ jQuery ->
 		imageurl = $('#imageurl11')
 		image = $('#image11')
 		tags = $('#tags11')
-		category = $('#category11')
+		category = $('#categories11')
 		price = $('#price11')
 		price_range = $('input[name=price_range11]:checked')
 		# should have title
@@ -433,6 +433,8 @@ jQuery ->
 		# should select a price range
 		if not selected_a_price_range(11)
 			no_error = false
+		if not category_selected('categories11', 'category_check11', $('#category_error_message11'))
+			no_error = false
 		if no_error
 			if image.val() != '' and imageurl.val() == ''
 				# submit to upload the image
@@ -452,7 +454,7 @@ jQuery ->
 			,'product_url': product_url.val()
 			,'imageurl': imageurl.val()
 			,'tags': tags.val()
-			,'category': category.val()
+			,'categories': category.val()
 			,'price': price.val()
 			,'price_range': price_range.val()
 		$.ajax type: 'POST'
