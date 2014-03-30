@@ -1,4 +1,4 @@
-$def with (form, result_info, categories, number_of_items_added)
+$def with (form, result_info, categories, number_of_items_added, preselected_categories)
 <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 <link rel="stylesheet" href="/static/css/pin_loader.css" />
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
@@ -30,10 +30,16 @@ $def with (form, result_info, categories, number_of_items_added)
 			$if loop.index0 % 4 == 0:
 				<tr>
 			<td width="25%" class="category_selection_td">
-				<label><input type="checkbox" name='category_check' value="$category['id']">$category['name']</label>
+				<label><input type="checkbox" name='category_check' value="$category['id']"
+				$if category['id'] in preselected_categories:
+					checked
+				>$category['name']</label>
 				$if category['subcategories']:
 					$for subcat in category['subcategories']:
-						<div class="subcategory_checkbox"><label><input type="checkbox" name='category_check' value="$subcat['id']">$subcat['name']</label></div>
+						<div class="subcategory_checkbox"><label><input type="checkbox" name='category_check' value="$subcat['id']"
+						$if subcat['id'] in preselected_categories:
+							checked
+						>$subcat['name']</label></div>
 			</td>
 			$if loop.index0 % 4 == 3 or loop.last:
 				</tr>

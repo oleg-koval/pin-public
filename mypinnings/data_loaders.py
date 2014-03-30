@@ -197,7 +197,7 @@ class PinLoaderPage(FileUploaderMixin, CategorySelectionMixin):
                 categories.append(current_parent)
             if row.child_id:
                 current_parent['subcategories'].append({'id': row.child_id, 'name': row.child_name})
-        return template.ltpl('pin_loader', form, result_info, categories, number_of_items_added)
+        return template.ltpl('pin_loader', form, result_info, categories, number_of_items_added, sess.get('categories', []))
 
     def POST(self):
         sess = session.get_session()
