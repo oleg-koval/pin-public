@@ -1792,7 +1792,14 @@ class PageCategory:
             where ''' + where + '''
             group by tags.tags, categories.id, pins.id, users.id
             order by timestamp desc offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT)
-
+        
+        existsrs = db.query('select exists(' + query + ') as exists', vars={'cid': cid})
+        for r in existsrs:
+            if not r.exists:
+                subcatrs = db.where(table='categories', parent=cid, is_default_sub_category=True)
+                for scrow in subcatrs:
+                    cid = scrow.id
+                    break
         pins = db.query(query, vars={'cid': cid})
         lists = db.select('boards',
         where='user_id=$user_id',
