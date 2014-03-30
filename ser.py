@@ -1773,11 +1773,12 @@ class PageCategory:
         if cid == 0:
             where = 'random() < 0.1'
         else:
-            where = 'pins.category = $cid'
+            where = 'categories.id = $cid'
 
         query = '''
             select
-                tags.tags, pins.*, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+                tags.tags, pins.*, categories.id as category, categories.name as cat_name, users.pic as user_pic,
+                users.username as user_username, users.name as user_name,
                 count(distinct p1) as repin_count,
                 count(distinct l1) as like_count
             from pins
@@ -1786,7 +1787,8 @@ class PageCategory:
                 left join likes l1 on l1.pin_id = pins.id
                 left join users on users.id = pins.user_id
                 left join follows on follows.follow = users.id
-                left join categories on categories.id = pins.category
+                join pins_categories on pins.id=pins_categories.pin_id
+                join categories on pins_categories.category_id = categories.id
             where ''' + where + '''
             group by tags.tags, categories.id, pins.id, users.id
             order by timestamp desc offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT)
