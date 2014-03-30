@@ -1,8 +1,15 @@
-$def with (pins, category, categories)
+$def with (pins, category, categories, subcategories)
 $if category.id == 0:
   <h1>Browsing <a href=''>Random Pins</a></h1>
 $else:
   <h1>Browsing Category <a href=''>$category.name</a></h1>
+  $if subcategories:
+  	<div class="subcategory_block">
+  	$for subcat in subcategories:
+  		<a href="/category/$subcat.name/$subcat.id">$subcat.name</a>
+  		$if not loop.last:
+  			<span class="subcategory_spacer">&nbsp;</span>
+  	</div>
 <hr>
 <div class='clearfix category-disp'>
   <div class='left horz-pins'>

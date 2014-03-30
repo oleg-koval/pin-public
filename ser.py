@@ -1793,6 +1793,7 @@ class PageCategory:
             group by tags.tags, categories.id, pins.id, users.id
             order by timestamp desc offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT)
         
+        subcategories = db.where(table='categories', parent=cid, order='is_default_sub_category, name')
         existsrs = db.query('select exists(' + query + ') as exists', vars={'cid': cid})
         for r in existsrs:
             if not r.exists:
@@ -1808,7 +1809,7 @@ class PageCategory:
         print lists
         if ajax:
             return json_pins(pins, 'horzpin')
-        return ltpl('category', pins, category, lists)
+        return ltpl('category', pins, category, all_categories, subcategories)
 
 
 def make_query(q):
