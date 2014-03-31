@@ -1587,7 +1587,7 @@ class PageViewCategory:
 
         query = '''
             select
-                tags.tags, pins.*, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+                tags.tags, pins.*, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
                 count(distinct p1.id) as repin_count,
                 count(distinct l1) as like_count
             from pins
@@ -1595,8 +1595,9 @@ class PageViewCategory:
                 left join users on users.id = pins.user_id
                 left join pins p1 on p1.repin = pins.id
                 left join likes l1 on l1.pin_id = pins.id
-                left join categories on categories.id = pins.category
-            where pins.category = $cid and not users.private
+                join pins_categories on pins_categories.pin_id = pins.id
+                left join categories on categories.id = pins_categories.category_id
+            where pins_categories.category_id = $cid and not users.private
             group by tags.tags, categories.id, pins.id, users.id order by timestamp desc limit %d offset %d''' % (PIN_COUNT, offset * PIN_COUNT)
 
         pins = list(db.query(query, vars={'cid': cid}))
