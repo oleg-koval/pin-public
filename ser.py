@@ -608,8 +608,9 @@ class PageRepin:
         pin_id = db.insert('pins',
             description=form.d.description,
             user_id=sess.user_id,
-            category=form.d.category,
             repin=pin_id)
+        
+        db.insert('pins_categories', pin_id=pin_id, category_id=form.d.category)
 
         if form.d.tags:
             tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
