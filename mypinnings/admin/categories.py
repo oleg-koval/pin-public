@@ -453,6 +453,8 @@ class DeleteCategory(object):
                     pins_to_move.append({'pin_id': row.pin_id, 'category_id': row.category_id})
                 db.multiple_insert(tablename='pins_categories', values=pins_to_move)
                 db.delete(table='pins_categories', where='category_id in ({})'.format(list_to_delete))
+                db.delete(table='user_prefered_categories', where='category_id in ({})'.format(list_to_delete))
+                db.delete(table='cool_pins', where='category_id in ({})'.format(list_to_delete))
                 db.delete(table='categories', where='id in ({})'.format(list_to_delete))
                 transaction.commit()
                 web.seeother(url='/admin/categories', absolute=True)
