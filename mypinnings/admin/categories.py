@@ -317,7 +317,7 @@ class EditCategory(object):
             results = db.where(table='categories', parent=category_id)
             category['subcategories'] = results
         else:
-            category['subcategories'] = None
+            category['subcategories'] = []
         message = web.input(message=None)['message']
         return template.admin.category_edit(category, message)
     
