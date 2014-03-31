@@ -550,6 +550,7 @@ class PageRemoveRepin:
             pin = dbget('pins', pin_id)
             if pin:
                 info = {'error':False}
+                db.delete('pins_categories', where='pin_id=$pin', vars={'pin': pin_id})
                 db.delete('pins', where='user_id = $uid and repin = $repin and id = $pid', vars={'uid': sess.user_id, 'pid': pin_id , 'repin':repin_id})
         return json.dumps(info)
 
