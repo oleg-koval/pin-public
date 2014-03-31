@@ -826,7 +826,7 @@ class PageBoardList:
 
         pins = db.query('''
             select
-                tags.tags, pins.*, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+                tags.tags, pins.*, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
                 count(distinct p1) as repin_count,
                 count(distinct l1) as like_count
             from pins
@@ -834,8 +834,12 @@ class PageBoardList:
                 left join tags on tags.pin_id = pins.id
                 left join pins p1 on p1.repin = pins.id
                 left join likes l1 on l1.pin_id = pins.id
-                left join categories on categories.id = pins.category
-            where pins.category = $cid and not users.private
+                left join categories on categories.id in
+                    (select category_id from pins_categories
+                    where pin_id = pins.id
+                    and category_id = $cid
+                    limit 1)
+            where not users.private
             group by pins.id, tags.tags, users.id, categories.id
             offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT),
             vars={'cid': cid})
