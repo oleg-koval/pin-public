@@ -12,6 +12,8 @@ import re
 import json
 import subprocess
 import HTMLParser
+import logging
+import decimal
 
 from mypinnings.database import connect_db, dbget
 db = connect_db()
@@ -151,6 +153,9 @@ from mypinnings.cached_models import all_categories
 
 
 PIN_COUNT = 20
+
+
+logger = logging.getLogger('ser')
 
 
 class AttrDict(dict):
@@ -431,7 +436,7 @@ class PageAddPinUrl:
             form.Textbox('title', form.notnull, description='Title'),
             form.Textarea('description', description='Description'),
             form.Hidden('categories', form.notnull),
-            form.Textbox('tags', description='Tags', placeholder='#this #is #awesome'),
+            form.Textbox('tags', form.notnull, description='Tags', placeholder='#this #is #awesome'),
             form.Textbox('link', description='Source URL'),
             form.Textbox('product_url', description='Product URL'),
             form.Textbox('price', description='Price'),
@@ -469,30 +474,44 @@ class PageAddPinUrl:
         force_login(sess)
         form = self.make_form()
         if not form.validates():
-            return 'shit done fucked up'
-
-        fname = self.upload_image(form.d.url)
-
-        link = form.d.link
-        if '://' not in link:
-            link = 'http://%s' % link
-
-        pin_id = db.insert('pins',
-            description=form.d.description,
-            user_id=sess.user_id,
-            category=form.d.category,
-            link=link)
-
-        if form.d.tags:
-            tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
-            db.insert('tags', pin_id=pin_id, tags=tags)
-
-        os.rename('static/tmp/%s.png' % fname,
-                  'static/tmp/%d.png' % pin_id)
-        os.rename('static/tmp/pinthumb%s.png' % fname,
-                  'static/tmp/pinthumb%d.png' % pin_id)
-
-        raise web.seeother('/pin/%d' % pin_id)
+            web.seeother(url='?msg={}'.format('Invalid product data, please review'), absolute=False)
+        transaction = db.transaction()
+        try:
+            fname = self.upload_image(form.d.image_url)
+    
+            link = form.d.link
+            if link and '://' not in link:
+                link = 'http://%s' % link
+    
+            pin_id = db.insert('pins',
+                description=form.d.description,
+                user_id=sess.user_id,
+                link=link,
+                product_url=form.d.product_url,
+                name=form.d.title,
+                image_url=form.d.image_url,
+                price=decimal.Decimal(form.d.price or 0),
+                price_range=int(form.d.price_range),
+                )
+            
+            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in form.d.categories.split(',')]
+            db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
+    
+            if form.d.tags:
+                tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
+                db.insert('tags', pin_id=pin_id, tags=tags)
+    
+            os.rename('static/tmp/%s.png' % fname,
+                      'static/tmp/%d.png' % pin_id)
+            os.rename('static/tmp/pinthumb%s.png' % fname,
+                      'static/tmp/pinthumb%d.png' % pin_id)
+            transaction.commit()
+            return web.seeother('/pin/%d' % pin_id)
+        except Exception as e:
+            logger.error('Failed to create a pin from an image URL', exc_info=True)
+            transaction.rollback()
+            return web.seeother(url='?msg={}'.format('This is embarrassing. We where unable to create the product. Please try again.'),
+                         absolute=False)
 
 
 class PageRemoveRepin:
