@@ -442,8 +442,8 @@ class PageAddPinUrl:
     def GET(self):
         global all_categories
         force_login(sess)
-        categories = cached_models.get_categories_with_children(db)
-        return ltpl('addpinurl', self.make_form(), categories)
+        categories_to_select = cached_models.get_categories_with_children(db)
+        return ltpl('addpinurl', self.make_form(), categories_to_select)
 
     def upload_image(self, url):
         fname = generate_salt()

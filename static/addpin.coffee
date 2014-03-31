@@ -80,6 +80,11 @@ $('#preview').on 'click', 'img', ->
 $('input[name=price_range]').on 'change', ->
 	clear_error_for_field($('#price_range'))
 	return
+    
+    
+$('input[name=category_check]').on 'change', ->
+	clear_error_for_field($('#categories'))
+	return
 
 
 $('#form').submit ->
@@ -106,6 +111,9 @@ $('#form').submit ->
         show_error_for_field($('#price'), 'Only numbers and decimal point')
         errors = true
     if not selected_a_price_range()
+        errors = true
+    if not category_selected()
+        show_error_for_field($('#categories'), 'Select one or more categories for this product')
         errors = true
     if errors
         alert("Ooops, there are missing fields to fill, please review...")
@@ -161,4 +169,18 @@ clear_all_error_messages = ->
 	$('input').removeClass('field_error')
 	$('div.error_text').remove()
 	return
-    
+
+	
+category_selected =  ->
+	checked_categories = $('input[name=category_check]:checked')
+	if checked_categories.length > 0
+		category_value = ''
+		for c in checked_categories
+			value = c.value
+			if category_value isnt '' and category_value.lastIndexOf(',') isnt category_value.length - 1
+				category_value = category_value + ','
+			category_value = category_value + value
+		$('#categories').val(category_value)
+		return true
+	else
+		return false

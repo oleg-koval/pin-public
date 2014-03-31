@@ -21,8 +21,10 @@ def get_categories_with_children(db):
             current_category = {'id': row.id,
                                 'name': row.name,
                                 'subcategories': []}
+            categories.append(current_category)
         if row.subcategory_id:
-            current_category['subcategories'].append({'id': row.subcategory_id,
-                                                      'name': row.subcatetory_name,
-                                                      'id_default_sub_category': row.is_default_sub_category})
+            subcat = {'id': row.subcategory_id,
+                      'name': row.subcatetory_name,
+                      'id_default_sub_category': row.is_default_sub_category}
+            current_category['subcategories'].append(subcat)
     return categories
