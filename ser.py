@@ -361,7 +361,7 @@ class PageNewBoard:
 
 
 def make_tag(tag):
-    return tag[1:] if tag[0] == '#' else tag
+    return tag.replace('#', '')
 
 
 class PageAddPin:
@@ -413,24 +413,39 @@ class PageAddPin:
         force_login(sess)
         form = self.make_form()
         if not form.validates():
-            return lmsg('Form couldn\'t validate.')
-
-        fname = self.upload_image()
-
-        pin_id = db.insert('pins',
-            description=form.d.description,
-            user_id=sess.user_id,
-            category=form.d.category)
-
-        if form.d.tags:
-            tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
-            db.insert('tags', pin_id=pin_id, tags=tags)
-
-        os.rename('static/tmp/%s.png' % fname,
-                  'static/tmp/%d.png' % pin_id)
-        os.rename('static/tmp/pinthumb%s.png' % fname,
-                  'static/tmp/pinthumb%d.png' % pin_id)
-        raise web.seeother('/pin/%d' % pin_id)
+            web.seeother(url='?msg={}'.format('Invalid product data, please review'), absolute=False)
+        transaction = db.transaction()
+        try:
+            fname = self.upload_image()
+    
+            pin_id = db.insert('pins',
+                description=form.d.description,
+                user_id=sess.user_id,
+                link=form.d.link,
+                product_url=form.d.product_url,
+                name=form.d.title,
+                price=decimal.Decimal(form.d.price or 0),
+                price_range=int(form.d.price_range),
+                )
+            
+            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in form.d.categories.split(',')]
+            db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
+    
+            if form.d.tags:
+                tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
+                db.insert('tags', pin_id=pin_id, tags=tags)
+    
+            os.rename('static/tmp/%s.png' % fname,
+                      'static/tmp/%d.png' % pin_id)
+            os.rename('static/tmp/pinthumb%s.png' % fname,
+                      'static/tmp/pinthumb%d.png' % pin_id)
+            transaction.commit()
+            return web.seeother('/pin/%d' % pin_id)
+        except Exception as e:
+            logger.error('Failed to create a pin from a file upload', exc_info=True)
+            transaction.rollback()
+            return web.seeother(url='?msg={}'.format('This is embarrassing. We where unable to create the product. Please try again.'),
+                         absolute=False)
 
 
 class PageAddPinUrl:
