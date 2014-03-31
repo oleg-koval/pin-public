@@ -53,6 +53,7 @@ urls = (
     '/logout', 'PageLogout',
     '/dashboard', 'PageDashboard',
     '/lists', 'PageBoards',
+    '/(.*?)/list/(\d*)', 'PageBoardList',
     '/browse', 'PageBrowse',
     '/category/.*?/(\d*)', 'PageCategory',
     '/new-list', 'PageNewBoard',
@@ -322,19 +323,20 @@ class PageDashboard:
 
 
 class PageBoards:
-    def GET(self):
+    def GET(self, bid = None):
         force_login(sess)
         boards = db.select('boards',
             where='user_id=$user_id',
             vars={'user_id': sess.user_id})
-        return ltpl('boards', boards)
+        user = dbget('users',sess.user_id)
+        return ltpl('boards', boards, user)
 
 
 class PageNewBoard:
     _form = form.Form(
         form.Textbox('name'),
         form.Textarea('description'),
-        form.Checkbox('private'),
+        #form.Checkbox('private'),
         form.Button('create'),
     )
 
@@ -349,7 +351,7 @@ class PageNewBoard:
             return 'you need to fill in everything'
 
         db.insert('boards', user_id=sess.user_id, name=form.d.name,
-                  description=form.d.description, public=not form.d.private)
+                  description=form.d.description, public=False)
         raise web.seeother('/lists')
 
 
@@ -533,12 +535,16 @@ class PageRepin:
 
         force_login(sess)
 
+        lists = db.select('boards',
+            where='user_id=$user_id',
+            vars={'user_id': sess.user_id})
+
         pin_id = int(pin_id)
         pin = dbget('pins', pin_id)
         if pin is None:
             return 'pin doesn\'t exist'
 
-        return ltpl('repin', pin, self.make_form(pin, all_categories))
+        return ltpl('repin', pin, self.make_form(pin, lists))
 
     def POST(self, pin_id):
         force_login(sess)
@@ -565,12 +571,12 @@ class PageRepin:
             tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
             db.insert('tags', pin_id=pin_id, tags=tags)
 
+        user = dbget('users', sess.user_id)
         cid = int(form.d.category)
-        cat = dbget('categories', cid)
-        print cat
+        cat = dbget('boards', cid)
         make_notif(pin.user_id, 'Someone has added your item to their Getlist!', '/pin/%d' % pin_id)
         # raise web.seeother('/pin/%d' % pin_id)
-        raise web.seeother('/category/%s/%d' % (cat.name, cat.id))
+        raise web.seeother('/%s/list/%d' % (user.username, cat.id))
 
 
 class PageEditProfile:
@@ -752,6 +758,45 @@ class PagePin:
         raise web.seeother('/pin/%d' % pin_id)
 
 
+class PageBoardList:
+
+    def GET(self, username, cid):
+        cid = int(cid)
+
+        user = db.select('users', where='username = $username', vars={'username': username})
+        if not user:
+            return 'user not found'
+
+        user = user[0]
+
+        offset = int(web.input(offset=0).offset)
+        ajax = int(web.input(ajax=0).ajax)
+
+        category = dbget('boards', cid)
+        if not category:
+            return "List not Found"
+
+        pins = db.query('''
+            select
+                tags.tags, pins.*, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+                count(distinct p1) as repin_count,
+                count(distinct l1) as like_count
+            from pins
+                left join users on users.id = pins.user_id
+                left join tags on tags.pin_id = pins.id
+                left join pins p1 on p1.repin = pins.id
+                left join likes l1 on l1.pin_id = pins.id
+                left join categories on categories.id = pins.category
+            where pins.category = $cid and not users.private
+            group by pins.id, tags.tags, users.id, categories.id
+            offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT),
+            vars={'cid': cid})
+
+        if ajax:
+            return json_pins(pins)
+        return ltpl('board', user, category, pins)
+
+
 class PageBuyList:
     def is_friends(self, category_id):
         ids = sorted([user_id, sess.user_id])
@@ -791,6 +836,7 @@ class PageBuyList:
 
         if ajax:
             return json_pins(pins)
+        print category
         return ltpl('board', user, category, pins)
 
 
@@ -883,6 +929,11 @@ class PageProfile2:
             return 'Page not found.'
 
         user = user[0]
+        add_default_lists(user.id)
+
+        boards = db.select('boards',
+            where='user_id=$user_id',
+            vars={'user_id': user.id})
 
         is_logged_in = logged_in(sess)
 
@@ -926,7 +977,7 @@ class PageProfile2:
                           vars={'follow': int(user.id), 'follower': sess.user_id}))
             photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id}, order="id DESC")
 
-            return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos, edit_profile, edit_profile_done)
+            return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos, edit_profile, edit_profile_done,boards)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
 
@@ -1740,9 +1791,14 @@ class PageCategory:
             order by timestamp desc offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT)
 
         pins = db.query(query, vars={'cid': cid})
+        lists = db.select('boards',
+        where='user_id=$user_id',
+        vars={'user_id': sess.user_id})
+
+        print lists
         if ajax:
             return json_pins(pins, 'horzpin')
-        return ltpl('category', pins, category, all_categories)
+        return ltpl('category', pins, category, lists)
 
 
 def make_query(q):
@@ -1816,6 +1872,25 @@ def csrf_protected(f):
         return f(*args, **kwargs)
     return decorated
 
+
+def add_default_lists(uid):
+    '''Each new user will get 3 lists by default:
+
+        Lists:
+
+        Things to get
+
+        Food to eat
+
+        Places to visit'''
+    lists = db.select('boards',
+            where='user_id=$user_id AND name=$name',
+            vars={'user_id': sess.user_id,'name':'Things to get'})
+    default_list = {'Things to get', 'Food to eat', 'Places to visit'}
+    if not lists:
+        for x in default_list:
+            db.insert('boards', user_id=uid, name=x,
+                description='Default List', public=False)
 
 if __name__ == '__main__':
 
