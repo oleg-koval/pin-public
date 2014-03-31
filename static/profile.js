@@ -20,16 +20,7 @@ removeRePin = function(e, y) {
 };
 
 (function() {
-  var dragging_header_background, otherX, otherY, rePin, x, y;
-  rePin = function(e) {
-    var desc, id;
-    desc = $(e).attr("data-description");
-    id = $(e).attr("data-id");
-    $("#repin-image").attr("src", "/static/tmp/pinthumb" + id + ".png");
-    $("#description").html(desc);
-    $("#repin-form").attr("action", "/add-to-your-own-getlist/" + id);
-    $(".category-list").val($(e).attr("data-category"));
-  };
+  var dragging_header_background, otherX, otherY, x, y;
   $("#save_thumbnail_edit").click(function() {
     location.reload(true);
   });

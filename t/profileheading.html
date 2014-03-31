@@ -197,13 +197,14 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
 <div class="profile-tab-navigation">
     <ul id="myTab" class="nav nav-tabs">
       $if edit_profile: 
-        <li class=""><a id="pin-not-added" href="#pin-box" data-toggle="tab">My Getlist</a></li>
+        <li class=""><a id="pin-not-added" href="#pin-box-wrapper" data-toggle="tab">My Getlist</a></li>
         <li class="active"><a href="#profile-about-box" data-toggle="tab">About</a></li>
-        <li class=""><a id="pin-added" href="#pin-box" data-toggle="tab">Added</a></li>
+        <li class=""><a id="pin-added" href="#pin-box-wrapper" data-toggle="tab">Added</a></li>
       $else:
-        <li class="active"><a id="pin-not-added" href="#pin-box" data-toggle="tab">My Getlist</a></li>
+        <li class="active"><a id="pin-not-added" href="#pin-box-wrapper" data-toggle="tab">My Getlist</a></li>
         <li class=""><a href="#profile-about-box" data-toggle="tab">About</a></li>
-        <li class=""><a id="pin-added" href="#pin-box" data-toggle="tab">Added</a></li>
+        <li class=""><a id="pin-added" href="#pin-box-wrapper" data-toggle="tab">Added</a></li>
+      <li class=""><a href="#list-box-wrapper" data-toggle="tab">Lists</a></li>
     </ul>
     </div>
     $if edit_profile: 

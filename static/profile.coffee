@@ -12,14 +12,7 @@ removeRePin = (e, y) ->
         $(id).slideToggle()
       return
 (->
-  rePin = (e) ->
-    desc = $(e).attr("data-description")
-    id = $(e).attr("data-id")
-    $("#repin-image").attr "src", "/static/tmp/pinthumb" + id + ".png"
-    $("#description").html desc
-    $("#repin-form").attr "action", "/add-to-your-own-getlist/" + id
-    $(".category-list").val $(e).attr("data-category")
-    return
+
   
   $("#save_thumbnail_edit").click ->
     location.reload true

@@ -1,11 +1,16 @@
-$def with (boards)
+$def with (boards, user)
+<div  id="list-box-wrapper">
 <h1>Lists</h1>
-<p><a href='/newboard'><b>Lists</b></a></p>
+
 $if boards:
     <ul>
         $for board in boards:
-            <li><a href='/list/$board.id'><b>$board.name</b></a> &mdash; $board.description</li>
+            <li><a href='$user.username/list/$board.id'><b>$board.name</b></a> &mdash; $board.description</li>
     </ul>
 $else:
     <p>You don't have any lists.</p>
 
+
+<p><a href='/new-list' class="button"><b>Add A List</b></a></p>
+
+</div>
