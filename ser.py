@@ -425,22 +425,25 @@ class PageAddPin:
 
 
 class PageAddPinUrl:
-    def make_form(self, categories=None):
-        categories = categories or []
-        categories = [(x.id, x.name) for x in categories]
+    def make_form(self):
         return form.Form(
-            form.Textbox('url', id='input-url'),
-            form.Textarea('description', id='input-desc'),
-            form.Dropdown('category', categories),
-            form.Textbox('tags', description='tags (optional)', placeholder='#this #is #awesome'),
-            form.Hidden('link', id='input-link'),
+            form.Textbox('image_url', form.notnull),
+            form.Textbox('title', form.notnull, description='Title'),
+            form.Textarea('description', description='Description'),
+            form.Hidden('categories', form.notnull),
+            form.Textbox('tags', description='Tags', placeholder='#this #is #awesome'),
+            form.Textbox('link', description='Source URL'),
+            form.Textbox('product_url', description='Product URL'),
+            form.Textbox('price', description='Price'),
+            form.Textbox('price_range', form.notnull, description='Price range'),
             form.Button('add', id='btn-add')
         )()
 
     def GET(self):
         global all_categories
         force_login(sess)
-        return ltpl('addpinurl', self.make_form(all_categories))
+        categories = cached_models.get_categories_with_children(db)
+        return ltpl('addpinurl', self.make_form(), categories)
 
     def upload_image(self, url):
         fname = generate_salt()

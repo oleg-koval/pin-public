@@ -1,7 +1,40 @@
-$def with (form)
+$def with (form, categories)
 <h1>Add to Getlist From Website</h1>
+<table>
+	<tr>
+		<td valign="top">
 <form id='form' autocomplete='off' enctype='multipart/form-data' method='post' action=''>
-    $:form.render()
+    <table>
+	    <tr><th><label for="link">Source URL</label></th><td><input type="text" id="link" name="link"/></td></tr>
+	    <tr><th><label for="product_url">Product URL</label></th><td><input type="text" id="product_url" name="product_url"/></td></tr>
+	    <tr><th><label for="image_url">Image URL</label></th><td><input type="text" id="image_url" name="image_url"/></td></tr>
+	    <tr><th><label for="title">Title</label></th><td><input type="text" id="title" name="title"/></td></tr>
+	    <tr><th><label for="description">Description</label></th><td><textarea id="description" name="description"></textarea></td></tr>
+	    <tr><th><label for="tags">Tags</label></th><td><input type="text" placeholder="#this #is #awesome" id="tags" name="tags"/></td></tr>
+	    <tr><th><label for="price">Price</label></th><td><input type="text" id="price" name="price"/></td></tr>
+	    <tr><th><label for="price_range">Price range</label></th>
+	    	<td>
+	    		<label><input type="radio" name="price_range" value="1"> $$</label>
+				<label><input type="radio" name="price_range" value="2"> $$$$</label>
+				<label><input type="radio" name="price_range" value="3"> $$$$$$</label>
+				<label><input type="radio" name="price_range" value="4"> $$$$$$$$</label>
+				<label><input type="radio" name="price_range" value="5"> $$$$$$$$+</label>
+				<div id="price_range"></div>
+	    	</td>
+	    </tr>
+	    <tr><th><label for="btn-add"></label></th><td><button id="btn-add" name="add">add</button></td></tr>
+	</table>
+	<input type="hidden" id="categories" name="categories"/>
 </form>
-<script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
+		</td>
+		<td valign="top">
+			<div id="preview"></div>
+		</td>
+	</tr>
+</table>
+<script type='text/html' id="image-template">
+<img src="<%= src %>" class="clickable">
+</script>
+<script src='//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js'></script>
 <script type='text/javascript' src='/static/addpin.js'></script>
+<script type='text/javascript' src='/static/js/underscore-min.js'></script>

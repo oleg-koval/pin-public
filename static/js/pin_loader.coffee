@@ -227,7 +227,6 @@ jQuery ->
 	selected_a_price_range = (i) ->
 		remove_error_from_field($('#price_range' + i), i) 
 		price_range = $('input[name=price_range' + i + ']:checked').val()
-		console.log(price_range)
 		if price_range is undefined
 			show_error_for_field($('#price_range' + i), 'Select a price range')
 			return false
