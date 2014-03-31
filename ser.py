@@ -366,22 +366,26 @@ def make_tag(tag):
 
 class PageAddPin:
     def make_form(self, categories=None):
-        categories = categories or []
-        categories = [(x.id, x.name) for x in categories]
         return form.Form(
-            form.File('image'),
+            form.File('image', form.notnull),
             form.Textarea('description'),
-            form.Dropdown('category', categories),
-            form.Textbox('tags', description='tags (optional)', placeholder='#this #is #awesome'),
-            form.Button('add', id='btn-add')
+            form.Textbox('categories', form.notnull),
+            form.Textbox('tags', form.notnull),
+            form.Textbox('title', form.notnull),
+            form.Textbox('price_range', form.notnull),
+            form.Textbox('price'),
+            form.Textbox('link'),
+            form.Textbox('product_url'),
         )()
 
     def GET(self):
         global all_categories
 
         force_login(sess)
-        form = self.make_form(all_categories)
-        return ltpl('addpin', form)
+        form = self.make_form()
+        categories_to_select = cached_models.get_categories_with_children(db)
+        msg = web.input(msg=None)['msg']
+        return ltpl('addpin', form, categories_to_select, msg)
 
     def upload_image(self):
         image = web.input(image={}).image

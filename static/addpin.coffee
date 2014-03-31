@@ -15,6 +15,8 @@ $('#link,#product_url').change ->
     	clear_error_for_field($('#link,#product_url'))
     if window.imagesLoading
         return false
+    if $('#image_url').val() == undefined
+    	return false
     window.imagesLoading = true
     url = $(this).val()
     $('#input-link').val(url)
@@ -98,9 +100,6 @@ $('#form').submit ->
         show_error_for_field($('#product_url'), 'Please provide a Product URL or Source URL')
         show_error_for_field($('#link'), 'Please provide a Product URL or Source URL')
         errors = true
-    if $('#image_url').val() is ''
-        show_error_for_field($('#image_url'), 'Provide the image URL or select an image from the right (if available)')
-        errors = true
     if $('#title').val() is ''
         show_error_for_field($('#title'), 'Please provide a title')
         errors = true
@@ -115,6 +114,15 @@ $('#form').submit ->
     if not category_selected()
         show_error_for_field($('#categories'), 'Select one or more categories for this product')
         errors = true
+
+    if $('#image_url').val() isnt undefined
+        if $('#image_url').val() is ''
+            show_error_for_field($('#image_url'), 'Provide the image URL or select an image from the right (if available)')
+            errors = true
+    else if $('#image').val() is ''
+        show_error_for_field($('#image'), 'Provide the image file to upload')
+        errors = true
+
     if errors
         alert("Ooops, there are missing fields to fill, please review...")
         return false
