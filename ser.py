@@ -1877,7 +1877,7 @@ class PageSearchItems:
 
         query = """
             select
-                tags.tags, pins.*, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+                tags.tags, pins.*, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
                 ts_rank_cd(to_tsvector(tags.tags), query) as rank1,
                 ts_rank_cd(pins.tsv, query) as rank2
             from pins
@@ -1885,7 +1885,9 @@ class PageSearchItems:
                 join to_tsquery('""" + q + """') query on true
                 left join users on users.id = pins.user_id
                 left join follows on follows.follow = users.id
-                left join categories on categories.id = pins.category
+                left join categories on categories.id in
+                    (select category_id from pins_categories
+                    where pin_id = pins.id limit 1)
             where query @@ pins.tsv or query @@ to_tsvector(tags.tags)
             group by tags.tags, categories.id, pins.id, users.id, query.query
             order by rank1, rank2 desc offset %d limit %d""" % (offset * PIN_COUNT, PIN_COUNT)
