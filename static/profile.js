@@ -108,6 +108,7 @@
     $(this).tab("show");
   });
 
+
   $(document).ready(function() {
     $(".remove_repin").click(function(e) {
       var result;

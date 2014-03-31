@@ -10,7 +10,7 @@ $def with (pin, comments, rating)
           $(['Default', 'Private', 'Public'][pin.privacy])
         </a>
       <a class='button' href='#' data-toggle="modal" data-target="#addToGetListModal"><i class='fa fa-thumb-tack'></i> Add to Your Getlist</a>
-      
+
       $if pin.link:
         <a class='button' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i> Visit Product</a>
     </p>
@@ -66,5 +66,4 @@ $def with (pin, comments, rating)
 </div>
 $if 'logged_in' in sess:
   <script type='text/javascript'>window.pinId = $pin.id;</script>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
   <script type='text/javascript' src='/static/pin.js'></script>

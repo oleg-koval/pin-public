@@ -34,9 +34,6 @@ import glob
 
 web.config.debug = True
 
-
-web.config.debug = True
-
 urls = (
     '/facebook', mypinnings.facebook.app,
     '/google', mypinnings.google.app,
@@ -57,6 +54,9 @@ urls = (
     '/category/.*?/(\d*)', 'PageCategory',
     '/new-list', 'PageNewBoard',
     '/addpin', 'PageAddPin',
+    '/newaddpin', 'NewPageAddPin',
+    '/newaddpinform', 'NewPageAddPinForm',
+
     '/add-from-website', 'PageAddPinUrl',
     '/add-to-your-own-getlist/(\d*)', 'PageRepin',
     '/remove-from-own-getlist', 'PageRemoveRepin',
@@ -420,6 +420,54 @@ class PageAddPin:
         os.rename('static/tmp/pinthumb%s.png' % fname,
                   'static/tmp/pinthumb%d.png' % pin_id)
         raise web.seeother('/pin/%d' % pin_id)
+
+class NewPageAddPinForm:
+    def POST(self):
+        data = web.input()
+        fname = data.fname
+        pin_id = db.insert('pins',
+            description=data.comments,
+            user_id=sess.user_id,
+            category=data.category)
+
+        if data.tags:
+            tags = ' '.join([make_tag(x) for x in data.tags.split(' ')])
+            db.insert('tags', pin_id=pin_id, tags=tags)
+
+        os.rename('static/tmp/%s.png' % fname,
+                  'static/tmp/%d.png' % pin_id)
+        os.rename('static/tmp/pinthumb%s.png' % fname,
+                  'static/tmp/pinthumb%d.png' % pin_id)
+        return '/pin/%d' % pin_id
+
+class NewPageAddPin:
+    def upload_image(self):
+        image = web.input(image={}).image
+        fname = generate_salt()
+        ext = os.path.splitext(image.filename)[1].lower()
+
+        with open('static/tmp/%s%s' % (fname, ext), 'w') as f:
+            f.write(image.file.read())
+
+        if ext != '.png':
+            img = Image.open('static/tmp/%s%s' % (fname, ext))
+            img.save('static/tmp/%s.png' % fname)
+
+        img = Image.open('static/tmp/%s.png' % fname)
+        width, height = img.size
+        ratio = 202 / width
+        width = 202
+        height *= ratio
+        img.thumbnail((width, height), Image.ANTIALIAS)
+        img.save('static/tmp/pinthumb%s.png' % fname)
+
+        return fname
+
+    def POST(self):
+        force_login(sess)
+        fname = self.upload_image()
+        print "banana=======", fname
+        return fname
 
 
 class PageAddPinUrl:
