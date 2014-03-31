@@ -206,7 +206,7 @@ class PageIndex:
     def GET(self, first_time=None):
         query1 = '''
             select
-                pins.*, tags.tags, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+                pins.*, tags.tags, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
                 count(distinct p1) as repin_count,
                 count(distinct l1) as like_count
             from pins
@@ -215,13 +215,14 @@ class PageIndex:
                 left join likes l1 on l1.pin_id = pins.id
                 left join users on users.id = pins.user_id
                 left join follows on follows.follow = users.id
-                left join categories on categories.id = pins.category
+                left join categories on categories.id in
+                    (select category_id from pins_categories where pin_id = pins.id limit 1)
             where follows.follower = $id
             group by tags.tags, categories.id, pins.id, users.id offset %d limit %d'''
 
         query2 = '''
             select
-                tags.tags, pins.*, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+                tags.tags, pins.*, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
                 count(distinct p1.id) as repin_count,
                 count(distinct l1) as like_count
             from pins
@@ -229,7 +230,8 @@ class PageIndex:
                 left join users on users.id = pins.user_id
                 left join pins p1 on p1.repin = pins.id
                 left join likes l1 on l1.pin_id = pins.id
-                left join categories on categories.id = pins.category
+                left join categories on categories.id in
+                    (select category_id from pins_categories where pin_id = pins.id limit 1)
             where not users.private
             group by tags.tags, categories.id, pins.id, users.id order by timestamp desc offset %d limit %d'''
 
