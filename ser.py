@@ -448,7 +448,8 @@ class PageAddPinUrl:
         global all_categories
         force_login(sess)
         categories_to_select = cached_models.get_categories_with_children(db)
-        return ltpl('addpinurl', self.make_form(), categories_to_select)
+        msg = web.input(msg=None)['msg']
+        return ltpl('addpinurl', self.make_form(), categories_to_select, msg)
 
     def upload_image(self, url):
         fname = generate_salt()

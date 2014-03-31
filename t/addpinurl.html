@@ -1,5 +1,7 @@
-$def with (form, categories_to_select)
+$def with (form, categories_to_select, msg=None)
 <h1>Add to Getlist From Website</h1>
+$if msg:
+	<div class="notice">$msg</div>
 <table>
 	<tr>
 		<td valign="top">
