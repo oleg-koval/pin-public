@@ -3,9 +3,11 @@ $ options = options or {}
 $ template = template or 'onepin'
 $ pins = list(pins)
 $if edit_profile: 
-	<div id='pin-box' class='pins tab-pane fade'></div>
+	<div id='pin-box-wrapper' class='tab-pane fade'>
+	<div id='pin-box' class='pins'></div>
 $else:
-	<div id='pin-box' class='pins tab-pane fade active in'></div>
+	<div id='pin-box-wrapper' class='tab-pane fade active in'>
+	<div id='pin-box' class='pins'></div>
 <div class='invis' id='pin-buf'>
 	  $ i = 0
 	  $for pin in pins:
@@ -21,4 +23,5 @@ $else:
 	<script type='text/javascript' src='/static/masonry.pkgd.min.js'></script>
 	<script type='text/javascript' src='/static/imagesloaded.pkgd.min.js'></script>
 	<script type='text/javascript' src='/static/infinite.js'></script>
+</div>
 	

@@ -99,7 +99,7 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
                 <div class='notice'>Notice: You haven't activated your account yet! Please check $user.email. <a href='/resend-activation'>Resend</a></div>
 	<div id="dialog-form" >
 	<form method="post" action="/newaddpin" enctype="multipart/form-data" id="upload_form">
-	<input type="file" name="image" id="image" placeholder="Please choose a file"><br/>
+	<input type="file" name="image" id="image" accept="image/*" placeholder="Please choose a file"><br/>
 	    <input type="button" id="upload_cancel" value="Go Back">
         <input type="submit" value="Upload">
 	</form>

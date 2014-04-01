@@ -1,0 +1,23 @@
+$def with (added_pins, template=None, options=None, edit_profile=None)
+$ options = options or {}
+$ template = template or 'onepin'
+$ added_pins = list(added_pins)
+<div class="tab-pane fade pins" id="pin-added-box">
+<div class="count-added left"></div>
+<div id='pin-box-added' ></div>
+<div  id='pin-buf-added'>
+	  $ i = 0
+	  $for pin in added_pins:
+	    $ i += 1
+	    $:tpl(template, pin)
+	</div>
+	$if not [x for x in added_pins if x.id]:
+	  <center>No pins to see here!</center>
+	  <center><br><a class='button' href='/browse'>Browse pins by category</a></center>
+	$else:
+	  <div class='backnext'><button id='button-more-added'>More Items</button></div>
+</div>
+	<script type='text/javascript' src='/static/masonry.pkgd.min.js'></script>
+	<script type='text/javascript' src='/static/imagesloaded.pkgd.min.js'></script>
+	<script type='text/javascript' src='/static/infinite2.js'></script>
+	

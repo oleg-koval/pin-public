@@ -1,4 +1,4 @@
-$def with (form, result_info)
+$def with (form, result_info, number_of_items_added)
 <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 <link rel="stylesheet" href="/static/css/pin_loader.css" />
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
@@ -61,6 +61,17 @@ $def with (form, result_info)
 							<th><label for="price$i">Price</label></th>
 							<td>$:form['price{}'.format(i)].render()</td>
 						</tr>
+						<tr>
+							<th>Price Range</th>
+							<td>
+								<label><input type="radio" name="price_range$i" value="1"> $$</label>
+								<label><input type="radio" name="price_range$i" value="2"> $$$$</label>
+								<label><input type="radio" name="price_range$i" value="3"> $$$$$$</label>
+								<label><input type="radio" name="price_range$i" value="4"> $$$$$$$$</label>
+								<label><input type="radio" name="price_range$i" value="5"> $$$$$$$$+</label>
+								<div id="price_range$i"></div>
+							</td>
+						</tr>
 					</table>
 				</td>
 				$ j = i + 1
@@ -98,6 +109,17 @@ $def with (form, result_info)
 							<th><label for="price$j">Price</label></th>
 							<td>$:form['price{}'.format(j)].render()</td>
 						</tr>
+						<tr>
+							<th>Price Range</th>
+							<td>
+								<label><input type="radio" name="price_range$j" value="1"> $$</label>
+								<label><input type="radio" name="price_range$j" value="2"> $$$$</label>
+								<label><input type="radio" name="price_range$j" value="3"> $$$$$$</label>
+								<label><input type="radio" name="price_range$j" value="4"> $$$$$$$$</label>
+								<label><input type="radio" name="price_range$j" value="5"> $$$$$$$$+</label>
+								<div id="price_range$j"></div>
+							</td>
+						</tr>
 					</table>
 				</td>
 			</tr>
@@ -106,36 +128,38 @@ $def with (form, result_info)
 	</form>
 </div><!-- upload -->
 <div id="added">
-	<table border="1" cellpadding="30">
-		$for ri in result_info:
-			<tr>
-				<td>
-				$if ri['error']:
-					<table>
-						<tr>
-							<th>[$ri['index']] Failed:</th><td>$ri['error']</td>
-						</tr><tr>
-							<th>Title:</th><td>$ri.get('title', '')</td>
-						</tr><tr>
-							<th>Description:</th><td>$ri.get('description', '')</td>
-						</tr><tr>
-							$if ri.get('imageurl', False):
-								<th>Tried this Image URL:</th><td><a href="$ri['imageurl']">$ri['imageurl']</a></td>
-							$elif ri.get('image', False):
-								<th>Tried this Image uploaded by you:</th><td>$ri.get('image', '')</td>
-							$else:
-								<th></th><td><strong>You did not provided an image!</strong></th>
-						</tr><tr>
-							<th>Product URL:</th><td><a href="$ri.get('product_url')">$ri.get('product_url', '')</a></td>
-						</tr><tr>
-							<th>Source URL:</th><td><a href="$ri.get('link')">$ri.get('link', '')</a></td>
-						</tr><tr>
-							<th>Tags:</th><td>$ri.get('tags', '')</td>
-						</tr>
-					</table>
-				</td>
-			</tr>
-	</table>
+	<div>$number_of_items_added items added by you.</div>
+	$if result_info:
+		<table border="1" cellpadding="30">
+			$for ri in result_info:
+				<tr>
+					<td>
+					$if ri['error']:
+						<table>
+							<tr>
+								<th>[$ri['index']] Failed:</th><td>$ri['error']</td>
+							</tr><tr>
+								<th>Title:</th><td>$ri.get('title', '')</td>
+							</tr><tr>
+								<th>Description:</th><td>$ri.get('description', '')</td>
+							</tr><tr>
+								$if ri.get('imageurl', False):
+									<th>Tried this Image URL:</th><td><a href="$ri['imageurl']">$ri['imageurl']</a></td>
+								$elif ri.get('image', False):
+									<th>Tried this Image uploaded by you:</th><td>$ri.get('image', '')</td>
+								$else:
+									<th></th><td><strong>You did not provided an image!</strong></th>
+							</tr><tr>
+								<th>Product URL:</th><td><a href="$ri.get('product_url')">$ri.get('product_url', '')</a></td>
+							</tr><tr>
+								<th>Source URL:</th><td><a href="$ri.get('link')">$ri.get('link', '')</a></td>
+							</tr><tr>
+								<th>Tags:</th><td>$ri.get('tags', '')</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+		</table>
 	<div class="pins_columns_container">
 		<div class="column1"></div>
 		<div class="column2"></div>
@@ -188,6 +212,17 @@ $def with (form, result_info)
 				<tr>
 					<th><label for="price11">Price</label></th>
 					<td><input name="price11" i="11" placeholder="$$888.00" id="price11" type="text" class="prodprice"/></td>
+				</tr>
+				<tr>
+					<th>Price Range</th>
+					<td>
+						<label><input type="radio" name="price_range11" value="1"> $$</label>
+						<label><input type="radio" name="price_range11" value="2"> $$$$</label>
+						<label><input type="radio" name="price_range11" value="3"> $$$$$$</label>
+						<label><input type="radio" name="price_range11" value="4"> $$$$$$$$</label>
+						<label><input type="radio" name="price_range11" value="5"> $$$$$$$$+</label>
+						<div id="price_range11"></div>
+					</td>
 				</tr>
 				<tr>
 					<th></th>

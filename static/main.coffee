@@ -30,7 +30,19 @@ $(document).ready ->
     e.event.stopPropagation()
     return
 
-  
+  $("#pin-not-added").click ->
+    $(".pin-not-added").each ->
+      $(this).show()
+      return
+    return
+
+  $("#pin-added").click ->
+    $(".pin-not-added").each ->
+      $(this).hide()
+      return
+    return 
+
+ 
   #initialise this to the current active image
   id = $(".carousel2").find(".active").attr("photoid")
   $("#remove_photo").attr "href", "/photo/" + id + "/remove"

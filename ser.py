@@ -23,7 +23,7 @@ from mypinnings.auth import authenticate_user_email, force_login, logged_in, \
 from mypinnings.template import tpl, ltpl, lmsg
 import mypinnings.session
 from mypinnings import cached_models
-
+from mypinnings.conf import settings
 import mypinnings.register
 import mypinnings.facebook
 import mypinnings.google
@@ -50,6 +50,7 @@ urls = (
     '/logout', 'PageLogout',
     '/dashboard', 'PageDashboard',
     '/lists', 'PageBoards',
+    '/(.*?)/list/(\d*)', 'PageBoardList',
     '/browse', 'PageBrowse',
     '/category/.*?/(\d*)', 'PageCategory',
     '/new-list', 'PageNewBoard',
@@ -137,7 +138,7 @@ urls = (
     '/recover_password_sent/?', 'mypinnings.recover_password.EmailSentPage',
     '/pwreset/(\d*)/(\d*)/(.*)/', 'mypinnings.recover_password.PasswordReset',
     '/recover_password_complete/', 'mypinnings.recover_password.RecoverPasswordComplete',
-
+    '/(.*?)/(.*?)', 'PageConnect2',
     '/(.*?)', 'PageProfile2',
 )
 
@@ -322,19 +323,20 @@ class PageDashboard:
 
 
 class PageBoards:
-    def GET(self):
+    def GET(self, bid = None):
         force_login(sess)
         boards = db.select('boards',
             where='user_id=$user_id',
             vars={'user_id': sess.user_id})
-        return ltpl('boards', boards)
+        user = dbget('users',sess.user_id)
+        return ltpl('boards', boards, user)
 
 
 class PageNewBoard:
     _form = form.Form(
         form.Textbox('name'),
         form.Textarea('description'),
-        form.Checkbox('private'),
+        #form.Checkbox('private'),
         form.Button('create'),
     )
 
@@ -349,7 +351,7 @@ class PageNewBoard:
             return 'you need to fill in everything'
 
         db.insert('boards', user_id=sess.user_id, name=form.d.name,
-                  description=form.d.description, public=not form.d.private)
+                  description=form.d.description, public=False)
         raise web.seeother('/lists')
 
 
@@ -581,12 +583,16 @@ class PageRepin:
 
         force_login(sess)
 
+        lists = db.select('boards',
+            where='user_id=$user_id',
+            vars={'user_id': sess.user_id})
+
         pin_id = int(pin_id)
         pin = dbget('pins', pin_id)
         if pin is None:
             return 'pin doesn\'t exist'
 
-        return ltpl('repin', pin, self.make_form(pin, all_categories))
+        return ltpl('repin', pin, self.make_form(pin, lists))
 
     def POST(self, pin_id):
         force_login(sess)
@@ -613,34 +619,12 @@ class PageRepin:
             tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
             db.insert('tags', pin_id=pin_id, tags=tags)
 
+        user = dbget('users', sess.user_id)
         cid = int(form.d.category)
-        cat = dbget('categories', cid)
-        print cat
+        cat = dbget('boards', cid)
         make_notif(pin.user_id, 'Someone has added your item to their Getlist!', '/pin/%d' % pin_id)
         # raise web.seeother('/pin/%d' % pin_id)
-        raise web.seeother('/category/%s/%d' % (cat.name, cat.id))
-
-
-countries = [
-    'United States', 'Canada', 'Afghanistan', 'Aland Islands', 'Albania', 'Algeria', 'American Samoa', 'Andorra', 'Angola', 'Anguilla', 'Antarctica', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Aruba', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
-    'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bermuda', 'Bhutan', 'Bolivia, Plurinational State of', 'Bonaire, Sint Eustatius and Saba', 'Bosnia and Herzegovina', 'Botswana', 'Bouvet Island', 'Brazil', 'British Indian Ocean Territory',
-    'Brunei Darussalam', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon', 'Cape Verde', 'Cayman Islands', 'Central African Republic', 'Chad', 'Chile',
-    'China', 'Christmas Island', 'Cocos (keeling) Islands', 'Colombia', 'Comoros', 'Congo', 'Congo, Democratic Republic of The', 'Cook Islands', 'Costa Rica', 'Cote Divoire',
-    'Croatia', 'Cuba', 'Curacao', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Ethiopia', 'Falkland Islands (malvinas)', 'Faroe Islands', 'Fiji', 'Finland',
-    'France', 'French Guiana', 'French Polynesia', 'French Southern Territories', 'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Gibraltar', 'Greece', 'Greenland', 'Grenada', 'Guadeloupe', 'Guam', 'Guatemala', 'Guernsey', 'Guinea', 'Guinea-bissau', 'Guyana', 'Haiti', 'Heard Island and Mcdonald Islands', 'Holy See (Vatican City State)', 'Honduras',
-    'Hong Kong', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran, Islamic Republic of', 'Iraq', 'Ireland', 'Isle of Man', 'Israel', 'Italy', 'Jamaica', 'Japan', 'Jersey', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Korea, North', 'Korea, South',
-    'Kuwait', 'Kyrgyzstan', 'Lao People&#;s Democratic Republic', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Macao', 'Macedonia', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Martinique', 'Mauritania',
-    'Mauritius', 'Mayotte', 'Mexico', 'Micronesia, Federated States of', 'Moldova, Republic of', 'Monaco', 'Mongolia', 'Montenegro', 'Montserrat', 'Morocco',
-    'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal',
-    'Netherlands', 'New Caledonia', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'Niue', 'Norfolk Island',
-    'Northern Mariana Islands', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Palestinian Territory', 'Panama', 'Papua New Guinea', 'Paraguay',
-    'Peru', 'Philippines', 'Pitcairn', 'Poland', 'Portugal', 'Puerto Rico', 'Qatar', 'Reunion', 'Romania', 'Russian Federation', 'Rwanda',
-    'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Sint Maarten (dutch Part)', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia',
-    'South Africa', 'South Georgia', 'South Sudan', 'Spain', 'Sri Lanka', 'St. Barthelemy', 'St. Helena', 'St. Kitts And Nevis', 'St. Lucia', 'St. Martin (french Part)', 'St. Pierre And Miquelon', 'St. Vincent And The Grenadines', 'Sudan', 'Suriname', 'Svalbard and Jan Mayen', 'Swaziland', 'Sweden', 'Switzerland', 'Syrian Arab Republic', 'Taiwan, Province of China',
-    'Tajikistan', 'Tanzania, United Republic of', 'Thailand', 'Timor-leste', 'Togo', 'Tokelau', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Turks and Caicos Islands', 'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States Minor Outlying Islands', 'Uruguay',
-    'Uzbekistan', 'Vanuatu', 'Venezuela, Bolivarian Republic of', 'Viet Nam',
-    'Virgin Islands, British', 'Virgin Islands, U.s.', 'Wallis and Futuna', 'Western Sahara', 'Yemen', 'Zambia', 'Zimbabwe',
-]
+        raise web.seeother('/%s/list/%d' % (user.username, cat.id))
 
 
 class PageEditProfile:
@@ -660,7 +644,7 @@ class PageEditProfile:
         user = dbget('users', sess.user_id)
         photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id})
         msg = web.input(msg=None)['msg']
-        return ltpl('editprofile', user, countries, name, photos, msg)
+        return ltpl('editprofile', user, settings.COUNTRIES, name, photos, msg)
 
     def POST(self, name=None):
         user = dbget('users', sess.user_id)
@@ -822,6 +806,45 @@ class PagePin:
         raise web.seeother('/pin/%d' % pin_id)
 
 
+class PageBoardList:
+
+    def GET(self, username, cid):
+        cid = int(cid)
+
+        user = db.select('users', where='username = $username', vars={'username': username})
+        if not user:
+            return 'user not found'
+
+        user = user[0]
+
+        offset = int(web.input(offset=0).offset)
+        ajax = int(web.input(ajax=0).ajax)
+
+        category = dbget('boards', cid)
+        if not category:
+            return "List not Found"
+
+        pins = db.query('''
+            select
+                tags.tags, pins.*, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+                count(distinct p1) as repin_count,
+                count(distinct l1) as like_count
+            from pins
+                left join users on users.id = pins.user_id
+                left join tags on tags.pin_id = pins.id
+                left join pins p1 on p1.repin = pins.id
+                left join likes l1 on l1.pin_id = pins.id
+                left join categories on categories.id = pins.category
+            where pins.category = $cid and not users.private
+            group by pins.id, tags.tags, users.id, categories.id
+            offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT),
+            vars={'cid': cid})
+
+        if ajax:
+            return json_pins(pins)
+        return ltpl('board', user, category, pins)
+
+
 class PageBuyList:
     def is_friends(self, category_id):
         ids = sorted([user_id, sess.user_id])
@@ -861,6 +884,7 @@ class PageBuyList:
 
         if ajax:
             return json_pins(pins)
+        print category
         return ltpl('board', user, category, pins)
 
 
@@ -898,6 +922,47 @@ class PageProfile:
         raise web.seeother('/' + user.username)
 
 
+class PageConnect2:
+    def GET(self, username, action):
+        user = db.query('''
+            select users.*,
+                count(distinct f1) as follower_count,
+                count(distinct f2) as follow_count,
+                id as user_id
+            from users
+                left join follows f1 on f1.follow = users.id
+                left join follows f2 on f2.follower = users.id
+            where users.username = $username group by users.id''', vars={'username': username})
+        if not user:
+            return 'Page not found.'
+        else:
+            user = user[0]
+            if 'followers' == action or 'following' == action:
+                follows = db.query('''
+                    select *, users.* from follows
+                        join users on users.id = follows.follow
+                    where follows.follower = $id''',
+                    vars={'id': user.id})
+
+                followers = db.query('''
+                    select *, users.* from follows
+                        join users on users.id = follows.follower
+                    where follows.follow = $id''',
+                    vars={'id': user.id})
+
+                friends = db.query('''
+                    select u1.name as u1name, u2.name as u2name,
+                        u1.pic as u1pic, u2.pic as u2pic,
+                        friends.*
+                    from friends
+                        join users u1 on u1.id = friends.id1
+                        join users u2 on u2.id = friends.id2
+                    where friends.id1 = $id or friends.id2 = $id
+                    ''', vars={'id': user.id})
+            else:
+                return 'Page not found'
+        return ltpl('connect2',user, follows, followers, friends, action)
+
 class PageProfile2:
     def GET(self, username):
         user = db.query('''
@@ -912,6 +977,11 @@ class PageProfile2:
             return 'Page not found.'
 
         user = user[0]
+        add_default_lists(user.id)
+
+        boards = db.select('boards',
+            where='user_id=$user_id',
+            vars={'user_id': user.id})
 
         is_logged_in = logged_in(sess)
 
@@ -955,7 +1025,7 @@ class PageProfile2:
                           vars={'follow': int(user.id), 'follower': sess.user_id}))
             photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id}, order="id DESC")
 
-            return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos, edit_profile, edit_profile_done)
+            return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos, edit_profile, edit_profile_done,boards)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
 
@@ -1769,9 +1839,14 @@ class PageCategory:
             order by timestamp desc offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT)
 
         pins = db.query(query, vars={'cid': cid})
+        lists = db.select('boards',
+        where='user_id=$user_id',
+        vars={'user_id': sess.user_id})
+
+        print lists
         if ajax:
             return json_pins(pins, 'horzpin')
-        return ltpl('category', pins, category, all_categories)
+        return ltpl('category', pins, category, lists)
 
 
 def make_query(q):
@@ -1845,6 +1920,25 @@ def csrf_protected(f):
         return f(*args, **kwargs)
     return decorated
 
+
+def add_default_lists(uid):
+    '''Each new user will get 3 lists by default:
+
+        Lists:
+
+        Things to get
+
+        Food to eat
+
+        Places to visit'''
+    lists = db.select('boards',
+            where='user_id=$user_id AND name=$name',
+            vars={'user_id': sess.user_id,'name':'Things to get'})
+    default_list = {'Things to get', 'Food to eat', 'Places to visit'}
+    if not lists:
+        for x in default_list:
+            db.insert('boards', user_id=uid, name=x,
+                description='Default List', public=False)
 
 if __name__ == '__main__':
 

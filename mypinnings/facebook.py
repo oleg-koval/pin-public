@@ -291,7 +291,7 @@ class Username(auth.UniqueUsernameMixin):
                 os.unlink(filename)
             img = Image.open(picture_filename)
             width, height = img.size
-            ratio = 80 / width
+            ratio = 80.0 / float(width)
             width = 80
             height *= ratio
             img.thumbnail((width, height), Image.ANTIALIAS)
