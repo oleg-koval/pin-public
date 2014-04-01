@@ -2,7 +2,7 @@
 (function() {
 
   jQuery(function() {
-    var all_fields_blank, ensure_tags_has_hash_symbol, get_pin_html_text, have_valid_price, load_more_pins, open_edit_dialog_for, price_regex, put_more_pins_into_the_page, refresh_pin, remove_all_errors, remove_error_from_field, selected_a_price_range, separate_link_to_fit_small_space, show_error_for_field, update_pin_in_backgroud, validate_errors, validate_image, validate_link_and_product;
+    var all_fields_blank, category_selected, ensure_tags_has_hash_symbol, get_pin_html_text, have_valid_price, load_more_pins, open_edit_dialog_for, price_regex, put_more_pins_into_the_page, refresh_pin, remove_all_errors, remove_error_from_field, selected_a_price_range, separate_link_to_fit_small_space, show_error_for_field, update_pin_in_backgroud, validate_errors, validate_image, validate_link_and_product;
     $("#tabs").tabs();
     $('.urllink,.imagelink,.urlproduct_url').change(function(e) {
       var i, value;
@@ -48,6 +48,9 @@
           if (can_submit) {
             can_submit = no_error;
           }
+        }
+        if (!category_selected('categories', 'category_check', $('#category_error_message'))) {
+          can_submit = false;
         }
         if (!can_submit) {
           window.alert('Errors pending, please check');
@@ -237,6 +240,27 @@
       }
       return true;
     };
+    category_selected = function(field_to_fill_name, check_fields_name, error_object) {
+      var c, category_value, checked_categories, value, _i, _len;
+      checked_categories = $('input[name="' + check_fields_name + '"]:checked');
+      error_object.hide();
+      if (checked_categories.length > 0) {
+        category_value = '';
+        for (_i = 0, _len = checked_categories.length; _i < _len; _i++) {
+          c = checked_categories[_i];
+          value = c.value;
+          if (category_value !== '' && category_value.lastIndexOf(',') !== category_value.length - 1) {
+            category_value = category_value + ',';
+          }
+          category_value = category_value + value;
+        }
+        $('input[name=' + field_to_fill_name + ']').val(category_value);
+        return true;
+      } else {
+        error_object.show();
+        return false;
+      }
+    };
     $(window).scroll(function() {
       var doc_height, height, sensitivity, top;
       top = $(window).scrollTop();
@@ -301,17 +325,23 @@
       $.loading_more_pins = false;
     };
     get_pin_html_text = function(pin) {
-      var html;
-      html = '<div class="pin_image"><a href="/pin/' + pin['id'] + '" target="_blank" title="See full size">' + '<img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></a></div>' + '<table>' + '<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' + '<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' + '<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' + '<tr><th>Product Link</th><td><a href="' + pin['product_url'] + '" title="' + pin['product_url'] + '">' + separate_link_to_fit_small_space(pin['product_url']) + '</a></td></tr>' + '<tr><th>Source Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">' + separate_link_to_fit_small_space(pin['link']) + '</a></td></tr>';
-      if (pin['image_url'] !== null && pin['image_url'] !== '') {
-        html = html + '<tr><th>Image URL</th><td><a href="' + pin['image_url'] + '" title="' + pin['image_url'] + '" target="_blank">Original image</a></td></tr>';
+      var base_html, cat, html, start, _i, _len, _ref;
+      start = true;
+      pin['categories_list'] = '';
+      _ref = pin['categories'];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        cat = _ref[_i];
+        if (start) {
+          start = false;
+        } else {
+          pin['categories_list'] = pin['categories_list'] + ', ';
+        }
+        pin['categories_list'] = pin['categories_list'] + cat['name'];
       }
-      html = html + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>';
-      if (pin['price'] !== 'None') {
-        html = html + '<tr><th>Price</th><td>$' + pin['price'] + '</td></tr>';
-      }
-      html = html + '<tr><th>Price Range</th><td>' + pin['price_range_repr'] + '</td></tr>';
-      html = html + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> ' + '<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' + '</table>';
+      pin['separate_product'] = separate_link_to_fit_small_space(pin['product_url']);
+      pin['separate_link'] = separate_link_to_fit_small_space(pin['link']);
+      base_html = $('#pin_template').html();
+      html = _.template(base_html, pin);
       return html;
     };
     $('body').on('click', '.button_pin_delete', function() {
@@ -348,6 +378,7 @@
       });
     });
     open_edit_dialog_for = function(pin) {
+      var cat, _i, _len, _ref;
       $("#id11").val(pin['id']);
       $("#title11").val(pin['name']);
       $("#description11").val(pin['description']);
@@ -356,7 +387,7 @@
       $("#tags11").val(pin['tags']);
       $("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime());
       $("#imgfulllink11").attr('href', '/pin/' + pin['id']);
-      $("#category11").val(pin['category']);
+      $("#category11").val('');
       $("#imageurl11").val('');
       $("#image11").val('');
       if (pin['price'] !== 'None') {
@@ -367,8 +398,14 @@
       $("#previmageurl11").attr('href', pin['image_url']);
       $('input[name=price_range11]').prop('checked', false);
       $('input[name=price_range11][value=' + pin['price_range'] + ']').prop('checked', true);
+      $('input[name=category_check11]:checked').prop('checked', false);
+      _ref = pin['categories'];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        cat = _ref[_i];
+        $('input[name=category_check11][value=' + cat['id'] + ']').prop('checked', true);
+      }
       remove_all_errors();
-      return $('#pin_edit_dialog').dialog('open');
+      $('#pin_edit_dialog').dialog('open');
     };
     $('#pin_edit_form').submit(function() {
       var category, description, image, imageurl, link, no_error, pinid, price, price_range, product_url, tags, title;
@@ -381,7 +418,7 @@
       imageurl = $('#imageurl11');
       image = $('#image11');
       tags = $('#tags11');
-      category = $('#category11');
+      category = $('#categories11');
       price = $('#price11');
       price_range = $('input[name=price_range11]:checked');
       if (title.val() === '') {
@@ -406,6 +443,9 @@
       if (!selected_a_price_range(11)) {
         no_error = false;
       }
+      if (!category_selected('categories11', 'category_check11', $('#category_error_message11'))) {
+        no_error = false;
+      }
       if (no_error) {
         if (image.val() !== '' && imageurl.val() === '') {
           return true;
@@ -425,7 +465,7 @@
         'product_url': product_url.val(),
         'imageurl': imageurl.val(),
         'tags': tags.val(),
-        'category': category.val(),
+        'categories': category.val(),
         'price': price.val(),
         'price_range': price_range.val()
       };

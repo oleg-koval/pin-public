@@ -1,9 +1,26 @@
 $def with (categories)
 <h1>Categories</h1>
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-8">
 <ul>
 $for cat in categories:
 	<li>
-        <a href='category-manage_cool/$cat.id'>Cool products</a>
-        $cat.name
+        <a href="category-manage_cool/$cat['id']" class="btn btn-default btn-xs">Cool products</a>
+        <a href="categories/$cat['id']">$cat['name']</a>
+        <button type="button" class="close button_remove_category" category_id="$cat['id']" title="remove $cat['name']">&times;</button>
+        $if cat['subcategories']:
+        	<ul>
+        	$for subcat in cat['subcategories']:
+        		<li><a href="category-manage_cool/$subcat['id']" class="btn btn-default btn-xs">Cool products</a>
+        		<a href="categories/$subcat['id']">$subcat['name']</a>
+        	</ul>
     </li>
 </ul>
+		</div>
+		<div class="col-md-4">
+			<a href="/admin/categories/add/" class="btn btn-default">Add Category</a><br>
+		</div>
+	</div>
+</div>
+<script src="/static/js/admin_categories.js"></script>

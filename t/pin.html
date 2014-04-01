@@ -2,7 +2,12 @@ $def with (pin, comments, rating)
 <div class='pin-display'>
   <div class='display'>
     <h1>$pin.description</h1>
-    <p class='faded'>Posted by <a href='/profile/$pin.user_id'>$pin.user_name</a> in <a href='/$pin.user_username/buy-list/$pin.category'>$pin.cat_name</a></p>
+    <p class='faded'>Posted by <a href='/profile/$pin.user_id'>$pin.user_name</a> in
+    $for cat in pin.categories: 
+    	<a href='/$pin.user_username/buy-list/$cat.id'>$cat.name</a>
+    	$if not loop.last:
+    		,
+    </p>
     <p>
       $if 'logged_in' in sess and sess.user_id == pin.user_id:
         <a class='button' href='/setprivacy/$pin.id'>

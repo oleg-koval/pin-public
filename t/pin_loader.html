@@ -1,7 +1,8 @@
-$def with (form, result_info, number_of_items_added)
+$def with (form, result_info, categories, number_of_items_added, preselected_categories)
 <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 <link rel="stylesheet" href="/static/css/pin_loader.css" />
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script src="/static/js/underscore-min.js"></script>
 <script src="/static/js/pin_loader.js"></script>
 <div id="tabs">
   <ul>
@@ -23,7 +24,28 @@ $def with (form, result_info, number_of_items_added)
 		<p>For the image you can put the URL or upload the image, don't use both.</p>
 		<p>You can upload up to 10 images at a time, using the fields below. You can view the results in the 'Items Added' tab.</p>
 		<div style="margin-top: 50px"></div>
-		<h1>Category for these Pins: </h1>$:form['category'].render()
+		<h1>Categories for these Pins: </h1>
+		<table>
+		$for category in categories:
+			$if loop.index0 % 4 == 0:
+				<tr>
+			<td width="25%" class="category_selection_td">
+				<label><input type="checkbox" name='category_check' value="$category['id']"
+				$if category['id'] in preselected_categories:
+					checked
+				>$category['name']</label>
+				$if category['subcategories']:
+					$for subcat in category['subcategories']:
+						<div class="subcategory_checkbox"><label><input type="checkbox" name='category_check' value="$subcat['id']"
+						$if subcat['id'] in preselected_categories:
+							checked
+						>$subcat['name']</label></div>
+			</td>
+			$if loop.index0 % 4 == 3 or loop.last:
+				</tr>
+		</table>
+		<div id="category_error_message" class="red hide">You must select a category</div>
+		<input type="hidden" value="" name="categories">
 		<table cellpadding="20">
 		$for i in range(1, 11, 2):
 			<tr>
@@ -175,7 +197,18 @@ $def with (form, result_info, number_of_items_added)
 				</tr>
 				<tr>
 					<th><label for="category11">Category</label></th>
-					<td>$:form['category11'].render()</td>
+					<td>
+					<div style="width: 100%; height: 200px; overflow:auto;">
+					$for category in categories:
+						<label><input type="checkbox" name='category_check11' value="$category['id']">$category['name']</label>
+						$if category['subcategories']:
+							$for subcat in category['subcategories']:
+								<div class="subcategory_checkbox"><label><input type="checkbox" name='category_check11' value="$subcat['id']">$subcat['name']</label></div>
+						$else:
+							<br>
+					</div>
+					<div id="category_error_message11" class="red hide">You must select a category</div>
+					</td>
 				</tr>
 				<tr>
 					<th><label for="title11">Title</label></th>
@@ -230,8 +263,44 @@ $def with (form, result_info, number_of_items_added)
 				</tr>
 			</table>
 			<input i="11" type="hidden" name="id11" id="id11"/>
+			<input type="hidden" name="categories11" id="categories11" value="">
 		</form>
 	</div><!-- pin_edit_dialog -->
 	<div><button id="load_more_button">Load more</button></div>
 </div><!-- added -->
 </div><!-- tabs -->
+<script type="text/html" id="pin_template">
+<div class="pin_image">
+	<a href="/pin/<%= id %>" target="_blank" title="See full size">
+		<img src="/static/tmp/pinthumb<%= id %>.png?_=<%= new Date().getTime() %>">
+	</a>
+</div>
+<table>
+	<tr><th>Categories</th><td><%= categories_list %></td></tr>
+	<tr><th>Title</th><td><%= name %></td></tr>
+<% if (description !== null && description !== '') { %>
+	<tr><th>Descr.</th><td><%= description %></td></tr>
+<% } %>
+<% if (product_url !== null && product_url !== '') { %>
+	<tr><th>Product Link</th><td><a href="<%= product_url %>" title="<%= product_url %>">
+			<%= separate_product %>
+		</a></td></tr>
+<% } %>
+<% if (link !== null && link !== '') { %>
+	<tr><th>Source Link</th><td><a href="<%= link %>" title="<%= link %>">
+			<%= separate_link %>
+		</a></td></tr>
+<% } %>
+<% if (image_url !== null && image_url !== '') { %>
+	<tr><th>Image URL</th><td><a href="<%= image_url %>" title="<%= image_url %>" target="_blank">Original image</a></td></tr>
+<% } %>
+	<tr><th>Tags</th><td><%= tags %></td></tr>
+		
+<% if (price !== 'None') { %>
+	<tr><th>Price</th><td>$$<%= price %></td></tr>
+<% } %>
+	<tr><th>Price Range</th><td><%= price_range_repr %></td></tr>
+	<tr><td colspan="2"><button class="button_pin_edit" pinid="<%= id %>">Edit</button>
+		<button class="button_pin_delete" pinid="<%= id %>">Delete</button></td></tr>
+</table>
+</script>
