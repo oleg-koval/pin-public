@@ -36,9 +36,6 @@ import glob
 
 web.config.debug = True
 
-
-web.config.debug = True
-
 urls = (
     '/facebook', mypinnings.facebook.app,
     '/google', mypinnings.google.app,
@@ -60,6 +57,9 @@ urls = (
     '/category/.*?/(\d*)', 'PageCategory',
     '/new-list', 'PageNewBoard',
     '/addpin', 'PageAddPin',
+    '/newaddpin', 'NewPageAddPin',
+    '/newaddpinform', 'NewPageAddPinForm',
+
     '/add-from-website', 'PageAddPinUrl',
     '/add-to-your-own-getlist/(\d*)', 'PageRepin',
     '/remove-from-own-getlist', 'PageRemoveRepin',
@@ -419,7 +419,7 @@ class PageAddPin:
         transaction = db.transaction()
         try:
             fname = self.upload_image()
-    
+
             pin_id = db.insert('pins',
                 description=form.d.description,
                 user_id=sess.user_id,
@@ -429,14 +429,14 @@ class PageAddPin:
                 price=decimal.Decimal(form.d.price or 0),
                 price_range=int(form.d.price_range),
                 )
-            
+
             categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in form.d.categories.split(',')]
             db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
-    
+
             if form.d.tags:
                 tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
                 db.insert('tags', pin_id=pin_id, tags=tags)
-    
+
             os.rename('static/tmp/%s.png' % fname,
                       'static/tmp/%d.png' % pin_id)
             os.rename('static/tmp/pinthumb%s.png' % fname,
@@ -448,6 +448,66 @@ class PageAddPin:
             transaction.rollback()
             return web.seeother(url='?msg={}'.format('This is embarrassing. We where unable to create the product. Please try again.'),
                          absolute=False)
+
+class NewPageAddPinForm:
+    def POST(self):
+        data = web.input()
+        fname = data.fname
+
+        transaction = db.transaction()
+        try:
+            pin_id = db.insert('pins',
+                description=data.comments,
+                user_id=sess.user_id,
+                link=data.weblink,
+                name=data.title
+                )
+
+            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in data.category.split(',')]
+            db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
+
+            if data.tags:
+                tags = ' '.join([make_tag(x) for x in data.tags.split(' ')])
+                db.insert('tags', pin_id=pin_id, tags=tags)
+
+            os.rename('static/tmp/%s.png' % fname,
+                      'static/tmp/%d.png' % pin_id)
+            os.rename('static/tmp/pinthumb%s.png' % fname,
+                      'static/tmp/pinthumb%d.png' % pin_id)
+            transaction.commit()
+            return '/pin/%d' % pin_id
+        except Exception as e:
+            logger.error('Failed to create a pin from a file upload', exc_info=True)
+            transaction.rollback()
+
+
+class NewPageAddPin:
+    def upload_image(self):
+        image = web.input(image={}).image
+        fname = generate_salt()
+        ext = os.path.splitext(image.filename)[1].lower()
+
+        with open('static/tmp/%s%s' % (fname, ext), 'w') as f:
+            f.write(image.file.read())
+
+        if ext != '.png':
+            img = Image.open('static/tmp/%s%s' % (fname, ext))
+            img.save('static/tmp/%s.png' % fname)
+
+        img = Image.open('static/tmp/%s.png' % fname)
+        width, height = img.size
+        ratio = 202 / width
+        width = 202
+        height *= ratio
+        img.thumbnail((width, height), Image.ANTIALIAS)
+        img.save('static/tmp/pinthumb%s.png' % fname)
+
+        return fname
+
+    def POST(self):
+        force_login(sess)
+        fname = self.upload_image()
+        return fname
 
 
 class PageAddPinUrl:
@@ -500,11 +560,11 @@ class PageAddPinUrl:
         transaction = db.transaction()
         try:
             fname = self.upload_image(form.d.image_url)
-    
+
             link = form.d.link
             if link and '://' not in link:
                 link = 'http://%s' % link
-    
+
             pin_id = db.insert('pins',
                 description=form.d.description,
                 user_id=sess.user_id,
@@ -515,14 +575,14 @@ class PageAddPinUrl:
                 price=decimal.Decimal(form.d.price or 0),
                 price_range=int(form.d.price_range),
                 )
-            
+
             categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in form.d.categories.split(',')]
             db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
-    
+
             if form.d.tags:
                 tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
                 db.insert('tags', pin_id=pin_id, tags=tags)
-    
+
             os.rename('static/tmp/%s.png' % fname,
                       'static/tmp/%d.png' % pin_id)
             os.rename('static/tmp/pinthumb%s.png' % fname,
@@ -610,7 +670,7 @@ class PageRepin:
             description=form.d.description,
             user_id=sess.user_id,
             repin=pin_id)
-        
+
         db.insert('pins_categories', pin_id=pin_id, category_id=form.d.category)
 
         if form.d.tags:
@@ -1843,7 +1903,7 @@ class PageCategory:
             where ''' + where + '''
             group by tags.tags, categories.id, pins.id, users.id
             order by timestamp desc offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT)
-        
+
         subcategories = db.where(table='categories', parent=cid, order='is_default_sub_category desc, name')
         existsrs = db.query('select exists(' + query + ') as exists', vars={'cid': cid})
         for r in existsrs:

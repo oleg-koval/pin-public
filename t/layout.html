@@ -5,7 +5,12 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
     <title>MyPinnings</title>
     <link rel='stylesheet' type='text/css' href='/static/main.css'/>
     <link href='//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' rel='stylesheet'>
-    <script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
+	<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" type="text/css" media="all" />
+	<script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
+    <script src="http://malsup.github.com/jquery.form.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js" type="text/javascript"></script>
+	<link rel="stylesheet" href="/static/newgetlist.css">
+	<script type="text/javascript" src="/static/newgetlist.js"></script>
     <script type="text/javascript" src="/static/main.js"></script>
     <link href="/static/modal.css" rel="stylesheet" />
     <script src="/static/bootstrap.min.js"></script>
@@ -19,8 +24,8 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
             <div class='nav-item item plus' id='switch2'>
               <i class='fa fa-plus'></i>
               <div class='menu left-side add-to-getlist invis' id='menu2'>
-          
-                <a href='/addpin'>Upload to Getlist</a>
+
+                <a href='#' id="add_getlist_link">Upload to Getlist</a>
                 <a href='/add-from-website'>Add to Getlist from Website</a>
                 $if user and user.is_pin_loader:
                 	<a href='/admin/input/'>Pin Uploaders page</a>
@@ -50,7 +55,7 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
           <div class='right'>
 
             <div class='nav-item item profile-picture' id='switch3'>
-             
+
                 $if user.pic:
                  <a href='/$user.username' id="user_avatar_placeholder_wrapper">
                  <div class="user_pic_placeholder avatar" style='background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'></div>
@@ -71,8 +76,8 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
 
                 <a href='/profile/$sess.user_id'>Profile</a>
 
-                
-                
+
+
                 <a href='/settings'>Settings</a>
                 <a href='/connect'>Friends &amp; Followers</a>
                 <a href='/logout'>Log out</a>
@@ -92,6 +97,45 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
         $if acti_needed is not None:
             $if acti_needed:
                 <div class='notice'>Notice: You haven't activated your account yet! Please check $user.email. <a href='/resend-activation'>Resend</a></div>
+	<div id="dialog-form" >
+	<form method="post" action="/newaddpin" enctype="multipart/form-data" id="upload_form">
+	<input type="file" name="image" id="image" accept="image/*" placeholder="Please choose a file"><br/>
+	    <input type="button" id="upload_cancel" value="Go Back">
+        <input type="submit" value="Upload">
+	</form>
+
+	<div class="progress" style="display:none" >
+		<div class="bar"></div >
+		<div class="percent">0%</div >
+	</div>
+
+	<div id="status"></div>
+	</div>
+	<div id="addpindialogform" class="settings clearfix">
+	    <div class="nav left" id="imagediv">
+
+	    </div>
+	    <div class="right">
+        <form method="post" action="/newaddpinform" id="ajaxpinform">
+        <input type="hidden" id="fname" value="">
+        <table>
+        <tr><th><label for="title">Title</label></th><td><input type="text" id="title"></td></tr>
+        <tr><th><label for="weblink">Web link</label></th><td><input type="text" id="weblink" placeholder="http://"></td></tr>
+        <tr><th><label for="category">Category</label></th><td><select type="text" id="category">
+            $for cat in categories:
+                <option value="$cat['id']">$cat['name']</option>
+        </select></td></tr>
+        <tr><th><label for="lists">List</label></th><td><select type="text" id="lists">
+            <option value="home">Home</option>
+        </select></td></tr>
+        <tr><th><label for="tags">Tags</label></th><td><input type="text" id="tags" placeholder="#this #is #awesome"></td></tr>
+        <tr><th><label for="comments"></label></th><td><textarea id="comments" placeholder="say something"></textarea></td></tr>
+        <tr><th><label for="add"></label></th><td><input type="button" id="cancelfancy" name="cancelfancy" value="Cancel">&nbsp;&nbsp;<input type="submit" id="addfancy" name="addfancy" value="Add To Fancy"></td></tr>
+        </table>
+        </form>
+        </div>
+    </div>
+
         $:content
     </div>
 
@@ -104,11 +148,11 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
             <div class="modal-dialog">
               <div class="modal-content">
                 <div class="modal-header">
-                
+
                 <a href="#" type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
                 <h1>Change your picture</h1>
                 </div>
-                
+
                 <form id='uploadimageform' action="/changeprofile" method='post' enctype='multipart/form-data'>
                 <div class="modal-body">
                <input type='file' name='file' id='file' accept="image/*" required="required" />
@@ -117,21 +161,21 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
               <button type="submit"  class="button">Upload Picture</button>
               </div>
               </form>
-              
+
             </div>
           </div>
-          
+
           </div>
 
            <div class="modal fade" id="uploadBackgroundImageModal">
             <div class="modal-dialog">
               <div class="modal-content">
                 <div class="modal-header">
-                
+
                 <a href="#" type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</a>
                 <h1>Background Photo</h1>
                 </div>
-                
+
                 <form id='uploadimageform' action="/changebg" method='post' enctype='multipart/form-data'>
                 <div class="modal-body">
                <input type='file' name='file' id='file' accept="image/*" required="required" />
@@ -140,13 +184,13 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
               <button type="submit"  class="button">Upload Photo</button>
               </div>
               </form>
-              
+
             </div>
           </div>
-          
+
           </div>
 
-          
+
           <script src='/static/profile.js'></script>
   </body>
 </html>
