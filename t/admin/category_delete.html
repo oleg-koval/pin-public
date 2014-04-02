@@ -1,0 +1,14 @@
+$def with(category, subcategories, form, msg=None)
+$if msg:
+	<p class="bg-danger">$msg</p>
+<p>You are about to delete category $category.name<p>
+$if subcategories:
+	<p>This category has these sub-categories that will also be deleted:</p>
+	<ul>
+	$for subcat in subcategories:
+		<li>$subcat.name
+	</ul>
+<p>You must provide a new category to move the items from the categories to delete.</p>
+<form method="POST">
+	$:form.render()
+</form>

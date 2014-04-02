@@ -1307,3 +1307,20 @@ alter table pins add product_url text not null default '';
 
 -- to add price range
 alter table pins add price_range integer not null default 1;
+
+-- allow sub-categories
+alter table categories add is_default_sub_category boolean not null default FALSE;
+alter table categories add parent integer;
+-- allow multiple categories
+create table pins_categories (
+	pin_id integer not null references pins(id),
+	category_id integer not null references categories(id)
+);
+create unique index pk_pins_categories on pins_categories(pin_id, category_id);
+
+update pins set category=1 where category not in (select id from categories);
+insert into pins_categories(pin_id, category_id)
+select id, category from pins;
+
+alter table pins drop category;
+

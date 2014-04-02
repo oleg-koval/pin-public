@@ -49,6 +49,8 @@ jQuery ->
 				no_error = validate_errors(i)
 				if can_submit
 					can_submit = no_error
+			if not category_selected('categories', 'category_check', $('#category_error_message'))
+				can_submit = false
 			if not can_submit
 				window.alert('Errors pending, please check')
 			return can_submit
@@ -225,11 +227,27 @@ jQuery ->
 	selected_a_price_range = (i) ->
 		remove_error_from_field($('#price_range' + i), i) 
 		price_range = $('input[name=price_range' + i + ']:checked').val()
-		console.log(price_range)
 		if price_range is undefined
 			show_error_for_field($('#price_range' + i), 'Select a price range')
 			return false
 		return true
+
+
+	category_selected = (field_to_fill_name, check_fields_name, error_object) ->
+		checked_categories = $('input[name="' + check_fields_name + '"]:checked')
+		error_object.hide()
+		if checked_categories.length > 0
+			category_value = ''
+			for c in checked_categories
+				value = c.value
+				if category_value isnt '' and category_value.lastIndexOf(',') isnt category_value.length - 1
+					category_value = category_value + ','
+				category_value = category_value + value
+			$('input[name=' + field_to_fill_name + ']').val(category_value)
+			return true
+		else
+			error_object.show()
+			return false
 			
 	
 	# detect when scrolling to bottom to load more items
@@ -297,29 +315,18 @@ jQuery ->
 	
 	# creates the HTML to show one pin in the list
 	get_pin_html_text = (pin) ->
-		html = '<div class="pin_image"><a href="/pin/' + pin['id'] + '" target="_blank" title="See full size">' +
-					'<img src="/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime() + '"></a></div>' +
-				'<table>' +
-				'<tr><th>Category</th><td>' + pin['category_name'] + '</td></tr>' +
-				'<tr><th>Title</th><td>' + pin['name'] + '</td></tr>' +
-				'<tr><th>Descr.</th><td>' + pin['description'] + '</td></tr>' +
-				'<tr><th>Product Link</th><td><a href="' + pin['product_url'] + '" title="' + pin['product_url'] + '">' +
-					separate_link_to_fit_small_space(pin['product_url']) + '</a></td></tr>' +
-				'<tr><th>Source Link</th><td><a href="' + pin['link'] + '" title="' + pin['link'] + '">' +
-					separate_link_to_fit_small_space(pin['link']) + '</a></td></tr>'
-		if pin['image_url'] isnt null and pin['image_url'] isnt ''
-			html = html + '<tr><th>Image URL</th><td><a href="' + pin['image_url'] + '" title="' + pin['image_url'] + '" target="_blank">Original image</a></td></tr>'
-		
-		html = html + '<tr><th>Tags</th><td>' + pin['tags'] + '</td></tr>'
-		
-		if pin['price'] isnt 'None'
-			html = html + '<tr><th>Price</th><td>$' + pin['price'] + '</td></tr>'
-			
-		html = html + '<tr><th>Price Range</th><td>' + pin['price_range_repr'] + '</td></tr>'
-		
-		html = html + '<tr><td colspan="2"><button class="button_pin_edit" pinid="' + pin['id'] + '">Edit</button> '+
-				'<button class="button_pin_delete" pinid="' + pin['id'] + '">Delete</button></td></tr>' +
-				'</table>'
+		start = true
+		pin['categories_list'] = ''
+		for cat in pin['categories']
+			if start
+				start = false
+			else
+				pin['categories_list'] = pin['categories_list'] + ', '
+			pin['categories_list'] = pin['categories_list'] + cat['name']
+		pin['separate_product'] = separate_link_to_fit_small_space(pin['product_url'])
+		pin['separate_link'] = separate_link_to_fit_small_space(pin['link'])
+		base_html = $('#pin_template').html()
+		html = _.template(base_html, pin)
 		return html
 		
 	
@@ -366,7 +373,7 @@ jQuery ->
 		$("#tags11").val(pin['tags'])
 		$("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime())
 		$("#imgfulllink11").attr('href', '/pin/' + pin['id'])
-		$("#category11").val(pin['category'])
+		$("#category11").val('')
 		$("#imageurl11").val('')
 		$("#image11").val('')
 		if pin['price'] isnt 'None'
@@ -376,8 +383,12 @@ jQuery ->
 		$("#previmageurl11").attr('href', pin['image_url'])
 		$('input[name=price_range11]').prop('checked', false)
 		$('input[name=price_range11][value=' + pin['price_range'] + ']').prop('checked', true)
+		$('input[name=category_check11]:checked').prop('checked', false)
+		for cat in pin['categories']
+			$('input[name=category_check11][value=' + cat['id'] + ']').prop('checked', true)
 		remove_all_errors()
 		$('#pin_edit_dialog').dialog('open')
+		return
 		
 	
 	# edits the pin. If the pin does not have a new image,
@@ -395,7 +406,7 @@ jQuery ->
 		imageurl = $('#imageurl11')
 		image = $('#image11')
 		tags = $('#tags11')
-		category = $('#category11')
+		category = $('#categories11')
 		price = $('#price11')
 		price_range = $('input[name=price_range11]:checked')
 		# should have title
@@ -421,6 +432,8 @@ jQuery ->
 		# should select a price range
 		if not selected_a_price_range(11)
 			no_error = false
+		if not category_selected('categories11', 'category_check11', $('#category_error_message11'))
+			no_error = false
 		if no_error
 			if image.val() != '' and imageurl.val() == ''
 				# submit to upload the image
@@ -440,7 +453,7 @@ jQuery ->
 			,'product_url': product_url.val()
 			,'imageurl': imageurl.val()
 			,'tags': tags.val()
-			,'category': category.val()
+			,'categories': category.val()
 			,'price': price.val()
 			,'price_range': price_range.val()
 		$.ajax type: 'POST'

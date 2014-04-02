@@ -1,18 +1,29 @@
-preview = $('<div/>').addClass('preview')
-preview.insertAfter $('#input-url')
+preview = $('#preview')
 
 images = []
 
 window.imagesLoading = false
 
-$('#input-url').blur ->
+$('#link,#product_url').change ->
+    value = $(this).val()
+    if value isnt '' and (value.indexOf('http://') isnt 0 or value.indexOf('http://') isnt 0)
+        if value.indexOf('//') == 0
+            $(this).val('http:' + value)
+        else
+            $(this).val('http://' + value)
+    if value isnt ''
+    	clear_error_for_field($('#link,#product_url'))
+    if window.imagesLoading
+        return false
+    if $('#image_url').val() == undefined
+    	return false
+    window.imagesLoading = true
     url = $(this).val()
     $('#input-link').val(url)
 
     if url.replace('https://', '').replace('http://', '').indexOf('/') == -1
         url += '/'
 
-    window.imagesLoading = true
     preview.html 'loading images&hellip;'
     $('#btn-add').prop('disabled', true)
 
@@ -27,35 +38,157 @@ $('#input-url').blur ->
             first = true
             counter = 0
             preview.html '<h4>Choose an image:</h4>'
-            images = []
 
             for src in data.images
-                images.push src
+                image_source = {'src': src}
+                img = _.template($('#image-template').html(), image_source)
                 if first
-                    img = $('<img/>').attr('src', src).attr('id', counter++).addClass('selected')
-                    window.selected = src
+                    if $('#image_url').val() is ''
+                        $('#image_url').val(src)
+                        $('#image_url').change()
                     first = false
-                else
-                    img = $('<img/>').attr('src', src).attr('id', counter++)
 
                 preview.append img
-                img.click ->
-                    src = images[parseInt($(this).attr('id'))]
-                    window.selected = src
-                    preview.find('img').removeClass('selected')
-                    $(this).addClass('selected')
-
         window.imagesLoading = false
+        return
+
+
+$('#image_url').on 'change', ->
+    value = $(this).val()
+    if value isnt '' and (value.indexOf('http://') isnt 0 or value.indexOf('http://') isnt 0)
+        if value.indexOf('//') == 0
+            $(this).val('http:' + value)
+        else
+            $(this).val('http://' + value)
+    if value isnt ''
+    	clear_error_for_field($(this))
+    return
+    	
+    	
+$('#tags,#title').on 'change', ->
+	if $(this).val() isnt ''
+		clear_error_for_field($(this))
+	return
+
+
+$('#preview').on 'click', 'img', ->
+    src = $(this).attr('src')
+    $('#image_url').val(src)
+    $('img.clickable').removeClass('selected')
+    $(this).addClass('selected')
+    return
+    
+    
+$('input[name=price_range]').on 'change', ->
+	clear_error_for_field($('#price_range'))
+	return
+    
+    
+$('input[name=category_check]').on 'change', ->
+	clear_error_for_field($('#categories'))
+	return
+
 
 $('#form').submit ->
     if window.imagesLoading
         alert("Please wait for all images to load.")
         return false
 
-    if window.selected
-        $('#input-url').val window.selected
-    else
-        alert("Please select at least one image.")
-        return false
+    clear_all_error_messages()
+    errors = false
+    if $('#product_url').val() is '' and $('#link').val() is ''
+        show_error_for_field($('#product_url'), 'Please provide a Product URL or Source URL')
+        show_error_for_field($('#link'), 'Please provide a Product URL or Source URL')
+        errors = true
+    if $('#title').val() is ''
+        show_error_for_field($('#title'), 'Please provide a title')
+        errors = true
+    if $('#tags').val() is ''
+        show_error_for_field($('#tags'), 'Please provide tag words')
+        errors = true
+    if not have_valid_price()
+        show_error_for_field($('#price'), 'Only numbers and decimal point')
+        errors = true
+    if not selected_a_price_range()
+        errors = true
+    if not category_selected()
+        show_error_for_field($('#categories'), 'Select one or more categories for this product')
+        errors = true
 
+    if $('#image_url').val() isnt undefined
+        if $('#image_url').val() is ''
+            show_error_for_field($('#image_url'), 'Provide the image URL or select an image from the right (if available)')
+            errors = true
+    else if $('#image').val() is ''
+        show_error_for_field($('#image'), 'Provide the image file to upload')
+        errors = true
+
+    if errors
+        alert("Ooops, there are missing fields to fill, please review...")
+        return false
     true
+
+
+# test price has format with only digits and decimal point
+price_regex  = /^\d+(?:\.?\d{0,2})$/;
+have_valid_price = ->
+	price = $('#price')
+	if price.val() is ''
+		# the field is optional, no validation is not given
+		return true
+	new_val = price.val().replace(/[^\d\.]/g, '')
+	price.val(new_val)
+	if not price_regex.test(price.val())
+		return false
+	else
+		value = price.val()
+		if value.indexOf('.') == -1
+			price.val(value + '.00')
+		else if value.indexOf('.') == value.length - 1
+			price.val(value + '00')
+		else if value.indexOf('.') == value.length - 2
+			price.val(value + '0')
+	return true
+
+
+# ensure a price range is selected
+selected_a_price_range = ->
+	price_range = $('input[name=price_range]:checked').val()
+	if price_range is undefined
+		show_error_for_field($('#price_range'), 'Select a price range')
+		return false
+	return true
+
+
+# shows an error for the field
+show_error_for_field = (field, text) ->
+	field.addClass('field_error')
+	field.after('<div class="error_text">' + text + '</div>')
+	return
+
+
+clear_error_for_field = (field) ->
+	field.removeClass('field_error')
+	field.next('div.error_text').remove()
+	return
+
+
+clear_all_error_messages = ->
+	$('input').removeClass('field_error')
+	$('div.error_text').remove()
+	return
+
+	
+category_selected =  ->
+	checked_categories = $('input[name=category_check]:checked')
+	if checked_categories.length > 0
+		category_value = ''
+		for c in checked_categories
+			value = c.value
+			if category_value isnt '' and category_value.lastIndexOf(',') isnt category_value.length - 1
+				category_value = category_value + ','
+			category_value = category_value + value
+		$('#categories').val(category_value)
+		return true
+	else
+		return false
