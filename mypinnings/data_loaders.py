@@ -344,7 +344,8 @@ class LoadersEditAPI(FileUploaderMixin, CategorySelectionMixin):
                             join categories on pc.category_id=categories.id
                             left join tags on pins.id = tags.pin_id
                             where user_id=$user_id
-                            order by timestamp desc offset $offset limit $limit''',
+                            order by timestamp desc, categories.name
+                            offset $offset limit $limit''',
                             vars={'user_id': sess.user_id, 'offset': sess.offset, 'limit': limit})
         sess.offset += len(results)
         pin_list = []

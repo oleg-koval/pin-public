@@ -813,7 +813,8 @@ class PagePin:
         pin = pin[0]
         pin.categories = db.select(tables=['pins_categories', 'categories'], what="categories.*",
                             where='pins_categories.category_id=categories.id and pins_categories.pin_id=$id',
-                            vars={'id': pin.id})
+                            vars={'id': pin.id},
+                            order='categories.name')
         if not pin.categories:
             return 'pin not found'
 
