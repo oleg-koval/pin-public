@@ -3,7 +3,7 @@
 $(document).ready(function() {
     $( "#dialog-form" ).dialog({
 	        autoOpen: false,
-	        height: 200,
+	        height: 250,
 	        width: 450,
 	        modal: true});
 
@@ -18,7 +18,7 @@ $(document).ready(function() {
     $( "#addpindialogform" ).dialog({
 	        autoOpen: false,
 	        height:450,
-	        width: 900,
+	        width: 700,
 	        modal: true});
     function validate(){
         if ($("#image").val() === ''){
@@ -78,7 +78,6 @@ $(document).ready(function() {
             'lists':$("#lists").val(),
             'comments':$("#comments").val(),
             'fname':$("#fname").val(),
-            'tags':$("#tags").val()
         }
         return data
     }
