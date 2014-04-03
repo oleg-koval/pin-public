@@ -3,7 +3,7 @@ all_categories = None
 
 def initialize(db):
     global all_categories
-    all_categories = list(db.select('categories', order='id',
+    all_categories = list(db.select('categories', order='name',
                                     where='parent is null'))
     
     
@@ -12,7 +12,7 @@ def get_categories_with_children(db):
         select cat.id, cat.name, sub.id as subcategory_id, sub.name as subcatetory_name, sub.is_default_sub_category
         from categories cat
             left join categories sub on cat.id = sub.parent
-        order by cat.id, sub.is_default_sub_category, sub.name
+        order by cat.name, sub.is_default_sub_category, sub.name
         ''')
     categories = []
     current_category = None
