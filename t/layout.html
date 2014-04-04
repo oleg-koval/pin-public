@@ -5,6 +5,7 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
     <title>MyPinnings</title>
     <link rel='stylesheet' type='text/css' href='/static/main.css'/>
     <link href='//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' rel='stylesheet'>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
 	<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" type="text/css" media="all" />
 	<script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
     <script src="http://malsup.github.com/jquery.form.js"></script>
@@ -111,12 +112,14 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
 
 	<div id="status"></div>
 	</div>
-	<div id="addpindialogform" class="settings clearfix">
-	    <div class="nav left" id="imagediv">
+	<div id="addpindialogform">
+	<div class="row">
+	<form method="post" action="/newaddpinform" id="ajaxpinform">
+	    <div class="col-md-5" id="imagediv">
 
 	    </div>
-	    <div class="right">
-        <form method="post" action="/newaddpinform" id="ajaxpinform">
+	    <div class="col-md-7">
+
         <input type="hidden" id="fname" value="">
         <table>
         <tr><th><label for="title">Title</label></th><td><input type="text" id="title"></td></tr>
@@ -128,12 +131,15 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
         <tr><th><label for="lists">List</label></th><td><select type="text" id="lists">
             <option value="home">Home</option>
         </select></td></tr>
-        <tr><th><label for="tags">Tags</label></th><td><input type="text" id="tags" placeholder="#this #is #awesome"></td></tr>
-        <tr><th><label for="comments"></label></th><td><textarea id="comments" placeholder="say something"></textarea></td></tr>
-        <tr><th><label for="add"></label></th><td><input type="button" id="cancelfancy" name="cancelfancy" value="Cancel">&nbsp;&nbsp;<input type="submit" id="addfancy" name="addfancy" value="Add To Fancy"></td></tr>
         </table>
-        </form>
         </div>
+    </div>
+    <div class="row">
+    <textarea id="comments" placeholder="Say something about this"></textarea><br>
+    <input type="button" id="cancelfancy" name="cancelfancy" value="Cancel">&nbsp;&nbsp;
+    <input type="submit" id="addfancy" name="addfancy" value="Add To Fancy">
+    </div>
+    </form>
     </div>
 
         $:content

@@ -466,10 +466,6 @@ class NewPageAddPinForm:
             categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in data.category.split(',')]
             db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
 
-            if data.tags:
-                tags = ' '.join([make_tag(x) for x in data.tags.split(' ')])
-                db.insert('tags', pin_id=pin_id, tags=tags)
-
             os.rename('static/tmp/%s.png' % fname,
                       'static/tmp/%d.png' % pin_id)
             os.rename('static/tmp/pinthumb%s.png' % fname,
