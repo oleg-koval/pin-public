@@ -122,14 +122,12 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
 
         <input type="hidden" id="fname" value="">
         <table>
+        <tr><th><label for="title"></label></th><td><div id="imagename"></div></td></tr>
         <tr><th><label for="title">Title</label></th><td><input type="text" id="title"></td></tr>
-        <tr><th><label for="weblink">Web link</label></th><td><input type="text" id="weblink" placeholder="http://"></td></tr>
+        <tr><th><label for="weblink">Link</label></th><td><input type="text" id="weblink" placeholder="Where to buy?"></td></tr>
         <tr><th><label for="category">Category</label></th><td><select type="text" id="category">
             $for cat in categories:
                 <option value="$cat['id']">$cat['name']</option>
-        </select></td></tr>
-        <tr><th><label for="lists">List</label></th><td><select type="text" id="lists">
-            <option value="home">Home</option>
         </select></td></tr>
         </table>
         </div>
