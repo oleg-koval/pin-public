@@ -498,12 +498,12 @@ class NewPageAddPin:
         img.thumbnail((width, height), Image.ANTIALIAS)
         img.save('static/tmp/pinthumb%s.png' % fname)
 
-        return fname
+        return fname, image.filename
 
     def POST(self):
         force_login(sess)
-        fname = self.upload_image()
-        return fname
+        fname, original_filename = self.upload_image()
+        return json.dumps({'fname':fname, 'original_filename':original_filename})
 
 
 class PageAddPinUrl:

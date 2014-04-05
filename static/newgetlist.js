@@ -5,7 +5,12 @@ $(document).ready(function() {
 	        autoOpen: false,
 	        height: 250,
 	        width: 450,
-	        modal: true});
+	        modal: true,
+	        show: {
+                effect: "clip",
+                duration: 200
+              }
+	        });
 
     $("#add_getlist_link").click(function(){
         $( "#dialog-form" ).dialog( "open" );
@@ -19,7 +24,8 @@ $(document).ready(function() {
 	        autoOpen: false,
 	        height:450,
 	        width: 700,
-	        modal: true});
+	        modal: true
+	        });
     function validate(){
         if ($("#image").val() === ''){
             $("#status").html("please choose a file");
@@ -63,10 +69,14 @@ $(document).ready(function() {
 	        var percentVal = '0%';
             bar.width(percentVal)
             percent.html(percentVal);
-            $("#fname").val(xhr.responseText);
+            var obj = jQuery.parseJSON( xhr.responseText );
+            console.log(obj)
+            $("#fname").val(obj.fname);
+            $("#imagename").html(obj.original_filename);
 	        $( "#dialog-form" ).dialog("close");
-	        $("#imagediv").html('<img src="'+'/static/tmp/pinthumb'+xhr.responseText+'.png" alt="">')
+	        $("#imagediv").html('<img src="'+'/static/tmp/pinthumb'+obj.fname+'.png" alt="">')
 		    $( "#addpindialogform" ).dialog("open");
+		    $("#comments").focus();
 	    }
     });
 
