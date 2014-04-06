@@ -70,7 +70,6 @@ $(document).ready(function() {
             bar.width(percentVal)
             percent.html(percentVal);
             var obj = jQuery.parseJSON( xhr.responseText );
-            console.log(obj)
             $("#fname").val(obj.fname);
             $("#imagename").html(obj.original_filename);
 	        $( "#dialog-form" ).dialog("close");
