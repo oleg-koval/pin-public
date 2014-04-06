@@ -5,8 +5,7 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
     <title>MyPinnings</title>
     <link rel='stylesheet' type='text/css' href='/static/main.css'/>
     <link href='//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' rel='stylesheet'>
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
-	<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" type="text/css" media="all" />
 	<script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
     <script src="http://malsup.github.com/jquery.form.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js" type="text/javascript"></script>
@@ -113,12 +112,12 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
 	<div id="status"></div>
 	</div>
 	<div id="addpindialogform">
-	<div class="row">
+	<div class="wrapper">
 	<form method="post" action="/newaddpinform" id="ajaxpinform">
-	    <div class="col-md-5" id="imagediv">
+	    <div class="c1" id="imagediv">
 
 	    </div>
-	    <div class="col-md-7">
+	    <div class="c2">
 
         <input type="hidden" id="fname" value="">
         <table>
