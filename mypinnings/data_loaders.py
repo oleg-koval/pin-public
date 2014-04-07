@@ -171,7 +171,7 @@ class PinLoaderPage(FileUploaderMixin, CategorySelectionMixin):
                              web.form.Radio('price_range8', PRICE_RANGES, **{'class': 'prodprice_range', 'i': 8}),
                              web.form.Radio('price_range9', PRICE_RANGES, **{'class': 'prodprice_range', 'i': 9}),
                              web.form.Radio('price_range10', PRICE_RANGES, **{'class': 'prodprice_range', 'i': 10}),
-                             web.form.Button('add', id='btn-add')
+                             web.form.Button('upload', id='btn-add')
                              )
         return form()
 

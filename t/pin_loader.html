@@ -45,6 +45,7 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 				</td>
 			</tr>
 		</table>
+		$:form['upload'].render()
 		<div id="category_error_message" class="red hide">You must select a category</div>
 		<input type="hidden" value="" name="categories">
 		<table style="font-size:80%">
@@ -147,7 +148,7 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 				</td>
 			</tr>
 		</table>
-		$:form['add'].render()
+		$:form['upload'].render()
 	</form>
 </div><!-- upload -->
 <div id="added">
