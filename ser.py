@@ -621,14 +621,14 @@ class PageRepin:
             return form.Form(
                 form.Textarea('description'),
                 form.Dropdown('board', boards),
-                form.Textarea('board_name'),
+                form.Textbox('board_name'),
                 form.Textbox('tags', description='tags (optional)', placeholder='#this #is #awesome'),
                 form.Button('add to getlist')
             )()
         return form.Form(
             form.Textarea('description', value=pin.description),
             form.Dropdown('board', boards),
-            form.Textarea('board_name'),
+            form.Textbox('board_name'),
             form.Textbox('tags', description='tags (optional)', placeholder='#this #is #awesome'),
             form.Button('add to getlist')
         )()
@@ -665,10 +665,11 @@ class PageRepin:
             form = self.make_form()
             if not form.validates():
                 return 'please fill out all the form fields'
-            if form.d.board != '':
+            if form.d.board and form.d.board != '':
                 board = int(form.d.board)
             elif form.d.board_name != '':
-                board = db.insert(tablename='boards', name=form.d.board_name, description=form.d.board_name)
+                board = db.insert(tablename='boards', name=form.d.board_name, description=form.d.board_name,
+                                  user_id=sess.user_id)
             else:
                 return 'Please fill aout all the form fields'
             # preserve all data from original pin, update description, repin and board
