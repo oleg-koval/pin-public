@@ -108,6 +108,21 @@ $(document).ready(function() {
         // return false to prevent normal browser submit and page navigation
         return false;
     });
+    
+    
+    $('#button_add_board').on('click', function(event) {
+    	event.preventDefault();
+    	$('#board').val('');
+    	$('#board_selection_layer').hide();
+    	$('#board_creation_layer').show();
+    });
+    
+    $('#button_select_board').on('click', function(event) {
+    	event.preventDefault();
+    	$('#category_name').val('');
+    	$('#board_creation_layer').hide();
+    	$('#board_selection_layer').show();
+    });
 
 
     });
