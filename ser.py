@@ -918,9 +918,9 @@ class PageBoardList:
                 left join categories on categories.id in
                     (select category_id from pins_categories
                     where pin_id = pins.id
-                    and category_id = $cid
                     limit 1)
             where not users.private
+                and pins.board_id=$cid
             group by pins.id, tags.tags, users.id, categories.id
             offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT),
             vars={'cid': cid})
