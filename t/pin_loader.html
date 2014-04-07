@@ -54,14 +54,6 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 				<td style="padding-right:20px">
 					<table style="box-shadow:0px 0px 10px gray">
 						<tr>
-							<th><label for="title$i">Title</label></th>
-							<td>$:form['title{}'.format(i)].render()</td>
-						</tr>
-						<tr>
-							<th><label for="description$i">Description</label></th>
-							<td>$:form['description{}'.format(i)].render()</td>
-						</tr>
-						<tr>
 							<th><label for="imageurl$i">Image URL</label></th>
 							<td>$:form['imageurl{}'.format(i)].render()</td>
 						</tr>
@@ -70,23 +62,31 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 							<td>$:form['image{}'.format(i)].render()</td>
 						</tr>
 						<tr>
+							<th><label for="link$i">Original Source URL</label></th>
+							<td>$:form['link{}'.format(i)].render()</td>
+						</tr>
+						<tr>
+							<th><label for="title$i">Title</label></th>
+							<td>$:form['title{}'.format(i)].render()</td>
+						</tr>
+						<tr>
+							<th><label for="description$i">Description (optional)</label></th>
+							<td>$:form['description{}'.format(i)].render()</td>
+						</tr>
+						<tr>
 							<th><label for="product_url$i">Product URL</label></th>
 							<td>$:form['product_url{}'.format(i)].render()</td>
 						</tr>
 						<tr>
-							<th><label for="link$i">Source URL</label></th>
-							<td>$:form['link{}'.format(i)].render()</td>
-						</tr>
-						<tr>
-							<th><label for="tags$i">Tags</label></th>
+							<th><label for="tags$i">#Tags</label></th>
 							<td>$:form['tags{}'.format(i)].render()</td>
 						</tr>
 						<tr>
-							<th><label for="price$i">Price</label></th>
+							<th><label for="price$i">Price (optional)</label></th>
 							<td>$:form['price{}'.format(i)].render()</td>
 						</tr>
 						<tr>
-							<th>Price Range</th>
+							<th>Price Category</th>
 							<td>
 								<label><input type="radio" name="price_range$i" value="1"> $$</label>
 								<label><input type="radio" name="price_range$i" value="2"> $$$$</label>
@@ -102,14 +102,6 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 				<td>
 					<table style="box-shadow:0px 0px 10px gray">
 						<tr>
-							<th><label for="title$j">Title</label></th>
-							<td>$:form['title{}'.format(j)].render()</td>
-						</tr>
-						<tr>
-							<th><label for="description$j">Description</label></th>
-							<td>$:form['description{}'.format(j)].render()</td>
-						</tr>
-						<tr>
 							<th><label for="imageurl$j">Image URL</label></th>
 							<td>$:form['imageurl{}'.format(j)].render()</td>
 						</tr>
@@ -118,23 +110,31 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 							<td>$:form['image{}'.format(j)].render()</td>
 						</tr>
 						<tr>
+							<th><label for="link$j">Original Source URL</label></th>
+							<td>$:form['link{}'.format(j)].render()</td>
+						</tr>
+						<tr>
+							<th><label for="title$j">Title</label></th>
+							<td>$:form['title{}'.format(j)].render()</td>
+						</tr>
+						<tr>
+							<th><label for="description$j">Description (optional)</label></th>
+							<td>$:form['description{}'.format(j)].render()</td>
+						</tr>
+						<tr>
 							<th><label for="product_url$j">Product URL</label></th>
 							<td>$:form['product_url{}'.format(j)].render()</td>
 						</tr>
 						<tr>
-							<th><label for="link$j">Source URL</label></th>
-							<td>$:form['link{}'.format(j)].render()</td>
-						</tr>
-						<tr>
-							<th><label for="tags$j">Tags</label></th>
+							<th><label for="tags$j">#Tags</label></th>
 							<td>$:form['tags{}'.format(j)].render()</td>
 						</tr>
 						<tr>
-							<th><label for="price$j">Price</label></th>
+							<th><label for="price$j">Price (optional)</label></th>
 							<td>$:form['price{}'.format(j)].render()</td>
 						</tr>
 						<tr>
-							<th>Price Range</th>
+							<th>Price Category</th>
 							<td>
 								<label><input type="radio" name="price_range$j" value="1"> $$</label>
 								<label><input type="radio" name="price_range$j" value="2"> $$$$</label>
@@ -214,14 +214,6 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					</td>
 				</tr>
 				<tr>
-					<th><label for="title11">Title</label></th>
-					<td><input i="11" type="text" class="titleentry" name="title11" id="title11"/></td>
-				</tr>
-				<tr>
-					<th><label for="description11">Description</label></th>
-					<td><textarea i="11" class="descrentry" name="description11" id="description11"></textarea></td>
-				</tr>
-				<tr>
 					<th><label for="imageurl11">Prev. image URL</label></th>
 					<td><a id="previmageurl11" target="_blank" href="">Previous Image URL</a></td>
 				</tr>
@@ -234,23 +226,31 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					<td><input i="11" type="file" class="imagefile" name="image11" id="image11"/></td>
 				</tr>
 				<tr>
-					<th><label for="product_url11">Product URL</label></th>
-					<td><input i="11" type="text" class="urlproduct_url" name="product_url11" id="product_url11" placeholder="Where can you buy this item? www.rolex.com"/></td>
-				</tr>
-				<tr>
 					<th><label for="link11">Source URL</label></th>
 					<td><input i="11" type="text" class="urllink" name="link11" id="link11" placeholder="The original source for this image"/></td>
 				</tr>
 				<tr>
-					<th><label for="tags11">Tags</label></th>
+					<th><label for="title11">Title</label></th>
+					<td><input i="11" type="text" class="titleentry" name="title11" id="title11"/></td>
+				</tr>
+				<tr>
+					<th><label for="description11">Description (optional)</label></th>
+					<td><textarea i="11" class="descrentry" name="description11" id="description11"></textarea></td>
+				</tr>
+				<tr>
+					<th><label for="product_url11">Product URL</label></th>
+					<td><input i="11" type="text" class="urlproduct_url" name="product_url11" id="product_url11" placeholder="Where can you buy this item? www.rolex.com"/></td>
+				</tr>
+				<tr>
+					<th><label for="tags11">#Tags</label></th>
 					<td><input name="tags11" i="11" placeholder="#this #is #awesome" id="tags11" type="text" class="tagwords"/></td>
 				</tr>
 				<tr>
-					<th><label for="price11">Price</label></th>
+					<th><label for="price11">Price (optional)</label></th>
 					<td><input name="price11" i="11" placeholder="$$888.00" id="price11" type="text" class="prodprice"/></td>
 				</tr>
 				<tr>
-					<th>Price Range</th>
+					<th>Price Category</th>
 					<td>
 						<label><input type="radio" name="price_range11" value="1"> $$</label>
 						<label><input type="radio" name="price_range11" value="2"> $$$$</label>
