@@ -26,23 +26,24 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 		<div style="margin-top: 50px"></div>
 		<h1>Categories for these Pins: </h1>
 		<table>
-		$for category in categories:
-			$if loop.index0 % 4 == 0:
-				<tr>
-			<td width="25%" class="category_selection_td">
-				<label><input type="checkbox" name='category_check' value="$category['id']"
-				$if category['id'] in preselected_categories:
-					checked
-				>$category['name']</label>
-				$if category['subcategories']:
-					$for subcat in category['subcategories']:
-						<div class="subcategory_checkbox"><label><input type="checkbox" name='category_check' value="$subcat['id']"
-						$if subcat['id'] in preselected_categories:
-							checked
-						>$subcat['name']</label></div>
-			</td>
-			$if loop.index0 % 4 == 3 or loop.last:
-				</tr>
+			<tr>
+			$for category_column in categories:
+				<td width="25%" class="category_selection_td">
+				$for category in category_column:
+					<label><input type="checkbox" name='category_check' value="$category['id']"
+					$if category['id'] in preselected_categories:
+						checked
+					>$category['name']</label>
+					$if category['subcategories']:
+						$for subcat in category['subcategories']:
+							<div class="subcategory_checkbox"><label><input type="checkbox" name='category_check' value="$subcat['id']"
+							$if subcat['id'] in preselected_categories:
+								checked
+							>$subcat['name']</label></div>
+					$else:
+						<br/>
+				</td>
+			</tr>
 		</table>
 		<div id="category_error_message" class="red hide">You must select a category</div>
 		<input type="hidden" value="" name="categories">
@@ -199,13 +200,14 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					<th><label for="category11">Category</label></th>
 					<td>
 					<div style="width: 100%; height: 200px; overflow:auto;">
-					$for category in categories:
-						<label><input type="checkbox" name='category_check11' value="$category['id']">$category['name']</label>
-						$if category['subcategories']:
-							$for subcat in category['subcategories']:
-								<div class="subcategory_checkbox"><label><input type="checkbox" name='category_check11' value="$subcat['id']">$subcat['name']</label></div>
-						$else:
-							<br>
+					$for category_column in categories:
+						$for category in category_column:
+							<label><input type="checkbox" name='category_check11' value="$category['id']">$category['name']</label>
+							$if category['subcategories']:
+								$for subcat in category['subcategories']:
+									<div class="subcategory_checkbox"><label><input type="checkbox" name='category_check11' value="$subcat['id']">$subcat['name']</label></div>
+							$else:
+								<br>
 					</div>
 					<div id="category_error_message11" class="red hide">You must select a category</div>
 					</td>

@@ -7,6 +7,7 @@ import os
 import os.path
 import json
 from gettext import gettext as _
+import math
 from PIL import Image
 
 import web
@@ -190,14 +191,24 @@ class PinLoaderPage(FileUploaderMixin, CategorySelectionMixin):
             order by parent.name, child.name
             ''')
         current_parent = None
-        categories = []
+        categories_as_list = []
         for row in results:
             if not current_parent or current_parent['id'] != row.id:
                 current_parent = {'id': row.id, 'name': row.name, 'subcategories': []}
-                categories.append(current_parent)
+                categories_as_list.append(current_parent)
             if row.child_id:
                 current_parent['subcategories'].append({'id': row.child_id, 'name': row.child_name})
-        return template.ltpl('pin_loader', form, result_info, categories, number_of_items_added, sess.get('categories', []))
+        categories_columns = [[], [], [], []]
+        categories_x_column = math.ceil(len(categories_as_list) / 4)
+        count = 0
+        index = 0
+        for cat in categories_as_list:
+            categories_columns[index].append(cat)
+            count += 1
+            if count >= categories_x_column and index < 3:
+                count = 0
+                index += 1
+        return template.ltpl('pin_loader', form, result_info, categories_columns, number_of_items_added, sess.get('categories', []))
 
     def POST(self):
         sess = session.get_session()
