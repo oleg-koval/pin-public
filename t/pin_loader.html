@@ -23,10 +23,10 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 		<p>Price is optional, only numbers and decimal point</p>
 		<p>For the image you can put the URL or upload the image, don't use both.</p>
 		<p>You can upload up to 10 images at a time, using the fields below. You can view the results in the 'Items Added' tab.</p>
-		<div style="margin-top: 50px"></div>
+		<div style="margin-top: 10px"></div>
 		<h1>Categories for these Pins: </h1>
 		<table>
-			<tr>
+			<tr style="font-size:80%">
 			$for category_column in categories:
 				<td width="25%" class="category_selection_td">
 				$for category in category_column:
@@ -47,10 +47,10 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 		</table>
 		<div id="category_error_message" class="red hide">You must select a category</div>
 		<input type="hidden" value="" name="categories">
-		<table cellpadding="20">
+		<table style="font-size:80%">
 		$for i in range(1, 11, 2):
 			<tr>
-				<td>
+				<td style="padding-right:20px">
 					<table style="box-shadow:0px 0px 10px gray">
 						<tr>
 							<th><label for="title$i">Title</label></th>
