@@ -621,12 +621,14 @@ class PageRepin:
             return form.Form(
                 form.Textarea('description'),
                 form.Dropdown('board', boards),
+                form.Textarea('list_name'),
                 form.Textbox('tags', description='tags (optional)', placeholder='#this #is #awesome'),
                 form.Button('add to getlist')
             )()
         return form.Form(
             form.Textarea('description', value=pin.description),
             form.Dropdown('board', boards),
+            form.Textarea('list_name'),
             form.Textbox('tags', description='tags (optional)', placeholder='#this #is #awesome'),
             form.Button('add to getlist')
         )()

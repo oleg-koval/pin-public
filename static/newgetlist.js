@@ -119,7 +119,7 @@ $(document).ready(function() {
     
     $('#button_select_board').on('click', function(event) {
     	event.preventDefault();
-    	$('#category_name').val('');
+    	$('#board_name').val('');
     	$('#board_creation_layer').hide();
     	$('#board_selection_layer').show();
     });
