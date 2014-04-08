@@ -197,3 +197,17 @@ category_selected =  ->
 		return true
 	else
 		return false
+
+		
+$('#button_change_layer_to_add_new_board').on 'click', (event) ->
+	event.preventDefault()
+	$('#board_id').val('')
+	$('#layer_select_existing_board').hide()
+	$('#layer_add_new_board').show()
+	
+	
+$('#button_change_layer_to_select_existing_board').on 'click', (event) ->
+	event.preventDefault()
+	$('#board_name').val('')
+	$('#layer_add_new_board').hide()
+	$('#layer_select_existing_board').show()

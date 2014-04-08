@@ -1,4 +1,4 @@
-$def with (form, categories_to_select, msg=None)
+$def with (form, categories_to_select, boards, msg=None)
 <h1>Add to Getlist From Website</h1>
 $if msg:
 	<div class="notice">$msg</div>
@@ -22,6 +22,22 @@ $if msg:
 				<label><input type="radio" name="price_range" value="4"> $$$$$$$$</label>
 				<label><input type="radio" name="price_range" value="5"> $$$$$$$$+</label>
 				<div id="price_range"></div>
+	    	</td>
+	    </tr>
+	    <tr><th><label for="board">Get list</label></th>
+	    	<td>
+	    		<div id="layer_select_existing_board">
+		    		<select id="board_id" name="board_id">
+		    			<option value="">Select one</option>
+		    		$for board in boards:
+		    			<option value="$board.id">$board.name</option>
+		    		</select>
+		    		<button type="button" id="button_change_layer_to_add_new_board" alt="Add a new list">+</button>
+	    		</div>
+	    		<div id="layer_add_new_board" style="display:none">
+	    			<input type="text" name="board_name" id="board_name">
+		    		<button type="button" id="button_change_layer_to_select_existing_board" alt="Select an existing board">-</button>
+	    		</div>
 	    	</td>
 	    </tr>
 	    <tr><th>Categories</th>

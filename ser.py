@@ -525,8 +525,9 @@ class PageAddPinUrl:
         global all_categories
         force_login(sess)
         categories_to_select = cached_models.get_categories_with_children(db)
+        boards = db.where(table='boards', order='name', user_id=sess.user_id)
         msg = web.input(msg=None)['msg']
-        return ltpl('addpinurl', self.make_form(), categories_to_select, msg)
+        return ltpl('addpinurl', self.make_form(), categories_to_select, boards, msg)
 
     def upload_image(self, url):
         fname = generate_salt()
@@ -918,9 +919,9 @@ class PageBoardList:
                 left join categories on categories.id in
                     (select category_id from pins_categories
                     where pin_id = pins.id
+                    and category_id = $cid
                     limit 1)
             where not users.private
-                and pins.board_id=$cid
             group by pins.id, tags.tags, users.id, categories.id
             offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT),
             vars={'cid': cid})
