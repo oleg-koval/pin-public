@@ -904,8 +904,8 @@ class PagePin:
 
 class PageBoardList:
 
-    def GET(self, username, cid):
-        cid = int(cid)
+    def GET(self, username, board_id):
+        board_id = int(board_id)
 
         user = db.select('users', where='username = $username', vars={'username': username})
         if not user:
@@ -916,8 +916,8 @@ class PageBoardList:
         offset = int(web.input(offset=0).offset)
         ajax = int(web.input(ajax=0).ajax)
 
-        category = dbget('boards', cid)
-        if not category:
+        board = dbget('boards', board_id)
+        if not board:
             return "List not Found"
 
         pins = db.query('''
@@ -933,16 +933,16 @@ class PageBoardList:
                 left join categories on categories.id in
                     (select category_id from pins_categories
                     where pin_id = pins.id
-                    and category_id = $cid
                     limit 1)
             where not users.private
+                and pins.board_id=$board_id
             group by pins.id, tags.tags, users.id, categories.id
             offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT),
-            vars={'cid': cid})
+            vars={'board_id': board_id})
 
         if ajax:
             return json_pins(pins)
-        return ltpl('board', user, category, pins)
+        return ltpl('board', user, board, pins)
 
 
 class PageBuyList:

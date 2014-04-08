@@ -1,4 +1,4 @@
-$def with (user, category, pins)
-<h1><a href='/$user.username/list/$category.id'>$category.name</a></h1>
+$def with (user, board, pins)
+<h1><a href='/$user.username/list/$board.id'>$board.name</a></h1>
 <hr/>
 $:tpl('pins', pins)
