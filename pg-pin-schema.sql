@@ -1324,3 +1324,6 @@ select id, category from pins;
 
 alter table pins drop category;
 
+
+-- allow pins to go to lists
+alter table pins add board_id integer references boards(id) null;

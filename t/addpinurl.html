@@ -1,4 +1,4 @@
-$def with (form, categories_to_select, msg=None)
+$def with (form, categories_to_select, boards, msg=None)
 <h1>Add to Getlist From Website</h1>
 $if msg:
 	<div class="notice">$msg</div>
@@ -24,8 +24,24 @@ $if msg:
 				<div id="price_range"></div>
 	    	</td>
 	    </tr>
-	    <tr><th>Categories</th>
+	    <tr><th><label for="board">Get list</label></th>
 	    	<td>
+	    		<div id="layer_select_existing_board">
+		    		<select id="board_id" name="board_id">
+		    			<option value="">Select one</option>
+		    		$for board in boards:
+		    			<option value="$board.id">$board.name</option>
+		    		</select>
+		    		<button type="button" id="button_change_layer_to_add_new_board" alt="Add a new list">+</button>
+	    		</div>
+	    		<div id="layer_add_new_board" style="display:none">
+	    			<input type="text" name="board_name" id="board_name">
+		    		<button type="button" id="button_change_layer_to_select_existing_board" alt="Select an existing board">-</button>
+	    		</div>
+	    	</td>
+	    </tr>
+	    <tr><th>Categories</th>
+	    	<td rowspan="2">
 				<div style="width: 100%; height: 200px; overflow:auto;">
 				$for category in categories_to_select:
 					<label><input type="checkbox" name='category_check' value="$category['id']">$category['name']</label>
@@ -36,6 +52,14 @@ $if msg:
 						<br>
 				</div>
 				<input type="hidden" id="categories" name="categories"/>
+	    	</td>
+	    </tr>
+	    <tr>
+	    	<td valign="top">
+	    		<div id="layer_preview_of_selected_image" style="display:none"">
+	    		<span>Selected image</span>
+	    		<img id="preview_of_selected_image" src="" style="width:160px;height:auto;">
+	    		</div>
 	    	</td>
 	    </tr>
 	    <tr><th><label for="btn-add"></label></th><td><button id="btn-add" name="add">add</button></td></tr>

@@ -62,6 +62,10 @@ $('#image_url').on 'change', ->
             $(this).val('http://' + value)
     if value isnt ''
     	clear_error_for_field($(this))
+    	$('#preview_of_selected_image').prop('src', value)
+    	$('#layer_preview_of_selected_image').show()
+    else
+    	$('#layer_preview_of_selected_image').hide()
     return
     	
     	
@@ -74,6 +78,7 @@ $('#tags,#title').on 'change', ->
 $('#preview').on 'click', 'img', ->
     src = $(this).attr('src')
     $('#image_url').val(src)
+    $('#image_url').change()
     $('img.clickable').removeClass('selected')
     $(this).addClass('selected')
     return
@@ -122,6 +127,11 @@ $('#form').submit ->
     else if $('#image').val() is ''
         show_error_for_field($('#image'), 'Provide the image file to upload')
         errors = true
+        
+    if $('#board_id').val() is '' and $('#board_name').val() is ''
+    	errors = true
+    	show_error_for_field($('#layer_add_new_board'), 'Select or create a new getlist')
+    	$('#button_change_layer_to_select_existing_board').click()
 
     if errors
         alert("Ooops, there are missing fields to fill, please review...")
@@ -192,3 +202,17 @@ category_selected =  ->
 		return true
 	else
 		return false
+
+		
+$('#button_change_layer_to_add_new_board').on 'click', (event) ->
+	event.preventDefault()
+	$('#board_id').val('')
+	$('#layer_select_existing_board').hide()
+	$('#layer_add_new_board').show()
+	
+	
+$('#button_change_layer_to_select_existing_board').on 'click', (event) ->
+	event.preventDefault()
+	$('#board_name').val('')
+	$('#layer_add_new_board').hide()
+	$('#layer_select_existing_board').show()

@@ -1,4 +1,4 @@
-$def with (content, categories,all_albums=None, user=None, acti_needed=None, notif_count=None, csrf_token=None)
+$def with (content, categories, boards, all_albums=None, user=None, acti_needed=None, notif_count=None, csrf_token=None)
 <!doctype html>
 <html>
   <head>
@@ -128,6 +128,22 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
             $for cat in categories:
                 <option value="$cat['id']">$cat['name']</option>
         </select></td></tr>
+	    <tr><th><label for="board">Get list</label></th>
+	    	<td>
+	    		<div id="board_selection_layer">
+		    		<select id="board" name="board">
+		    			<option value="">Select one</option>
+		    		$for board in boards:
+		    			<option value="$board.id">$board.name</option>
+		    		</select>
+		    		<button type="button" id="button_add_board" alt="Add a new list">+</button>
+	    		</div>
+	    		<div id="board_creation_layer" style="display:none">
+	    			<input type="text" name="board_name" id="board_name">
+		    		<button type="button" id="button_select_board" alt="Select an existing board">-</button>
+	    		</div>
+	    	</td>
+	    </tr>
         </table>
         </div>
     </div>

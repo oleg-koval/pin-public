@@ -1,4 +1,4 @@
-$def with (pins, category, categories, subcategories)
+$def with (pins, category, categories, subcategories, boards)
 $if category.id == 0:
   <h1>Browsing <a href=''>Random Pins</a></h1>
 $else:
@@ -34,11 +34,18 @@ $else:
     <textarea id="description" name="description">
       
     </textarea></td></tr>
-    <tr><th><label for="category">category</label></th><td>
-    <select id="category" name="category" class="category-list">
-  $for cat in categories:
-    <option value="$cat.id">$cat.name</option>
-</select>
+    <tr><th><label for="board">Get list</label></th><td>
+<div id="board_selection_layer">
+    <select id="board" name="board" class="category-list">
+    <option value="">Select one</option>
+  $for board in boards:
+    <option value="$board.id">$board.name</option>
+</select><button type="button" id="button_add_board" title="Add another list">+</button>
+</div>
+<div id="board_creation_layer" style="display:none;">
+	<input type="text" name="board_name" id="board_name" value="">
+	<button type="button" id="button_select_board" title="Select existing list">-</button>
+</div>
 </td></tr>
     <tr><th><label for="tags">tags (optional)</label></th><td><input type="text" placeholder="#this #is #awesome" id="tags" name="tags"></td></tr>
 </tbody>
