@@ -456,11 +456,17 @@ class NewPageAddPinForm:
 
         transaction = db.transaction()
         try:
+            if data.board:
+                board = int(data.board)
+            elif data.board_name:
+                board = db.insert(tablename='boards', name=data.board_name, description=data.board_name,
+                                  user_id = sess.user_id)
             pin_id = db.insert('pins',
                 description=data.comments,
                 user_id=sess.user_id,
                 link=data.weblink,
-                name=data.title
+                name=data.title,
+                board_id=board
                 )
 
             categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in data.category.split(',')]
