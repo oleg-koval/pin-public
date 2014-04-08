@@ -62,6 +62,10 @@ $('#image_url').on 'change', ->
             $(this).val('http://' + value)
     if value isnt ''
     	clear_error_for_field($(this))
+    	$('#preview_of_selected_image').prop('src', value)
+    	$('#layer_preview_of_selected_image').show()
+    else
+    	$('#layer_preview_of_selected_image').hide()
     return
     	
     	
@@ -74,6 +78,7 @@ $('#tags,#title').on 'change', ->
 $('#preview').on 'click', 'img', ->
     src = $(this).attr('src')
     $('#image_url').val(src)
+    $('#image_url').change()
     $('img.clickable').removeClass('selected')
     $(this).addClass('selected')
     return

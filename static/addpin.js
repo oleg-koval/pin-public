@@ -79,6 +79,10 @@
     }
     if (value !== '') {
       clear_error_for_field($(this));
+      $('#preview_of_selected_image').prop('src', value);
+      $('#layer_preview_of_selected_image').show();
+    } else {
+      $('#layer_preview_of_selected_image').hide();
     }
   });
 
@@ -92,6 +96,7 @@
     var src;
     src = $(this).attr('src');
     $('#image_url').val(src);
+    $('#image_url').change();
     $('img.clickable').removeClass('selected');
     $(this).addClass('selected');
   });
