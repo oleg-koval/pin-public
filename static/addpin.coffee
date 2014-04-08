@@ -127,6 +127,11 @@ $('#form').submit ->
     else if $('#image').val() is ''
         show_error_for_field($('#image'), 'Provide the image file to upload')
         errors = true
+        
+    if $('#board_id').val() is '' and $('#board_name').val() is ''
+    	errors = true
+    	show_error_for_field($('#layer_add_new_board'), 'Select or create a new getlist')
+    	$('#button_change_layer_to_select_existing_board').click()
 
     if errors
         alert("Ooops, there are missing fields to fill, please review...")

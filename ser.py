@@ -518,7 +518,11 @@ class PageAddPinUrl:
             form.Textbox('product_url', description='Product URL'),
             form.Textbox('price', description='Price'),
             form.Textbox('price_range', form.notnull, description='Price range'),
-            form.Button('add', id='btn-add')
+            form.Textbox('board_id', description='list'),
+            form.Textbox('board_name', description='New list name'),
+            form.Button('add', id='btn-add'),
+            validators = [form.Validator('Select a board or create a new one', lambda i: i.board_id or i.board_name)
+                          ]
         )()
 
     def GET(self):
@@ -561,6 +565,15 @@ class PageAddPinUrl:
             link = form.d.link
             if link and '://' not in link:
                 link = 'http://%s' % link
+                
+            # create a new board if necessary
+            if form.d.board_id:
+                board_id = int(form.d.board_id)
+            elif form.d.board_name:
+                board_id = db.insert(tablename='boards', name=form.d.board_name, description=form.d.board_name,
+                                     user_id=sess.user_id)
+            else:
+                web.seeother(url='?msg={}'.format('Invalid list to put your product, please review'), absolute=False)
 
             pin_id = db.insert('pins',
                 description=form.d.description,
@@ -571,6 +584,7 @@ class PageAddPinUrl:
                 image_url=form.d.image_url,
                 price=decimal.Decimal(form.d.price or 0),
                 price_range=int(form.d.price_range),
+                board_id=board_id
                 )
 
             categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in form.d.categories.split(',')]
