@@ -62,7 +62,7 @@ $def with (pin, comments, rating)
           <div class='pre'>$comment.comment</div>
         </div>
       $if 'logged_in' in sess:
-        <form method='post' action='' autocomplete='off'>
+        <form method='post' action='/item/$pin.id' autocomplete='off'>
           <p><textarea id='input-comment' name='comment' placeholder='Write a comment...'></textarea></p>
           <p><button>Comment</button></p>
         </form>

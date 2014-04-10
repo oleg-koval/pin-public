@@ -70,6 +70,25 @@
       buttons = $(this).children('.category_pins_buttons');
       buttons.hide();
     });
+    $(document).on('click', '.category_pin_image', function(event) {
+      var pinid;
+      event.preventDefault();
+      pinid = $(this).attr('pinid');
+      $.get('/item/' + pinid + '?embed=true', function(data) {
+        $('#show_pin_layer_content').html(data);
+        $('#show_pin_layer').width($(document).width());
+        $('#show_pin_layer').height($(document).height());
+        $('#show_pin_layer').show();
+      });
+    });
+    $('#show_pin_layer').on('click', function(event) {
+      event.preventDefault();
+      $(this).hide();
+    });
+    $('#show_pin_layer_content').on('click', function(event) {
+      event.stopPropagation();
+      event.stopInmediatePropagation();
+    });
     $.pin_template = _.template($('#pin_template').html());
     $.column_control = 1;
     get_more_items(true);

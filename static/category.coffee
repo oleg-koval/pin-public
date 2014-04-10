@@ -55,6 +55,31 @@ jQuery ->
 		buttons = $(this).children('.category_pins_buttons')
 		buttons.hide()
 		return
+		
+		
+	$(document).on 'click', '.category_pin_image', (event) ->
+		event.preventDefault()
+		pinid = $(this).attr('pinid')
+		$.get '/item/' + pinid + '?embed=true',
+			(data) ->
+				$('#show_pin_layer_content').html(data)
+				$('#show_pin_layer').width($(document).width())
+				$('#show_pin_layer').height($(document).height())
+				$('#show_pin_layer').show()
+				return
+		return
+	
+	
+	$('#show_pin_layer').on 'click', (event) ->
+		event.preventDefault()
+		$(this).hide()
+		return
+		
+		
+	$('#show_pin_layer_content').on 'click', (event) ->
+		event.stopPropagation()
+		event.stopInmediatePropagation()
+		return
 
 	
 	$.pin_template = _.template($('#pin_template').html())

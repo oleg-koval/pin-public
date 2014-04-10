@@ -755,10 +755,13 @@ textarea, .input {
 .category_pin_source_url {
   padding-bottom: 10px;
   font-size: 80%; }
-  .category_pin_source_url .pinned_from {
+
+.category_pin_image {
+  cursor: pointer; }
+  .category_pin_image .pinned_from {
     color: light-gray;
     font-weight: bold; }
-  .category_pin_source_url .pinned_link a {
+  .category_pin_image .pinned_link a {
     text-decorator: none; }
 
 .category_pins_buttons {
@@ -766,3 +769,23 @@ textarea, .input {
   position: absolute;
   z-index: 10;
   text-align: center; }
+
+#show_pin_layer_content {
+  background-color: white;
+  margin-left: auto;
+  margin-right: auto;
+  width: 60%;
+  border-radius: 10px;
+  padding-top: 20px;
+  padding-left: 10px;
+  padding-right: 10px;
+  box-shadow: black 0px 0px 30px; }
+
+#show_pin_layer {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  display: none; }
