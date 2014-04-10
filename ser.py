@@ -54,7 +54,7 @@ urls = (
     '/lists', 'PageBoards',
     '/(.*?)/list/(\d*)', 'PageBoardList',
     '/browse', 'PageBrowse',
-    '/category/.*?/(\d*)', 'PageCategory',
+    '/category/.*?/(\d*)', 'mypinnings.category_listing.PageCategory',
     '/new-list', 'PageNewBoard',
     '/addpin', 'PageAddPin',
     '/newaddpin', 'NewPageAddPin',
