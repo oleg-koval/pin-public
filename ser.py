@@ -846,7 +846,7 @@ class PagePin:
                 ''' + query2 + '''
                 left join likes l2 on l2.pin_id = pins.id
                 left join pins p1 on p1.repin = pins.id
-            where pins.id = $id and (not users.private or pins.user_id = $uid)
+            where pins.id = $id
             group by pins.id, tags.tags, users.id''', vars=qvars)
         if not pin:
             return 'pin not found'
