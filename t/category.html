@@ -86,7 +86,9 @@ $else:
         </div>
 <script type="text/html" id="pin_template">
 <div class="category_pin">
-	<div class="category_pin_image"><img src="/static/tmp/pinthumb_212_<%= id %>.png"></div>
+	<div class="category_pin_image">
+		<a href="/pin/<%= id %>"><img src="/static/tmp/pinthumb_212_<%= id %>.png"></a>
+	</div>
 	<% if (name !== '') { %>
 		<div class="category_pin_title"><%= name %></div>
 	<% }
@@ -101,8 +103,9 @@ $else:
 	</div>
 	<% } %>
 	<div class="category_pin_likes">
-		<span class="fa fa-thumbs-up"><%= like_count %></span>
-		<span class="fa fa-thumbs-tack"><%= repin_count %></span>
+		<i class="fa fa-thumbs-up"></i> <%= like_count %>
+		&nbsp;&nbsp;
+		<i class="fa fa-thumb-tack"></i> <%= repin_count %>
 	</div>
 	<% if (link !== '') { %>
 	<div class="category_pin_source_url">
