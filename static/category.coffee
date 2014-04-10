@@ -63,8 +63,11 @@ jQuery ->
 		$.get '/item/' + pinid + '?embed=true',
 			(data) ->
 				$('#show_pin_layer_content').html(data)
-				$('#show_pin_layer').width($(document).width())
-				$('#show_pin_layer').height($(document).height())
+				current_position = $('#show_pin_layer_content').position()
+				current_position.top = $(window).scrollTop()
+				$('#show_pin_layer_content').css(current_position)
+				$('#show_pin_layer').width($(window).width())
+				$('#show_pin_layer').height($(window).height())
 				$('#show_pin_layer').show()
 				return
 		return
