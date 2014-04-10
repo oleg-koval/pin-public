@@ -20,9 +20,9 @@ $def with (pin, comments, rating)
         <a class='button' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i> Visit Product</a>
     </p>
     $if pin.repin == 0:
-      <img src='/static/tmp/$(pin.id).png' alt=''/>
+      <img src='/static/tmp/$(pin.id).png' alt='' style="max-width:80%;height:auto"/>
     $else:
-      <img src='/static/tmp/$(pin.repin).png' alt=''/>
+      <img src='/static/tmp/$(pin.repin).png' alt='' style="max-width:80%;height:auto"/>
 
     <div class='comments'>
       $ comments = list(comments)
