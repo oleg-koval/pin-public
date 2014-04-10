@@ -760,3 +760,9 @@ textarea, .input {
     font-weight: bold; }
   .category_pin_source_url .pinned_link a {
     text-decorator: none; }
+
+.category_pins_buttons {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  text-align: center; }

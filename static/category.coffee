@@ -39,6 +39,22 @@ jQuery ->
 			get_more_items()
 		return
 
+
+	$(document).on 'mouseenter', '.category_pin', (event) ->
+		event.preventDefault()
+		console.log('over')
+		buttons = $(this).children('.category_pins_buttons')
+		buttons.css($(this).offset())
+		buttons.show()
+		return
+
+
+	$(document).on 'mouseleave', '.category_pin', (event) ->
+		event.preventDefault()
+		buttons = $(this).children('.category_pins_buttons')
+		buttons.hide()
+		return
+
 	
 	$.pin_template = _.template($('#pin_template').html())
 	$.column_control = 1

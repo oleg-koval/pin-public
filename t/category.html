@@ -86,6 +86,19 @@ $else:
         </div>
 <script type="text/html" id="pin_template">
 <div class="category_pin">
+    <div class='category_pins_buttons'>
+      <a id="repinlink" onclick=rePin(this) data-category="<%= category %>" data-description="<%= description %>" href='#' data-toggle="modal" data-target="#addToGetListModal"
+      <% if (repin == 0) { %>
+        data-id="<%= id %>"
+      <% } else { %>
+        data-id="<%= repin %>"
+	  <% } %> 
+      class='repinlink button small-pad'>Add to Your Getlist</a>
+      <a href='/share/<%= id %>' class='button small-pad'><i class='fa fa-share-square'></i></a>
+      <% if (link !== null) { %>
+        <a class='button small-pad' rel='nofollow' href='<%= link %>'><i class='fa fa-external-link-square'></i></a>
+	  <% } %>
+    </div>
 	<div class="category_pin_image">
 		<a href="/pin/<%= id %>"><img src="/static/tmp/pinthumb_212_<%= id %>.png"></a>
 	</div>

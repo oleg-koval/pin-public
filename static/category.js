@@ -54,6 +54,20 @@
         get_more_items();
       }
     });
+    $(document).on('mouseenter', '.category_pin', function(event) {
+      var buttons;
+      event.preventDefault();
+      console.log('over');
+      buttons = $(this).children('.category_pins_buttons');
+      buttons.css($(this).offset());
+      buttons.show();
+    });
+    $(document).on('mouseleave', '.category_pin', function(event) {
+      var buttons;
+      event.preventDefault();
+      buttons = $(this).children('.category_pins_buttons');
+      buttons.hide();
+    });
     $.pin_template = _.template($('#pin_template').html());
     $.column_control = 1;
     get_more_items(true);
