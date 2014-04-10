@@ -2,7 +2,7 @@
 (function() {
 
   jQuery(function() {
-    var get_more_items;
+    var get_more_items, simplify_url;
     get_more_items = function(start) {
       var _this = this;
       $.getJSON('', {
@@ -12,6 +12,10 @@
         var html_text, pin, _i, _len;
         for (_i = 0, _len = data.length; _i < _len; _i++) {
           pin = data[_i];
+          pin['simplifiedurl'] = simplify_url(pin['link']);
+          if (pin['tags'] !== null) {
+            pin['taglist'] = pin['tags'].split(' ');
+          }
           html_text = $.pin_template(pin);
           $('#category_column_' + $.column_control).append(html_text);
           if ($.column_control === 5) {
@@ -21,6 +25,24 @@
           }
         }
       });
+    };
+    simplify_url = function(url) {
+      var simplified;
+      simplified = url;
+      if (simplified.indexOf('http:') === 0) {
+        simplified = simplified.substring(6, simplified.length - 1);
+      }
+      if (simplified.indexOf('https:') === 0) {
+        simplified = simplified.substring(7, simplified.length - 1);
+      }
+      if (simplified.indexOf('//') === 0) {
+        simplified = simplified.substring(2, simplified.length - 1);
+      }
+      if (simplified.indexOf('/') === 0) {
+        simplified = simplified.substring(1, simplified.length - 1);
+      }
+      simplified = simplified.substring(0, simplified.indexOf('/'));
+      return simplified;
     };
     $(window).scroll(function() {
       var doc_height, height, sensitivity, top;

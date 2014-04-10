@@ -718,3 +718,72 @@ textarea, .input
     color: red
     font-size: 120%
     font-weight: bold
+    
+    
+.categori_table
+  border: 0px
+  padding: 0px
+  margin: 0px
+  
+  
+.category_column
+  border: 0px
+  padding: 0px
+  margin: 0px
+  width: 212px
+  vertical-align: top
+
+  
+.column_separator
+  border: 0px
+  padding: 0px
+  margin: 0px
+  width: 13px
+
+
+.category_pin
+  width: 212px
+  max-width: 212px
+  border-radius: 4px
+  background-color: white
+  margin-bottom: 10px
+
+  
+.category_pin_inner_text
+  margin-top: 5px
+  padding-left: 10px
+  padding-right: 10px
+  margin-bottom: 0px
+
+.category_pin_inner_text_separator
+  padding-bottom: 5px
+  border-bottom: 1px solid lightgray
+  
+.category_pin_title
+  @extend .category_pin_inner_text
+  @extend .category_pin_inner_text_separator
+  font-weight: bold
+  font-size: 120%
+  
+.category_pin_description
+  @extend .category_pin_inner_text
+  font-size: 120%
+  
+.category_pin_tags
+  @extend .category_pin_inner_text
+  
+.category_pin_source_url
+  @extend .category_pin_inner_text
+  padding-bottom: 10px
+  font-size: 80%
+  
+  .pinned_from
+    color: light-gray
+    font-weight: bold
+    
+  .pinned_link a
+    text-decorator: none
+  
+.category_pin_likes
+  @extend .category_pin_inner_text
+  @extend .category_pin_inner_text_separator

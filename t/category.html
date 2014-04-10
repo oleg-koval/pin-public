@@ -85,8 +85,31 @@ $else:
         
         </div>
 <script type="text/html" id="pin_template">
-<div class="pin">
-	<img src="/static/tmp/pinthumb_212_<%= id %>.png">
+<div class="category_pin">
+	<div class="category_pin_image"><img src="/static/tmp/pinthumb_212_<%= id %>.png"></div>
+	<% if (name !== '') { %>
+		<div class="category_pin_title"><%= name %></div>
+	<% }
+	   if (description !== '') { %>
+	<div class="category_pin_description"><%= description %></div>
+	<% }
+	   if (tags !== null) { %>
+	<div class="category_pin_tags">
+		<% for (i = 0; i < taglist.length ; i++) { %>
+			<a href="/search/items?q=<%= taglist[i] %>">#<%= taglist[i] %></a>
+		<% } %>
+	</div>
+	<% } %>
+	<div class="category_pin_likes">
+		<span class="fa fa-thumbs-up"><%= like_count %></span>
+		<span class="fa fa-thumbs-tack"><%= repin_count %></span>
+	</div>
+	<% if (link !== '') { %>
+	<div class="category_pin_source_url">
+		<div class="pinned_from">pinned from</div>
+		<div class="pinned_link"><a href="<%= link %>"><%= simplifiedurl %></a></div>
+	</div>
+	<% } %>
 </div>
 </script>
 <script type="text/javascript" src="/static/category.js"></script>
