@@ -1,8 +1,8 @@
 $def with (category, categories, subcategories, boards)
-$if category.id == 0:
+$if category['id'] == 0:
   <h1>Browsing <a href=''>Random Pins</a></h1>
 $else:
-  <h1>Browsing Category <a href=''>$category.name</a></h1>
+  <h1>Browsing Category <a href=''>$category['name']</a></h1>
   $if subcategories:
   	<div class="subcategory_block">
   	$for subcat in subcategories:
@@ -35,7 +35,7 @@ $else:
       <div class="modal fade" id="addToGetListModal">
             <div class="modal-dialog">
               <div class="modal-content">
-              <form action="/add-to-your-own-getlist/$category.id" class='modal-form' id="repin-form" method='post' autocomplete='off'>
+              <form action="/add-to-your-own-getlist/$category['id']" class='modal-form' id="repin-form" method='post' autocomplete='off'>
                 <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h1 class='center pad-bottom'>Adding <a href='#' id="repin-description"></a> to your Getlist</h1>
