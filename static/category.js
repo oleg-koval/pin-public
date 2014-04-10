@@ -27,7 +27,7 @@
       });
     };
     simplify_url = function(url) {
-      var simplified;
+      var first_slash_position, simplified;
       simplified = url;
       if (simplified.indexOf('http:') === 0) {
         simplified = simplified.substring(6, simplified.length - 1);
@@ -41,7 +41,10 @@
       if (simplified.indexOf('/') === 0) {
         simplified = simplified.substring(1, simplified.length - 1);
       }
-      simplified = simplified.substring(0, simplified.indexOf('/'));
+      first_slash_position = simplified.indexOf('/');
+      if (first_slash_position > 0) {
+        simplified = simplified.substring(0, first_slash_position);
+      }
       return simplified;
     };
     $(window).scroll(function() {
@@ -57,7 +60,6 @@
     $(document).on('mouseenter', '.category_pin', function(event) {
       var buttons;
       event.preventDefault();
-      console.log('over');
       buttons = $(this).children('.category_pins_buttons');
       buttons.css($(this).offset());
       buttons.show();

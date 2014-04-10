@@ -120,7 +120,7 @@ $else:
 		&nbsp;&nbsp;
 		<i class="fa fa-thumb-tack"></i> <%= repin_count %>
 	</div>
-	<% if (link !== '') { %>
+	<% if (link !== null) { %>
 	<div class="category_pin_source_url">
 		<div class="pinned_from">pinned from</div>
 		<div class="pinned_link"><a href="<%= link %>"><%= simplifiedurl %></a></div>

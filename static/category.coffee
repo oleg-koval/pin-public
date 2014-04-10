@@ -25,7 +25,9 @@ jQuery ->
 		   simplified = simplified.substring(2, simplified.length - 1)
 		if simplified.indexOf('/') is 0
 		   simplified = simplified.substring(1, simplified.length - 1)
-		simplified = simplified.substring(0, simplified.indexOf('/'))
+		first_slash_position = simplified.indexOf('/')
+		if first_slash_position > 0
+			simplified = simplified.substring(0, first_slash_position)
 		return simplified
 
 
@@ -42,7 +44,6 @@ jQuery ->
 
 	$(document).on 'mouseenter', '.category_pin', (event) ->
 		event.preventDefault()
-		console.log('over')
 		buttons = $(this).children('.category_pins_buttons')
 		buttons.css($(this).offset())
 		buttons.show()
