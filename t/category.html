@@ -90,7 +90,7 @@ $else:
 <script type="text/html" id="pin_template">
 <div class="category_pin">
     <div class='category_pins_buttons'>
-      <a id="repinlink" onclick=rePin(this) data-category="<%= category %>" data-description="<%= description %>" href='#' data-toggle="modal" data-target="#addToGetListModal"
+      <a id="repinlink" onclick=repin_image_load(this) data-category="<%= category %>" data-description="<%= description %>" href='#' data-toggle="modal" data-target="#addToGetListModal"
       <% if (repin == 0) { %>
         data-id="<%= id %>"
       <% } else { %>
@@ -133,3 +133,10 @@ $else:
 </script>
 <script type="text/javascript" src="/static/category.js"></script>
 <script type="text/javascript" src="/static/js/underscore-min.js"></script>
+<script>
+function repin_image_load(clicked) {
+	pinid = $$(clicked).attr('data-id')
+	console.log(pinid)
+	$$('#repin-image').attr('src', '/static/tmp/pinthumb' + pinid + '.png')
+}
+</script>
