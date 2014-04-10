@@ -1,4 +1,4 @@
-$def with (pins, category, categories, subcategories, boards)
+$def with (category, categories, subcategories, boards)
 $if category.id == 0:
   <h1>Browsing <a href=''>Random Pins</a></h1>
 $else:
@@ -11,10 +11,23 @@ $else:
   			<span class="subcategory_spacer">&nbsp;</span>
   	</div>
 <hr>
+<table class="categori_table">
+	<tr>
+		<td class="category_column" id="category_column_1"></td>
+		<td class="column_separator"></td>
+		<td class="category_column" id="category_column_2"></td>
+		<td class="column_separator"></td>
+		<td class="category_column" id="category_column_3"></td>
+		<td class="column_separator"></td>
+		<td class="category_column" id="category_column_4"></td>
+		<td class="column_separator"></td>
+		<td class="category_column" id="category_column_5"></td>
+	</tr>
+</table>
+<div id="scroll_control"></div>
 <div class='clearfix category-disp'>
   <div class='left horz-pins'>
-    $:tpl('pins', pins, 'horzpin')
-  </div>
+   </div>
   
  
 </div>
@@ -71,3 +84,10 @@ $else:
             </div><!-- /.modal-dialog -->
         
         </div>
+<script type="text/html" id="pin_template">
+<div class="pin">
+	<img src="/static/tmp/pinthumb<%= id %>.png">
+</div>
+</script>
+<script type="text/javascript" src="/static/category.js"></script>
+<script type="text/javascript" src="/static/js/underscore-min.js"></script>
