@@ -85,7 +85,8 @@ class PageCategory:
             pin_list.append(pin)
             pin.price = str(pin.price)
         offset = self.sess.get('offset', 0)
-        offset += len(pin_list)
+        if len(pin_list) > 0:
+            offset = offset + 1
         self.sess['offset'] = offset
         json_pins = json.dumps(pin_list)
         return json_pins
