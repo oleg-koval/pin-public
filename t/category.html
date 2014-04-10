@@ -136,7 +136,6 @@ $else:
 <script>
 function repin_image_load(clicked) {
 	pinid = $$(clicked).attr('data-id')
-	console.log(pinid)
 	$$('#repin-image').attr('src', '/static/tmp/pinthumb' + pinid + '.png')
 }
 </script>
