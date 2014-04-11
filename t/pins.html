@@ -1,4 +1,4 @@
-$def with (pins, template=None, options=None, edit_profile=None)
+$def with (pins, template=None, options=None, edit_profile=None,boards=None,categories_to_select=None)
 $ options = options or {}
 $ template = template or 'onepin'
 $ pins = list(pins)
@@ -20,6 +20,13 @@ $else:
 	$else:
 	  <div class='backnext'><button id='button-more'>More Items</button></div>
 
+$for pin in pins:
+	$:tpl('editaddedpinmodal', pin,categories_to_select, boards)
+
+
+	<link rel="stylesheet" href="/static/css/pin_loader.css" />
+<script type='text/javascript' src='/static/addpin.js'></script>
+<script type='text/javascript' src='/static/js/underscore-min.js'></script>  
 	<script type='text/javascript' src='/static/masonry.pkgd.min.js'></script>
 	<script type='text/javascript' src='/static/imagesloaded.pkgd.min.js'></script>
 	<script type='text/javascript' src='/static/infinite.js'></script>

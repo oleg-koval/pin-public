@@ -9,7 +9,7 @@ removeRePin = (e, y) ->
         alert "An error occured, please refresh the page and try again later"
       else
         id = "#horz-pin" + e
-        $(id).slideToggle()
+        $(id).fadeOut()
       return
 (->
 
