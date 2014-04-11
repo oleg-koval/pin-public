@@ -54,7 +54,7 @@ urls = (
     '/lists', 'PageBoards',
     '/(.*?)/list/(\d*)', 'PageBoardList',
     '/browse', 'PageBrowse',
-    '/category/.*?/(\d*)', 'PageCategory',
+    '/category/.*?/(\d*)', 'mypinnings.category_listing.PageCategory',
     '/new-list', 'PageNewBoard',
     '/addpin', 'PageAddPin',
     '/newaddpin', 'NewPageAddPin',
@@ -846,7 +846,7 @@ class PagePin:
                 ''' + query2 + '''
                 left join likes l2 on l2.pin_id = pins.id
                 left join pins p1 on p1.repin = pins.id
-            where pins.id = $id and (not users.private or pins.user_id = $uid)
+            where pins.id = $id
             group by pins.id, tags.tags, users.id''', vars=qvars)
         if not pin:
             return 'pin not found'
@@ -880,7 +880,11 @@ class PagePin:
             rating.avg = 0
 
         rating = round(float(rating.avg), 2)
-        return ltpl('pin', pin, comments, rating)
+        embed = web.input(embed=False).embed
+        if embed:
+            return tpl('pin', pin, comments, rating)
+        else:
+            return ltpl('pin', pin, comments, rating)
 
     def POST(self, pin_id):
         force_login(sess)
