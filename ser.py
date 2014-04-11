@@ -51,6 +51,7 @@ urls = (
     '/resend-activation', 'PageResendActivation',
     '/logout', 'PageLogout',
     '/dashboard', 'PageDashboard',
+    '/lists/(\d+)/items/?','mypinnings.lists.ListItemsJson',
     '/lists', 'PageBoards',
     '/(.*?)/list/(\d*)', 'PageBoardList',
     '/browse', 'PageBrowse',
@@ -1087,9 +1088,9 @@ class PageProfile2:
 
         user = user[0]
 
-        boards = db.select('boards',
+        boards = list(db.select('boards',
             where='user_id=$user_id',
-            vars={'user_id': user.id})
+            vars={'user_id': user.id}))
 
         is_logged_in = logged_in(sess)
 

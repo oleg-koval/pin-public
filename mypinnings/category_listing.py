@@ -10,6 +10,7 @@ from mypinnings import session
 from mypinnings import template
 from mypinnings import cached_models
 from mypinnings.conf import settings
+from mypinnings import image_utils
 
 
 logger = logging.getLogger('mypinnings.categories')
@@ -86,20 +87,8 @@ class PageCategory:
         pins = self.db.query(self.query, vars={'cid': self.cid})
         pin_list = []
         for pin in pins:
-            image_thumb_filename = 'static/tmp/pinthumb_212_{}.png'.format(pin.id)
-            if not os.path.exists(image_thumb_filename):
-                try:
-                    original_image_filename = 'static/tmp/{}.png'.format(pin.id)
-                    original_image = Image.open(original_image_filename)
-                    width, height = original_image.size
-                    ratio = 212 / float(width)
-                    width = 212
-                    height *= ratio
-                    original_image.thumbnail((width, height), Image.ANTIALIAS)
-                    original_image.save(image_thumb_filename)
-                except:
-                    logger.error('could not generate thumbnail for: {}'.format(original_image_filename), exc_info=True)
-                    continue
+            if not image_utils.create_thumbnail_212px_for_pin(pin):
+                continue
             pin_list.append(pin)
             pin.price = str(pin.price)
         offset = self.sess.get('offset', 0)
