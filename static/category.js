@@ -5,6 +5,10 @@
     var get_more_items, simplify_url;
     get_more_items = function(start) {
       var _this = this;
+      if ($.loading_more) {
+        return;
+      }
+      $.loading_more = true;
       $.getJSON('', {
         ajax: 1,
         'start': start
@@ -24,6 +28,7 @@
             $.column_control += 1;
           }
         }
+        $.loading_more = false;
       });
     };
     simplify_url = function(url) {
@@ -95,6 +100,7 @@
     });
     $.pin_template = _.template($('#pin_template').html());
     $.column_control = 1;
+    $.loading_more = false;
     get_more_items(true);
   });
 
