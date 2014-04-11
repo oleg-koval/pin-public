@@ -9,9 +9,8 @@ from mypinnings import database
 from mypinnings import session
 from mypinnings import template
 from mypinnings import cached_models
+from mypinnings.conf import settings
 
-
-PIN_COUNT = 50
 
 logger = logging.getLogger('mypinnings.categories')
 
@@ -65,7 +64,7 @@ class PageCategory:
                 join categories on pins_categories.category_id = categories.id
             where ''' + self.where + '''
             group by tags.tags, categories.id, pins.id, users.id
-            order by timestamp desc offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT)
+            order by timestamp desc offset %d limit %d''' % (offset * settings.PIN_COUNT, settings.PIN_COUNT)
         return self.query
 
     def template_for_showing_categories(self):
