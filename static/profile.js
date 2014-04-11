@@ -99,7 +99,7 @@
 
   $.pin_template = _.template($('#pin_template').html());
 
-  $.current_board = 0;
+  $.current_board = $('.profile_list_subtab:first').attr('boardid');
 
   $('.profile_list_subtab').on('click', function(event) {
     var boardid, loading;
@@ -109,7 +109,7 @@
       return;
     }
     $.current_board = boardid;
-    return get_more_items();
+    get_more_items();
   });
 
   get_more_items = function() {
@@ -208,6 +208,8 @@
     event.stopPropagation();
     event.stopInmediatePropagation();
   });
+
+  get_more_items();
 
   return;
 

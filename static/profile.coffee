@@ -82,7 +82,7 @@ jQuery ->
 	$.loading = Array()
 	$.column = Array()
 	$.pin_template = _.template($('#pin_template').html())
-	$.current_board = 0
+	$.current_board = $('.profile_list_subtab:first').attr('boardid')
 	
 	$('.profile_list_subtab').on 'click', (event) ->
 		boardid = $(this).attr('boardid')
@@ -91,6 +91,7 @@ jQuery ->
 			return
 		$.current_board = boardid
 		get_more_items()
+		return
 		
 	
 	get_more_items = ->
@@ -178,5 +179,7 @@ jQuery ->
 		event.stopInmediatePropagation()
 		return
 
+
+	get_more_items()
 
 	return
