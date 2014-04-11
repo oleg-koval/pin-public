@@ -883,9 +883,9 @@ class PagePin:
         rating = round(float(rating.avg), 2)
         embed = web.input(embed=False).embed
         if embed:
-            return tpl('pin', pin, comments, rating)
+            return tpl('pin', pin, comments, rating, True)
         else:
-            return ltpl('pin', pin, comments, rating)
+            return ltpl('pin', pin, comments, rating, False)
 
     def POST(self, pin_id):
         force_login(sess)
