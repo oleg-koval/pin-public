@@ -51,6 +51,7 @@ urls = (
     '/resend-activation', 'PageResendActivation',
     '/logout', 'PageLogout',
     '/dashboard', 'PageDashboard',
+    '/lists/(\d+)/items/?','mypinnings.lists.ListItemsJson',
     '/lists', 'PageBoards',
     '/(.*?)/list/(\d*)', 'PageBoardList',
     '/browse', 'PageBrowse',
@@ -882,9 +883,9 @@ class PagePin:
         rating = round(float(rating.avg), 2)
         embed = web.input(embed=False).embed
         if embed:
-            return tpl('pin', pin, comments, rating)
+            return tpl('pin', pin, comments, rating, True)
         else:
-            return ltpl('pin', pin, comments, rating)
+            return ltpl('pin', pin, comments, rating, False)
 
     def POST(self, pin_id):
         force_login(sess)
@@ -1086,13 +1087,11 @@ class PageProfile2:
             return 'Page not found.'
 
         user = user[0]
-        add_default_lists(user.id)
 
-        boards = db.select('boards',
+        boards = list(db.select('boards',
             where='user_id=$user_id',
             vars={'user_id': user.id})
         categories_to_select = cached_models.get_categories_with_children(db)
-
         is_logged_in = logged_in(sess)
 
         if is_logged_in and sess.user_id != user.id:
@@ -2044,26 +2043,6 @@ def csrf_protected(f):
 <a href="">Back to the form</a>.""")
         return f(*args, **kwargs)
     return decorated
-
-
-def add_default_lists(uid):
-    '''Each new user will get 3 lists by default:
-
-        Lists:
-
-        Things to get
-
-        Food to eat
-
-        Places to visit'''
-    lists = db.select('boards',
-            where='user_id=$user_id AND name=$name',
-            vars={'user_id': sess.user_id,'name':'Things to get'})
-    default_list = {'Things to get', 'Food to eat', 'Places to visit'}
-    if not lists:
-        for x in default_list:
-            db.insert('boards', user_id=uid, name=x,
-                description='Default List', public=False)
 
 if __name__ == '__main__':
 

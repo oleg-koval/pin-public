@@ -1,5 +1,8 @@
 jQuery ->
 	get_more_items = (start) ->
+		if $.loading_more
+			return
+		$.loading_more = true
 		$.getJSON '', {ajax: 1, 'start': start}, (data) =>
 			for pin in data
 				pin['simplifiedurl'] = simplify_url(pin['link'])
@@ -11,6 +14,7 @@ jQuery ->
 					$.column_control = 1
 				else
 					$.column_control += 1
+			$.loading_more = false
 			return
 		return
 
@@ -87,5 +91,6 @@ jQuery ->
 	
 	$.pin_template = _.template($('#pin_template').html())
 	$.column_control = 1
+	$.loading_more = false
 	get_more_items(true)
 	return

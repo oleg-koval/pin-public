@@ -11,9 +11,8 @@ removeRePin = (e, y) ->
         id = "#horz-pin" + e
         $(id).fadeOut()
       return
-(->
 
-  
+jQuery ->
   $("#save_thumbnail_edit").click ->
     location.reload true
     return
@@ -76,4 +75,111 @@ removeRePin = (e, y) ->
     $(this).tab "show"
     return
 
-).call this
+
+# ******** boards (lists) related code
+	$('#profile_lists_tabs').tabs()
+	$.offset = Array()
+	$.loading = Array()
+	$.column = Array()
+	$.pin_template = _.template($('#pin_template').html())
+	$.current_board = $('.profile_list_subtab:first').attr('boardid')
+	
+	$('.profile_list_subtab').on 'click', (event) ->
+		boardid = $(this).attr('boardid')
+		loading = $.loading[boardid]
+		if loading is true
+			return
+		$.current_board = boardid
+		get_more_items()
+		return
+		
+	
+	get_more_items = ->
+		boardid = $.current_board
+		$.loading[boardid] = true
+		offset = $.offset[boardid]
+		if offset is undefined
+			offset = 0
+			$.offset[boardid] = 0
+		else
+			offset += 1
+			$.offset[boardid] += 1
+		$.getJSON '/lists/' + boardid + '/items/?offset=' + offset, (data) ->
+			for pin in data
+				column = $.column[boardid]
+				if column is undefined
+					column = 1
+					$.column[boardid] = 1
+				pin['simplifiedurl'] = simplify_url(pin['link'])
+				if pin['tags'] isnt null
+					pin['taglist'] = pin['tags'].split(' ')
+				html_text = $.pin_template(pin)
+				selector = '#column_' + boardid + '_' + column
+				$(selector).append(html_text)
+				if $.column[boardid] is 5
+					$.column[boardid] = 1
+				else
+					$.column[boardid] += 1
+			$.loading[boardid] = false
+			return
+		return
+
+
+	simplify_url = (url) ->
+		simplified = url
+		if simplified.indexOf('http:') is 0
+		   simplified = simplified.substring(6, simplified.length - 1)
+		if simplified.indexOf('https:') is 0
+		   simplified = simplified.substring(7, simplified.length - 1)
+		if simplified.indexOf('//') is 0
+		   simplified = simplified.substring(2, simplified.length - 1)
+		if simplified.indexOf('/') is 0
+		   simplified = simplified.substring(1, simplified.length - 1)
+		first_slash_position = simplified.indexOf('/')
+		if first_slash_position > 0
+			simplified = simplified.substring(0, first_slash_position)
+		return simplified
+
+
+	# detect when scrolling to bottom to load more items
+	$(window).scroll ->
+		top = $(window).scrollTop()
+		height = $(window).innerHeight();
+		doc_height = $(document).height()
+		sensitivity = 600
+		if top + height + sensitivity > doc_height
+			get_more_items()
+		return
+		
+		
+	$(document).on 'click', '.category_pin_image', (event) ->
+		event.preventDefault()
+		pinid = $(this).attr('pinid')
+		$.get '/item/' + pinid + '?embed=true',
+			(data) ->
+				$('#show_pin_layer_content').html(data)
+				current_position = $('#show_pin_layer_content').position()
+				current_position.top = $(window).scrollTop()
+				$('#show_pin_layer_content').css(current_position)
+				$('#show_pin_layer').width($(window).width())
+				$('#show_pin_layer').height($(window).height())
+				$('#show_pin_layer').show()
+				return
+		return
+	
+	
+	$('#show_pin_layer').on 'click', (event) ->
+		event.preventDefault()
+		$(this).hide()
+		return
+		
+		
+	$('#show_pin_layer_content').on 'click', (event) ->
+		event.stopPropagation()
+		event.stopInmediatePropagation()
+		return
+
+
+	get_more_items()
+
+	return

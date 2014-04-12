@@ -11,7 +11,7 @@ $else:
   			<span class="subcategory_spacer">&nbsp;</span>
   	</div>
 <hr>
-<table class="categori_table">
+<table class="category_table">
 	<tr>
 		<td class="category_column" id="category_column_1"></td>
 		<td class="column_separator"></td>
@@ -24,7 +24,7 @@ $else:
 		<td class="category_column" id="category_column_5"></td>
 	</tr>
 </table>
-<div id="scroll_control"></div>
+
 <div class='clearfix category-disp'>
   <div class='left horz-pins'>
    </div>
@@ -84,53 +84,7 @@ $else:
             </div><!-- /.modal-dialog -->
         
         </div>
-<div id="show_pin_layer">
-	<div id="show_pin_layer_content"></div>
-</div>
-<script type="text/html" id="pin_template">
-<div class="category_pin">
-    <div class='category_pins_buttons'>
-      <a id="repinlink" onclick=repin_image_load(this) data-category="<%= category %>" data-description="<%= description %>" href='#' data-toggle="modal" data-target="#addToGetListModal"
-      <% if (repin == 0) { %>
-        data-id="<%= id %>"
-      <% } else { %>
-        data-id="<%= repin %>"
-	  <% } %> 
-      class='repinlink button small-pad'>Add to Your Getlist</a>
-      <a href='/share/<%= id %>' class='button small-pad'><i class='fa fa-share-square'></i></a>
-      <% if (link !== null) { %>
-        <a class='button small-pad' rel='nofollow' href='<%= link %>'><i class='fa fa-external-link-square'></i></a>
-	  <% } %>
-    </div>
-	<div class="category_pin_image" pinid="<%= id %>">
-		<img src="/static/tmp/pinthumb_212_<%= id %>.png">
-	</div>
-	<% if (name !== '') { %>
-		<div class="category_pin_title"><%= name %></div>
-	<% }
-	   if (description !== '') { %>
-	<div class="category_pin_description"><%= description %></div>
-	<% }
-	   if (tags !== null) { %>
-	<div class="category_pin_tags">
-		<% for (i = 0; i < taglist.length ; i++) { %>
-			<a href="/search/items?q=<%= taglist[i] %>">#<%= taglist[i] %></a>
-		<% } %>
-	</div>
-	<% } %>
-	<div class="category_pin_likes">
-		<i class="fa fa-thumbs-up"></i> <%= like_count %>
-		&nbsp;&nbsp;
-		<i class="fa fa-thumb-tack"></i> <%= repin_count %>
-	</div>
-	<% if (link !== null) { %>
-	<div class="category_pin_source_url">
-		<div class="pinned_from">pinned from</div>
-		<div class="pinned_link"><a href="<%= link %>"><%= simplifiedurl %></a></div>
-	</div>
-	<% } %>
-</div>
-</script>
+$:tpl('pin212px_template')
 <script type="text/javascript" src="/static/category.js"></script>
 <script type="text/javascript" src="/static/js/underscore-min.js"></script>
 <script>
