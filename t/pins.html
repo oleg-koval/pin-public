@@ -8,10 +8,12 @@ $if edit_profile:
 $else:
 	<div id='pin-box-wrapper' class='tab-pane fade active in'>
 	<div id='pin-box' class='pins'></div>
-<div class='invis' id='pin-buf'>
+<div class='' id='pin-buf'>
 	  $ i = 0
 	  $for pin in pins:
 	    $ i += 1
+	    $if not pin.repin:
+	    	$:tpl('editaddedpinmodal', pin,categories_to_select, boards)
 	    $:tpl(template, pin)
 	</div>
 	$if not [x for x in pins if x.id]:
@@ -20,8 +22,8 @@ $else:
 	$else:
 	  <div class='backnext'><button id='button-more'>More Items</button></div>
 
-$for pin in pins:
-	$:tpl('editaddedpinmodal', pin,categories_to_select, boards)
+
+	
 
 
 	<link rel="stylesheet" href="/static/css/pin_loader.css" />
