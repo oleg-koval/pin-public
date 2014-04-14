@@ -254,3 +254,9 @@ disableNormalScroll = function(e) {
 };
 
 get_more_items();
+
+jQuery(function() {
+  return $.ajaxSetup({
+    cache: false
+  });
+});

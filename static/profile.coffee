@@ -215,3 +215,7 @@ disableNormalScroll = (e) ->
 
 
 get_more_items()
+
+
+jQuery ->
+	$.ajaxSetup({ cache: false })
