@@ -14,7 +14,11 @@ class ManageGetList(BaseAPI):
         """
             Manage list of user products: share, add, remove
         """
-        request_data = web.input(image_id_remove_list=[],image_id_share_list=[],image_id_add_list=[])
+        request_data = web.input(
+            image_id_remove_list=[],
+            image_id_share_list=[],
+            image_id_add_list=[],
+        )
 
         save_api_request(request_data)
         client_token = request_data.get("client_token")
@@ -22,10 +26,13 @@ class ManageGetList(BaseAPI):
 
         image_id_add_list = map(int, request_data.get("image_id_add_list"))
         add_list_result = []
-        if len(image_id_add_list) > 0:             
+        if len(image_id_add_list) > 0:
             add_list_result = self.add(user_id, image_id_add_list)
 
-        image_id_remove_list = map(int, request_data.get("image_id_remove_list"))
+        image_id_remove_list = map(
+            int,
+            request_data.get("image_id_remove_list")
+        )
         remove_list_result = []
         if len(image_id_remove_list) > 0:
             remove_list_result = self.remove(user_id, image_id_remove_list)
@@ -49,13 +56,15 @@ class ManageGetList(BaseAPI):
         """
         add_list_result = []
         for pin in add_list:
-            user_product = {"user_id": user_id, "pin_id": pin} 
-            exist_product = db.select('user_prefered_pins', where=web.db.sqlwhere(user_product))
+            user_product = {"user_id": user_id, "pin_id": pin}
+            exist_product = db.select(
+                'user_prefered_pins',
+                where=web.db.sqlwhere(user_product)
+            )
             if len(exist_product) == 0:
                 add_list_result.append(pin)
                 db.insert('user_prefered_pins', user_id=user_id, pin_id=pin)
         return add_list_result
-
 
     def remove(self, user_id, remove_list):
         """
@@ -63,19 +72,21 @@ class ManageGetList(BaseAPI):
         """
         remove_list_result = []
         for pin in remove_list:
-            user_product = {"user_id": user_id, "pin_id": pin} 
-            exist_product = db.select('user_prefered_pins', where=web.db.sqlwhere(user_product))
+            user_product = {"user_id": user_id, "pin_id": pin}
+            exist_product = db.select(
+                'user_prefered_pins',
+                where=web.db.sqlwhere(user_product)
+            )
             if len(exist_product) > 0:
                 remove_list_result.append(pin)
-                db.delete('user_prefered_pins', where=web.db.sqlwhere(user_product))
+                db.delete(
+                    'user_prefered_pins',
+                    where=web.db.sqlwhere(user_product)
+                )
         return remove_list_result
-        
 
     def share(self, user_id, share_list):
         """
             Share products from user profile
         """
         pass
-
-
-

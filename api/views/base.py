@@ -29,8 +29,12 @@ class BaseAPI(object):
         """
             Get user_id by client token
         """
-        user = db.select('users', {"logintoken": client_token}, where="logintoken=$logintoken")
-        if len(user)>0:
+        user = db.select(
+            'users',
+            {"logintoken": client_token},
+            where="logintoken=$logintoken"
+        )
+        if len(user) > 0:
             return int(user.list()[0]['id'])
         else:
             if client_token is None:
