@@ -12,7 +12,9 @@ removeRePin = (e, y) ->
         $(id).slideToggle()
       return
 
-jQuery ->
+
+(->
+
   $("#save_thumbnail_edit").click ->
     location.reload true
     return
@@ -182,4 +184,4 @@ jQuery ->
 
 	get_more_items()
 
-	return
+).call this
