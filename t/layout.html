@@ -14,6 +14,7 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
     <script type="text/javascript" src="/static/main.js"></script>
     <link href="/static/modal.css" rel="stylesheet" />
     <script src="/static/bootstrap.min.js"></script>
+    <script src="/static/jquery.rs.slideshow.min.js"></script>
   </head>
   <body>
     <div class='header'>
@@ -26,7 +27,7 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
               <div class='menu left-side add-to-getlist invis' id='menu2'>
 
                 <a href='#' id="add_getlist_link">Upload to Getlist</a>
-                <a href='/add-from-website'>Add to Getlist from Website</a>
+                <a href='#' id="web_getlist_link">Add to Getlist from Website</a>
                 $if user and user.is_pin_loader:
                 	<a href='/admin/input/'>Pin Uploaders page</a>
               </div>
@@ -97,6 +98,19 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
         $if acti_needed is not None:
             $if acti_needed:
                 <div class='notice'>Notice: You haven't activated your account yet! Please check $user.email. <a href='/resend-activation'>Resend</a></div>
+    <div id="getlist-from-web">
+    <form method="get" action="/preview"  id="web_getlist_form">
+    Image Link Or website Address
+	<input type="input" name="url" id="url" placeholder="http://"><br/>
+	    <input type="button" id="get_cancel" value="Go Back">
+        <input type="button" id="fetch-images" value="Fetch Images">
+	</form>
+	<div class="progress" style="display:none" >
+		<div class="bar"></div >
+		<div class="percent">0%</div >
+		<div id="statusweb"></div>
+	</div>
+    </div>
 	<div id="dialog-form" >
 	<form method="post" action="/newaddpin" enctype="multipart/form-data" id="upload_form">
 	<input type="file" name="image" id="image" accept="image/*" placeholder="Please choose a file"><br/>
@@ -115,8 +129,13 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
 	<div class="wrapper">
 	<form method="post" action="/newaddpinform" id="ajaxpinform">
 	    <div class="c1" id="imagediv">
-
-	    </div>
+	    <div id="slideshow" class="photo">
+            <img src="" id="slide-image">
+        </div>
+        <div id="controls">
+        <span> <a href="#" id="galleryprev">prev</a> <a id="gallerynext" href="#">next</a></span><span id="status-text"> </span>
+        </div>             
+        </div>
 	    <div class="c2">
 
         <input type="hidden" id="fname" value="">
@@ -132,9 +151,42 @@ $def with (content, categories,all_albums=None, user=None, acti_needed=None, not
         </div>
     </div>
     <div class="row">
-    <textarea id="comments" placeholder="Say something about this"></textarea><br>
+    <textarea id="comments" class="comments" placeholder="Say something about this"></textarea><br>
+    <input type="hidden" id="image-url" >
     <input type="button" id="cancelfancy" name="cancelfancy" value="Cancel">&nbsp;&nbsp;
     <input type="submit" id="addfancy" name="addfancy" value="Add To Fancy">
+    </div>
+    </form>
+    </div>
+    <div id="addpindialogformweb">
+	<div class="wrapper">
+	<form method="post" action="/add-from-website" id="ajaxpinformweb">
+	    <div class="c1" id="imagedivweb">
+	    <div id="slideshowweb" class="photo">
+            <img src="" id="slide-imageweb">
+        </div>
+        <div id="controls-web">
+        <span> <a href="#" id="galleryprevweb">prev</a> <a id="gallerynextweb" href="#">next</a></span><span id="status-textweb"> </span>
+        </div>             
+        </div>
+	    <div class="c2">
+
+        <table>
+        <tr><th><label for="title"></label></th><td><div id="imagenameweb"></div></td></tr>
+        <tr><th><label for="title">Title</label></th><td><input type="text" id="titleweb"></td></tr>
+        <tr><th><label for="weblink">Link</label></th><td><input type="text" id="weblinkweb" placeholder="Where to buy?"></td></tr>
+        <tr><th><label for="category">Category</label></th><td><select type="text" id="categoryweb">
+            $for cat in categories:
+                <option value="$cat['id']">$cat['name']</option>
+        </select></td></tr>
+        </table>
+        </div>
+    </div>
+    <div class="row">
+    <textarea id="commentsweb" class="comments" placeholder="Say something about this"></textarea><br>
+    <input type="hidden" id="image_urlweb" >
+    <input type="button" id="cancelfancyweb" name="cancelfancy" value="Cancel">&nbsp;&nbsp;
+    <input type="submit" id="addfancyweb" name="addfancy" value="Add To Fancy">
     </div>
     </form>
     </div>
