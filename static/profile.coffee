@@ -165,6 +165,7 @@ $(document).on 'click', '.category_pin_image', (event) ->
 			$('#show_pin_layer').width($(window).width())
 			$('#show_pin_layer').height($(window).height())
 			$('#show_pin_layer').show()
+			disable_scroll()
 			return
 	return
 
@@ -172,6 +173,7 @@ $(document).on 'click', '.category_pin_image', (event) ->
 $('#show_pin_layer').on 'click', (event) ->
 	event.preventDefault()
 	$(this).hide()
+	enable_scroll()
 	return
 	
 	
@@ -179,6 +181,37 @@ $('#show_pin_layer_content').on 'click', (event) ->
 	event.stopPropagation()
 	event.stopInmediatePropagation()
 	return
+		
+		
+disable_scroll = () ->
+	$(document).on('mousedown',disableMiddleMouseButtonScrolling)
+	$(document).on('mousewheel DOMMouseScroll wheel',disableNormalScroll)
+	$(window).on('scroll',disableNormalScroll)
+	$.oldScrollTop = $(document).scrollTop()
+
+
+enable_scroll = () ->
+	$(document).off('mousedown',disableMiddleMouseButtonScrolling)
+	$(document).off('mousewheel DOMMouseScroll wheel',disableNormalScroll)
+	$(window).off('scroll',disableNormalScroll)
+	
+
+disableMiddleMouseButtonScrolling = (e) ->
+	if e.which == 2
+		if e.target.id isnt 'show_pin_layer'
+			$('html, body').scrollTop($.oldScrollTop)
+			return true
+		e.preventDefault()
+	return false
+
+
+disableNormalScroll = (e) ->
+	if e.target.id isnt 'show_pin_layer'
+		$('html, body').scrollTop($.oldScrollTop)
+		return true
+	e.preventDefault()
+	$('html, body').scrollTop($.oldScrollTop)
+	return false
 
 
 get_more_items()
