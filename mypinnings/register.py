@@ -68,6 +68,7 @@ class PageRegister:
             if not user_id:
                 msg = _('Sorry, a database error occurred and we couldn\'t create your account.')
                 return template.tpl('register/reg', form, msg)
+            add_default_lists(user_id)
             send_activation_email(form.d.email, hashed, user_id)
             auth.login_user(session.get_session(), user_id)
             raise web.seeother('/after-signup')
@@ -158,6 +159,7 @@ class PageAfterSignup:
                 continue
             if not cp.name:
                 cp.name = cp.description
+            cp.price = str(cp.price)
             json_pins.append(json.dumps(cp))
         random.shuffle(json_pins)
         results = db.where(table='users', what='username', id=sess.user_id)
@@ -269,5 +271,23 @@ class ApiRegisterCoolPinForUser(object):
 def send_activation_email(email, hashed, user_id):
     web.sendmail('noreply@mypinnings.com', email, 'Please activate your MyPinnings account',
                  str(template.tpl('email', hashed, user_id)), headers={'Content-Type': 'text/html;charset=utf-8'})
+
+
+def add_default_lists(uid):
+    '''Each new user will get 3 lists by default:
+
+        Lists:
+
+        Things to get
+
+        Food to eat
+
+        Places to visit'''
+    db = database.get_db()
+    default_list = {'Things to get', 'Food to eat', 'Places to visit'}
+    for x in default_list:
+        db.insert('boards', user_id=uid, name=x,
+            description='Default List', public=False)
+
 
 app = web.application(urls, locals())

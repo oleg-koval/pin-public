@@ -245,6 +245,19 @@ $(document).ready(function() {
         
     }
     
+    $('#button_add_board').on('click', function(event) {
+    	event.preventDefault();
+    	$('#board').val('');
+    	$('#board_selection_layer').hide();
+    	$('#board_creation_layer').show();
+    });
+    
+    $('#button_select_board').on('click', function(event) {
+    	event.preventDefault();
+    	$('#board_name').val('');
+    	$('#board_creation_layer').hide();
+    	$('#board_selection_layer').show();
+    });
 
     });
 

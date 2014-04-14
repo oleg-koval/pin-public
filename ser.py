@@ -51,10 +51,11 @@ urls = (
     '/resend-activation', 'PageResendActivation',
     '/logout', 'PageLogout',
     '/dashboard', 'PageDashboard',
+    '/lists/(\d+)/items/?','mypinnings.lists.ListItemsJson',
     '/lists', 'PageBoards',
     '/(.*?)/list/(\d*)', 'PageBoardList',
     '/browse', 'PageBrowse',
-    '/category/.*?/(\d*)', 'PageCategory',
+    '/category/.*?/(\d*)', 'mypinnings.category_listing.PageCategory',
     '/new-list', 'PageNewBoard',
     '/addpin', 'PageAddPin',
     '/newaddpin', 'NewPageAddPin',
@@ -456,11 +457,17 @@ class NewPageAddPinForm:
 
         transaction = db.transaction()
         try:
+            if data.board:
+                board = int(data.board)
+            elif data.board_name:
+                board = db.insert(tablename='boards', name=data.board_name, description=data.board_name,
+                                  user_id = sess.user_id)
             pin_id = db.insert('pins',
                 description=data.comments,
                 user_id=sess.user_id,
                 link=data.weblink,
-                name=data.title
+                name=data.title,
+                board_id=board
                 )
 
             categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in data.category.split(',')]
@@ -475,6 +482,7 @@ class NewPageAddPinForm:
         except Exception as e:
             logger.error('Failed to create a pin from a file upload', exc_info=True)
             transaction.rollback()
+            return '/'
 
 
 class NewPageAddPin:
@@ -537,6 +545,15 @@ class PageAddPinUrl:
             link = data.link
             if link and '://' not in link:
                 link = 'http://%s' % link
+                
+            # create a new board if necessary
+            if form.d.board_id:
+                board_id = int(form.d.board_id)
+            elif form.d.board_name:
+                board_id = db.insert(tablename='boards', name=form.d.board_name, description=form.d.board_name,
+                                     user_id=sess.user_id)
+            else:
+                web.seeother(url='?msg={}'.format('Invalid list to put your product, please review'), absolute=False)
 
             pin_id = db.insert('pins',
                 description=data.description,
@@ -583,20 +600,22 @@ class PageRemoveRepin:
 
 
 class PageRepin:
-    def make_form(self, pin=None, categories=None):
-        categories = categories or []
-        categories = [(x.id, x.name) for x in categories]
+    def make_form(self, pin=None, boards=None):
+        boards = boards or []
+        boards = [(x.id, x.name) for x in boards]
 
         if pin is None:
             return form.Form(
                 form.Textarea('description'),
-                form.Dropdown('category', categories),
+                form.Dropdown('board', boards),
+                form.Textbox('board_name'),
                 form.Textbox('tags', description='tags (optional)', placeholder='#this #is #awesome'),
                 form.Button('add to getlist')
             )()
         return form.Form(
             form.Textarea('description', value=pin.description),
-            form.Dropdown('category', categories),
+            form.Dropdown('board', boards),
+            form.Textbox('board_name'),
             form.Textbox('tags', description='tags (optional)', placeholder='#this #is #awesome'),
             form.Button('add to getlist')
         )()
@@ -621,34 +640,56 @@ class PageRepin:
         force_login(sess)
 
         pin_id = int(pin_id)
-        pin = dbget('pins', pin_id)
-        if pin is None:
-            return 'pin doesn\'t exist'
-
-        if pin.repin:
-            pin_id = pin.repin
-
-        form = self.make_form()
-        if not form.validates():
-            return 'please fill out all the form fields'
-
-        pin_id = db.insert('pins',
-            description=form.d.description,
-            user_id=sess.user_id,
-            repin=pin_id)
-
-        db.insert('pins_categories', pin_id=pin_id, category_id=form.d.category)
-
-        if form.d.tags:
-            tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
-            db.insert('tags', pin_id=pin_id, tags=tags)
-
-        user = dbget('users', sess.user_id)
-        cid = int(form.d.category)
-        cat = dbget('boards', cid)
-        make_notif(pin.user_id, 'Someone has added your item to their Getlist!', '/pin/%d' % pin_id)
-        # raise web.seeother('/pin/%d' % pin_id)
-        raise web.seeother('/%s/list/%d' % (user.username, cat.id))
+        transaction = db.transaction()
+        try:
+            pin = dbget('pins', pin_id)
+            if pin is None:
+                return 'pin doesn\'t exist'
+    
+            if pin.repin:
+                pin_id = pin.repin
+    
+            form = self.make_form()
+            if not form.validates():
+                return 'please fill out all the form fields'
+            if form.d.board and form.d.board != '':
+                board = int(form.d.board)
+            elif form.d.board_name != '':
+                board = db.insert(tablename='boards', name=form.d.board_name, description=form.d.board_name,
+                                  user_id=sess.user_id)
+            else:
+                return 'Please fill aout all the form fields'
+            # preserve all data from original pin, update description, repin and board
+            new_pin_id = db.insert('pins',
+                                   name=pin.name,
+                                   description=form.d.description,
+                                   user_id=sess.user_id,
+                                   repin=pin_id,
+                                   link=pin.link,
+                                   image_url=pin.image_url,
+                                   price=pin.price,
+                                   product_url=pin.product_url,
+                                   price_range=pin.price_range,
+                                   board_id=board)
+    
+            # preserve all the categories from original pin
+            results = db.where(table='pins_categories', pin_id=pin_id)
+            categories_from_previous_item = [{'pin_id': new_pin_id, 'category_id': row.category_id} for row in results]
+            db.multiple_insert(tablename='pins_categories', values=categories_from_previous_item)
+    
+            if form.d.tags:
+                tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
+                db.insert('tags', pin_id=new_pin_id, tags=tags)
+    
+            user = dbget('users', sess.user_id)
+            make_notif(pin.user_id, 'Someone has added your item to their Getlist!', '/pin/%d' % pin_id)
+            transaction.commit()
+            # raise web.seeother('/pin/%d' % pin_id)
+            raise web.seeother('/%s/list/%d' % (user.username, board))
+        except:
+            logger.error('Failed to add to get list', exc_info=True)
+            transaction.rollback()
+            return 'Server error'
 
 
 class PageEditProfile:
@@ -771,7 +812,7 @@ class PagePin:
                 ''' + query2 + '''
                 left join likes l2 on l2.pin_id = pins.id
                 left join pins p1 on p1.repin = pins.id
-            where pins.id = $id and (not users.private or pins.user_id = $uid)
+            where pins.id = $id
             group by pins.id, tags.tags, users.id''', vars=qvars)
         if not pin:
             return 'pin not found'
@@ -805,7 +846,11 @@ class PagePin:
             rating.avg = 0
 
         rating = round(float(rating.avg), 2)
-        return ltpl('pin', pin, comments, rating)
+        embed = web.input(embed=False).embed
+        if embed:
+            return tpl('pin', pin, comments, rating, True)
+        else:
+            return ltpl('pin', pin, comments, rating, False)
 
     def POST(self, pin_id):
         force_login(sess)
@@ -835,8 +880,8 @@ class PagePin:
 
 class PageBoardList:
 
-    def GET(self, username, cid):
-        cid = int(cid)
+    def GET(self, username, board_id):
+        board_id = int(board_id)
 
         user = db.select('users', where='username = $username', vars={'username': username})
         if not user:
@@ -847,8 +892,8 @@ class PageBoardList:
         offset = int(web.input(offset=0).offset)
         ajax = int(web.input(ajax=0).ajax)
 
-        category = dbget('boards', cid)
-        if not category:
+        board = dbget('boards', board_id)
+        if not board:
             return "List not Found"
 
         pins = db.query('''
@@ -864,16 +909,16 @@ class PageBoardList:
                 left join categories on categories.id in
                     (select category_id from pins_categories
                     where pin_id = pins.id
-                    and category_id = $cid
                     limit 1)
             where not users.private
+                and pins.board_id=$board_id
             group by pins.id, tags.tags, users.id, categories.id
             offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT),
-            vars={'cid': cid})
+            vars={'board_id': board_id})
 
         if ajax:
             return json_pins(pins)
-        return ltpl('board', user, category, pins)
+        return ltpl('board', user, board, pins)
 
 
 class PageBuyList:
@@ -899,7 +944,7 @@ class PageBuyList:
 
         pins = db.query('''
             select
-                tags.tags, pins.*, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+                tags.tags, pins.*, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
                 count(distinct p1) as repin_count,
                 count(distinct l1) as like_count
             from pins
@@ -907,8 +952,9 @@ class PageBuyList:
                 left join tags on tags.pin_id = pins.id
                 left join pins p1 on p1.repin = pins.id
                 left join likes l1 on l1.pin_id = pins.id
-                left join categories on categories.id = pins.category
-            where pins.category = $cid and not users.private
+                left join pins_categories on pins.id = pins_categories.pin_id
+                left join categories on categories.id = pins_categories.category_id
+            where categories.id = $cid and not users.private
             group by pins.id, tags.tags, users.id, categories.id
             offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT),
             vars={'cid': cid})
@@ -1007,11 +1053,10 @@ class PageProfile2:
             return 'Page not found.'
 
         user = user[0]
-        add_default_lists(user.id)
 
-        boards = db.select('boards',
+        boards = list(db.select('boards',
             where='user_id=$user_id',
-            vars={'user_id': user.id})
+            vars={'user_id': user.id}))
 
         is_logged_in = logged_in(sess)
 
@@ -1883,11 +1928,13 @@ class PageCategory:
         lists = db.select('boards',
         where='user_id=$user_id',
         vars={'user_id': sess.user_id})
+        
+        boards = db.where(table='boards', order='name', user_id=sess.user_id)
 
         print lists
         if ajax:
             return json_pins(pins, 'horzpin')
-        return ltpl('category', pins, category, all_categories, subcategories)
+        return ltpl('category', pins, category, all_categories, subcategories, boards)
 
 
 def make_query(q):
@@ -1962,26 +2009,6 @@ def csrf_protected(f):
 <a href="">Back to the form</a>.""")
         return f(*args, **kwargs)
     return decorated
-
-
-def add_default_lists(uid):
-    '''Each new user will get 3 lists by default:
-
-        Lists:
-
-        Things to get
-
-        Food to eat
-
-        Places to visit'''
-    lists = db.select('boards',
-            where='user_id=$user_id AND name=$name',
-            vars={'user_id': sess.user_id,'name':'Things to get'})
-    default_list = {'Things to get', 'Food to eat', 'Places to visit'}
-    if not lists:
-        for x in default_list:
-            db.insert('boards', user_id=uid, name=x,
-                description='Default List', public=False)
 
 if __name__ == '__main__':
 

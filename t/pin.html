@@ -1,4 +1,4 @@
-$def with (pin, comments, rating)
+$def with (pin, comments, rating, embeded=False)
 <div class='pin-display'>
   <div class='display'>
     <h1>$pin.description</h1>
@@ -19,11 +19,18 @@ $def with (pin, comments, rating)
       $if pin.link:
         <a class='button' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i> Visit Product</a>
     </p>
+    <a href="/item/$(pin.id)" target="_blank">
     $if pin.repin == 0:
-      <img src='/static/tmp/$(pin.id).png' alt=''/>
+		$if embeded:
+			<img src='/static/tmp/$(pin.id).png' alt='' style="max-height:530px;width:auto"/>
+		$else:
+			<img src='/static/tmp/$(pin.id).png' alt='' style="max-width:80%;height:auto"/>
     $else:
-      <img src='/static/tmp/$(pin.repin).png' alt=''/>
-
+		$if embeded:
+			<img src='/static/tmp/$(pin.repin).png' alt='' style="max-height:530px;width:auto"/>
+		$else:
+			<img src='/static/tmp/$(pin.repin).png' alt='' style="max-width:80%;height:auto"/>
+	</a>
     <div class='comments'>
       $ comments = list(comments)
       <div class='clearfix'>
@@ -62,7 +69,7 @@ $def with (pin, comments, rating)
           <div class='pre'>$comment.comment</div>
         </div>
       $if 'logged_in' in sess:
-        <form method='post' action='' autocomplete='off'>
+        <form method='post' action='/item/$pin.id' autocomplete='off'>
           <p><textarea id='input-comment' name='comment' placeholder='Write a comment...'></textarea></p>
           <p><button>Comment</button></p>
         </form>

@@ -1,8 +1,8 @@
-$def with (pins, category, categories, subcategories)
-$if category.id == 0:
+$def with (category, categories, subcategories, boards)
+$if category['id'] == 0:
   <h1>Browsing <a href=''>Random Pins</a></h1>
 $else:
-  <h1>Browsing Category <a href=''>$category.name</a></h1>
+  <h1>Browsing Category <a href=''>$category['name']</a></h1>
   $if subcategories:
   	<div class="subcategory_block">
   	$for subcat in subcategories:
@@ -11,10 +11,23 @@ $else:
   			<span class="subcategory_spacer">&nbsp;</span>
   	</div>
 <hr>
+<table class="category_table">
+	<tr>
+		<td class="category_column" id="category_column_1"></td>
+		<td class="column_separator"></td>
+		<td class="category_column" id="category_column_2"></td>
+		<td class="column_separator"></td>
+		<td class="category_column" id="category_column_3"></td>
+		<td class="column_separator"></td>
+		<td class="category_column" id="category_column_4"></td>
+		<td class="column_separator"></td>
+		<td class="category_column" id="category_column_5"></td>
+	</tr>
+</table>
+
 <div class='clearfix category-disp'>
   <div class='left horz-pins'>
-    $:tpl('pins', pins, 'horzpin')
-  </div>
+   </div>
   
  
 </div>
@@ -22,7 +35,7 @@ $else:
       <div class="modal fade" id="addToGetListModal">
             <div class="modal-dialog">
               <div class="modal-content">
-              <form action="/add-to-your-own-getlist/$category.id" class='modal-form' id="repin-form" method='post' autocomplete='off'>
+              <form action="/add-to-your-own-getlist/$category['id']" class='modal-form' id="repin-form" method='post' autocomplete='off'>
                 <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h1 class='center pad-bottom'>Adding <a href='#' id="repin-description"></a> to your Getlist</h1>
@@ -34,11 +47,18 @@ $else:
     <textarea id="description" name="description">
       
     </textarea></td></tr>
-    <tr><th><label for="category">category</label></th><td>
-    <select id="category" name="category" class="category-list">
-  $for cat in categories:
-    <option value="$cat.id">$cat.name</option>
-</select>
+    <tr><th><label for="board">Get list</label></th><td>
+<div id="board_selection_layer">
+    <select id="board" name="board" class="category-list">
+    <option value="">Select one</option>
+  $for board in boards:
+    <option value="$board.id">$board.name</option>
+</select><button type="button" id="button_add_board" title="Add another list">+</button>
+</div>
+<div id="board_creation_layer" style="display:none;">
+	<input type="text" name="board_name" id="board_name" value="">
+	<button type="button" id="button_select_board" title="Select existing list">-</button>
+</div>
 </td></tr>
     <tr><th><label for="tags">tags (optional)</label></th><td><input type="text" placeholder="#this #is #awesome" id="tags" name="tags"></td></tr>
 </tbody>
@@ -64,3 +84,12 @@ $else:
             </div><!-- /.modal-dialog -->
         
         </div>
+$:tpl('pin212px_template')
+<script type="text/javascript" src="/static/category.js"></script>
+<script type="text/javascript" src="/static/js/underscore-min.js"></script>
+<script>
+function repin_image_load(clicked) {
+	pinid = $$(clicked).attr('data-id')
+	$$('#repin-image').attr('src', '/static/tmp/pinthumb' + pinid + '.png')
+}
+</script>

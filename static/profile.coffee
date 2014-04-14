@@ -11,26 +11,26 @@ removeRePin = (e, y) ->
         id = "#horz-pin" + e
         $(id).slideToggle()
       return
-(->
 
-  
-  $("#save_thumbnail_edit").click ->
+
+
+$("#save_thumbnail_edit").click ->
     location.reload true
     return
 
-  $("#set_as_profile_pic").click ->
+$("#set_as_profile_pic").click ->
     picid = $(".modal .active img").attr("picid")
     $.get "/setprofilepic/" + picid, (response) ->
       location.reload true
       return
 
 
-  dragging_header_background = false
-  x = 0
-  y = 0
-  otherX = 0
-  otherY = 0
-  $("#header_background").mousedown (e) ->
+dragging_header_background = false
+x = 0
+y = 0
+otherX = 0
+otherY = 0
+$("#header_background").mousedown (e) ->
     _ref = undefined
     x = e.pageX
     y = e.pageY
@@ -40,7 +40,7 @@ removeRePin = (e, y) ->
 
     dragging_header_background = true
 
-  $("body").mouseup ->
+$("body").mouseup ->
     tempX = undefined
     tempY = undefined
     _ref = undefined
@@ -57,23 +57,165 @@ removeRePin = (e, y) ->
         y: tempY
 
 
-  $("#header_background").mousemove (e) ->
+$("#header_background").mousemove (e) ->
     tempY = undefined
     if dragging_header_background
       upload = false
       tempY = parseInt(otherY.slice(0, +(otherY.length - 2) + 1 or 9e9))
       $(this).css "background-position", otherX + " " + (tempY + (e.pageY - y)) + "px"  if tempY + (e.pageY - y) < 0
 
-  $("#switch5_wrapper").mouseover ->
+$("#switch5_wrapper").mouseover ->
     $("#menu5").show()
 
-  $("#switch5_wrapper").mouseout ->
+$("#switch5_wrapper").mouseout ->
     $("#menu5").hide()
 
 
-  $("#myTab a").click (e) ->
+$("#myTab a").click (e) ->
     e.preventDefault()
     $(this).tab "show"
     return
 
-).call this
+
+# ******** boards (lists) related code
+$('#profile_lists_tabs').tabs()
+$.offsetctrl = Array()
+$.loading = Array()
+$.column = Array()
+$.pin_template = _.template($('#pin_template').html())
+$.current_board = $('.profile_list_subtab:first').attr('boardid')
+
+$('.profile_list_subtab').on 'click', (event) ->
+	boardid = $(this).attr('boardid')
+	loading = $.loading[boardid]
+	if loading is true
+		return
+	$.current_board = boardid
+	get_more_items()
+	return
+	
+
+get_more_items = ->
+	boardid = $.current_board
+	$.loading[boardid] = true
+	offset = $.offsetctrl[boardid]
+	if offset is undefined
+		offset = 0
+		$.offsetctrl[boardid] = 0
+	else
+		offset += 1
+		$.offsetctrl[boardid] += 1
+	$.getJSON '/lists/' + boardid + '/items/?offset=' + offset, (data) ->
+		for pin in data
+			column = $.column[boardid]
+			if column is undefined
+				column = 1
+				$.column[boardid] = 1
+			pin['simplifiedurl'] = simplify_url(pin['link'])
+			if pin['tags'] isnt null
+				pin['taglist'] = pin['tags'].split(' ')
+			html_text = $.pin_template(pin)
+			selector = '#column_' + boardid + '_' + column
+			$(selector).append(html_text)
+			if $.column[boardid] is 5
+				$.column[boardid] = 1
+			else
+				$.column[boardid] += 1
+		$.loading[boardid] = false
+		return
+	return
+
+
+simplify_url = (url) ->
+	simplified = url
+	if simplified.indexOf('http:') is 0
+	   simplified = simplified.substring(6, simplified.length - 1)
+	if simplified.indexOf('https:') is 0
+	   simplified = simplified.substring(7, simplified.length - 1)
+	if simplified.indexOf('//') is 0
+	   simplified = simplified.substring(2, simplified.length - 1)
+	if simplified.indexOf('/') is 0
+	   simplified = simplified.substring(1, simplified.length - 1)
+	first_slash_position = simplified.indexOf('/')
+	if first_slash_position > 0
+		simplified = simplified.substring(0, first_slash_position)
+	return simplified
+
+
+# detect when scrolling to bottom to load more items
+$(window).scroll ->
+	top = $(window).scrollTop()
+	height = $(window).innerHeight();
+	doc_height = $(document).height()
+	sensitivity = 600
+	if top + height + sensitivity > doc_height
+		get_more_items()
+	return
+	
+	
+$(document).on 'click', '.category_pin_image', (event) ->
+	event.preventDefault()
+	pinid = $(this).attr('pinid')
+	$.get '/item/' + pinid + '?embed=true',
+		(data) ->
+			$('#show_pin_layer_content').html(data)
+			current_position = $('#show_pin_layer_content').position()
+			current_position.top = $(window).scrollTop()
+			$('#show_pin_layer_content').css(current_position)
+			$('#show_pin_layer').width($(window).width())
+			$('#show_pin_layer').height($(window).height())
+			$('#show_pin_layer').show()
+			disable_scroll()
+			return
+	return
+
+
+$('#show_pin_layer').on 'click', (event) ->
+	event.preventDefault()
+	$(this).hide()
+	enable_scroll()
+	return
+	
+	
+$('#show_pin_layer_content').on 'click', (event) ->
+	event.stopPropagation()
+	event.stopInmediatePropagation()
+	return
+		
+		
+disable_scroll = () ->
+	$(document).on('mousedown',disableMiddleMouseButtonScrolling)
+	$(document).on('mousewheel DOMMouseScroll wheel',disableNormalScroll)
+	$(window).on('scroll',disableNormalScroll)
+	$.oldScrollTop = $(document).scrollTop()
+
+
+enable_scroll = () ->
+	$(document).off('mousedown',disableMiddleMouseButtonScrolling)
+	$(document).off('mousewheel DOMMouseScroll wheel',disableNormalScroll)
+	$(window).off('scroll',disableNormalScroll)
+	
+
+disableMiddleMouseButtonScrolling = (e) ->
+	if e.which == 2
+		if e.target.id isnt 'show_pin_layer'
+			$('html, body').scrollTop($.oldScrollTop)
+			return true
+		e.preventDefault()
+	return false
+
+
+disableNormalScroll = (e) ->
+	if e.target.id isnt 'show_pin_layer'
+		$('html, body').scrollTop($.oldScrollTop)
+		return true
+	e.preventDefault()
+	$('html, body').scrollTop($.oldScrollTop)
+	return false
+
+
+get_more_items()
+
+
+jQuery ->
+	$.ajaxSetup({ cache: false })

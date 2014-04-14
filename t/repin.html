@@ -1,6 +1,22 @@
 $def with (pin, form)
 <h1 class='center pad-bottom'>Adding <a href='/pin/$pin.id'>$pin.description</a> to your Getlist</h1>
-<form class='width-auto' method='post' action='' autocomplete='off'>$:form.render()</form>
+<form class='width-auto' method='post' action='' autocomplete='off'>
+<table>
+    <tr><th><label for="description">description</label></th><td>$:form['description'].render()</td></tr>
+    <tr><th><label for="board">board</label></th><td>
+    	<div id="board_selection_layer">
+    		$:form['board'].render()
+    		<button type="button" id="button_add_board" title="Add another list">+</button>
+		</div>
+		<div id="board_creation_layer" style="display:none;">
+			$:form['board_name'].render()
+			<button type="button" id="button_select_board" title="Select existing list">-</button>
+		</div>
+	</td></tr>
+    <tr><th><label for="tags">tags (optional)</label></th><td>$:form['tags'].render()</td></tr>
+    <tr><th><label for="add to getlist"></label></th><td>$:form['add to getlist'].render()</td></tr>
+</table>
+</form>
 <br/>
 <br/>
 <h2 class='center'>Image Preview</h2>

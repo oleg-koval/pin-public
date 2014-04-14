@@ -56,8 +56,14 @@ div.pin_image img {
   margin-left: 40px; }
 
 .category_selection_td {
-  vertical-align: bottom;
+  vertical-align: top;
   width: 25%; }
 
 .hide {
   display: none; }
+
+.imagelink, .imagefile, .titleentry, .descrentry, .urllink, .urlproduct_url, .tagwords, .prodprice {
+  margin: 0px; }
+
+p {
+  font-size: 80%; }
