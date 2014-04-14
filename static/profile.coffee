@@ -79,7 +79,7 @@ $("#myTab a").click (e) ->
 
 # ******** boards (lists) related code
 $('#profile_lists_tabs').tabs()
-$.offset = Array()
+$.offsetctrl = Array()
 $.loading = Array()
 $.column = Array()
 $.pin_template = _.template($('#pin_template').html())
@@ -98,13 +98,13 @@ $('.profile_list_subtab').on 'click', (event) ->
 get_more_items = ->
 	boardid = $.current_board
 	$.loading[boardid] = true
-	offset = $.offset[boardid]
+	offset = $.offsetctrl[boardid]
 	if offset is undefined
 		offset = 0
-		$.offset[boardid] = 0
+		$.offsetctrl[boardid] = 0
 	else
 		offset += 1
-		$.offset[boardid] += 1
+		$.offsetctrl[boardid] += 1
 	$.getJSON '/lists/' + boardid + '/items/?offset=' + offset, (data) ->
 		for pin in data
 			column = $.column[boardid]

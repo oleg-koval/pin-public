@@ -99,7 +99,7 @@ $("#myTab a").click(function(e) {
 
 $('#profile_lists_tabs').tabs();
 
-$.offset = Array();
+$.offsetctrl = Array();
 
 $.loading = Array();
 
@@ -124,13 +124,13 @@ get_more_items = function() {
   var boardid, offset;
   boardid = $.current_board;
   $.loading[boardid] = true;
-  offset = $.offset[boardid];
+  offset = $.offsetctrl[boardid];
   if (offset === void 0) {
     offset = 0;
-    $.offset[boardid] = 0;
+    $.offsetctrl[boardid] = 0;
   } else {
     offset += 1;
-    $.offset[boardid] += 1;
+    $.offsetctrl[boardid] += 1;
   }
   $.getJSON('/lists/' + boardid + '/items/?offset=' + offset, function(data) {
     var column, html_text, pin, selector, _i, _len;
