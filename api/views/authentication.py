@@ -4,13 +4,13 @@ from api.utils import api_response, save_api_request
 from api.views.base import BaseAPI
 
 from mypinnings.database import connect_db
-from mypinnings.auth import generate_salt, authenticate_user_email
+from mypinnings.auth import authenticate_user_email
 
 db = connect_db()
 
 
 class Auth(BaseAPI):
-	def GET(self):
+	def POST(self):
 		"""
 			Authentification method for API
 		"""
@@ -22,7 +22,7 @@ class Auth(BaseAPI):
 		password = request_data.get("password")
 		user_id = self.is_authenticated(email, password)
 		if not user_id:
-			return self.access_denied()
+			return self.access_denied("Login or password wrong")
 		user = self.get_user(user_id)
 		data = {
 			"token": user.get("logintoken"),
@@ -40,15 +40,6 @@ class Auth(BaseAPI):
 		if len(users)>0:
 			return users.list()[0]
 		return False
-
-	def access_denied(self):
-		"""
-			Response if login or password wrong
-		"""
-		data = {}
-		status = 405
-		error_code = "Login or password wrong"
-		return api_response(data=data, status=status, error_code=error_code)
 
 	def is_authenticated(self, email, password):
 		"""
