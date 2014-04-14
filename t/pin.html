@@ -19,7 +19,7 @@ $def with (pin, comments, rating, embeded=False)
       $if pin.link:
         <a class='button' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i> Visit Product</a>
     </p>
-    <a href="/static/tmp/$(pin.id).png" target="_blank">
+    <a href="/item/$(pin.id)" target="_blank">
     $if pin.repin == 0:
 		$if embeded:
 			<img src='/static/tmp/$(pin.id).png' alt='' style="max-height:530px;width:auto"/>
