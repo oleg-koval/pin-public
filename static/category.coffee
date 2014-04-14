@@ -1,4 +1,7 @@
 jQuery ->
+	$.ajaxSetup({ cache: false })
+	
+	
 	get_more_items = (start) ->
 		if $.loading_more
 			return
