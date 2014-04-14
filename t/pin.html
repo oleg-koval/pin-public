@@ -21,12 +21,12 @@ $def with (pin, comments, rating, embeded=False)
     </p>
     $if pin.repin == 0:
 		$if embeded:
-			<img src='/static/tmp/$(pin.id).png' alt='' style="max-height:250px;width:auto"/>
+			<img src='/static/tmp/$(pin.id).png' alt='' style="max-height:530px;width:auto"/>
 		$else:
 			<img src='/static/tmp/$(pin.id).png' alt='' style="max-width:80%;height:auto"/>
     $else:
 		$if embeded:
-			<img src='/static/tmp/$(pin.repin).png' alt='' style="max-height:250px;width:auto"/>
+			<img src='/static/tmp/$(pin.repin).png' alt='' style="max-height:530px;width:auto"/>
 		$else:
 			<img src='/static/tmp/$(pin.repin).png' alt='' style="max-width:80%;height:auto"/>
 
