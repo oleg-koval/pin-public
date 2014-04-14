@@ -2,7 +2,7 @@
 (function() {
 
   jQuery(function() {
-    var get_more_items, simplify_url;
+    var disableMiddleMouseButtonScrolling, disableNormalScroll, disable_scroll, enable_scroll, get_more_items, simplify_url;
     get_more_items = function(start) {
       var _this = this;
       if ($.loading_more) {
@@ -88,16 +88,48 @@
         $('#show_pin_layer').width($(window).width());
         $('#show_pin_layer').height($(window).height());
         $('#show_pin_layer').show();
+        disable_scroll();
       });
     });
     $('#show_pin_layer').on('click', function(event) {
       event.preventDefault();
       $(this).hide();
+      enable_scroll();
     });
     $('#show_pin_layer_content').on('click', function(event) {
       event.stopPropagation();
       event.stopInmediatePropagation();
     });
+    disable_scroll = function() {
+      $(document).on('mousedown', disableMiddleMouseButtonScrolling);
+      $(document).on('mousewheel DOMMouseScroll wheel', disableNormalScroll);
+      $(window).on('scroll', disableNormalScroll);
+      return $.oldScrollTop = $(document).scrollTop();
+    };
+    enable_scroll = function() {
+      $(document).off('mousedown', disableMiddleMouseButtonScrolling);
+      $(document).off('mousewheel DOMMouseScroll wheel', disableNormalScroll);
+      return $(window).off('scroll', disableNormalScroll);
+    };
+    disableMiddleMouseButtonScrolling = function(e) {
+      if (e.which === 2) {
+        if (e.target.id !== 'show_pin_layer') {
+          $('html, body').scrollTop($.oldScrollTop);
+          return true;
+        }
+        e.preventDefault();
+      }
+      return false;
+    };
+    disableNormalScroll = function(e) {
+      if (e.target.id !== 'show_pin_layer') {
+        $('html, body').scrollTop($.oldScrollTop);
+        return true;
+      }
+      e.preventDefault();
+      $('html, body').scrollTop($.oldScrollTop);
+      return false;
+    };
     $.pin_template = _.template($('#pin_template').html());
     $.column_control = 1;
     $.loading_more = false;
