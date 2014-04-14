@@ -482,6 +482,7 @@ class NewPageAddPinForm:
         except Exception as e:
             logger.error('Failed to create a pin from a file upload', exc_info=True)
             transaction.rollback()
+            return '/'
 
 
 class NewPageAddPin:

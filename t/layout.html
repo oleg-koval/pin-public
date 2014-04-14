@@ -124,7 +124,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
         <tr><th><label for="title"></label></th><td><div id="imagename"></div></td></tr>
         <tr><th><label for="title">Title</label></th><td><input type="text" id="title"></td></tr>
         <tr><th><label for="weblink">Link</label></th><td><input type="text" id="weblink" placeholder="Where to buy?"></td></tr>
-        <tr><th><label for="category">Category</label></th><td><select type="text" id="category">
+        <tr><th><label for="category">Category</label></th><td><select id="category" name="category">
             $for cat in categories:
                 <option value="$cat['id']">$cat['name']</option>
         </select></td></tr>
