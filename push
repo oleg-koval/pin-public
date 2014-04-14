@@ -1,3 +1,0 @@
-#!/bin/bash
-rsync -arzv --progress --delete ~/programs/pin/ root@mypinnings.com:/var/www/pin/
-ssh root@mypinnings.com '/var/www/pin/restart'

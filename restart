@@ -1,4 +1,0 @@
-#!/bin/bash
-killall -9 lighttpd
-kill -9 $(pgrep -f ser.py)
-lighttpd -f /etc/lighttpd/lighttpd.conf
