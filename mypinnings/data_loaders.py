@@ -373,7 +373,6 @@ class LoadersEditAPI(FileUploaderMixin, CategorySelectionMixin):
                 category = {'id': r.category_id, 'name': r.category_name}
                 current_pin['categories'].append(category)
         json_pins = json.dumps(pin_list)
-        print(json_pins)
         web.header('Content-Type', 'application/json')
         return json_pins
 

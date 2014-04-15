@@ -11,6 +11,7 @@ from mypinnings import template
 from mypinnings import cached_models
 from mypinnings.conf import settings
 from mypinnings import image_utils
+from mypinnings import auth
 
 
 logger = logging.getLogger('mypinnings.categories')
@@ -21,6 +22,7 @@ class PageCategory:
         self.cid = int(cid)
         self.db = database.get_db()
         self.sess = session.get_session()
+        auth.force_login(self.sess)
         if self.cid == 0:
             self.category = {'name':'Random', 'id': 0}
         else:
