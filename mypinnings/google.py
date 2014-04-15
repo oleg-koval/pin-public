@@ -15,6 +15,7 @@ from mypinnings import auth
 from mypinnings import database
 from mypinnings.facebook import redirect_to_register
 from mypinnings.register import valid_email
+from mypinnings.register import add_default_lists
 
 
 logger = logging.getLogger('mypinnings.google')
@@ -234,6 +235,7 @@ class SelectAUsernameAndPassword(auth.UniqueUsernameMixin):
             if self.email_already_exists(self.form['email'].value):
                 return template.ltpl('register/username', self.form, _('Email already exists'))
             self._insert_user_to_db()
+            add_default_lists(self.user_id)
             auth.login_user(session.get_session(), self.user_id)
             web.seeother(url='/register/after-signup', absolute=True)
         else:

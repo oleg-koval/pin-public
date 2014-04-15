@@ -9,9 +9,10 @@ from mypinnings import database
 from mypinnings import session
 from mypinnings import template
 from mypinnings import cached_models
+from mypinnings.conf import settings
+from mypinnings import image_utils
+from mypinnings import auth
 
-
-PIN_COUNT = 50
 
 logger = logging.getLogger('mypinnings.categories')
 
@@ -21,6 +22,7 @@ class PageCategory:
         self.cid = int(cid)
         self.db = database.get_db()
         self.sess = session.get_session()
+        auth.force_login(self.sess)
         if self.cid == 0:
             self.category = {'name':'Random', 'id': 0}
         else:
@@ -65,7 +67,7 @@ class PageCategory:
                 join categories on pins_categories.category_id = categories.id
             where ''' + self.where + '''
             group by tags.tags, categories.id, pins.id, users.id
-            order by timestamp desc offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT)
+            order by timestamp desc offset %d limit %d''' % (offset * settings.PIN_COUNT, settings.PIN_COUNT)
         return self.query
 
     def template_for_showing_categories(self):
@@ -87,20 +89,8 @@ class PageCategory:
         pins = self.db.query(self.query, vars={'cid': self.cid})
         pin_list = []
         for pin in pins:
-            image_thumb_filename = 'static/tmp/pinthumb_212_{}.png'.format(pin.id)
-            if not os.path.exists(image_thumb_filename):
-                try:
-                    original_image_filename = 'static/tmp/{}.png'.format(pin.id)
-                    original_image = Image.open(original_image_filename)
-                    width, height = original_image.size
-                    ratio = 212 / float(width)
-                    width = 212
-                    height *= ratio
-                    original_image.thumbnail((width, height), Image.ANTIALIAS)
-                    original_image.save(image_thumb_filename)
-                except:
-                    logger.error('could not generate thumbnail for: {}'.format(original_image_filename), exc_info=True)
-                    continue
+            if not image_utils.create_thumbnail_212px_for_pin(pin):
+                continue
             pin_list.append(pin)
             pin.price = str(pin.price)
         offset = self.sess.get('offset', 0)

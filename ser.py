@@ -51,6 +51,7 @@ urls = (
     '/resend-activation', 'PageResendActivation',
     '/logout', 'PageLogout',
     '/dashboard', 'PageDashboard',
+    '/lists/(\d+)/items/?','mypinnings.lists.ListItemsJson',
     '/lists', 'PageBoards',
     '/(.*?)/list/(\d*)', 'PageBoardList',
     '/browse', 'PageBrowse',
@@ -481,6 +482,7 @@ class NewPageAddPinForm:
         except Exception as e:
             logger.error('Failed to create a pin from a file upload', exc_info=True)
             transaction.rollback()
+            return '/'
 
 
 class NewPageAddPin:
@@ -513,32 +515,6 @@ class NewPageAddPin:
 
 
 class PageAddPinUrl:
-    def make_form(self):
-        return form.Form(
-            form.Textbox('image_url', form.notnull),
-            form.Textbox('title', form.notnull, description='Title'),
-            form.Textarea('description', description='Description'),
-            form.Hidden('categories', form.notnull),
-            form.Textbox('tags', form.notnull, description='Tags', placeholder='#this #is #awesome'),
-            form.Textbox('link', description='Source URL'),
-            form.Textbox('product_url', description='Product URL'),
-            form.Textbox('price', description='Price'),
-            form.Textbox('price_range', form.notnull, description='Price range'),
-            form.Textbox('board_id', description='list'),
-            form.Textbox('board_name', description='New list name'),
-            form.Button('add', id='btn-add'),
-            validators = [form.Validator('Select a board or create a new one', lambda i: i.board_id or i.board_name)
-                          ]
-        )()
-
-    def GET(self):
-        global all_categories
-        force_login(sess)
-        categories_to_select = cached_models.get_categories_with_children(db)
-        boards = db.where(table='boards', order='name', user_id=sess.user_id)
-        msg = web.input(msg=None)['msg']
-        return ltpl('addpinurl', self.make_form(), categories_to_select, boards, msg)
-
     def upload_image(self, url):
         fname = generate_salt()
         ext = os.path.splitext(url)[1].lower()
@@ -561,14 +537,12 @@ class PageAddPinUrl:
 
     def POST(self):
         force_login(sess)
-        form = self.make_form()
-        if not form.validates():
-            web.seeother(url='?msg={}'.format('Invalid product data, please review'), absolute=False)
+        data = web.input()
         transaction = db.transaction()
         try:
-            fname = self.upload_image(form.d.image_url)
+            fname = self.upload_image(data.image_url)
 
-            link = form.d.link
+            link = data.link
             if link and '://' not in link:
                 link = 'http://%s' % link
                 
@@ -582,30 +556,22 @@ class PageAddPinUrl:
                 web.seeother(url='?msg={}'.format('Invalid list to put your product, please review'), absolute=False)
 
             pin_id = db.insert('pins',
-                description=form.d.description,
+                description=data.description,
                 user_id=sess.user_id,
                 link=link,
-                product_url=form.d.product_url,
-                name=form.d.title,
-                image_url=form.d.image_url,
-                price=decimal.Decimal(form.d.price or 0),
-                price_range=int(form.d.price_range),
-                board_id=board_id
+                name=data.title,
+                image_url=data.image_url,
                 )
 
-            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in form.d.categories.split(',')]
+            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in data.categories.split(',')]
             db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
-
-            if form.d.tags:
-                tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
-                db.insert('tags', pin_id=pin_id, tags=tags)
 
             os.rename('static/tmp/%s.png' % fname,
                       'static/tmp/%d.png' % pin_id)
             os.rename('static/tmp/pinthumb%s.png' % fname,
                       'static/tmp/pinthumb%d.png' % pin_id)
             transaction.commit()
-            return web.seeother('/pin/%d' % pin_id)
+            return '/pin/%d' % pin_id
         except Exception as e:
             logger.error('Failed to create a pin from an image URL', exc_info=True)
             transaction.rollback()
@@ -882,9 +848,9 @@ class PagePin:
         rating = round(float(rating.avg), 2)
         embed = web.input(embed=False).embed
         if embed:
-            return tpl('pin', pin, comments, rating)
+            return tpl('pin', pin, comments, rating, True)
         else:
-            return ltpl('pin', pin, comments, rating)
+            return ltpl('pin', pin, comments, rating, False)
 
     def POST(self, pin_id):
         force_login(sess)
@@ -978,7 +944,7 @@ class PageBuyList:
 
         pins = db.query('''
             select
-                tags.tags, pins.*, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+                tags.tags, pins.*, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
                 count(distinct p1) as repin_count,
                 count(distinct l1) as like_count
             from pins
@@ -986,8 +952,9 @@ class PageBuyList:
                 left join tags on tags.pin_id = pins.id
                 left join pins p1 on p1.repin = pins.id
                 left join likes l1 on l1.pin_id = pins.id
-                left join categories on categories.id = pins.category
-            where pins.category = $cid and not users.private
+                left join pins_categories on pins.id = pins_categories.pin_id
+                left join categories on categories.id = pins_categories.category_id
+            where categories.id = $cid and not users.private
             group by pins.id, tags.tags, users.id, categories.id
             offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT),
             vars={'cid': cid})
@@ -1086,11 +1053,10 @@ class PageProfile2:
             return 'Page not found.'
 
         user = user[0]
-        add_default_lists(user.id)
 
-        boards = db.select('boards',
+        boards = list(db.select('boards',
             where='user_id=$user_id',
-            vars={'user_id': user.id})
+            vars={'user_id': user.id}))
 
         is_logged_in = logged_in(sess)
 
@@ -2043,26 +2009,6 @@ def csrf_protected(f):
 <a href="">Back to the form</a>.""")
         return f(*args, **kwargs)
     return decorated
-
-
-def add_default_lists(uid):
-    '''Each new user will get 3 lists by default:
-
-        Lists:
-
-        Things to get
-
-        Food to eat
-
-        Places to visit'''
-    lists = db.select('boards',
-            where='user_id=$user_id AND name=$name',
-            vars={'user_id': sess.user_id,'name':'Things to get'})
-    default_list = {'Things to get', 'Food to eat', 'Places to visit'}
-    if not lists:
-        for x in default_list:
-            db.insert('boards', user_id=uid, name=x,
-                description='Default List', public=False)
 
 if __name__ == '__main__':
 
