@@ -1092,7 +1092,7 @@ class PageProfile2:
 
         boards = list(db.select('boards',
             where='user_id=$user_id',
-            vars={'user_id': user.id})
+            vars={'user_id': user.id}))
         categories_to_select = cached_models.get_categories_with_children(db)
         is_logged_in = logged_in(sess)
 
