@@ -545,15 +545,15 @@ class PageAddPinUrl:
             link = data.link
             if link and '://' not in link:
                 link = 'http://%s' % link
-                
+
             # create a new board if necessary
-            if form.d.board_id:
-                board_id = int(form.d.board_id)
-            elif form.d.board_name:
-                board_id = db.insert(tablename='boards', name=form.d.board_name, description=form.d.board_name,
+            if data.list:
+                board_id = int(data.list)
+            elif data.board_name:
+                board_id = db.insert(tablename='boards', name=data.board_name, description=data.board_name,
                                      user_id=sess.user_id)
             else:
-                web.seeother(url='?msg={}'.format('Invalid list to put your product, please review'), absolute=False)
+                pass#todo
 
             pin_id = db.insert('pins',
                 description=data.description,
@@ -561,6 +561,9 @@ class PageAddPinUrl:
                 link=link,
                 name=data.title,
                 image_url=data.image_url,
+                #board_id=data.list,
+                price_range=data.price,
+                product_url = data.websiteurl
                 )
 
             categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in data.categories.split(',')]
@@ -645,10 +648,10 @@ class PageRepin:
             pin = dbget('pins', pin_id)
             if pin is None:
                 return 'pin doesn\'t exist'
-    
+
             if pin.repin:
                 pin_id = pin.repin
-    
+
             form = self.make_form()
             if not form.validates():
                 return 'please fill out all the form fields'
@@ -671,16 +674,16 @@ class PageRepin:
                                    product_url=pin.product_url,
                                    price_range=pin.price_range,
                                    board_id=board)
-    
+
             # preserve all the categories from original pin
             results = db.where(table='pins_categories', pin_id=pin_id)
             categories_from_previous_item = [{'pin_id': new_pin_id, 'category_id': row.category_id} for row in results]
             db.multiple_insert(tablename='pins_categories', values=categories_from_previous_item)
-    
+
             if form.d.tags:
                 tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
                 db.insert('tags', pin_id=new_pin_id, tags=tags)
-    
+
             user = dbget('users', sess.user_id)
             make_notif(pin.user_id, 'Someone has added your item to their Getlist!', '/pin/%d' % pin_id)
             transaction.commit()
@@ -1099,7 +1102,7 @@ class PageProfile2:
                           where='follow = $follow and follower = $follower',
                           vars={'follow': int(user.id), 'follower': sess.user_id}))
             photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id}, order="id DESC")
-            
+
             return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos, edit_profile, edit_profile_done,boards,categories_to_select)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
@@ -1928,7 +1931,7 @@ class PageCategory:
         lists = db.select('boards',
         where='user_id=$user_id',
         vars={'user_id': sess.user_id})
-        
+
         boards = db.where(table='boards', order='name', user_id=sess.user_id)
 
         print lists
