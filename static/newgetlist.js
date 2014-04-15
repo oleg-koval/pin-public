@@ -96,8 +96,8 @@ $(document).ready(function() {
 		    $("#comments").focus();
 	    }
     });
-    
-    
+
+
     var barweb = $('.bar');
     var percentweb = $('.percent');
     $("#gallerynextweb").on("click",(function(){gallery.next();}));
@@ -127,35 +127,37 @@ $(document).ready(function() {
 	       var data = jQuery.parseJSON(xhr.responseText);
            if(data.status !== "error"){
 	            $(".progress").hide();
+	            $("#websitelinkweb").val($("#url").val());
 	            $( "#web_getlist_form" ).clearForm();
 	            $( "#getlist-from-web" ).dialog("close");
-	            var percentVal = '100%';	        
+	            var percentVal = '100%';
                 barweb.width(percentVal)
-                percentweb.html(percentVal);            
+                percentweb.html(percentVal);
                 $( "#addpindialogformweb" ).dialog("open");
+                $("#commentsweb").focus();
                 initgallery(data);
             }else{
                 $("#statusweb").html("please provide a valid image url");
                 return false;
             }
-                       
+
 	    }
     })});
-    
+
     function showprogress(percentComplete){
         $(".progress").show();
         var percentVal = percentComplete + '%';
         barweb.width(percentVal)
         percentweb.html(percentVal);
     }
-    
+
     function initgallery(data){
         var imagedata=new Array();
         for(i=0; i<data["images"].length;i++){
             imagedata.push({"url":data["images"][i], 'caption':i});
         }
         gallery.init(imagedata);
-       
+
     }
 
     function getdata(){
@@ -169,7 +171,7 @@ $(document).ready(function() {
         }
         return data
     }
-    
+
     function getdataweb(){
         var data = {
             'title':$("#titleweb").val(),
@@ -177,6 +179,10 @@ $(document).ready(function() {
             'categories':$("#categoryweb").val(),
             'description':$("#commentsweb").val(),
             'image_url':$("#image_urlweb").val(),
+            'list':$("#list_id").val(),
+            'price':$("input:radio[name='price_range']:checked").val()||'',
+            'websiteurl':$("#websitelinkweb").val(),
+            'board_name':''
         }
         return data
     }
@@ -189,11 +195,11 @@ $(document).ready(function() {
     $('#cancelfancy').click(function(){
         $( "#addpindialogform" ).dialog("close");
     });
-    
+
     $('#cancelfancyweb').click(function(){
         $( "#addpindialogformweb" ).dialog("close");
     });
-    
+
 
     $('#ajaxpinform').submit(function() {
         // submit the form
@@ -203,7 +209,7 @@ $(document).ready(function() {
         // return false to prevent normal browser submit and page navigation
         return false;
     });
-    
+
     $('#ajaxpinformweb').submit(function() {
         // submit the form
         $(this).ajaxSubmit({
@@ -212,7 +218,7 @@ $(document).ready(function() {
         // return false to prevent normal browser submit and page navigation
         return false;
     });
-    
+
     var gallery = {
         element: $("#slide-imageweb"),
         next: function(){
@@ -242,16 +248,16 @@ $(document).ready(function() {
             this.current = 0;
             this.showitem();
         }
-        
+
     }
-    
+
     $('#button_add_board').on('click', function(event) {
     	event.preventDefault();
     	$('#board').val('');
     	$('#board_selection_layer').hide();
     	$('#board_creation_layer').show();
     });
-    
+
     $('#button_select_board').on('click', function(event) {
     	event.preventDefault();
     	$('#board_name').val('');

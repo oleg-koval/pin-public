@@ -14,7 +14,6 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
     <script type="text/javascript" src="/static/main.js"></script>
     <link href="/static/modal.css" rel="stylesheet" />
     <script src="/static/bootstrap.min.js"></script>
-    <script src="/static/jquery.rs.slideshow.min.js"></script>
   </head>
   <body>
     <div class='header'>
@@ -134,7 +133,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
         </div>
         <div id="controls">
         <span> <a href="#" id="galleryprev">prev</a> <a id="gallerynext" href="#">next</a></span><span id="status-text"> </span>
-        </div>             
+        </div>
         </div>
 	    <div class="c2">
 
@@ -183,7 +182,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
         </div>
         <div id="controls-web">
         <span> <a href="#" id="galleryprevweb">prev</a> <a id="gallerynextweb" href="#">next</a></span><span id="status-textweb"> </span>
-        </div>             
+        </div>
         </div>
 	    <div class="c2">
 
@@ -191,10 +190,26 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
         <tr><th><label for="title"></label></th><td><div id="imagenameweb"></div></td></tr>
         <tr><th><label for="title">Title</label></th><td><input type="text" id="titleweb"></td></tr>
         <tr><th><label for="weblink">Link</label></th><td><input type="text" id="weblinkweb" placeholder="Where to buy?"></td></tr>
+        <tr><th><label for="weblink">Website Link</label></th><td><input type="text" id="websitelinkweb" ></td></tr>
         <tr><th><label for="category">Category</label></th><td><select type="text" id="categoryweb">
             $for cat in categories:
                 <option value="$cat['id']">$cat['name']</option>
         </select></td></tr>
+        <tr><th><label for="lists">Lists</label></th><td><select id="list_id" name="list_id">
+                        <option value="">Select one</option>
+                    $for board in boards:
+                        <option value="$board.id">$board.name</option>
+                    </select></td></tr>
+        <tr><th><label for="price_range">Price range</label></th>
+            <td>
+                <label><input type="radio" name="price_range" value="1" checked> $$</label>
+                <label><input type="radio" name="price_range" value="2"> $$$$</label>
+                <label><input type="radio" name="price_range" value="3"> $$$$$$</label>
+                <label><input type="radio" name="price_range" value="4"> $$$$$$$$</label>
+                <label><input type="radio" name="price_range" value="5"> $$$$$$$$+</label>
+                <div id="price_range"></div>
+            </td>
+        </tr>
         </table>
         </div>
     </div>
