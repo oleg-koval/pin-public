@@ -1,7 +1,7 @@
 .progress { position:relative; width:400px; border: 1px solid #ddd; padding: 1px; border-radius: 3px; }
 .bar { background-color: #B4F5B4; width:0%; height:20px; border-radius: 3px; }
 .percent { position:absolute; display:inline-block; top:3px; left:48%; }
-#comments {
+.comments {
     border-width: 1px 0 0;
     box-shadow: none;
     clear: both;
@@ -19,4 +19,15 @@
 .c2
 {
    width:65%; margin-left:-4px;display:inline-block;
+}
+
+.photo{
+    width:200px;
+    height:200px;
+    vertical-align:middle;
+}
+
+.photo img {
+    width: 100%;
+    height: auto;
 }

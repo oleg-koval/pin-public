@@ -515,32 +515,6 @@ class NewPageAddPin:
 
 
 class PageAddPinUrl:
-    def make_form(self):
-        return form.Form(
-            form.Textbox('image_url', form.notnull),
-            form.Textbox('title', form.notnull, description='Title'),
-            form.Textarea('description', description='Description'),
-            form.Hidden('categories', form.notnull),
-            form.Textbox('tags', form.notnull, description='Tags', placeholder='#this #is #awesome'),
-            form.Textbox('link', description='Source URL'),
-            form.Textbox('product_url', description='Product URL'),
-            form.Textbox('price', description='Price'),
-            form.Textbox('price_range', form.notnull, description='Price range'),
-            form.Textbox('board_id', description='list'),
-            form.Textbox('board_name', description='New list name'),
-            form.Button('add', id='btn-add'),
-            validators = [form.Validator('Select a board or create a new one', lambda i: i.board_id or i.board_name)
-                          ]
-        )()
-
-    def GET(self):
-        global all_categories
-        force_login(sess)
-        categories_to_select = cached_models.get_categories_with_children(db)
-        boards = db.where(table='boards', order='name', user_id=sess.user_id)
-        msg = web.input(msg=None)['msg']
-        return ltpl('addpinurl', self.make_form(), categories_to_select, boards, msg)
-
     def upload_image(self, url):
         fname = generate_salt()
         ext = os.path.splitext(url)[1].lower()
@@ -563,14 +537,12 @@ class PageAddPinUrl:
 
     def POST(self):
         force_login(sess)
-        form = self.make_form()
-        if not form.validates():
-            web.seeother(url='?msg={}'.format('Invalid product data, please review'), absolute=False)
+        data = web.input()
         transaction = db.transaction()
         try:
-            fname = self.upload_image(form.d.image_url)
+            fname = self.upload_image(data.image_url)
 
-            link = form.d.link
+            link = data.link
             if link and '://' not in link:
                 link = 'http://%s' % link
                 
@@ -584,30 +556,22 @@ class PageAddPinUrl:
                 web.seeother(url='?msg={}'.format('Invalid list to put your product, please review'), absolute=False)
 
             pin_id = db.insert('pins',
-                description=form.d.description,
+                description=data.description,
                 user_id=sess.user_id,
                 link=link,
-                product_url=form.d.product_url,
-                name=form.d.title,
-                image_url=form.d.image_url,
-                price=decimal.Decimal(form.d.price or 0),
-                price_range=int(form.d.price_range),
-                board_id=board_id
+                name=data.title,
+                image_url=data.image_url,
                 )
 
-            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in form.d.categories.split(',')]
+            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in data.categories.split(',')]
             db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
-
-            if form.d.tags:
-                tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
-                db.insert('tags', pin_id=pin_id, tags=tags)
 
             os.rename('static/tmp/%s.png' % fname,
                       'static/tmp/%d.png' % pin_id)
             os.rename('static/tmp/pinthumb%s.png' % fname,
                       'static/tmp/pinthumb%d.png' % pin_id)
             transaction.commit()
-            return web.seeother('/pin/%d' % pin_id)
+            return '/pin/%d' % pin_id
         except Exception as e:
             logger.error('Failed to create a pin from an image URL', exc_info=True)
             transaction.rollback()
