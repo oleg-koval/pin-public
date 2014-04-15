@@ -7,6 +7,8 @@ $if pin.id:
     <div class='buttons'>
     $if 'logged_in' in sess and sess.user_id == pin.user_id:
        <a OnClick=removeRePin($pin.id,$pin.repin) class='remove_repin button small-pad'>Remove From Getlist</a>
+       $if not pin.repin:
+          <a href='#' data-toggle="modal" data-target="#editPinModal$pin.id" class='button small-pad'>Edit Pin</a>
     $else:
       $if pin.repin == 0:
         <a href='/add-to-your-own-getlist/$pin.id' target='_blank' class='button small-pad'>Add to Getlist</a>
