@@ -25,7 +25,7 @@ urls = (
     "/profile/mgl", api.views.profile.ManageGetList,
 )
 web.config.debug = True
-app = web.application(urls, globals(), autoreload=True)
+api_app = web.application(urls, globals(), autoreload=True)
 
 if __name__ == "__main__":
-    app.run()
+    api_app.run()
