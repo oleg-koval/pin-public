@@ -5,7 +5,7 @@ from api.views.base import BaseAPI
 
 import mypinnings
 from mypinnings.database import connect_db
-from mypinnings.auth import authenticate_user_email, login_user
+from mypinnings.auth import authenticate_user_email, authenticate_user_username, login_user
 
 db = connect_db()
 sess = mypinnings.session.sess
@@ -49,7 +49,10 @@ class Auth(BaseAPI):
         """
             Check if user is is_authenticated
         """
-        return authenticate_user_email(email, password)
+        user_id = authenticate_user_email(email, password)
+        if not user_id:
+            user_id = authenticate_user_username(email, password)
+        return user_id
 
     def is_valid(self):
         """

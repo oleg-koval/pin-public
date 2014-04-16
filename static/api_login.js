@@ -14,17 +14,24 @@ $(document).ready(function(){
             "password": $("#pwd").val()
         };
         $.post(url, data, function(response){
-            var response_data = response.data;
-            var seriesid = response.csid_from_server;
-            var logintoken = response_data.token;
-            var user_id = response_data.user_id;
-            var auth_data = {
-                "seriesid": seriesid,
-                "logintoken": logintoken,
-                "user_id": user_id
+            if (response.status == 200){
+                var response_data = response.data;
+                var seriesid = response.csid_from_server;
+                var logintoken = response_data.token;
+                var user_id = response_data.user_id;
+                var auth_data = {
+                    "seriesid": seriesid,
+                    "logintoken": logintoken,
+                    "user_id": user_id
+                }
+                ajax_login(auth_data);
             }
-            ajax_login(auth_data);
-            // window.location = '/next/page';
+            else{
+                if ($(".notice").length == 0){
+                    $("form").prepend("<div class='notice'></div>").fadeIn();
+                }
+                $(".notice").text(response.error_code);
+            }
         });
     });
 });
