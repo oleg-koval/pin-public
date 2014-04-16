@@ -2,7 +2,7 @@ import web
 import json
 
 
-def api_response(data, status=200, error_code="", notifications={}):
+def api_response(data, status=200, error_code="", csid_from_server="", csid_from_client="", notifications={}):
     """
         Function preparation API response
     """
@@ -11,8 +11,8 @@ def api_response(data, status=200, error_code="", notifications={}):
         "error_code": error_code,
         "t_id": "",
         "s_version_id": "1.0",
-        "csid_from_client": "",
-        "csid_from_server": "",
+        "csid_from_client": csid_from_client,
+        "csid_from_server": csid_from_server,
         "notifications": notifications,
         "data": data
     }

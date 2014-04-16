@@ -3,10 +3,12 @@ import web
 from api.utils import api_response, save_api_request
 from api.views.base import BaseAPI
 
+import mypinnings
 from mypinnings.database import connect_db
-from mypinnings.auth import authenticate_user_email
+from mypinnings.auth import authenticate_user_email, login_user
 
 db = connect_db()
+sess = mypinnings.session.sess
 
 
 class Auth(BaseAPI):
@@ -24,14 +26,14 @@ class Auth(BaseAPI):
         if not user_id:
             return self.access_denied("Login or password wrong")
         user = self.get_user(user_id)
+        login_user(sess, user_id)
         data = {
-            "csid_from_client": request_data.get("csid_from_client"),
-            "csid_from_server": user.get("seriesid"),
             "token": user.get("logintoken"),
             "user_id": user.get("id"),
             "email": user.get("email")
         }
-        response = api_response(data)
+        response = api_response(data, csid_from_client=request_data.get("csid_from_client"),
+            csid_from_server=user.get('seriesid'))
         return response
 
     def get_user(self, user_id):
