@@ -32,11 +32,13 @@ import mypinnings.google
 import mypinnings.register_twitter
 import admin
 import glob
+import api_server
 # #
 
 web.config.debug = True
 
 urls = (
+    '/api', api_server.api_app,
     '/facebook', mypinnings.facebook.app,
     '/google', mypinnings.google.app,
     '/register_twitter', mypinnings.register_twitter.app,
