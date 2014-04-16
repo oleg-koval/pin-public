@@ -3,6 +3,7 @@ tmp/
 static/tmp/
 *.pyc
 sessions/
+media/*
 static/pics
 *.out
 local_settings.py

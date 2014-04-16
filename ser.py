@@ -32,11 +32,13 @@ import mypinnings.google
 import mypinnings.register_twitter
 import admin
 import glob
+import api_server
 # #
 
 web.config.debug = True
 
 urls = (
+    '/api', api_server.api_app,
     '/facebook', mypinnings.facebook.app,
     '/google', mypinnings.google.app,
     '/register_twitter', mypinnings.register_twitter.app,
@@ -1057,7 +1059,7 @@ class PageProfile2:
         boards = list(db.select('boards',
             where='user_id=$user_id',
             vars={'user_id': user.id}))
-
+        categories_to_select = cached_models.get_categories_with_children(db)
         is_logged_in = logged_in(sess)
 
         if is_logged_in and sess.user_id != user.id:
@@ -1099,8 +1101,8 @@ class PageProfile2:
                           where='follow = $follow and follower = $follower',
                           vars={'follow': int(user.id), 'follower': sess.user_id}))
             photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id}, order="id DESC")
-
-            return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos, edit_profile, edit_profile_done,boards)
+            
+            return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos, edit_profile, edit_profile_done,boards,categories_to_select)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
 
