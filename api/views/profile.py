@@ -90,3 +90,16 @@ class ManageGetList(BaseAPI):
             Share products from user profile
         """
         pass
+
+
+class ChangePassword(BaseAPI):
+    def POST(self):
+        """
+            Change user password and take new client token
+        """
+        request_data = web.input()
+        import ipdb; ipdb.set_trace()
+        save_api_request(request_data)
+        client_token = request_data.get("client_token")
+        user_id = self.authenticate_by_token(client_token)
+        

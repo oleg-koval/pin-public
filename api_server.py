@@ -27,6 +27,9 @@ urls = (
 
     # API to user profile: manage user products
     "/profile/mgl", api.views.profile.ManageGetList,
+
+    # API to user profile: change user password
+    "/profile/pwd", api.views.profile.ChangePassword,
 )
 web.config.debug = True
 app = web.application(urls, globals(), autoreload=True)
