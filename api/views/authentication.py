@@ -3,8 +3,9 @@ import web
 from api.utils import api_response, save_api_request
 from api.views.base import BaseAPI
 
+import mypinnings
 from mypinnings.database import connect_db
-from mypinnings.auth import authenticate_user_email
+from mypinnings.auth import authenticate_user_email, authenticate_user_username, login_user
 
 db = connect_db()
 
@@ -24,12 +25,15 @@ class Auth(BaseAPI):
         if not user_id:
             return self.access_denied("Login or password wrong")
         user = self.get_user(user_id)
+        from ser import sess
+        login_user(sess, user_id)
         data = {
             "token": user.get("logintoken"),
             "user_id": user.get("id"),
             "email": user.get("email")
         }
-        response = api_response(data)
+        response = api_response(data, csid_from_client=request_data.get("csid_from_client"),
+            csid_from_server=user.get('seriesid'))
         return response
 
     def get_user(self, user_id):
@@ -45,7 +49,10 @@ class Auth(BaseAPI):
         """
             Check if user is is_authenticated
         """
-        return authenticate_user_email(email, password)
+        user_id = authenticate_user_email(email, password)
+        if not user_id:
+            user_id = authenticate_user_username(email, password)
+        return user_id
 
     def is_valid(self):
         """
