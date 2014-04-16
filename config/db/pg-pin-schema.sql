@@ -1327,3 +1327,10 @@ alter table pins drop category;
 
 -- allow pins to go to lists
 alter table pins add board_id integer references boards(id) null;
+
+
+-- external random id for pins
+alter table pins add external_id varchar(60);
+-- first run the external_id generation script
+alter table pins alter column external_id set not null;
+create unique index pins_external_id on pins(external_id);
