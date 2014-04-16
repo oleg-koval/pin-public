@@ -8,7 +8,6 @@ from mypinnings.database import connect_db
 from mypinnings.auth import authenticate_user_email, authenticate_user_username, login_user
 
 db = connect_db()
-sess = mypinnings.session.sess
 
 
 class Auth(BaseAPI):
@@ -26,6 +25,7 @@ class Auth(BaseAPI):
         if not user_id:
             return self.access_denied("Login or password wrong")
         user = self.get_user(user_id)
+        from ser import sess
         login_user(sess, user_id)
         data = {
             "token": user.get("logintoken"),
