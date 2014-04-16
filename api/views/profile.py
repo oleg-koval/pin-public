@@ -44,12 +44,16 @@ class ManageGetList(BaseAPI):
         if len(image_id_share_list) > 0:
             share_list_result = self.share(user_id, image_id_share_list)
 
+        user = db.select('users', {'id': user_id}, where='id=$id')[0]
+        csid_from_server = user.get('seriesid')
         data = {
             "added": add_list_result,
             "removed": remove_list_result,
             "shared": share_list_result,
         }
-        response = api_response(data)
+        response = api_response(data, csid_from_client=request_data.get("csid_from_client"),
+            csid_from_server=csid_from_server)
+
         return response
 
     def add(self, user_id, add_list):
@@ -120,14 +124,14 @@ class ChangePassword(BaseAPI):
             sess = session.get_session()
             auth.login_user(sess, user_id)
 
-            user = db.select('users', {'id': user_id}, where='id=$id', what='logintoken')[0]
-            new_client_token = user['logintoken']
-            csid_from_server = user['seriesid']
+            user = db.select('users', {'id': user_id}, where='id=$id')[0]
+            new_client_token = user.get('logintoken')
+            csid_from_server = user.get('seriesid')
             data = {
                 "client_token": new_client_token,
-                "csid_from_server": csid_from_server,
             }
-            response = api_response(data)
+            response = api_response(data, csid_from_client=request_data.get("csid_from_client"),
+                csid_from_server=csid_from_server)
             return response
         else:
             return self.access_denied("Wrong entered information")
