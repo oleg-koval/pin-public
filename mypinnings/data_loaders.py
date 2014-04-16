@@ -17,6 +17,7 @@ from mypinnings import template
 from mypinnings import session
 from mypinnings import auth
 from mypinnings import database
+from mypinnings import pin
 
 
 logger = logging.getLogger('mypinnings.data_loaders')
@@ -293,7 +294,7 @@ class PinLoaderPage(FileUploaderMixin, CategorySelectionMixin):
             pin_id = self.db.insert(tablename='pins', name=title, description=description,
                                user_id=sess.user_id, link=link,
                                views=1, price=price, image_url=imageurl, product_url=product_url,
-                               price_range=price_range)
+                               price_range=price_range, external_id=pin.generate_external_id())
             if tags:
                 tags = remove_hash_symbol_from_tags(tags)
                 self.db.insert(tablename='tags', pin_id=pin_id, tags=tags)

@@ -73,8 +73,7 @@ urls = (
     '/settings/(social-media)', 'PageEditProfile',
     '/settings/(privacy)', 'PageEditProfile',
     '/settings/(email-settings)', 'PageEditProfile',
-    '/pin/(\d*)', 'PagePin2',
-    '/item/(\d*)', 'PagePin',
+    '/p/(.*)', 'PagePin',
     '/(.*?)/buy-list/(\d*)', 'PageBuyList',
     '/messages', 'PageMessages',
     '/newconvo/(\d*)', 'PageNewConvo',
@@ -785,23 +784,16 @@ class PageConnect:
         return ltpl('connect', follows, followers, friends)
 
 
-class PagePin2:
-    def GET(self, pin_id):
-        raise web.seeother('/item/%s' % pin_id)
-
-
 class PagePin:
     _form = form.Form(
         form.Textarea('comment'))
 
-    def GET(self, pin_id):
-        pin_id = int(pin_id)
-
+    def GET(self, external_id):
         logged = logged_in(sess)
         query1 = '(not count(distinct likes) = 0)' if logged else 'false'
         query2 = 'left join likes on likes.user_id = $uid and likes.pin_id = pins.id' if logged else ''
 
-        qvars = {'id': pin_id, 'uid': 0}
+        qvars = {'external_id': external_id, 'uid': 0}
         if logged:
             qvars['uid'] = sess.user_id
 
@@ -817,7 +809,7 @@ class PagePin:
                 ''' + query2 + '''
                 left join likes l2 on l2.pin_id = pins.id
                 left join pins p1 on p1.repin = pins.id
-            where pins.id = $id
+            where pins.external_id = $external_id
             group by pins.id, tags.tags, users.id''', vars=qvars)
         if not pin:
             return 'pin not found'
@@ -831,7 +823,7 @@ class PagePin:
             return 'pin not found'
 
         if logged and sess.user_id != pin.user_id:
-            db.update('pins', where='id = $id', vars={'id': pin_id}, views=web.SQLLiteral('views + 1'))
+            db.update('pins', where='id = $id', vars={'id': pin.id}, views=web.SQLLiteral('views + 1'))
 
         comments = db.query('''
             select
@@ -839,10 +831,10 @@ class PagePin:
             from comments
                 join users on users.id = comments.user_id
             where pin_id = $id
-            order by timestamp asc''', vars={'id': pin_id})
+            order by timestamp asc''', vars={'id': pin.id})
 
         rating = db.select('ratings', what='avg(rating)',
-                            where='pin_id = $id', vars={'id': pin_id})
+                            where='pin_id = $id', vars={'id': pin.id})
         if not rating:
             return 'could not get rating'
 
