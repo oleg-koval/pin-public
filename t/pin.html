@@ -19,18 +19,20 @@ $def with (pin, comments, rating, embeded=False)
       $if pin.link:
         <a class='button' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i> Visit Product</a>
     </p>
-    <a href="/p/$(pin.external_id)" target="_blank">
     $if pin.repin == 0:
+	    <a href="/static/tmp/$(pin.id).png" target="_blank">
 		$if embeded:
 			<img src='/static/tmp/$(pin.id).png' alt='' style="max-height:530px;width:auto"/>
 		$else:
 			<img src='/static/tmp/$(pin.id).png' alt='' style="max-width:80%;height:auto"/>
+		</a>
     $else:
+	    <a href="/static/tmp/$(pin.repin).png" target="_blank">
 		$if embeded:
 			<img src='/static/tmp/$(pin.repin).png' alt='' style="max-height:530px;width:auto"/>
 		$else:
 			<img src='/static/tmp/$(pin.repin).png' alt='' style="max-width:80%;height:auto"/>
-	</a>
+		</a>
     <div class='comments'>
       $ comments = list(comments)
       <div class='clearfix'>
