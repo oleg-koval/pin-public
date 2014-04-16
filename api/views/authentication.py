@@ -25,6 +25,8 @@ class Auth(BaseAPI):
             return self.access_denied("Login or password wrong")
         user = self.get_user(user_id)
         data = {
+            "csid_from_client": request_data.get("csid_from_client"),
+            "csid_from_server": user.get("seriesid"),
             "token": user.get("logintoken"),
             "user_id": user.get("id"),
             "email": user.get("email")
