@@ -4,6 +4,8 @@ from api.utils import api_response, save_api_request
 from api.views.base import BaseAPI
 
 from mypinnings.database import connect_db
+from mypinnings import auth
+from mypinnings import session
 
 
 db = connect_db()
@@ -98,8 +100,59 @@ class ChangePassword(BaseAPI):
             Change user password and take new client token
         """
         request_data = web.input()
-        import ipdb; ipdb.set_trace()
         save_api_request(request_data)
         client_token = request_data.get("client_token")
         user_id = self.authenticate_by_token(client_token)
-        
+
+        old_password = request_data.get("old_password")
+        new_password = request_data.get("new_password")
+        new_password2 = request_data.get("new_password2")
+
+        user = db.select('users', {'id': user_id}, where='id=$id', what='pw_salt, pw_hash')[0]
+        pw_salt = user['pw_salt']
+        pw_hash = user['pw_hash']  
+
+        if self.passwords_validation(pw_salt, pw_hash, old_password, new_password, new_password2):
+            new_password_hash = self.create_password(pw_salt, new_password)
+            db.update('users', pw_hash = new_password_hash, vars={'id': user_id}, where="id=$id")
+
+            # re_login user with new password
+            sess = session.get_session()
+            auth.login_user(sess, user_id)
+
+            user = db.select('users', {'id': user_id}, where='id=$id', what='logintoken')[0]
+            new_client_token = user['logintoken']
+            csid_from_server = user['seriesid']
+            data = {
+                "client_token": new_client_token,
+                "csid_from_server": csid_from_server,
+            }
+            response = api_response(data)
+            return response
+        else:
+            return self.access_denied("Wrong entered information")
+
+    def passwords_validation(self, pw_salt, pw_hash, old_pwd=None, new_pwd=None, new_pwd2=None):
+        """
+            Check if new password match with confirmation. 
+            Check relevance old password.
+            Check empty field.
+        """
+        if new_pwd is None:
+            return self.access_denied("New password is empty")
+
+        if old_pwd is None:
+            return self.access_denied("Old password is empty")
+
+        if new_pwd != new_pwd2:
+            return self.access_denied("Incorrect confirmation new password")
+      
+        if str(hash(str(hash(old_pwd)) + pw_salt)) != pw_hash:
+            return self.access_denied("Incorrect old password")
+
+        return True
+
+    def create_password(self, pw_salt, new_pwd):
+        new_pwd_hash = str(hash(new_pwd))
+        new_pwd_hash = str(hash(new_pwd_hash + pw_salt))
+        return new_pwd_hash

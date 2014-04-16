@@ -17,10 +17,10 @@ class redirect:
         web.seeother('/' + path)
 
 urls = (
-	"/(.*)/", 'redirect', # Handle urls with slash and without it
-	"/query/notification", api.views.notifications.Notification, # API handler for notifications
-	"/auth", api.views.authentication.Auth, # API to authenticate users
-	"/image/upload", api.views.images.ImageUpload, # API to upload images
+    "/(.*)/", 'redirect', # Handle urls with slash and without it
+    "/query/notification", api.views.notifications.Notification, # API handler for notifications
+    "/auth", api.views.authentication.Auth, # API to authenticate users
+    "/image/upload", api.views.images.ImageUpload, # API to upload images
     # API to user profile: manage user products
     "/profile/mgl", api.views.profile.ManageGetList,
 
