@@ -10,7 +10,7 @@ $if pin.id and pin.category:
       $if pin.link:
         <a class='button small-pad' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i></a>
     </div>
-    <a href='/pin/$pin.id'>
+    <a href='/p/$pin.external_id'>
       <img src='/static/tmp/pinthumb$(pin.id if pin.repin == 0 else pin.repin).png' alt=''/>
     </a>
     <div class='info'>

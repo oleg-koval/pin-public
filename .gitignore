@@ -3,6 +3,7 @@ tmp/
 static/tmp/
 *.pyc
 sessions/
+media/*
 static/pics
 *.out
 local_settings.py
@@ -11,3 +12,4 @@ node_modules/
 .pydevproject
 static/cat_reg_thmb/
 .settings/
+reload.sh

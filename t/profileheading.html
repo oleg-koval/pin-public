@@ -5,10 +5,10 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
     $if 'logged_in' in sess and sess.user_id == user.id:
       data-bg="true"
       id='header_background'
-      style='background-size:100% auto;background-position: $(user.headerbgx)px $(user.headerbgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);position:relative;'
+      style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);position:relative;'
     $else:
       id='header_background'
-      style='background-size:100% auto;background-position: $(user.headerbgx)px $(user.headerbgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);cursor:default !important;position:relative;'
+      style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);cursor:default !important;position:relative;'
   $else:
     data-nobg='true'
     style='background: #333842;position:relative;'
@@ -205,9 +205,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
         <li class=""><a href="#profile-about-box" data-toggle="tab">About</a></li>
         <li class=""><a id="pin-added" href="#pin-box-wrapper" data-toggle="tab">Added</a></li>
       
-      <!--
       <li class=""><a href="#list-box-wrapper" data-toggle="tab">Lists</a></li>
-      -->
       
     </ul>
     </div>

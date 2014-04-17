@@ -81,7 +81,7 @@ jQuery(function() {
     var pinid;
     event.preventDefault();
     pinid = $(this).attr('pinid');
-    $.get('/item/' + pinid + '?embed=true', function(data) {
+    $.get('/p/' + pinid + '?embed=true', function(data) {
       var current_position;
       $('#show_pin_layer_content').html(data);
       current_position = $('#show_pin_layer_content').position();

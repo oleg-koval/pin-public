@@ -14,7 +14,7 @@ removeRePin = function(e, y) {
         alert("An error occured, please refresh the page and try again later");
       } else {
         id = "#horz-pin" + e;
-        $(id).slideToggle();
+        $(id).fadeOut();
       }
     });
   }
@@ -195,7 +195,7 @@ $(document).on('click', '.category_pin_image', function(event) {
   var pinid;
   event.preventDefault();
   pinid = $(this).attr('pinid');
-  $.get('/item/' + pinid + '?embed=true', function(data) {
+  $.get('/p/' + pinid + '?embed=true', function(data) {
     var current_position;
     $('#show_pin_layer_content').html(data);
     current_position = $('#show_pin_layer_content').position();
