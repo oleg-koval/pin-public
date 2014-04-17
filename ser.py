@@ -14,6 +14,7 @@ import subprocess
 import HTMLParser
 import logging
 import decimal
+import BeautifulSoup
 
 from mypinnings.database import connect_db, dbget
 db = connect_db()
@@ -1223,13 +1224,13 @@ def get_base_url(url):
     return url[:url.rfind('/') + 1]
 
 
-MAX_IMAGES = 10
+MAX_IMAGES = 100
 
 
 def get_url_info(contents, base_url):
-    links = re.findall(r'<img.*?src\=\"([^\"]*)\"', contents, re.DOTALL)
-    # soup = BeautifulSoup(contents)
-    # links = [x['src'] for x in soup.find_all('img')]
+    #links = re.findall(r'<img.*?src\=\"([^\"]*)\"', contents, re.DOTALL)
+    soup = BeautifulSoup.BeautifulSoup(contents)
+    links = [x['src'] for x in soup("img") if x.get('src', 0)!=0]
     links = ['http:' + x if x.startswith('//') else x for x in links]
     links = [x if '://' in x else base_url + x for x in links]
     if len(links) > MAX_IMAGES:
@@ -1269,7 +1270,7 @@ class PagePreview:
                 info = get_url_info(r.text, base_url)
 
             return json.dumps(info)
-        except:
+        except IOError:
             return json.dumps({'status': 'error'})
 
 

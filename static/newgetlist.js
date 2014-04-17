@@ -1,6 +1,11 @@
 (function() {
 var imagedata = new Array();
 $(document).ready(function() {
+    function getMeta(url) {
+        var img = new Image();
+       img.src = url;
+       img.onload = function(){gallery.setdata({url: url, w: this.width, h: this.height});}
+    }
     $( "#dialog-form" ).dialog({
 	        autoOpen: false,
 	        height: 250,
@@ -32,6 +37,10 @@ $(document).ready(function() {
         $( "#dialog-form" ).dialog( "close" );
     });
 
+    $("#get_cancel").click(function(){
+        $( "#getlist-from-web" ).dialog( "close" );
+    });
+
     $( "#addpindialogform" ).dialog({
 	        autoOpen: false,
 	        height:500,
@@ -41,7 +50,7 @@ $(document).ready(function() {
 	$( "#addpindialogformweb" ).dialog({
 	        autoOpen: false,
 	        height:500,
-	        width: 700,
+	        width: 800,
 	        modal: true
 	        });
     function validate(){
@@ -152,11 +161,13 @@ $(document).ready(function() {
     }
 
     function initgallery(data){
-        var imagedata=new Array();
+        gallery.lengthTotal = data["images"].length
+        gallery.data = new Array();
         for(i=0; i<data["images"].length;i++){
-            imagedata.push({"url":data["images"][i], 'caption':i});
+            getMeta(data["images"][i]);
         }
-        gallery.init(imagedata);
+
+        gallery.init();
 
     }
 
@@ -220,7 +231,19 @@ $(document).ready(function() {
     });
 
     var gallery = {
+        data: new Array(),
         element: $("#slide-imageweb"),
+        setdata: function(data){
+            this.lengthTotal = this.lengthTotal - 1;
+            if(data.w>200 ||data.h>200){
+                this.data.push(data);
+            }
+
+            if(this.lengthTotal===0){
+                this.len = this.data.length;
+                this.showitem();
+            }
+        },
         next: function(){
             if (this.current<this.len-1){
                 this.current += 1;
@@ -241,12 +264,10 @@ $(document).ready(function() {
         showstatus : function(){
             $("#status-textweb").html("   "+(this.current+1) + " of "+this.len);
         },
-        init: function(data){
-            this.data = data;
-            this.len = data.length;
+        init: function(){
             this.element = $("#slide-imageweb");
             this.current = 0;
-            this.showitem();
+            this.element.attr("src","");
         }
 
     }
@@ -263,6 +284,20 @@ $(document).ready(function() {
     	$('#board_name').val('');
     	$('#board_creation_layer').hide();
     	$('#board_selection_layer').show();
+    });
+
+    $('#button_add_boardweb').on('click', function(event) {
+        event.preventDefault();
+        $('#board').val('');
+        $('#board_selection_layerweb').hide();
+        $('#board_creation_layerweb').show();
+    });
+
+    $('#button_select_boardweb').on('click', function(event) {
+        event.preventDefault();
+        $('#board_name').val('');
+        $('#board_creation_layerweb').hide();
+        $('#board_selection_layerweb').show();
     });
 
     });

@@ -169,7 +169,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
     <textarea id="comments" class="comments" placeholder="Say something about this"></textarea><br>
     <input type="hidden" id="image-url" >
     <input type="button" id="cancelfancy" name="cancelfancy" value="Cancel">&nbsp;&nbsp;
-    <input type="submit" id="addfancy" name="addfancy" value="Add To Fancy">
+    <input type="submit" id="addfancy" name="addfancy" value="Add to your GetList">
     </div>
     </form>
     </div>
@@ -195,11 +195,20 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
             $for cat in categories:
                 <option value="$cat['id']">$cat['name']</option>
         </select></td></tr>
-        <tr><th><label for="lists">Lists</label></th><td><select id="list_id" name="list_id">
+        <tr><th><label for="lists">Lists</label></th><td>
+                    <div id="board_selection_layerweb">
+                    <select id="board" name="board">
                         <option value="">Select one</option>
-                    $for board in boards:
-                        <option value="$board.id">$board.name</option>
-                    </select></td></tr>
+                        $for boardweb in boards:
+                            <option value="$board.id">$boardweb.name</option>
+                    </select>
+                    <button type="button" id="button_add_boardweb" alt="Add a new list">+</button>
+                    </div>
+                    <div id="board_creation_layerweb" style="display:none">
+                    <input type="text" name="board_name" id="board_name">
+                    <button type="button" id="button_select_boardweb" alt="Select an existing board">-</button>
+                    </div>
+                    </td></tr>
         <tr><th><label for="price_range">Price range</label></th>
             <td>
                 <label><input type="radio" name="price_range" value="1" checked> $$</label>
@@ -217,7 +226,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
     <textarea id="commentsweb" class="comments" placeholder="Say something about this"></textarea><br>
     <input type="hidden" id="image_urlweb" >
     <input type="button" id="cancelfancyweb" name="cancelfancy" value="Cancel">&nbsp;&nbsp;
-    <input type="submit" id="addfancyweb" name="addfancy" value="Add To Fancy">
+    <input type="submit" id="addfancyweb" name="addfancy" value="Add to your GetList">
     </div>
     </form>
     </div>
@@ -267,6 +276,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
                <input type='file' name='file' id='file' accept="image/*" required="required" />
                  </div>
               <div class="modal-footer">
+              <img id="hiddenimage" src="">
               <button type="submit"  class="button">Upload Photo</button>
               </div>
               </form>
