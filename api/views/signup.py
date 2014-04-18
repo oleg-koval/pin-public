@@ -73,3 +73,11 @@ class Auth(BaseAPI):
         status = 405
         error_code = "Not enough parameters"
         return api_response(data=data, status=status, error_code=error_code)
+
+class Register(BaseAPI):
+    """
+        Register method for API
+    """
+    def POST(self):
+        pass
+        
