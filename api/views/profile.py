@@ -39,7 +39,7 @@ class ManageGetList(BaseAPI):
 
         # Check input social data for posting
         if not access_token or not social_network:
-            status = 400
+            status_error = 400
             error_code = "Invalid input data"
 
         status, user_id = self.authenticate_by_token(client_token)
@@ -52,10 +52,7 @@ class ManageGetList(BaseAPI):
         if len(image_id_add_list) > 0:
             add_list_result = self.add(user_id, image_id_add_list)
 
-        image_id_remove_list = map(
-            int,
-            request_data.get("image_id_remove_list")
-        )
+        image_id_remove_list = map(int, request_data.get("image_id_remove_list"))
         remove_list_result = []
         if len(image_id_remove_list) > 0:
             remove_list_result = self.remove(user_id, image_id_remove_list)
@@ -72,11 +69,8 @@ class ManageGetList(BaseAPI):
             "removed": remove_list_result,
             "shared": share_list_result,
         }
-        # response = api_response(data, csid_from_client=request_data.get("csid_from_client"),
-        #     csid_from_server=csid_from_server)
-
         response = api_response(data,
-                        status=status,
+                        status=status_error,
                         error_code=error_code,
                         csid_from_client=csid_from_client,
                         csid_from_server=csid_from_server)
