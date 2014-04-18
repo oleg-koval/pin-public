@@ -27,7 +27,7 @@ class BaseAPI(object):
 
     def authenticate_by_token(self, client_token):
         """
-            Get user_id by client token
+        Get user_id by client token
         """
         success = False
         user = db.select(
@@ -37,7 +37,7 @@ class BaseAPI(object):
         )
         if len(user) > 0:
             success = True
-            return success, int(user.list()[0]['id'])
+            return success, user.list()[0]
         else:
             if client_token is None:
                 error_code = "Not received client token"
