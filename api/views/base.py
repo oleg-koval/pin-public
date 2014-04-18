@@ -29,19 +29,21 @@ class BaseAPI(object):
         """
             Get user_id by client token
         """
+        success = False
         user = db.select(
             'users',
             {"logintoken": client_token},
             where="logintoken=$logintoken"
         )
         if len(user) > 0:
-            return int(user.list()[0]['id'])
+            success = True
+            return success, int(user.list()[0]['id'])
         else:
             if client_token is None:
                 error_code = "Not received client token"
             else:
                 error_code = "Wrong client token"
-            return self.access_denied(error_code)
+            return success, self.access_denied(error_code)
 
     def access_denied(self, error_code="Default error: access_denied"):
         """
