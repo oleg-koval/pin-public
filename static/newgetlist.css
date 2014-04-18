@@ -22,12 +22,16 @@
 }
 
 .photo{
-    width:180px;
-    height:180px;
+    width:200px;
+    height:250px;
     vertical-align:middle;
 }
 
 .photo img {
     width: 100%;
     height: auto;
+}
+
+#hiddenimg{
+    display: none;
 }
