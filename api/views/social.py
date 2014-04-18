@@ -27,11 +27,12 @@ class PostingOnUserPage(BaseAPI):
         social_network = request_data.get("social_network")
         csid_from_client = request_data.get('csid_from_client')
         logintoken = request_data.get('logintoken')
-        user_status, user = self.authenticate_by_token(logintoken)
+        user_status, user_id = self.authenticate_by_token(logintoken)
 
         # User id contains error code
         if not user_status:
-            return user
+            return user_id
+        user = db.select('users', {'id': user_id}, where='id=$id')[0]
         csid_from_server = user['seriesid']
 
         # Initialize default posted pins list
@@ -112,10 +113,13 @@ def share(social_network, access_token, share_list):
         if share_pin_status:
             shared_pins.append(pin_id)
 
+    return shared_pins, 200, ""
+
 
 def check_facebook_access_token(access_token):
     try:
         graph = facebook.GraphAPI(access_token)
+        profile = graph.get_object("me")
         return True
     except facebook.GraphAPIError, exc:
         return False
