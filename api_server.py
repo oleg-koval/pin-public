@@ -4,7 +4,7 @@ import logging
 
 import api.views.base
 import api.views.notifications
-import api.views.authentication
+import api.views.signup
 import api.views.images
 import api.views.profile
 
@@ -19,8 +19,16 @@ class redirect:
 urls = (
     "/(.*)/", 'redirect', # Handle urls with slash and without it
     "/query/notification", api.views.notifications.Notification, # API handler for notifications
-    "/auth", api.views.authentication.Auth, # API to authenticate users
-    "/image/upload", api.views.images.ImageUpload, # API to upload images
+
+    # API to user signup: authenticate user
+    "/auth", api.views.signup.Auth,
+
+    # API to user signup: register user
+    "/signup/register", api.views.signup.Register,
+    
+    # API to upload images
+    "/image/upload", api.views.images.ImageUpload,
+
     # API to user profile: manage user products
     "/profile/mgl", api.views.profile.ManageGetList,
 
