@@ -12,6 +12,12 @@ db = connect_db()
 class PostingOnUserPage(BaseAPI):
     """
     Provides sharing pins to social networks
+    
+    Method PostingOnUserPage must receive next required params:
+
+    share_list - list of pin's ids
+    access_token - access token for social network
+    social_network - name of social network (for example "facebook")
     """
     def POST(self):
         """
@@ -47,9 +53,11 @@ class PostingOnUserPage(BaseAPI):
             status = 400
             error_code = "Invalid input data"
         else:
-            posted_pins, status, error_code = share(social_network,
-                                                    access_token,
-                                                    share_list)
+            posted_pins, status, error_code = share(
+                access_token,
+                share_list,
+                social_network,
+            )
 
         # Setting data for return
         data = {
@@ -64,7 +72,7 @@ class PostingOnUserPage(BaseAPI):
         return response
 
 
-def share(social_network, access_token, share_list):
+def share(access_token, share_list, social_network="facebook"):
     """
     Share pins to social network, using access token
     """
