@@ -9,7 +9,6 @@ from mypinnings import auth
 from mypinnings import session
 
 
-
 db = connect_db()
 
 
