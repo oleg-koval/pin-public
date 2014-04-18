@@ -25,7 +25,7 @@ urls = (
     "/auth", api.views.signup.Auth,
 
     # API to user signup: register user
-    "/signup/register", api.views.signup.Register,
+    # "/signup/register", api.views.signup.Register,
     
     # API to upload images
     "/image/upload", api.views.images.ImageUpload,
