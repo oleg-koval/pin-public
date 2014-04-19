@@ -4,6 +4,7 @@ from datetime import datetime
 
 from api.utils import api_response, save_api_request, api_response
 from api.views.base import BaseAPI
+from api.views.social import share
 
 from mypinnings import auth
 from mypinnings import session
@@ -136,6 +137,11 @@ class ManageGetList(BaseAPI):
     def POST(self):
         """
         Manage list of user products: share, add, remove
+
+        Method for image_id_share_list must additional receive next
+        required params:
+        access_token - access token for social network
+        social_network - name of social network (for example "facebook")
         """
         request_data = web.input(
             image_id_remove_list=[],
@@ -144,11 +150,21 @@ class ManageGetList(BaseAPI):
         )
 
         save_api_request(request_data)
-        client_token = request_data.get("logintoken")
+        login_token = request_data.get("logintoken")
 
-        status, response_or_user = self.authenticate_by_token(client_token)
+        status, response_or_user = self.authenticate_by_token(login_token)
         if not status:
             return response_or_user
+
+        csid_from_client = request_data.get('csid_from_client')
+
+        access_token = request_data.get("access_token")
+        social_network = request_data.get("social_network")
+
+        # Check input social data for posting
+        if not access_token or not social_network:
+            status_error = 400
+            error_code = "Invalid input data"
 
         image_id_add_list = map(int, request_data.get("image_id_add_list"))
         add_list_result = []
@@ -156,10 +172,8 @@ class ManageGetList(BaseAPI):
             add_list_result = self.add(response_or_user["id"],
                                        image_id_add_list)
 
-        image_id_remove_list = map(
-            int,
-            request_data.get("image_id_remove_list")
-        )
+        image_id_remove_list = map(int, request_data\
+                                   .get("image_id_remove_list"))
         remove_list_result = []
         if len(image_id_remove_list) > 0:
             remove_list_result = self.remove(response_or_user["id"],
@@ -168,17 +182,16 @@ class ManageGetList(BaseAPI):
         image_id_share_list = map(int, request_data.get("image_id_share_list"))
         share_list_result = []
         if len(image_id_share_list) > 0:
-            share_list_result = self.share(response_or_user["id"],
+            share_list_result = self.share(access_token, social_network,
                                            image_id_share_list)
 
         csid_from_server = response_or_user.get('seriesid')
-        csid_from_client = request_data.get("csid_from_client")
+
         data = {
             "added": add_list_result,
             "removed": remove_list_result,
             "shared": share_list_result,
         }
-
         response = api_response(data, csid_from_client,
                                 csid_from_server=csid_from_server)
         return response
@@ -218,11 +231,21 @@ class ManageGetList(BaseAPI):
                 )
         return remove_list_result
 
-    def share(self, user_id, share_list):
+    def share(self, access_token, social_network, share_list):
         """
         Share products from user profile
         """
-        pass
+        # for testing only
+        # access_token = 'CAACEdEose0cBABun8SJm4YuGGlT8vTKp51BJZCNPwjd\
+        # X0sWHVrhitlZBm7JagMMDjFj2cZAtadWodSZA0PLitbKubDTFI1ZB6scvaIB9\
+        # c6PkwuhzsiFd9SXoms9zIkVthr7OE2aWpHXhEqGrhD1HBLyNaCXZBz4eq5MovP\
+        # lPZAape19eL9mrxOROsYWrYEbnKsZD'
+        social_network = "facebook"
+        share_list_result, status, error_code = share(access_token,
+                                                      share_list,
+                                                      social_network)
+
+        return share_list_result
 
 
 class ChangePassword(BaseAPI):
@@ -236,6 +259,7 @@ class ChangePassword(BaseAPI):
         status, response_or_user = self.authenticate_by_token(client_token)
         if not status:
             return response_or_user
+
         old_password = request_data.get("old_password")
         new_password = request_data.get("new_password")
         new_password2 = request_data.get("new_password2")
@@ -243,9 +267,10 @@ class ChangePassword(BaseAPI):
         pw_salt = response_or_user['pw_salt']
         pw_hash = response_or_user['pw_hash']
 
-        if self.passwords_validation(pw_salt, pw_hash,
-                                     old_password, new_password,
-                                     new_password2):
+        status, error = self.passwords_validation(pw_salt, pw_hash,
+                                                  old_password, new_password,
+                                                  new_password2)
+        if status:
             new_password_hash = self.create_password(pw_salt, new_password)
             db.update('users', pw_hash=new_password_hash,
                       vars={'id': response_or_user["id"]}, where="id=$id")
@@ -266,7 +291,7 @@ class ChangePassword(BaseAPI):
                                     csid_from_server=csid_from_server)
             return response
         else:
-            return self.access_denied("Wrong entered information")
+            return error
 
     def passwords_validation(self, pw_salt, pw_hash, old_pwd=None,
                              new_pwd=None, new_pwd2=None):
@@ -276,18 +301,18 @@ class ChangePassword(BaseAPI):
         Check empty field.
         """
         if new_pwd is None:
-            return self.access_denied("New password is empty")
+            return False, self.access_denied("New password is empty")
 
         if old_pwd is None:
-            return self.access_denied("Old password is empty")
+            return False, self.access_denied("Old password is empty")
 
         if new_pwd != new_pwd2:
-            return self.access_denied("Incorrect confirmation new password")
+            return False, self.access_denied("Passwords do not match")
 
         if str(hash(str(hash(old_pwd)) + pw_salt)) != pw_hash:
-            return self.access_denied("Incorrect old password")
+            return False, self.access_denied("Incorrect old password")
 
-        return True
+        return True, "Success"
 
     def create_password(self, pw_salt, new_pwd):
         new_pwd_hash = str(hash(new_pwd))
