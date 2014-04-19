@@ -26,10 +26,18 @@ class BaseUserProfile(BaseAPI):
 
     def is_request_valid(self, request_data):
         """
-        Checks if required parameters are in request
+        Checks if all required parameters are sent from the client.
+        Also checks if no extra arguments was passed
         """
         for field in self.required:
             if field not in request_data:
+                return False
+
+        for field in request_data:
+            # Checking if current field is among the fields we have in the db
+            if (field not in self._fields and
+                    field not in self._birthday_fields and
+                    field not in self.required):
                 return False
         return True
 
@@ -51,11 +59,12 @@ class UserInfoUpdate(BaseUserProfile):
             return api_response(data={}, status=405,
                                 error_code="Required args are missing")
         csid_from_client = request_data.pop('csid_from_client')
-        status, user = self.authenticate_by_token(
+
+        status, response_or_user = self.authenticate_by_token(
             request_data.pop('logintoken'))
-        # User id contains error code
+        # Login was not successful
         if not status:
-            return user
+            return response_or_user
         to_insert = {}
 
         birthday = [value for key, value in request_data.items()
@@ -71,12 +80,12 @@ class UserInfoUpdate(BaseUserProfile):
             item = request_data.get(field)
             if item:
                 to_insert[field] = item
-        db.update('users', where='id = %s' % (user['id']), **to_insert)
-        csid_from_server = user['seriesid']
+        db.update('users', where='id = %s' % (response_or_user['id']),
+                  **to_insert)
+        csid_from_server = response_or_user['seriesid']
         return api_response(data=request_data,
                             csid_from_client=csid_from_client,
-                            csid_from_server=csid_from_server,
-                            status=200)
+                            csid_from_server=csid_from_server)
 
 
 class GetProfileInfo(BaseUserProfile):
@@ -100,24 +109,27 @@ class GetProfileInfo(BaseUserProfile):
         if not self.is_request_valid(request_data):
             return api_response(data={}, status=405,
                                 error_code="Required args are missing")
-        status, user = self.authenticate_by_token(
+        status, response_or_user = self.authenticate_by_token(
             request_data.pop('logintoken'))
+        # Login was not successful
+        if not status:
+            return response_or_user
+
         csid_from_client = request_data.pop('csid_from_client')
         # User id contains error code
         if not status:
-            return user
+            return response_or_user
 
-        response = {field: user[field] for field in self._fields}
-
+        response = {field: response_or_user[field] for field in self._fields}
+        csid_from_server = response_or_user['seriesid']
         # Formatting response of birthday_ year, day, month from 'birthday'
-        if user['birthday']:
-            response['birthday_year'] = user['birthday'].year
-            response['birthday_day'] = user['birthday'].day
-            response['birthday_month'] = user['birthday'].month
+        if response_or_user['birthday']:
+            response['birthday_year'] = response_or_user['birthday'].year
+            response['birthday_day'] = response_or_user['birthday'].day
+            response['birthday_month'] = response_or_user['birthday'].month
         return api_response(data=response,
                             csid_from_client=csid_from_client,
-                            csid_from_server=user['seriesid'],
-                            status=200)
+                            csid_from_server=csid_from_server)
 
 
 class ManageGetList(BaseAPI):
@@ -134,15 +146,15 @@ class ManageGetList(BaseAPI):
         save_api_request(request_data)
         client_token = request_data.get("logintoken")
 
-        status, user = self.authenticate_by_token(client_token)
-        # User id contains error code
+        status, response_or_user = self.authenticate_by_token(client_token)
         if not status:
-            return user
+            return response_or_user
 
         image_id_add_list = map(int, request_data.get("image_id_add_list"))
         add_list_result = []
         if len(image_id_add_list) > 0:
-            add_list_result = self.add(user["id"], image_id_add_list)
+            add_list_result = self.add(response_or_user["id"],
+                                       image_id_add_list)
 
         image_id_remove_list = map(
             int,
@@ -150,28 +162,30 @@ class ManageGetList(BaseAPI):
         )
         remove_list_result = []
         if len(image_id_remove_list) > 0:
-            remove_list_result = self.remove(user["id"], image_id_remove_list)
+            remove_list_result = self.remove(response_or_user["id"],
+                                             image_id_remove_list)
 
         image_id_share_list = map(int, request_data.get("image_id_share_list"))
         share_list_result = []
         if len(image_id_share_list) > 0:
-            share_list_result = self.share(user["id"], image_id_share_list)
+            share_list_result = self.share(response_or_user["id"],
+                                           image_id_share_list)
 
-        user = db.select('users', {'id': user_id}, where='id=$id')[0]
-        csid_from_server = user.get('seriesid')
+        csid_from_server = response_or_user.get('seriesid')
+        csid_from_client = request_data.get("csid_from_client")
         data = {
             "added": add_list_result,
             "removed": remove_list_result,
             "shared": share_list_result,
         }
-        response = api_response(data, csid_from_client=request_data.get("csid_from_client"),
-            csid_from_server=csid_from_server)
 
+        response = api_response(data, csid_from_client,
+                                csid_from_server=csid_from_server)
         return response
 
     def add(self, user_id, add_list):
         """
-            Add new products to user profile
+        Add new products to user profile
         """
         add_list_result = []
         for pin in add_list:
@@ -214,46 +228,52 @@ class ManageGetList(BaseAPI):
 class ChangePassword(BaseAPI):
     def POST(self):
         """
-            Change user password and take new client token
+        Change user password and take new client token
         """
         request_data = web.input()
         save_api_request(request_data)
-        client_token = request_data.get("client_token")
-        user_id = self.authenticate_by_token(client_token)
-
+        client_token = request_data.get("logintoken")
+        status, response_or_user = self.authenticate_by_token(client_token)
+        if not status:
+            return response_or_user
         old_password = request_data.get("old_password")
         new_password = request_data.get("new_password")
         new_password2 = request_data.get("new_password2")
 
-        user = db.select('users', {'id': user_id}, where='id=$id', what='pw_salt, pw_hash')[0]
-        pw_salt = user['pw_salt']
-        pw_hash = user['pw_hash']
+        pw_salt = response_or_user['pw_salt']
+        pw_hash = response_or_user['pw_hash']
 
-        if self.passwords_validation(pw_salt, pw_hash, old_password, new_password, new_password2):
+        if self.passwords_validation(pw_salt, pw_hash,
+                                     old_password, new_password,
+                                     new_password2):
             new_password_hash = self.create_password(pw_salt, new_password)
-            db.update('users', pw_hash = new_password_hash, vars={'id': user_id}, where="id=$id")
+            db.update('users', pw_hash=new_password_hash,
+                      vars={'id': response_or_user["id"]}, where="id=$id")
 
             # re_login user with new password
             sess = session.get_session()
-            auth.login_user(sess, user_id)
+            auth.login_user(sess, response_or_user["id"])
 
-            user = db.select('users', {'id': user_id}, where='id=$id')[0]
+            user = db.select('users', {'id': response_or_user["id"]},
+                             where='id=$id')[0]
             new_client_token = user.get('logintoken')
             csid_from_server = user.get('seriesid')
+            csid_from_client = request_data.get("csid_from_client")
             data = {
                 "client_token": new_client_token,
             }
-            response = api_response(data, csid_from_client=request_data.get("csid_from_client"),
-                csid_from_server=csid_from_server)
+            response = api_response(data, csid_from_client,
+                                    csid_from_server=csid_from_server)
             return response
         else:
             return self.access_denied("Wrong entered information")
 
-    def passwords_validation(self, pw_salt, pw_hash, old_pwd=None, new_pwd=None, new_pwd2=None):
+    def passwords_validation(self, pw_salt, pw_hash, old_pwd=None,
+                             new_pwd=None, new_pwd2=None):
         """
-            Check if new password match with confirmation.
-            Check relevance old password.
-            Check empty field.
+        Check if new password match with confirmation.
+        Check relevance old password.
+        Check empty field.
         """
         if new_pwd is None:
             return self.access_denied("New password is empty")
