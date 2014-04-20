@@ -458,7 +458,6 @@ class NewPageAddPinForm:
     def POST(self):
         data = web.input()
         fname = data.fname
-
         transaction = db.transaction()
         try:
             if data.board:
@@ -466,7 +465,10 @@ class NewPageAddPinForm:
             elif data.board_name:
                 board = db.insert(tablename='boards', name=data.board_name, description=data.board_name,
                                   user_id = sess.user_id)
+            else:
+                board=None
             external_id = pin_utils.generate_external_id()
+
             pin_id = db.insert('pins',
                 description=data.comments,
                 user_id=sess.user_id,
@@ -476,14 +478,16 @@ class NewPageAddPinForm:
                 external_id=external_id
                 )
 
-            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in data.category.split(',')]
-            db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
+            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in data.category.split(',') if c!='']
+            if categories_to_insert:
+                db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
 
             os.rename('static/tmp/%s.png' % fname,
                       'static/tmp/%d.png' % pin_id)
             os.rename('static/tmp/pinthumb%s.png' % fname,
                       'static/tmp/pinthumb%d.png' % pin_id)
             transaction.commit()
+            print "=================", pin_id, "============",external_id
             return '/p/%s' % external_id
         except Exception as e:
             logger.error('Failed to create a pin from a file upload', exc_info=True)
@@ -559,7 +563,7 @@ class PageAddPinUrl:
                 board_id = db.insert(tablename='boards', name=data.board_name, description=data.board_name,
                                      user_id=sess.user_id)
             else:
-                pass#todo
+                board_id = None
 
             external_id = pin_utils.generate_external_id()
             pin_id = db.insert('pins',
