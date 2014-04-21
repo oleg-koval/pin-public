@@ -1,4 +1,5 @@
 import web
+import random
 
 from api.utils import api_response, save_api_request
 from api.views.base import BaseAPI
@@ -6,6 +7,10 @@ from api.views.base import BaseAPI
 import mypinnings
 from mypinnings.database import connect_db
 from mypinnings.auth import authenticate_user_email, authenticate_user_username, login_user
+from mypinnings.register import add_default_lists, send_activation_email
+from mypinnings import auth
+from mypinnings import session
+
 
 db = connect_db()
 
@@ -74,10 +79,97 @@ class Auth(BaseAPI):
         error_code = "Not enough parameters"
         return api_response(data=data, status=status, error_code=error_code)
 
+
 class Register(BaseAPI):
     """
         Register method for API
     """
     def POST(self):
-        pass
-        
+        """
+            Method register must receive next additional params:
+
+            uname - user name
+            pwd - user password
+            email - user email
+            first_name - user first name
+            last_name - user last name
+            language - user language
+
+            output response also included:
+
+            login_token for new user,
+            hashed_activation for activation-email
+        """
+        request_data = web.input()
+        data = {}
+
+        save_api_request(request_data)
+        csid_from_client = request_data.get('csid_from_client')
+
+        uname = request_data.get("uname")
+        pwd = request_data.get("pwd")
+        email = request_data.get("email")
+        first_name = request_data.get("first_name")
+        # last_name = request_data.get("last_name")
+        language = request_data.get("language", "en")
+
+        status_error = 200
+        error_code = ""
+
+        status, error_code = self.register_validation(uname, pwd, email, first_name)
+        if status:
+            activation = random.randint(1, 10000)
+            hashed = hash(str(activation))
+
+            user_id = auth.create_user(email, pwd, name=first_name, username=uname, activation=activation,
+                                       locale=language)
+
+            add_default_lists(user_id)
+            send_activation_email(email, hashed, user_id)
+            sess = session.get_session()
+            auth.login_user(sess, user_id)
+            user = db.select('users', {'id': user_id}, where='id=$id')[0]
+            login_token = user.get('logintoken')
+            data.update({
+                "login_token": login_token,
+                "hashed_activation": hashed,
+                })
+        else:
+            status_error = 405
+
+        response = api_response(
+            data,
+            status=status_error,
+            error_code=error_code,
+            csid_from_client=csid_from_client,)
+
+        return response
+
+    def register_validation(self, uname, pwd, email, first_name):
+        """
+            Validation entered user's request parameters:
+            name, password,
+            email, first_name
+        """
+        request_params = {
+            "uname": uname,
+            "pwd": pwd,
+            "email": email,
+            "first_name": first_name,
+        }
+        error_code = ""
+        for field, value in request_params.items():
+            if value is None:
+                error_code = "Not entered necessary parameter '"
+                error_code += str(field)+"' for register method SignUp APIs"
+                return False, error_code
+
+        if auth.email_exists(email):
+            error_code = 'Sorry, that email already exists.'
+            return False, error_code
+
+        if auth.username_exists(uname):
+            error_code = 'Sorry, that username already exists.'
+            return False, error_code
+
+        return True, error_code
