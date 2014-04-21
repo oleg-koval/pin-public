@@ -26,4 +26,7 @@ def create_thumbnail_212px_for_pin_id(pin_id):
         
         
 def create_thumbnail_212px_for_pin(pin):
-    return create_thumbnail_212px_for_pin_id(pin.id)
+    result = create_thumbnail_212px_for_pin_id(pin.id)
+    if not result:
+        return create_thumbnail_212px_for_pin_id(pin.repin)
+    return result
