@@ -43,13 +43,13 @@ $(document).ready(function() {
 
     $( "#addpindialogform" ).dialog({
 	        autoOpen: false,
-	        height:500,
+	        height:650,
 	        width: 700,
 	        modal: true
 	        });
 	$( "#addpindialogformweb" ).dialog({
 	        autoOpen: false,
-	        height:500,
+	        height:700,
 	        width: 800,
 	        modal: true
 	        });
@@ -171,12 +171,24 @@ $(document).ready(function() {
 
     }
 
+    function getCategories(name){
+        var elements = $("input[name="+name+"]");
+        var categories = new Array();
+        $.each(elements, function(id,v){
+            if($(v).prop('checked')){
+                categories.push($(v).val());
+            }
+        });
+        return categories.join();
+
+    }
+
     function getdata(){
         var data = {
             'title':$("#title").val(),
             'weblink':$("#weblink").val(),
-            'category':$("#category").val(),
-            'lists':$("#lists").val(),
+            'category':getCategories("category_check"),
+            'lists':$("#board").val(),
             'comments':$("#comments").val(),
             'fname':$("#fname").val(),
         }
@@ -187,10 +199,10 @@ $(document).ready(function() {
         var data = {
             'title':$("#titleweb").val(),
             'link':$("#weblinkweb").val(),
-            'categories':$("#categoryweb").val(),
+            'categories':getCategories("category_check_web"),
             'description':$("#commentsweb").val(),
             'image_url':$("#image_urlweb").val(),
-            'list':$("#list_id").val(),
+            'list':$("#boardweb").val(),
             'price':$("input:radio[name='price_range']:checked").val()||'',
             'websiteurl':$("#websitelinkweb").val(),
             'board_name':''
@@ -215,6 +227,7 @@ $(document).ready(function() {
     $('#ajaxpinform').submit(function() {
         // submit the form
         $(this).ajaxSubmit({
+        beforeSubmit: validate_from_upload,
         data:getdata(),
         success: successcall});
         // return false to prevent normal browser submit and page navigation
@@ -224,11 +237,98 @@ $(document).ready(function() {
     $('#ajaxpinformweb').submit(function() {
         // submit the form
         $(this).ajaxSubmit({
+        beforeSubmit: validate_from_web,
         data:getdataweb(),
         success: successcall});
         // return false to prevent normal browser submit and page navigation
         return false;
     });
+
+    function validate_from_upload(formData, jqForm, options) {
+        var title = $("#title");
+        var weblink = $("#weblink");
+        var list = $("#board");
+        var cat = getCategories("category_check");
+        var category = $("input[name=category_check]");
+
+        var errors = new Array();
+        if(cat===""){
+            errors.push(category);
+        }else{
+            $.each(category, function(i,v){
+                $(v).attr("style", "");
+            });
+        }
+
+        if(title.val()===""){
+            errors.push(title);
+        }else{
+            title.attr("style", "");
+        }
+        if(weblink.val()===""){
+            errors.push(weblink);
+        }else{
+            weblink.attr("style", "");
+        }
+        if(list.val()===""){
+            errors.push(list);
+        }else{
+            list.attr("style", "");
+        }
+        if (errors.length>0){
+            for (i=0;i<errors.length;i++){
+                if(errors[i] instanceof jQuery){
+                    $.each(errors[i], function(i,v){
+                        $(v).attr("style", "outline:1px solid red;");
+                    });
+                }else{
+                    errors[i].attr("style", "border:1px solid red;");
+                }
+            }
+            return false;
+        }
+        return true;
+    }
+
+    function validate_from_web(formData, jqForm, options) {
+        var title = $("#titleweb");
+        var list = $("#boardweb");
+        var cat = getCategories("category_check_web");
+        var category = $("input[name=category_check_web]");
+
+        var errors = new Array();
+        if(cat===""){
+            errors.push(category);
+        }else{
+            $.each(category, function(i,v){
+                $(v).attr("style", "");
+            });
+        }
+        if(title.val()===""){
+            errors.push(title);
+        }else{
+            title.attr("style", "");
+        }
+        if(list.val()===""){
+            errors.push(list);
+        }else{
+            list.attr("style", "");
+        }
+        if (errors.length>0){
+            for (i=0;i<errors.length;i++){
+                if(errors[i] instanceof jQuery){
+                    $.each(errors[i], function(i,v){
+                        $(v).attr("style", "outline:1px solid red;");
+                    });
+                }else{
+                    errors[i].attr("style", "border:1px solid red;");
+                }
+
+            }
+            return false;
+        }
+        return true;
+    }
 
     var gallery = {
         data: new Array(),
