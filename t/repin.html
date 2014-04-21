@@ -1,5 +1,5 @@
 $def with (pin, form)
-<h1 class='center pad-bottom'>Adding <a href='/pin/$pin.id'>$pin.description</a> to your Getlist</h1>
+<h1 class='center pad-bottom'>Adding <a href='/p/$pin.external_id'>$pin.description</a> to your Getlist</h1>
 <form class='width-auto' method='post' action='' autocomplete='off'>
 <table>
     <tr><th><label for="description">description</label></th><td>$:form['description'].render()</td></tr>
