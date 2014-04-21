@@ -14,6 +14,7 @@ import subprocess
 import HTMLParser
 import logging
 import decimal
+import BeautifulSoup
 
 from mypinnings.database import connect_db, dbget
 db = connect_db()
@@ -26,6 +27,7 @@ from mypinnings.template import tpl, ltpl, lmsg
 import mypinnings.session
 from mypinnings import cached_models
 from mypinnings.conf import settings
+from mypinnings import pin_utils
 import mypinnings.register
 import mypinnings.facebook
 import mypinnings.google
@@ -73,8 +75,7 @@ urls = (
     '/settings/(social-media)', 'PageEditProfile',
     '/settings/(privacy)', 'PageEditProfile',
     '/settings/(email-settings)', 'PageEditProfile',
-    '/pin/(\d*)', 'PagePin2',
-    '/item/(\d*)', 'PagePin',
+    '/p/(.*)', 'PagePin',
     '/(.*?)/buy-list/(\d*)', 'PageBuyList',
     '/messages', 'PageMessages',
     '/newconvo/(\d*)', 'PageNewConvo',
@@ -422,7 +423,7 @@ class PageAddPin:
         transaction = db.transaction()
         try:
             fname = self.upload_image()
-
+            external_id = pin_utils.generate_external_id()
             pin_id = db.insert('pins',
                 description=form.d.description,
                 user_id=sess.user_id,
@@ -431,6 +432,7 @@ class PageAddPin:
                 name=form.d.title,
                 price=decimal.Decimal(form.d.price or 0),
                 price_range=int(form.d.price_range),
+                external_id=external_id
                 )
 
             categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in form.d.categories.split(',')]
@@ -445,7 +447,7 @@ class PageAddPin:
             os.rename('static/tmp/pinthumb%s.png' % fname,
                       'static/tmp/pinthumb%d.png' % pin_id)
             transaction.commit()
-            return web.seeother('/pin/%d' % pin_id)
+            return web.seeother('/p/%s' % external_id)
         except Exception as e:
             logger.error('Failed to create a pin from a file upload', exc_info=True)
             transaction.rollback()
@@ -456,7 +458,6 @@ class NewPageAddPinForm:
     def POST(self):
         data = web.input()
         fname = data.fname
-
         transaction = db.transaction()
         try:
             if data.board:
@@ -464,23 +465,30 @@ class NewPageAddPinForm:
             elif data.board_name:
                 board = db.insert(tablename='boards', name=data.board_name, description=data.board_name,
                                   user_id = sess.user_id)
+            else:
+                board=None
+            external_id = pin_utils.generate_external_id()
+
             pin_id = db.insert('pins',
                 description=data.comments,
                 user_id=sess.user_id,
                 link=data.weblink,
                 name=data.title,
-                board_id=board
+                board_id=board,
+                external_id=external_id
                 )
 
-            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in data.category.split(',')]
-            db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
+            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in data.category.split(',') if c!='']
+            if categories_to_insert:
+                db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
 
             os.rename('static/tmp/%s.png' % fname,
                       'static/tmp/%d.png' % pin_id)
             os.rename('static/tmp/pinthumb%s.png' % fname,
                       'static/tmp/pinthumb%d.png' % pin_id)
             transaction.commit()
-            return '/pin/%d' % pin_id
+            print "=================", pin_id, "============",external_id
+            return '/p/%s' % external_id
         except Exception as e:
             logger.error('Failed to create a pin from a file upload', exc_info=True)
             transaction.rollback()
@@ -547,22 +555,27 @@ class PageAddPinUrl:
             link = data.link
             if link and '://' not in link:
                 link = 'http://%s' % link
-                
+
             # create a new board if necessary
-            if form.d.board_id:
-                board_id = int(form.d.board_id)
-            elif form.d.board_name:
-                board_id = db.insert(tablename='boards', name=form.d.board_name, description=form.d.board_name,
+            if data.list:
+                board_id = int(data.list)
+            elif data.board_name:
+                board_id = db.insert(tablename='boards', name=data.board_name, description=data.board_name,
                                      user_id=sess.user_id)
             else:
-                web.seeother(url='?msg={}'.format('Invalid list to put your product, please review'), absolute=False)
+                board_id = None
 
+            external_id = pin_utils.generate_external_id()
             pin_id = db.insert('pins',
                 description=data.description,
                 user_id=sess.user_id,
                 link=link,
                 name=data.title,
                 image_url=data.image_url,
+                #board_id=data.list,
+                price_range=data.price,
+                product_url = data.websiteurl,
+                external_id=external_id
                 )
 
             categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in data.categories.split(',')]
@@ -573,7 +586,7 @@ class PageAddPinUrl:
             os.rename('static/tmp/pinthumb%s.png' % fname,
                       'static/tmp/pinthumb%d.png' % pin_id)
             transaction.commit()
-            return '/pin/%d' % pin_id
+            return '/p/%s' % external_id
         except Exception as e:
             logger.error('Failed to create a pin from an image URL', exc_info=True)
             transaction.rollback()
@@ -647,10 +660,10 @@ class PageRepin:
             pin = dbget('pins', pin_id)
             if pin is None:
                 return 'pin doesn\'t exist'
-    
+
             if pin.repin:
                 pin_id = pin.repin
-    
+
             form = self.make_form()
             if not form.validates():
                 return 'please fill out all the form fields'
@@ -672,17 +685,18 @@ class PageRepin:
                                    price=pin.price,
                                    product_url=pin.product_url,
                                    price_range=pin.price_range,
-                                   board_id=board)
-    
+                                   board_id=board,
+                                   external_id=pin_utils.generate_external_id())
+
             # preserve all the categories from original pin
             results = db.where(table='pins_categories', pin_id=pin_id)
             categories_from_previous_item = [{'pin_id': new_pin_id, 'category_id': row.category_id} for row in results]
             db.multiple_insert(tablename='pins_categories', values=categories_from_previous_item)
-    
+
             if form.d.tags:
                 tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
                 db.insert('tags', pin_id=new_pin_id, tags=tags)
-    
+
             user = dbget('users', sess.user_id)
             make_notif(pin.user_id, 'Someone has added your item to their Getlist!', '/pin/%d' % pin_id)
             transaction.commit()
@@ -782,23 +796,16 @@ class PageConnect:
         return ltpl('connect', follows, followers, friends)
 
 
-class PagePin2:
-    def GET(self, pin_id):
-        raise web.seeother('/item/%s' % pin_id)
-
-
 class PagePin:
     _form = form.Form(
         form.Textarea('comment'))
 
-    def GET(self, pin_id):
-        pin_id = int(pin_id)
-
+    def GET(self, external_id):
         logged = logged_in(sess)
         query1 = '(not count(distinct likes) = 0)' if logged else 'false'
         query2 = 'left join likes on likes.user_id = $uid and likes.pin_id = pins.id' if logged else ''
 
-        qvars = {'id': pin_id, 'uid': 0}
+        qvars = {'external_id': external_id, 'uid': 0}
         if logged:
             qvars['uid'] = sess.user_id
 
@@ -814,7 +821,7 @@ class PagePin:
                 ''' + query2 + '''
                 left join likes l2 on l2.pin_id = pins.id
                 left join pins p1 on p1.repin = pins.id
-            where pins.id = $id
+            where pins.external_id = $external_id
             group by pins.id, tags.tags, users.id''', vars=qvars)
         if not pin:
             return 'pin not found'
@@ -828,7 +835,7 @@ class PagePin:
             return 'pin not found'
 
         if logged and sess.user_id != pin.user_id:
-            db.update('pins', where='id = $id', vars={'id': pin_id}, views=web.SQLLiteral('views + 1'))
+            db.update('pins', where='id = $id', vars={'id': pin.id}, views=web.SQLLiteral('views + 1'))
 
         comments = db.query('''
             select
@@ -836,10 +843,10 @@ class PagePin:
             from comments
                 join users on users.id = comments.user_id
             where pin_id = $id
-            order by timestamp asc''', vars={'id': pin_id})
+            order by timestamp asc''', vars={'id': pin.id})
 
         rating = db.select('ratings', what='avg(rating)',
-                            where='pin_id = $id', vars={'id': pin_id})
+                            where='pin_id = $id', vars={'id': pin.id})
         if not rating:
             return 'could not get rating'
 
@@ -854,14 +861,13 @@ class PagePin:
         else:
             return ltpl('pin', pin, comments, rating, False)
 
-    def POST(self, pin_id):
+    def POST(self, external_id):
         force_login(sess)
 
-        pin = dbget('pins', pin_id)
+        pin = db.where('pins', external_id=external_id)[0]
         if not pin:
             return 'pin does not exist'
 
-        pin_id = int(pin_id)
         form = self._form()
         if not form.validates():
             return 'form did not validate'
@@ -870,14 +876,16 @@ class PagePin:
             return 'please write a comment'
 
         db.insert('comments',
-                  pin_id=pin_id,
+                  pin_id=pin.id,
                   user_id=sess.user_id,
                   comment=form.d.comment)
 
         if int(pin.user_id) != int(sess.user_id):
-            make_notif(pin.user_id, 'Someone has commented on your pin!', '/pin/%d' % pin_id)
-
-        raise web.seeother('/pin/%d' % pin_id)
+            make_notif(pin.user_id, 'Someone has commented on your pin!', '/pin/%d' % pin.id)
+        results = db.where(table='pins', id=pin.id)
+        for row in results:
+            external_id=row.external_id
+        raise web.seeother('/p/%s' % external_id)
 
 
 class PageBoardList:
@@ -1101,7 +1109,7 @@ class PageProfile2:
                           where='follow = $follow and follower = $follower',
                           vars={'follow': int(user.id), 'follower': sess.user_id}))
             photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id}, order="id DESC")
-            
+
             return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos, edit_profile, edit_profile_done,boards,categories_to_select)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
@@ -1222,13 +1230,13 @@ def get_base_url(url):
     return url[:url.rfind('/') + 1]
 
 
-MAX_IMAGES = 10
+MAX_IMAGES = 100
 
 
 def get_url_info(contents, base_url):
-    links = re.findall(r'<img.*?src\=\"([^\"]*)\"', contents, re.DOTALL)
-    # soup = BeautifulSoup(contents)
-    # links = [x['src'] for x in soup.find_all('img')]
+    #links = re.findall(r'<img.*?src\=\"([^\"]*)\"', contents, re.DOTALL)
+    soup = BeautifulSoup.BeautifulSoup(contents)
+    links = [x['src'] for x in soup("img") if x.get('src', 0)!=0]
     links = ['http:' + x if x.startswith('//') else x for x in links]
     links = [x if '://' in x else base_url + x for x in links]
     if len(links) > MAX_IMAGES:
@@ -1268,7 +1276,7 @@ class PagePreview:
                 info = get_url_info(r.text, base_url)
 
             return json.dumps(info)
-        except:
+        except IOError:
             return json.dumps({'status': 'error'})
 
 
@@ -1281,7 +1289,10 @@ class PageLike:
             db.insert('likes', user_id=sess.user_id, pin_id=pin_id)
         except:
             pass
-        raise web.seeother('/pin/%d' % pin_id)
+        results = db.where(table='pins', id=pin_id)
+        for row in results:
+            external_id = row.external_id
+        raise web.seeother('/p/%s' % external_id)
 
 
 class PageUnlike:
@@ -1291,7 +1302,10 @@ class PageUnlike:
 
         db.delete('likes', where='user_id = $uid and pin_id = $pid',
                   vars={'uid': sess.user_id, 'pid': pin_id})
-        raise web.seeother('/pin/%d' % pin_id)
+        results = db.where(table='pins', id=pin_id)
+        for row in results:
+            external_id = row.external_id
+        raise web.seeother('/p/%s' % external_id)
 
 
 class PageUsers:
@@ -1802,7 +1816,10 @@ class PageSetPrivacy:
         form.validates()
 
         db.update('pins', where='id = $id', vars={'id': pin_id}, privacy=form.d.privacy)
-        raise web.seeother('/pin/%d' % pin_id)
+        results = db.where(table='pins', id=pin_id)
+        for row in results:
+            external_id = row.external_id
+        raise web.seeother('/p/%s' % external_id)
 
 
 class PageDavid:
@@ -1930,7 +1947,7 @@ class PageCategory:
         lists = db.select('boards',
         where='user_id=$user_id',
         vars={'user_id': sess.user_id})
-        
+
         boards = db.where(table='boards', order='name', user_id=sess.user_id)
 
         print lists

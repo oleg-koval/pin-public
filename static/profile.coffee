@@ -156,7 +156,7 @@ $(window).scroll ->
 $(document).on 'click', '.category_pin_image', (event) ->
 	event.preventDefault()
 	pinid = $(this).attr('pinid')
-	$.get '/item/' + pinid + '?embed=true',
+	$.get '/p/' + pinid + '?embed=true',
 		(data) ->
 			$('#show_pin_layer_content').html(data)
 			current_position = $('#show_pin_layer_content').position()
