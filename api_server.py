@@ -32,10 +32,11 @@ urls = (
 
     # API to user profile: manage user products
     "/profile/mgl", api.views.profile.ManageGetList,
+    "/profile/userinfo/update", api.views.profile.UserInfoUpdate,
+    "/profile/userinfo/get", api.views.profile.GetProfileInfo,
 
     # API to user profile: change user password
     "/profile/pwd", api.views.profile.ChangePassword,
-
     # API for social networks: posting on user page
     "/social/poup", api.views.social.PostingOnUserPage,
 )

@@ -33,12 +33,11 @@ class Auth(BaseAPI):
         from ser import sess
         login_user(sess, user_id)
         data = {
-            "token": user.get("logintoken"),
             "user_id": user.get("id"),
             "email": user.get("email")
         }
         response = api_response(data, csid_from_client=request_data.get("csid_from_client"),
-            csid_from_server=user.get('seriesid'))
+            csid_from_server=user.get('seriesid'), client_token=user.get('logintoken'))
         return response
 
     def get_user(self, user_id):
