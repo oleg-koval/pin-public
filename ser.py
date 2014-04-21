@@ -15,6 +15,8 @@ import HTMLParser
 import logging
 import decimal
 import BeautifulSoup
+import cStringIO
+import urllib2
 
 from mypinnings.database import connect_db, dbget
 db = connect_db()
@@ -527,13 +529,21 @@ class NewPageAddPin:
 class PageAddPinUrl:
     def upload_image(self, url):
         fname = generate_salt()
-        ext = os.path.splitext(url)[1].lower()
+        ext = ".png"
 
-        urllib.urlretrieve(url, 'static/tmp/%s%s' % (fname, ext))
+        opener = urllib2.build_opener()
+        opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+        response = opener.open(url)
+        img_file = cStringIO.StringIO(response.read())
+        image = Image.open(img_file)
+        filename = 'static/tmp/%s%s' % (fname, ext)
+        image.save(filename, format="PNG")
+
+        '''urllib.urlretrieve(url, 'static/tmp/%s%s' % (fname, ext))
         if ext != '.png':
             t_img = 'static/tmp/%s%s' % (fname, ext)
             img = Image.open(t_img)
-            img.save('static/tmp/%s.png' % fname)
+            img.save('static/tmp/%s.png' % fname)'''
 
         img = Image.open('static/tmp/%s.png' % fname)
         width, height = img.size

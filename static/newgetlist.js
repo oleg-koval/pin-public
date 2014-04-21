@@ -4,6 +4,7 @@ $(document).ready(function() {
     function getMeta(url) {
         var img = new Image();
        img.src = url;
+       img.onerror = function(){gallery.loadError();}
        img.onload = function(){gallery.setdata({url: url, w: this.width, h: this.height});}
     }
     $( "#dialog-form" ).dialog({
@@ -142,8 +143,8 @@ $(document).ready(function() {
 	            var percentVal = '100%';
                 barweb.width(percentVal)
                 percentweb.html(percentVal);
-                $( "#addpindialogformweb" ).dialog("open");
-                $("#commentsweb").focus();
+                //$( "#addpindialogformweb" ).dialog("open");
+                //$("#commentsweb").focus();
                 initgallery(data);
             }else{
                 $("#statusweb").html("please provide a valid image url");
@@ -167,7 +168,7 @@ $(document).ready(function() {
             getMeta(data["images"][i]);
         }
 
-        gallery.init();
+        //gallery.init();
 
     }
 
@@ -341,6 +342,19 @@ $(document).ready(function() {
 
             if(this.lengthTotal===0){
                 this.len = this.data.length;
+                $( "#addpindialogformweb" ).dialog("open");
+                $("#commentsweb").focus();
+                this.init();
+                this.showitem();
+            }
+        },
+        loadError: function(){
+            this.lengthTotal = this.lengthTotal - 1;
+            if(this.lengthTotal===0){
+                this.len = this.data.length;
+                $( "#addpindialogformweb" ).dialog("open");
+                $("#commentsweb").focus();
+                this.init();
                 this.showitem();
             }
         },
@@ -358,6 +372,11 @@ $(document).ready(function() {
         },
         showitem : function(){
             this.element.attr("src", this.data[this.current].url);
+            if(this.data[this.current].w>this.data[this.current].h){
+                this.element.attr("class", "img-width");
+            }else{
+                this.element.attr("class", "img-height");
+            }
             $("#image_urlweb").attr("value", this.data[this.current].url);
             this.showstatus();
         },
