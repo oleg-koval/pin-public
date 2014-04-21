@@ -115,13 +115,14 @@ class Register(BaseAPI):
         status_error = 200
         error_code = ""
 
-        status, error_code = self.register_validation(uname, pwd, email, first_name)
+        status, error_code = self.register_validation(uname, pwd, 
+                                                      email, first_name)
         if status:
             activation = random.randint(1, 10000)
             hashed = hash(str(activation))
 
-            user_id = auth.create_user(email, pwd, name=first_name, username=uname, activation=activation,
-                                       locale=language)
+            user_id = auth.create_user(email, pwd, name=first_name, username=uname,
+                                       activation=activation, locale=language)
 
             add_default_lists(user_id)
             send_activation_email(email, hashed, user_id)
