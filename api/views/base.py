@@ -25,14 +25,18 @@ class BaseAPI(object):
         """
         raise NotImplemented
 
-    def authenticate_by_token(self, client_token):
-        """
-        Get user_id by client token
+    def authenticate_by_token(self, logintoken):
+        """Authenticates user by given client token
+
+        Returns:
+        status - flag set to True in case if user was successfully logged in
+        user_dict - dictionary with users  profile data (if login success)
+        access_denied - if login failure
         """
         success = False
         user = db.select(
             'users',
-            {"logintoken": client_token},
+            {"logintoken": logintoken},
             where="logintoken=$logintoken"
         )
         if len(user) > 0:
