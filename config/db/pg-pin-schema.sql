@@ -755,18 +755,6 @@ CREATE TABLE user_prefered_categories (
 ALTER TABLE public.user_prefered_categories OWNER TO postgres;
 
 --
--- Name: user_prefered_pins; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
---
-
-CREATE TABLE user_prefered_pins (
-    user_id integer NOT NULL,
-    pin_id integer NOT NULL
-);
-
-
-ALTER TABLE public.user_prefered_pins OWNER TO postgres;
-
---
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1132,13 +1120,6 @@ CREATE UNIQUE INDEX unique_user_prefered_categories ON user_prefered_categories 
 
 
 --
--- Name: unique_user_prefered_pins; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
---
-
-CREATE UNIQUE INDEX unique_user_prefered_pins ON user_prefered_pins USING btree (user_id, pin_id);
-
-
---
 -- Name: users_username_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1253,22 +1234,6 @@ ALTER TABLE ONLY user_prefered_categories
 
 ALTER TABLE ONLY user_prefered_categories
     ADD CONSTRAINT user_prefered_categories_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
-
-
---
--- Name: user_prefered_pins_pin_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY user_prefered_pins
-    ADD CONSTRAINT user_prefered_pins_pin_id_fkey FOREIGN KEY (pin_id) REFERENCES pins(id);
-
-
---
--- Name: user_prefered_pins_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY user_prefered_pins
-    ADD CONSTRAINT user_prefered_pins_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
 
 
 --
