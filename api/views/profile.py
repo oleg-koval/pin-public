@@ -20,7 +20,8 @@ class BaseUserProfile(BaseAPI):
     """
     def __init__(self):
         self._fields = ['name', 'about', 'city', 'hometown', 'about',
-                        'email', 'pic', 'website', 'facebook', 'twitter']
+                        'email', 'pic', 'website', 'facebook', 'twitter',
+                        'getlist_privacy_level']
         self._birthday_fields = ['birthday_year', 'birthday_month',
                                  'birthday_day']
         self.required = ['csid_from_client', 'logintoken']
@@ -41,6 +42,45 @@ class BaseUserProfile(BaseAPI):
                     field not in self.required):
                 return False
         return True
+
+
+class SetPrivacy(BaseUserProfile):
+    """
+    Allows to set privacy level of the profile.
+    """
+    def POST(self):
+        """
+        Updates profile with fields sent from the client, returns saved fields.
+
+        Can be tested in the following way:
+        curl --data "logintoken=UaNxct7bJZ&twitter=1&csid_from_client=1" \
+        http://localhost:8080/api/profile/userinfo/update
+        """
+        request_data = web.input()
+
+        # Adding field to the list of required fields
+        self.required.append('getlist_privacy_level')
+
+        if not self.is_request_valid(request_data):
+            return api_response(data={}, status=405,
+                                error_code="Required args are missing")
+
+        privacy_level = request_data.pop('getlist_privacy_level')
+        csid_from_client = request_data.pop('csid_from_client')
+
+        status, response_or_user = self.authenticate_by_token(
+            request_data.pop('logintoken'))
+        # Login was not successful
+        if not status:
+            return response_or_user
+
+        db.update('users', where='id = %s' % (response_or_user['id']),
+                  getlist_privacy_level=privacy_level)
+        csid_from_server = response_or_user['seriesid']
+        data = {'getlist_privacy_level': privacy_level}
+        return api_response(data=data,
+                            csid_from_client=csid_from_client,
+                            csid_from_server=csid_from_server)
 
 
 class UserInfoUpdate(BaseUserProfile):

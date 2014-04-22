@@ -806,6 +806,11 @@ CREATE TABLE users (
     locale character(2) DEFAULT 'en'::bpchar NOT NULL
 );
 
+--
+-- Name: getlist_privacy_level; Controls user privacy level 
+--
+
+ALTER TABLE users ADD COLUMN getlist_privacy_level integer default 1;
 
 ALTER TABLE public.users OWNER TO postgres;
 

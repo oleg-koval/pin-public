@@ -26,7 +26,7 @@ urls = (
 
     # API to user signup: register user
     "/signup/register", api.views.signup.Register,
-    
+
     # API to upload images
     "/image/upload", api.views.images.ImageUpload,
 
@@ -34,6 +34,7 @@ urls = (
     "/profile/mgl", api.views.profile.ManageGetList,
     "/profile/userinfo/update", api.views.profile.UserInfoUpdate,
     "/profile/userinfo/get", api.views.profile.GetProfileInfo,
+    "/profile/userinfo/set_privacy", api.views.profile.SetPrivacy,
 
     # API to user profile: change user password
     "/profile/pwd", api.views.profile.ChangePassword,
