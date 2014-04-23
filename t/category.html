@@ -91,5 +91,6 @@ $:tpl('pin212px_template')
 function repin_image_load(clicked) {
 	pinid = $$(clicked).attr('data-id')
 	$$('#repin-image').attr('src', '/static/tmp/pinthumb' + pinid + '.png')
+	$$('#repin-form').attr('action', '/add-to-your-own-getlist/' + pinid)
 }
 </script>

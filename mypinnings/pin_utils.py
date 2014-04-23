@@ -3,8 +3,7 @@ import random
 from mypinnings import database
 
 
-DIGITS = '1234567890'
-LETTERS = 'abcdefghijklmnopqrstuvwxwzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+DIGITS_AND_LETTERS = 'abcdefghijklmnopqrstuvwxwzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
 
 
 def generate_external_id():
@@ -15,12 +14,7 @@ def generate_external_id():
 
 
 def _new_external_id():
-    digits = random.sample(DIGITS, 6)
-    letters = random.sample(LETTERS, 3)
-    digits_and_letters = []
-    digits_and_letters.extend(digits)
-    digits_and_letters.extend(letters)
-    random.shuffle(digits_and_letters)
+    digits_and_letters = random.sample(DIGITS_AND_LETTERS, 9)
     return ''.join(digits_and_letters)
 
 
