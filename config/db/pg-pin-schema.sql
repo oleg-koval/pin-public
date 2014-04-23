@@ -1123,3 +1123,7 @@ alter table pins add external_id varchar(60);
 -- first run the external_id generation script
 alter table pins alter column external_id set not null;
 create unique index pins_external_id on pins(external_id);
+
+-- use external servers to upload and serve pin images
+alter table pins add image_212_url text;
+alter table pins add image_202_url text;

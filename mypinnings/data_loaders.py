@@ -30,35 +30,13 @@ class FileUploaderMixin(object):
 
     def save_image(self, pin_id, imageurl, image):
         if imageurl and imageurl.value:
-            self.save_image_from_url(pin_id, imageurl.value)
+            filename, _ = urllib.urlretrieve(imageurl.value)
+            return filename
         else:
             new_filename = 'static/tmp/{}'.format(image.filename)
             with open(new_filename, 'w') as f:
                 f.write(image.file.read())
-            self.save_image_from_file(pin_id, new_filename)
-
-    def save_image_from_url(self, pin_id, url):
-        filename, _ = urllib.urlretrieve(url)
-        self.save_image_from_file(pin_id, filename)
-
-    def save_image_from_file(self, pin_id, filename):
-        new_filename = 'static/tmp/{}.png'.format(pin_id)
-        if filename.endswith('.png'):
-            os.rename(filename, new_filename)
-        else:
-            img = Image.open(filename)
-            img.save(new_filename)
-        img = Image.open(new_filename)
-        width, height = img.size
-        ratio = 202.0 / float(width)
-        width = 202
-        height *= ratio
-        img.thumbnail((width, int(height)), Image.ANTIALIAS)
-        img.save('static/tmp/pinthumb{}.png'.format(pin_id))
-        try:
-            os.unlink(filename)
-        except:
-            pass
+            return new_filename
 
 
 class CategorySelectionMixin(object):
@@ -257,12 +235,12 @@ class PinLoaderPage(FileUploaderMixin, CategorySelectionMixin):
                 result_info['error'] = error
                 return result_info
             try:
+                filename = self.save_image(self.pin_id, imageurl, image)
                 self.pin_id = self.save_pin_in_db(title.value, description.value, link.value,
                                              tags.value, price.value, imageurl.value,
-                                             product_url.value, price_range.value)
+                                             product_url.value, price_range.value, filename)
                 self.save_categories()
                 result_info['pin_id'] = self.pin_id
-                self.save_image(self.pin_id, imageurl, image)
             except Exception as e:
                 if self.pin_id:
                     self.delete_pin_from_db(self.pin_id)
@@ -286,20 +264,13 @@ class PinLoaderPage(FileUploaderMixin, CategorySelectionMixin):
         return None
 
     def save_pin_in_db(self, title, description, link, tags, price, imageurl, product_url,
-                       price_range):
+                       price_range, image_filename):
         try:
             sess = session.get_session()
-            if not price:
-                price = None
-            pin_id = self.db.insert(tablename='pins', name=title, description=description,
-                               user_id=sess.user_id, link=link,
-                               views=1, price=price, image_url=imageurl, product_url=product_url,
-                               price_range=price_range, external_id=pin_utils.generate_external_id())
-            if tags:
-                tags = remove_hash_symbol_from_tags(tags)
-                self.db.insert(tablename='tags', pin_id=pin_id, tags=tags)
-            self.db.insert(tablename='likes', pin_id=pin_id, user_id=sess.user_id)
-            return pin_id
+            pin = pin_utils.create_pin(self.db, sess.user_id, title, description, link, tags, price,
+                                 product_url, price_range, image_filename)
+            self.db.insert(tablename='likes', pin_id=pin.id, user_id=sess.user_id)
+            return pin.id
         except:
             logger.error('Cannot insert a pin in the DB with the pin loader ingerface',
                          exc_info=True)
@@ -489,18 +460,6 @@ class UpdatePin(FileUploaderMixin, CategorySelectionMixin):
             result_info.append(errors)
         sess.result_info = result_info
         return web.seeother(url='/admin/input/#added', absolute=True)
-
-
-def remove_hash_symbol_from_tags(value):
-    if value:
-        separated = value.split(' ')
-        fixed = []
-        for v in separated:
-            new_v = v.replace('#', '')
-            fixed.append(new_v)
-        return ' '.join(fixed)
-    else:
-        return value
     
     
 def add_hash_symbol_to_tags(value):
@@ -513,6 +472,18 @@ def add_hash_symbol_to_tags(value):
             else:
                 new_v = '#{}'.format(v)
                 fixed.append(new_v)
+        return ' '.join(fixed)
+    else:
+        return value
+
+
+def remove_hash_symbol_from_tags(value):
+    if value:
+        separated = value.split(' ')
+        fixed = []
+        for v in separated:
+            new_v = v.replace('#', '')
+            fixed.append(new_v)
         return ' '.join(fixed)
     else:
         return value
