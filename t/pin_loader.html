@@ -275,7 +275,7 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 <script type="text/html" id="pin_template">
 <div class="pin_image">
 	<a href="/p/<%= external_id %>" target="_blank" title="See full size">
-		<img src="/static/tmp/pinthumb<%= id %>.png?_=<%= new Date().getTime() %>">
+		<img src="<%= image_202_url %>?_=<%= new Date().getTime() %>">
 	</a>
 </div>
 <table>
@@ -293,9 +293,6 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 	<tr><th>Source Link</th><td><a href="<%= link %>" title="<%= link %>">
 			<%= separate_link %>
 		</a></td></tr>
-<% } %>
-<% if (image_url !== null && image_url !== '') { %>
-	<tr><th>Image URL</th><td><a href="<%= image_url %>" title="<%= image_url %>" target="_blank">Original image</a></td></tr>
 <% } %>
 	<tr><th>Tags</th><td><%= tags %></td></tr>
 		

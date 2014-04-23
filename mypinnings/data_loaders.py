@@ -334,16 +334,15 @@ class LoadersEditAPI(FileUploaderMixin, CategorySelectionMixin):
         pin_list = []
         current_pin = None
         for r in results:
-            if os.path.exists('static/tmp/pinthumb{}.png'.format(r.id)):
-                if not current_pin or current_pin['id'] != r.id:
-                    current_pin = dict(r)
-                    current_pin['price'] = str(r.price)
-                    current_pin['tags'] = add_hash_symbol_to_tags(r.tags)
-                    current_pin['price_range_repr'] = '$' * r.price_range if r.price_range < 5 else '$$$$+'
-                    current_pin['categories'] = []
-                    pin_list.append(current_pin)
-                category = {'id': r.category_id, 'name': r.category_name}
-                current_pin['categories'].append(category)
+            if not current_pin or current_pin['id'] != r.id:
+                current_pin = dict(r)
+                current_pin['price'] = str(r.price)
+                current_pin['tags'] = add_hash_symbol_to_tags(r.tags)
+                current_pin['price_range_repr'] = '$' * r.price_range if r.price_range < 5 else '$$$$+'
+                current_pin['categories'] = []
+                pin_list.append(current_pin)
+            category = {'id': r.category_id, 'name': r.category_name}
+            current_pin['categories'].append(category)
         json_pins = json.dumps(pin_list)
         web.header('Content-Type', 'application/json')
         return json_pins
