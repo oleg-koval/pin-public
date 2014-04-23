@@ -167,6 +167,7 @@ def _upload_file_to_bucket(server, filename):
     key = boto.s3.key.Key(bucket)
     key.key = pathname
     key.set_contents_from_filename(filename)
+    key.set_acl('public-read')
     connection.close()
     return '{}/{}'.format(server.url, pathname)
     
