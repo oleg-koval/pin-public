@@ -23,7 +23,7 @@ def create_pin(db, user_id, title, description, link, tags, price, product_url,
         images_dict = media.store_image_from_filename(db, image_filename, widths=(202, 212))
         if not price:
             price = None
-        external_id = generate_external_id()
+        external_id = _generate_external_id()
         pin_id = db.insert(tablename='pins',
                            name=title,
                            description=description,
@@ -38,13 +38,105 @@ def create_pin(db, user_id, title, description, link, tags, price, product_url,
                            price_range=price_range,
                            external_id=external_id)
         if tags:
-            tags = _remove_hash_symbol_from_tags(tags)
+            tags = remove_hash_symbol_from_tags(tags)
             db.insert(tablename='tags', pin_id=pin_id, tags=tags)
         pin = db.where(table='pins', id=pin_id)[0]
         return pin
     except:
         logger.error('Cannot insert a pin in the DB', exc_info=True)
         raise
+
+
+def update_base_pin_information(db, pin_id, user_id, title, description, link, tags, price, product_url,
+                   price_range):
+    db.update(tables='pins',
+               where='id=$id and user_id=$user_id',
+               vars={'id': pin_id, 'user_id': user_id},
+               name=title,
+               description=description,
+               link=link,
+               price=price,
+               product_url=product_url,
+               price_range=price_range)
+    tags = remove_hash_symbol_from_tags(tags)
+    results = db.where(table='tags', pin_id=pin_id)
+    for _ in results:
+        db.update(tables='tags', where='pin_id=$id', vars={'id': pin_id}, tags=tags)
+        break
+    else:
+        db.insert(tablename='tags', pin_id=pin_id, tags=tags)
+        
+        
+def update_pin_images(db, pin_id, user_id, image_filename):
+    images_dict = media.store_image_from_filename(db, image_filename, widths=(202, 212))
+    db.update(tables='pins',
+              where='id=$id and user_id=$user_id',
+              vars={'id': pin_id, 'user_id': user_id},
+              image_url=images_dict[0],
+              image_202_url=images_dict[202],
+              image_212_url=images_dict[212],
+              )
+
+
+
+def delete_pin_from_db(db, pin_id, user_id):
+    results = db.where(table='pins', id=pin_id, user_id=user_id)
+    for _ in results:
+        break
+    else:
+        # this ping does not belog to the user?
+        raise PinError('Item does not exists for you.')
+    db.delete(table='likes', where='pin_id=$id', vars={'id': pin_id})
+    db.delete(table='tags', where='pin_id=$id', vars={'id': pin_id})
+    db.delete(table='pins_categories', where='pin_id=$id', vars={'id': pin_id})
+    db.delete(table='comments', where='pin_id=$id', vars={'id': pin_id})
+    db.delete(table='cool_pins', where='pin_id=$id', vars={'id': pin_id})
+    db.delete(table='ratings', where='pin_id=$id', vars={'id': pin_id})
+    db.delete(table='pins', where='id=$id', vars={'id': pin_id})
+
+    
+def add_pin_to_categories(db, pin_id, category_id_list):
+    values_to_insert = []
+    for category_id in category_id_list:
+        values_to_insert.append({'pin_id': pin_id, 'category_id': category_id})
+    db.multiple_insert(tablename='pins_categories', values=values_to_insert)
+    
+
+def remove_pin_from__all_categories(db, pin_id):
+    db.delete(table='pins_categories', where='pin_id=$pin_id',
+                   vars={'pin_id': pin_id})
+
+
+def update_pin_into_categories(db, pin_id, category_id_list):
+    remove_pin_from__all_categories(db, pin_id)
+    add_pin_to_categories(db, pin_id, category_id_list)
+
+
+def remove_hash_symbol_from_tags(value):
+    if value:
+        separated = value.split(' ')
+        fixed = []
+        for v in separated:
+            new_v = v.replace('#', '')
+            fixed.append(new_v)
+        return ' '.join(fixed)
+    else:
+        return value
+    
+    
+def add_hash_symbol_to_tags(value):
+    if value:
+        separated = value.split(' ')
+        fixed = []
+        for v in separated:
+            if v.startswith('#'):
+                fixed.append(v)
+            else:
+                new_v = '#{}'.format(v)
+                fixed.append(new_v)
+        return ' '.join(fixed)
+    else:
+        return value
 
 
 def _validate_pin_required_data(user_id, title, description, link, tags, price, product_url,
@@ -61,7 +153,7 @@ def _validate_pin_required_data(user_id, title, description, link, tags, price, 
         raise PinError('Must provide the file of the image to create a pin')
 
 
-def generate_external_id():
+def _generate_external_id():
     id = _new_external_id()
     while _already_exists(id):
         id = _new_external_id()
@@ -79,15 +171,3 @@ def _already_exists(id):
     for _ in results:
         return True
     return False
-
-
-def _remove_hash_symbol_from_tags(value):
-    if value:
-        separated = value.split(' ')
-        fixed = []
-        for v in separated:
-            new_v = v.replace('#', '')
-            fixed.append(new_v)
-        return ' '.join(fixed)
-    else:
-        return value
