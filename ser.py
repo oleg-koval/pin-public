@@ -486,16 +486,15 @@ class PageRemoveRepin:
 
         force_login(sess)
         info = {'error':True}
-        ajax = int(web.input(ajax=0).ajax)
         get_input = web.input(_method='get')
         if 'repinid' in get_input and 'pinid' in get_input:
             pin_id = int(get_input['pinid'])
-            repin_id = int(get_input['repinid'])
-            pin = dbget('pins', pin_id)
-            if pin:
+            try:
+                pin_utils.delete_pin_from_db(db=db, pin_id=pin_id, user_id=sess.user_id)
                 info = {'error':False}
-                db.delete('pins_categories', where='pin_id=$pin', vars={'pin': pin_id})
-                db.delete('pins', where='user_id = $uid and repin = $repin and id = $pid', vars={'uid': sess.user_id, 'pid': pin_id , 'repin':repin_id})
+            except:
+                #just return the info with error set to True
+                logger.error('Could not delete pin', exc_info=True)
         return json.dumps(info)
 
 
