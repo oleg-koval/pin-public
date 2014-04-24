@@ -104,7 +104,7 @@ class PageAfterSignup:
         categories_results = db.where(table='categories', order='name')
         categories = []
         for category in categories_results:
-            cool_items_resutls = db.select(tables=['pins', 'pins_categories', 'categories', 'cool_pins'], what="pins.*",
+            cool_items_resutls = db.select(tables=['pins', 'pins_categories', 'categories', 'cool_pins'], what="pins.*, cool_pins.image_url as image_cool_url",
                          where='pins.id=pins_categories.pin_id and pins_categories.category_id=categories.id'
                             ' and categories.id=$category_id'
                             ' and pins.id=cool_pins.pin_id'
@@ -118,9 +118,6 @@ class PageAfterSignup:
                         break
                     cool_item = random.choice(cool_items_list)
                     cool_items_list.remove(cool_item)
-                    image_name = os.path.join('static', 'tmp', str(cool_item.id)) + '_cool.png'
-                    if not os.path.exists(image_name):
-                        continue
                     random_cool_items.append(cool_item)
                 if len(random_cool_items) > 0:
                     category.cool_items = random_cool_items
@@ -149,14 +146,6 @@ class PageAfterSignup:
                               vars={'user_id': sess.user_id})
         json_pins = []
         for cp in cool_pins:
-            image_name = os.path.join('static', 'tmp', str(cp.id)) + '.png'
-            image_name_thumb = os.path.join('static', 'tmp', 'pinthumb{}'.format(cp.id)) + '.png'
-            if os.path.exists(image_name_thumb):
-                cp.image_name = '/' + image_name_thumb
-            elif os.path.exists(image_name):
-                cp.image_name = '/' + image_name
-            else:
-                continue
             if not cp.name:
                 cp.name = cp.description
             cp.price = str(cp.price)
