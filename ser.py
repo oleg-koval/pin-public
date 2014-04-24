@@ -546,9 +546,6 @@ class PageRepin:
             if pin is None:
                 return 'pin doesn\'t exist'
 
-            if pin.repin:
-                pin_id = pin.repin
-
             form = self.make_form()
             if not form.validates():
                 return 'please fill out all the form fields'
@@ -559,33 +556,40 @@ class PageRepin:
                                   user_id=sess.user_id)
             else:
                 return 'Please fill aout all the form fields'
-            # preserve all data from original pin, update description, repin and board
-            new_pin_id = db.insert('pins',
-                                   name=pin.name,
-                                   description=form.d.description,
-                                   user_id=sess.user_id,
-                                   repin=pin_id,
-                                   link=pin.link,
-                                   image_url=pin.image_url,
-                                   price=pin.price,
-                                   product_url=pin.product_url,
-                                   price_range=pin.price_range,
-                                   board_id=board,
-                                   external_id=pin_utils.generate_external_id())
-
-            # preserve all the categories from original pin
-            results = db.where(table='pins_categories', pin_id=pin_id)
-            categories_from_previous_item = [{'pin_id': new_pin_id, 'category_id': row.category_id} for row in results]
-            db.multiple_insert(tablename='pins_categories', values=categories_from_previous_item)
-
             if form.d.tags:
                 tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
-                db.insert('tags', pin_id=new_pin_id, tags=tags)
+            else:
+                tags = None
+            # preserve all data from original pin, update description, repin and board
+            new_pin = pin_utils.create_pin(db=db,
+                                       user_id=sess.user_id,
+                                       title=pin.name,
+                                       description=form.d.description,
+                                       link=pin.link,
+                                       tags=tags,
+                                       price=pin.price,
+                                       product_url=pin.product_url,
+                                       price_range=pin.price_range,
+                                       image_filename=None,
+                                       board_id=board,
+                                       repin=pin.id
+                                       )
+            # copy the same images url from the old pin, no need to upload the same image
+            pin_utils.update_pin_image_urls(db=db,
+                                            pin_id=new_pin.id,
+                                            user_id=sess.user_id,
+                                            image_url=pin.image_url,
+                                            image_202_url=pin.image_202_url,
+                                            image_212_url=pin.image_212_url,
+                                            )
+            # preserve all the categories from original pin
+            results = db.where(table='pins_categories', pin_id=pin_id)
+            categories_from_previous_item = (row.category_id for row in results)
+            pin_utils.add_pin_to_categories(db=db, pin_id=new_pin.id, category_id_list=categories_from_previous_item)
 
             user = dbget('users', sess.user_id)
-            make_notif(pin.user_id, 'Someone has added your item to their Getlist!', '/pin/%d' % pin_id)
+            make_notif(pin.user_id, 'Someone has added your item to their Getlist!', '/p/%s' % pin.external_id)
             transaction.commit()
-            # raise web.seeother('/pin/%d' % pin_id)
             raise web.seeother('/%s/list/%d' % (user.username, board))
         except:
             logger.error('Failed to add to get list', exc_info=True)

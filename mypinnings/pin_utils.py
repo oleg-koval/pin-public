@@ -16,9 +16,12 @@ class PinError(Exception):
 
 
 def create_pin(db, user_id, title, description, link, tags, price, product_url,
-                   price_range, image_filename, board_id=None):
+                   price_range, image_filename=None, board_id=None, repin=None):
     try:
-        images_dict = media.store_image_from_filename(db, image_filename, widths=(202, 212))
+        if image_filename:
+            images_dict = media.store_image_from_filename(db, image_filename, widths=(202, 212))
+        else:
+            images_dict = {0: None, 202: None, 212: None}
         if not price:
             price = None
         external_id = _generate_external_id()
@@ -35,7 +38,8 @@ def create_pin(db, user_id, title, description, link, tags, price, product_url,
                            product_url=product_url,
                            price_range=price_range,
                            external_id=external_id,
-                           board_id=board_id)
+                           board_id=board_id,
+                           repin=repin)
         if tags:
             tags = remove_hash_symbol_from_tags(tags)
             db.insert(tablename='tags', pin_id=pin_id, tags=tags)
@@ -77,7 +81,16 @@ def update_pin_images(db, pin_id, user_id, image_filename):
               image_202_url=images_dict[202],
               image_212_url=images_dict[212],
               )
+    
 
+def update_pin_image_urls(db, pin_id, user_id, image_url, image_202_url, image_212_url):
+    db.update(tables='pins',
+              where='id=$id and user_id=$user_id',
+              vars={'id': pin_id, 'user_id': user_id},
+              image_url=image_url,
+              image_202_url=image_202_url,
+              image_212_url=image_212_url,
+              )
 
 
 def delete_pin_from_db(db, pin_id, user_id):
