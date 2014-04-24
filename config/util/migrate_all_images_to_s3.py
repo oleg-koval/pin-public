@@ -57,9 +57,9 @@ def move_pin_images_to_s3(db, s3conn):
             update_pin_images(db, pin_id, image_url, image_url_202, image_url_212)
             db.commit()
             number_of_uploaded_images += 1
-        except:
+        except Exception as e:
             db.rollback()
-            raise
+            print('Failed to migrate image for pin: {}: {}'.format(pin_id, e))
     return number_of_uploaded_images
         
         
