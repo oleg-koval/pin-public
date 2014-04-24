@@ -469,28 +469,26 @@ class NewPageAddPinForm:
                                   user_id = sess.user_id)
             else:
                 board=None
-            external_id = pin_utils.generate_external_id()
+            pin = pin_utils.create_pin(db=db,
+                                       user_id=sess.user_id,
+                                       title=data.title,
+                                       description=data.comments,
+                                       link=data.weblink,
+                                       tags=None,
+                                       price=None,
+                                       product_url='',
+                                       price_range=1,
+                                       image_filename=data.fname,
+                                       board_id=board,
+                                       )
 
-            pin_id = db.insert('pins',
-                description=data.comments,
-                user_id=sess.user_id,
-                link=data.weblink,
-                name=data.title,
-                board_id=board,
-                external_id=external_id
-                )
+            categories_to_insert = (int(c) for c in data.category.split(','))
+            pin_utils.add_pin_to_categories(db=db,
+                                            pin_id=pin.id,
+                                            category_id_list=categories_to_insert)
 
-            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in data.category.split(',') if c!='']
-            if categories_to_insert:
-                db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
-
-            os.rename('static/tmp/%s.png' % fname,
-                      'static/tmp/%d.png' % pin_id)
-            os.rename('static/tmp/pinthumb%s.png' % fname,
-                      'static/tmp/pinthumb%d.png' % pin_id)
             transaction.commit()
-            print "=================", pin_id, "============",external_id
-            return '/p/%s' % external_id
+            return '/p/%s' % pin.external_id
         except Exception as e:
             logger.error('Failed to create a pin from a file upload', exc_info=True)
             transaction.rollback()
@@ -502,23 +500,12 @@ class NewPageAddPin:
         image = web.input(image={}).image
         fname = generate_salt()
         ext = os.path.splitext(image.filename)[1].lower()
+        new_filename = os.path.join('static', 'tmp', '{}{}'.format(fname, ext))
 
-        with open('static/tmp/%s%s' % (fname, ext), 'w') as f:
+        with open(new_filename, 'w') as f:
             f.write(image.file.read())
 
-        if ext != '.png':
-            img = Image.open('static/tmp/%s%s' % (fname, ext))
-            img.save('static/tmp/%s.png' % fname)
-
-        img = Image.open('static/tmp/%s.png' % fname)
-        width, height = img.size
-        ratio = 202 / width
-        width = 202
-        height *= ratio
-        img.thumbnail((width, height), Image.ANTIALIAS)
-        img.save('static/tmp/pinthumb%s.png' % fname)
-
-        return fname, image.filename
+        return new_filename, image.filename
 
     def POST(self):
         force_login(sess)

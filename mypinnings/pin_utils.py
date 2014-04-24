@@ -16,10 +16,8 @@ class PinError(Exception):
 
 
 def create_pin(db, user_id, title, description, link, tags, price, product_url,
-                   price_range, image_filename):
+                   price_range, image_filename, board_id=None):
     try:
-        _validate_pin_required_data(user_id, title, description, link, tags, price, product_url,
-                   price_range, image_filename)
         images_dict = media.store_image_from_filename(db, image_filename, widths=(202, 212))
         if not price:
             price = None
@@ -36,7 +34,8 @@ def create_pin(db, user_id, title, description, link, tags, price, product_url,
                            image_212_url=images_dict[212],
                            product_url=product_url,
                            price_range=price_range,
-                           external_id=external_id)
+                           external_id=external_id,
+                           board_id=board_id)
         if tags:
             tags = remove_hash_symbol_from_tags(tags)
             db.insert(tablename='tags', pin_id=pin_id, tags=tags)
@@ -48,7 +47,7 @@ def create_pin(db, user_id, title, description, link, tags, price, product_url,
 
 
 def update_base_pin_information(db, pin_id, user_id, title, description, link, tags, price, product_url,
-                   price_range):
+                   price_range, board_id=None):
     db.update(tables='pins',
                where='id=$id and user_id=$user_id',
                vars={'id': pin_id, 'user_id': user_id},
@@ -57,7 +56,9 @@ def update_base_pin_information(db, pin_id, user_id, title, description, link, t
                link=link,
                price=price,
                product_url=product_url,
-               price_range=price_range)
+               price_range=price_range,
+               board_id=board_id,
+               )
     tags = remove_hash_symbol_from_tags(tags)
     results = db.where(table='tags', pin_id=pin_id)
     for _ in results:
@@ -96,10 +97,11 @@ def delete_pin_from_db(db, pin_id, user_id):
 
     
 def add_pin_to_categories(db, pin_id, category_id_list):
-    values_to_insert = []
-    for category_id in category_id_list:
-        values_to_insert.append({'pin_id': pin_id, 'category_id': category_id})
-    db.multiple_insert(tablename='pins_categories', values=values_to_insert)
+    if category_id_list:
+        values_to_insert = []
+        for category_id in category_id_list:
+            values_to_insert.append({'pin_id': pin_id, 'category_id': category_id})
+        db.multiple_insert(tablename='pins_categories', values=values_to_insert)
     
 
 def remove_pin_from__all_categories(db, pin_id):
@@ -137,20 +139,6 @@ def add_hash_symbol_to_tags(value):
         return ' '.join(fixed)
     else:
         return value
-
-
-def _validate_pin_required_data(user_id, title, description, link, tags, price, product_url,
-                   price_range, image_filename):
-    if not user_id:
-        raise PinError('Must provide the user.id to create a pin')
-    if not link and not product_url:
-        raise PinError('Must provide a source link or a product link to create a pin.')
-    if not tags:
-        raise PinError('Must provide tags to create a pin')
-    if not price_range:
-        raise PinError('Must provide a price range ($, $$, $$$, $$$$, $$$$+) to create a pin')
-    if not image_filename:
-        raise PinError('Must provide the file of the image to create a pin')
 
 
 def _generate_external_id():
