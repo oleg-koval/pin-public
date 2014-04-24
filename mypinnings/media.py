@@ -21,7 +21,8 @@ def store_image_from_filename(db, filename, widths=[]):
         to be saved in the media server. Like [220, 40]
 
     This saves one image (if width is empty or None) or many images (if width is a list
-    of integers).
+    of integers). The images are saved renamed, so you don't need to generate random
+    names or unique names.
 
     Returns a dict(int: string) the keys are the widths of the images, the values
     are the actual URL to serve the image. To obtain the URL for the image in the

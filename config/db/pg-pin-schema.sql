@@ -1127,3 +1127,4 @@ create unique index pins_external_id on pins(external_id);
 -- use external servers to upload and serve pin images
 alter table pins add image_212_url text;
 alter table pins add image_202_url text;
+alter table cool_pins add image_url text;
