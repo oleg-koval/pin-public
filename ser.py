@@ -516,30 +516,9 @@ class NewPageAddPin:
 class PageAddPinUrl:
     def upload_image(self, url):
         fname = generate_salt()
-        ext = ".png"
-
-        opener = urllib2.build_opener()
-        opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-        response = opener.open(url)
-        img_file = cStringIO.StringIO(response.read())
-        image = Image.open(img_file)
-        filename = 'static/tmp/%s%s' % (fname, ext)
-        image.save(filename, format="PNG")
-
-        '''urllib.urlretrieve(url, 'static/tmp/%s%s' % (fname, ext))
-        if ext != '.png':
-            t_img = 'static/tmp/%s%s' % (fname, ext)
-            img = Image.open(t_img)
-            img.save('static/tmp/%s.png' % fname)'''
-
-        img = Image.open('static/tmp/%s.png' % fname)
-        width, height = img.size
-        ratio = 202 / width
-        width = 202
-        height *= ratio
-        img.thumbnail((width, height), Image.ANTIALIAS)
-        img.save('static/tmp/pinthumb%s.png' % fname)
-
+        ext = os.path.splitext(url)[1].lower()
+        fname = os.path.join('static', 'tmp', '{}{}'.format(fname, ext))
+        urllib.urlretrieve(url, fname)
         return fname
 
     def POST(self):
@@ -562,28 +541,24 @@ class PageAddPinUrl:
             else:
                 board_id = None
 
-            external_id = pin_utils.generate_external_id()
-            pin_id = db.insert('pins',
-                description=data.description,
-                user_id=sess.user_id,
-                link=link,
-                name=data.title,
-                image_url=data.image_url,
-                #board_id=data.list,
-                price_range=data.price,
-                product_url = data.websiteurl,
-                external_id=external_id
-                )
+            pin = pin_utils.create_pin(db=db,
+                                 user_id=sess.user_id,
+                                 title=data.title,
+                                 description=data.description,
+                                 link=link,
+                                 tags=None,
+                                 price=None,
+                                 product_url=data.websiteurl,
+                                 price_range=data.price,
+                                 image_filename=fname,
+                                 board_id=board_id)
 
-            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in data.categories.split(',')]
-            db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
-
-            os.rename('static/tmp/%s.png' % fname,
-                      'static/tmp/%d.png' % pin_id)
-            os.rename('static/tmp/pinthumb%s.png' % fname,
-                      'static/tmp/pinthumb%d.png' % pin_id)
+            categories_to_insert = (int(c) for c in data.categories.split(','))
+            pin_utils.add_pin_to_categories(db=db,
+                                            pin_id=pin.id,
+                                            category_id_list=categories_to_insert)
             transaction.commit()
-            return '/p/%s' % external_id
+            return '/p/%s' % pin.external_id
         except Exception as e:
             logger.error('Failed to create a pin from an image URL', exc_info=True)
             transaction.rollback()
