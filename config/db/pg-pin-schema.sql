@@ -1339,3 +1339,24 @@ alter table pins add external_id varchar(60);
 -- first run the external_id generation script
 alter table pins alter column external_id set not null;
 create unique index pins_external_id on pins(external_id);
+
+CREATE TABLE images (
+    id integer PRIMARY KEY,
+    image_file text NOT NULL,
+    image_title text,
+    image_descr text,
+    use_for text
+ );
+
+ALTER TABLE public.images OWNER TO postgres;
+
+CREATE SEQUENCE images_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.images_id_seq OWNER TO postgres;
+ALTER TABLE ONLY images ALTER COLUMN id SET DEFAULT nextval('images_id_seq'::regclass);
