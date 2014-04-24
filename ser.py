@@ -63,7 +63,6 @@ urls = (
     '/browse', 'PageBrowse',
     '/category/.*?/(\d*)', 'mypinnings.category_listing.PageCategory',
     '/new-list', 'PageNewBoard',
-    '/addpin', 'PageAddPin',
     '/newaddpin', 'NewPageAddPin',
     '/newaddpinform', 'NewPageAddPinForm',
 
@@ -371,90 +370,6 @@ class PageNewBoard:
 def make_tag(tag):
     return tag.replace('#', '')
 
-
-class PageAddPin:
-    def make_form(self, categories=None):
-        return form.Form(
-            form.File('image', form.notnull),
-            form.Textarea('description'),
-            form.Textbox('categories', form.notnull),
-            form.Textbox('tags', form.notnull),
-            form.Textbox('title', form.notnull),
-            form.Textbox('price_range', form.notnull),
-            form.Textbox('price'),
-            form.Textbox('link'),
-            form.Textbox('product_url'),
-        )()
-
-    def GET(self):
-        global all_categories
-
-        force_login(sess)
-        form = self.make_form()
-        categories_to_select = cached_models.get_categories_with_children(db)
-        msg = web.input(msg=None)['msg']
-        return ltpl('addpin', form, categories_to_select, msg)
-
-    def upload_image(self):
-        image = web.input(image={}).image
-        fname = generate_salt()
-        ext = os.path.splitext(image.filename)[1].lower()
-
-        with open('static/tmp/%s%s' % (fname, ext), 'w') as f:
-            f.write(image.file.read())
-
-        if ext != '.png':
-            img = Image.open('static/tmp/%s%s' % (fname, ext))
-            img.save('static/tmp/%s.png' % fname)
-
-        img = Image.open('static/tmp/%s.png' % fname)
-        width, height = img.size
-        ratio = 202 / width
-        width = 202
-        height *= ratio
-        img.thumbnail((width, height), Image.ANTIALIAS)
-        img.save('static/tmp/pinthumb%s.png' % fname)
-
-        return fname
-
-    def POST(self):
-        force_login(sess)
-        form = self.make_form()
-        if not form.validates():
-            web.seeother(url='?msg={}'.format('Invalid product data, please review'), absolute=False)
-        transaction = db.transaction()
-        try:
-            fname = self.upload_image()
-            external_id = pin_utils.generate_external_id()
-            pin_id = db.insert('pins',
-                description=form.d.description,
-                user_id=sess.user_id,
-                link=form.d.link,
-                product_url=form.d.product_url,
-                name=form.d.title,
-                price=decimal.Decimal(form.d.price or 0),
-                price_range=int(form.d.price_range),
-                external_id=external_id
-                )
-
-            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in form.d.categories.split(',')]
-            db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
-
-            if form.d.tags:
-                tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
-                db.insert('tags', pin_id=pin_id, tags=tags)
-
-            os.rename('static/tmp/%s.png' % fname,
-                      'static/tmp/%d.png' % pin_id)
-            os.rename('static/tmp/pinthumb%s.png' % fname,
-                      'static/tmp/pinthumb%d.png' % pin_id)
-            transaction.commit()
-            return web.seeother('/p/%s' % external_id)
-        except Exception as e:
-            logger.error('Failed to create a pin from a file upload', exc_info=True)
-            transaction.rollback()
-            return web.seeother(url='?msg={}'.format('This is embarrassing. We where unable to create the product. Please try again.'),
-                         absolute=False)
 
 class NewPageAddPinForm:
     def POST(self):
