@@ -106,6 +106,7 @@ def delete_pin_from_db(db, pin_id, user_id):
     db.delete(table='comments', where='pin_id=$id', vars={'id': pin_id})
     db.delete(table='cool_pins', where='pin_id=$id', vars={'id': pin_id})
     db.delete(table='ratings', where='pin_id=$id', vars={'id': pin_id})
+    db.update(tables='pins', where='repin=$id', vars={'id': pin_id}, repin=None)
     db.delete(table='pins', where='id=$id', vars={'id': pin_id})
 
     

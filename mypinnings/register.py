@@ -12,6 +12,7 @@ from mypinnings import template
 from mypinnings import session
 from mypinnings import database
 from mypinnings import cached_models
+from mypinnings import pin_utils
 from mypinnings.conf import settings
 
 
@@ -233,10 +234,34 @@ class ApiRegisterCoolPinForUser(object):
             web.header('Content-Type', 'application/json')
             return json.dumps({'status': 'ok'})
         old_pin = db.where(table='pins', id=pin_id)[0]
-        new_id = db.insert(tablename='pins', name=old_pin.name, description=old_pin.description,
-                           user_id=sess.user_id, repin=pin_id, link=old_pin.link, category=old_pin.category,
-                           views=0, tsv=old_pin.tsv)
-        db.insert(tablename='likes', pin_id=new_id, user_id=sess.user_id)
+        tagsrs = db.where(table='tags', pin_id=pin_id)
+        for t in tagsrs:
+            tags = t.tags
+            break
+        else:
+            tags = None
+        new_pin = pin_utils.create_pin(db=db,
+                                   user_id=sess.user_id,
+                                   title=old_pin.name,
+                                   description=old_pin.description,
+                                   link=old_pin.link,
+                                   tags=tags,
+                                   price=old_pin.price,
+                                   product_url=old_pin.product_url,
+                                   price_range=old_pin.price_range,
+                                   image_filename=None,
+                                   board_id=None,
+                                   repin=old_pin.id)
+        pin_utils.update_pin_image_urls(db=db,
+                                        pin_id=new_pin.id,
+                                        user_id=sess.user_id,
+                                        image_url=old_pin.image_url,
+                                        image_202_url=old_pin.image_202_url,
+                                        image_212_url=old_pin.image_212_url)
+        results = db.where(table='pins_categories', pin_id=pin_id)
+        categories = (c.category_id for c in results)
+        pin_utils.add_pin_to_categories(db=db, pin_id=new_pin.id, category_id_list=categories)
+        db.insert(tablename='likes', pin_id=new_pin.id, user_id=sess.user_id)
         web.header('Content-Type', 'application/json')
         return json.dumps({'status': 'ok'})
 
@@ -247,11 +272,8 @@ class ApiRegisterCoolPinForUser(object):
         sess = session.get_session()
         auth.force_login(sess)
         db = database.get_db()
-        new_pin = db.where(table='pins', repin=pin_id)[0]
-        db.delete(table='likes', where='user_id=$user_id and pin_id=$pin_id',
-                  vars={'user_id': sess.user_id, 'pin_id': new_pin.id})
-        db.delete(table='pins', where='user_id=$user_id and id=$pin_id',
-                  vars={'user_id': sess.user_id, 'pin_id': new_pin.id})
+        pin = db.where(table='pins', repin=pin_id, user_id=sess.user_id)[0]
+        pin_utils.delete_pin_from_db(db=db, pin_id=pin.id, user_id=sess.user_id)
         web.header('Content-Type', 'application/json')
         return json.dumps({'status': 'ok'})
 
