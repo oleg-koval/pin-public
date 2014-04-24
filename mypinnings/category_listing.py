@@ -89,8 +89,6 @@ class PageCategory:
         pins = self.db.query(self.query, vars={'cid': self.cid})
         pin_list = []
         for pin in pins:
-            if not image_utils.create_thumbnail_212px_for_pin(pin):
-                continue
             pin_list.append(pin)
             pin.price = str(pin.price)
         offset = self.sess.get('offset', 0)
