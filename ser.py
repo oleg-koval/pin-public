@@ -374,7 +374,6 @@ def make_tag(tag):
 class NewPageAddPinForm:
     def POST(self):
         data = web.input()
-        fname = data.fname
         transaction = db.transaction()
         try:
             if data.board:
