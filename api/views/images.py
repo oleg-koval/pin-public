@@ -17,7 +17,7 @@ class ImageUpload(BaseAPI):
         """ Images upload main handler
 
         Can be tested using the following command:
-        curl -F -F "image_title=some_title" -F "image_descr=some_descr" \
+        curl -F "image_title=some_title" -F "image_descr=some_descr" \
         -F "use_for=some text" -F "image_file=@/home/oleg/Desktop/hard.jpg" \
         http://localhost:8080/api/image/upload
         """
