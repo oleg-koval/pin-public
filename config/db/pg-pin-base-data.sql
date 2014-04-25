@@ -3,6 +3,7 @@
 ---
 
 --- Camilo's changes to have a scalable image upload/serving strategy
+delete from media_servers;
 insert into media_servers(url, path) values
-('http://mypinnings.com/static/media/{path}/{media}', 'static/media/');
+('http://32.media.mypinnings.com', '32.media.mypinnings.com');
 

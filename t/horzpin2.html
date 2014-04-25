@@ -21,7 +21,7 @@ $if pin.id:
     <div class='clearfix'>
       <div class='count left'></div>
       <a href='/p/$pin.external_id' class='avatar left'>
-        <img src='/static/tmp/pinthumb$(pin.id if pin.repin == 0 else pin.repin).png' alt=''/>
+        <img src='$pin.image_202_url' alt=''/>
       </a>
       <div class='info left'>
         $if pin.description:

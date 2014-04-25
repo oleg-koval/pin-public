@@ -2,7 +2,7 @@ import json
 
 import web
 
-from mypinnings import database, image_utils
+from mypinnings import database
 from mypinnings import session
 from mypinnings import auth
 from mypinnings.conf import settings
@@ -32,8 +32,6 @@ class ListItemsJson:
         results = db.query(self.query, vars={'board_id': self.board_id, 'offset': self.offset * settings.PIN_COUNT, 'limit': settings.PIN_COUNT})
         pin_list = []
         for pin in results:
-            if not image_utils.create_thumbnail_212px_for_pin(pin):
-                continue
             pin.price = str(pin.price)
             pin_list.append(pin)
         return pin_list

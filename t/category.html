@@ -44,9 +44,7 @@ $else:
 
                   <table>
     <tbody><tr><th><label for="description">description</label></th><td>
-    <textarea id="description" name="description">
-      
-    </textarea></td></tr>
+    <textarea id="description" name="description"></textarea></td></tr>
     <tr><th><label for="board">Get list</label></th><td>
 <div id="board_selection_layer">
     <select id="board" name="board" class="category-list">
@@ -89,8 +87,9 @@ $:tpl('pin212px_template')
 <script type="text/javascript" src="/static/js/underscore-min.js"></script>
 <script>
 function repin_image_load(clicked) {
-	pinid = $$(clicked).attr('data-id')
-	$$('#repin-image').attr('src', '/static/tmp/pinthumb' + pinid + '.png')
-	$$('#repin-form').attr('action', '/add-to-your-own-getlist/' + pinid)
+	pinid = $$(clicked).attr('data-id');
+	imagesrc = $$(clicked).attr('imagesrc');
+	$$('#repin-image').attr('src', imagesrc);
+	$$('#repin-form').attr('action', '/add-to-your-own-getlist/' + pinid);
 }
 </script>

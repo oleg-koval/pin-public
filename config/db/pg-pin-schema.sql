@@ -570,19 +570,6 @@ ALTER TABLE public.pins_id_seq OWNER TO postgres;
 
 ALTER SEQUENCE pins_id_seq OWNED BY pins.id;
 
-
---
--- Name: pins_photos; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
---
-
-CREATE TABLE pins_photos (
-    pin_id integer,
-    photo_id integer
-);
-
-
-ALTER TABLE public.pins_photos OWNER TO postgres;
-
 --
 -- Name: ratings; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
@@ -1029,22 +1016,6 @@ ALTER TABLE ONLY cool_pins
 
 
 --
--- Name: pins_photos_photo_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY pins_photos
-    ADD CONSTRAINT pins_photos_photo_id_fkey FOREIGN KEY (photo_id) REFERENCES photos(id);
-
-
---
--- Name: pins_photos_pin_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY pins_photos
-    ADD CONSTRAINT pins_photos_pin_id_fkey FOREIGN KEY (pin_id) REFERENCES pins(id);
-
-
---
 -- Name: user_prefered_categories_category_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1123,3 +1094,12 @@ alter table pins add external_id varchar(60);
 -- first run the external_id generation script
 alter table pins alter column external_id set not null;
 create unique index pins_external_id on pins(external_id);
+
+-- use external servers to upload and serve pin images
+alter table pins add image_212_url text;
+alter table pins add image_202_url text;
+alter table cool_pins add image_url text;
+
+-- these columns are not used
+alter table photos drop filename;
+alter table photos drop sizes;

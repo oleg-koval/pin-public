@@ -101,7 +101,7 @@ $(document).ready(function() {
             $("#fname").val(obj.fname);
             $("#imagename").html(obj.original_filename);
 	        $( "#dialog-form" ).dialog("close");
-	        $("#imagediv").html('<img src="'+'/static/tmp/pinthumb'+obj.fname+'.png" alt="">')
+	        $("#imagediv").html('<img src="/'+obj.fname+'" alt="">')
 		    $( "#addpindialogform" ).dialog("open");
 		    $("#comments").focus();
 	    }

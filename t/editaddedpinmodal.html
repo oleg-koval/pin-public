@@ -14,7 +14,6 @@ $def with (pin,categories_to_select, boards)
     <table>
 	    <tr><th><label for="link">Source URL</label></th><td><input type="text" id="link" name="link" value="$pin.link" /></td></tr>
 	    <tr><th><label for="product_url">Product URL</label></th><td><input type="text" id="product_url" name="product_url" value="$pin.product_url" /></td></tr>
-	    <tr><th><label for="image_url">Image URL</label></th><td><input type="text" id="image_url" name="image_url" value="$pin.image_url" /></td></tr>
 	    <tr><th><label for="title">Title</label></th><td><input type="text" id="title" name="title" value="$pin.name" /></td></tr>
 	    <tr><th><label for="description">Description</label></th><td><textarea id="description" name="description" value="$pin.description" ></textarea></td></tr>
 	    <tr><th><label for="tags">Tags</label></th><td><input type="text" placeholder="#this #is #awesome" id="tags" name="tags"/></td></tr>
@@ -65,7 +64,7 @@ $def with (pin,categories_to_select, boards)
 	    	<td valign="top">
 	    		<div id="layer_preview_of_selected_image" >
 	    		<span>Selected image</span>
-	    		<img id="preview_of_selected_image" src="$pin.image_url" style="width:160px;height:auto;">
+	    		<img id="preview_of_selected_image" src="$pin.image_202_url" style="width:160px;height:auto;">
 	    		</div>
 	    	</td>
 	    </tr>
