@@ -1,4 +1,5 @@
 import web
+import os
 
 from api.utils import api_response, save_api_request
 from api.views.base import BaseAPI
@@ -6,13 +7,15 @@ from api.views.base import BaseAPI
 from mypinnings.database import connect_db
 import facebook
 
+from urllib import urlencode
+
 db = connect_db()
 
 
 class PostingOnUserPage(BaseAPI):
     """
     Provides sharing pins to social networks
-    
+
     Method PostingOnUserPage must receive next required params:
 
     share_list - list of pin's ids
@@ -33,12 +36,12 @@ class PostingOnUserPage(BaseAPI):
         social_network = request_data.get("social_network")
         csid_from_client = request_data.get('csid_from_client')
         logintoken = request_data.get('logintoken')
-        user_status, user_id = self.authenticate_by_token(logintoken)
+        user_status, user = self.authenticate_by_token(logintoken)
 
         # User id contains error code
         if not user_status:
-            return user_id
-        user = db.select('users', {'id': user_id}, where='id=$id')[0]
+            return user
+
         csid_from_server = user['seriesid']
 
         # Initialize default posted pins list
@@ -106,11 +109,10 @@ def share(access_token, share_list, social_network="facebook"):
         if pin.get('link'):
             message += pin.get('link')+"\n"
 
-        image = pin.get('image_url')
-        if image:
-            image = open(image)
-        else:
-            image = None
+        image = None
+        image_path = 'static/tmp/%d.png' % pin_id
+        if os.path.isfile(image_path):
+            image = open(image_path)
 
         share_pin_status = False
         if social_network == "facebook":
