@@ -1099,3 +1099,7 @@ create unique index pins_external_id on pins(external_id);
 alter table pins add image_212_url text;
 alter table pins add image_202_url text;
 alter table cool_pins add image_url text;
+
+-- these columns are not used
+alter table photos drop filename;
+alter table photos drop sizes;
