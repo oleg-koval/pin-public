@@ -570,19 +570,6 @@ ALTER TABLE public.pins_id_seq OWNER TO postgres;
 
 ALTER SEQUENCE pins_id_seq OWNED BY pins.id;
 
-
---
--- Name: pins_photos; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
---
-
-CREATE TABLE pins_photos (
-    pin_id integer,
-    photo_id integer
-);
-
-
-ALTER TABLE public.pins_photos OWNER TO postgres;
-
 --
 -- Name: ratings; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
@@ -1026,22 +1013,6 @@ ALTER TABLE ONLY cool_pins
 
 ALTER TABLE ONLY cool_pins
     ADD CONSTRAINT cool_pins_pin_id_fkey FOREIGN KEY (pin_id) REFERENCES pins(id);
-
-
---
--- Name: pins_photos_photo_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY pins_photos
-    ADD CONSTRAINT pins_photos_photo_id_fkey FOREIGN KEY (photo_id) REFERENCES photos(id);
-
-
---
--- Name: pins_photos_pin_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY pins_photos
-    ADD CONSTRAINT pins_photos_pin_id_fkey FOREIGN KEY (pin_id) REFERENCES pins(id);
 
 
 --
