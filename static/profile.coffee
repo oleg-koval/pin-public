@@ -77,6 +77,54 @@ $("#myTab a").click (e) ->
     return
 
 
+
+# ******** edit pin
+$('.editPinModal').on 'submit', event, ->
+	form = $(this)
+	if validate_edit_pin_form(form)
+		prepare_form_to_send(form)
+		return true
+	return false
+	
+validate_edit_pin_form = (form) ->
+	is_ok = true
+	clear_all_error_messages(form)
+	if form.find('#link').val() is '' and form.find('#product_url').val() is ''
+		add_error_message(form.find('#link'), 'Provide a link')
+		add_error_message(form.find('#product_url'), 'Provide a link')
+		is_ok = false
+	if form.find('#board_id').val() is '' and form.find('#board_name').val() is ''
+		add_error_message(form.find('#layer_add_new_board'), 'Select a board or create a new one')
+		is_ok = false
+	if form.find('#title').val() is ''
+		add_error_message(form.find('#title'), 'Provide a title')
+		is_ok = false
+	if form.find('input[name="price_range"]:checked').val() is undefined
+		add_error_message(form.find('#price_range'), 'Select a price range')
+		is_ok = false
+	if form.find('input[name="category_check"]:checked').val() is undefined
+		add_error_message(form.find('#categories'), 'Select a category')
+		is_ok = false
+	return is_ok
+
+
+prepare_form_to_send = (form) ->
+	categories_list = ''
+	for x in form.find('input[name="category_check"]:checked')
+		if categories_list isnt ''
+			categories_list = categories_list + ','
+		categories_list = categories_list + x.value
+	form.find('input[name="categories"]').val(categories_list)
+	
+	
+add_error_message = (item, message) ->
+	item.after('<div class="red">' + message + '</div>');
+	
+
+clear_all_error_messages = (form) ->
+	form.find('div.red').remove()
+
+
 # ******** boards (lists) related code
 $('#profile_lists_tabs').tabs()
 $.offsetctrl = Array()

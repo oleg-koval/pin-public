@@ -34,6 +34,7 @@ import mypinnings.register
 import mypinnings.facebook
 import mypinnings.google
 import mypinnings.register_twitter
+import mypinnings.pin
 import admin
 import glob
 import api_server
@@ -47,6 +48,7 @@ urls = (
     '/google', mypinnings.google.app,
     '/register_twitter', mypinnings.register_twitter.app,
     '/register', mypinnings.register.app,
+    '/pin', mypinnings.pin.app,
     '/', 'PageIndex',
     '/(first-time)', 'PageIndex',
     '/login', 'PageLogin',
