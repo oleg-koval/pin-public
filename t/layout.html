@@ -97,7 +97,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
         $if acti_needed is not None:
             $if acti_needed:
                 <div class='notice'>Notice: You haven't activated your account yet! Please check $user.email. <a href='/resend-activation'>Resend</a></div>
-    <div id="getlist-from-web">
+    <div id="getlist-from-web" style="display:none">
     <form method="get" action="/preview"  id="web_getlist_form">
     Image Link Or website Address
 	<input type="input" name="url" id="url" placeholder="http://"><br/>
@@ -110,7 +110,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
 		<div id="statusweb"></div>
 	</div>
     </div>
-	<div id="dialog-form" >
+	<div id="dialog-form" style="display:none">
 	<form method="post" action="/newaddpin" enctype="multipart/form-data" id="upload_form">
 	<input type="file" name="image" id="image" accept="image/*" placeholder="Please choose a file"><br/>
 	    <input type="button" id="upload_cancel" value="Go Back">
@@ -124,7 +124,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
 
 	<div id="status"></div>
 	</div>
-	<div id="addpindialogform">
+	<div id="addpindialogform" style="display:none">
 	<div class="wrapper">
 	<form method="post" action="/newaddpinform" id="ajaxpinform">
 	    <div class="c1" id="imagediv">
@@ -182,7 +182,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
     </div>
     </form>
     </div>
-    <div id="addpindialogformweb">
+    <div id="addpindialogformweb" style="display:none">
 	<div class="wrapper">
 	<form method="post" action="/add-from-website" id="ajaxpinformweb">
 	    <div class="c1" id="imagedivweb">
