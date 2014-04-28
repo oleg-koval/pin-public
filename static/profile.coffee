@@ -170,6 +170,8 @@ get_more_items = ->
 			else
 				$.column[boardid] += 1
 		$.loading[boardid] = false
+		window.setTimeout($('img.lazy').lazyload({
+				failure_limit: 100}), 100)
 		return
 	return
 
