@@ -410,17 +410,56 @@ class NewPageAddPinForm:
 
 
 class NewPageAddPin:
+    num_threads = 50
+    images_queue = Queue()
+    resultqueue = multiprocessing.Queue()
+    fname_return = None
+    image_return = None
+
     def upload_image(self):
-        image = web.input(image={}).image
-        fname = generate_salt()
-        ext = os.path.splitext(image.filename)[1].lower()
-        new_filename = os.path.join('static', 'tmp', '{}{}'.format(fname, ext))
+	uploaded_image = web.input(image={}).image
 
-        with open(new_filename, 'w') as f:
-            f.write(image.file.read())
+    	def processuploadedimage(q):
+	    while True:
+                element = q.get()
+	        fname = generate_salt()
+		ext = os.path.splitext(element.filename)[1].lower()
 
-        return new_filename, image.filename
+	        with open('static/tmp/%s%s' % (fname, ext), 'w') as f:
+		    f.write(element.file.read())
 
+	        if ext != '.png':
+	            img = Image.open('static/tmp/%s%s' % (fname, ext))
+	            img.save('static/tmp/%s.png' % fname)
+
+                img = Image.open('static/tmp/%s.png' % fname)
+	        width, height = img.size
+	        ratio = 202 / width
+	        width = 202
+	        height *= ratio
+	        img.thumbnail((width, height), Image.ANTIALIAS)
+	        img.save('static/tmp/pinthumb%s.png' % fname)
+
+	        q.task_done()
+
+		if (fname and element.filename):
+	            self.resultqueue.put(fname)
+		    self.resultqueue.put(element.filename)
+
+		return 1
+
+	self.images_queue.put(uploaded_image)
+	with concurrent.futures.ThreadPoolExecutor(max_workers=self.num_threads) as executor:
+            executor.submit(processuploadedimage, self.images_queue)
+
+	return_fname = self.resultqueue.get()
+	return_filename = self.resultqueue.get()
+
+	with self.images_queue.mutex:
+	    self.images_queue.queue.clear()
+
+	return return_fname, return_filename
+        
     def POST(self):
         force_login(sess)
         fname, original_filename = self.upload_image()
