@@ -70,6 +70,8 @@ def update_base_pin_information(db, pin_id, user_id, title, description, link, t
         break
     else:
         db.insert(tablename='tags', pin_id=pin_id, tags=tags)
+    pin = db.where('pins', id=pin_id)[0]
+    return pin
         
         
 def update_pin_images(db, pin_id, user_id, image_filename):

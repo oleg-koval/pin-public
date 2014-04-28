@@ -10,7 +10,6 @@ from mypinnings import session
 from mypinnings import template
 from mypinnings import cached_models
 from mypinnings.conf import settings
-from mypinnings import image_utils
 from mypinnings import auth
 
 
