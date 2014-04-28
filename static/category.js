@@ -22,6 +22,7 @@ jQuery(function() {
         if (pin['tags'] !== null) {
           pin['taglist'] = pin['tags'].split(' ');
         }
+        pin['image_loading'] = '/static/img/loading.png';
         html_text = $.pin_template(pin);
         $('#category_column_' + $.column_control).append(html_text);
         if ($.column_control === 5) {

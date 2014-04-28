@@ -143,7 +143,7 @@ $('.profile_list_subtab').on 'click', (event) ->
 	return
 	
 
-get_more_items = ->
+get_more_items = (show_images) ->
 	boardid = $.current_board
 	$.loading[boardid] = true
 	offset = $.offsetctrl[boardid]
@@ -162,6 +162,10 @@ get_more_items = ->
 			pin['simplifiedurl'] = simplify_url(pin['link'])
 			if pin['tags'] isnt null
 				pin['taglist'] = pin['tags'].split(' ')
+			if show_images isnt null and show_images
+				pin['image_loading'] = pin['image_212_url']
+			else
+				pin['image_loading'] = '/static/img/loading.png'
 			html_text = $.pin_template(pin)
 			selector = '#column_' + boardid + '_' + column
 			$(selector).append(html_text)
@@ -264,7 +268,9 @@ disableNormalScroll = (e) ->
 	return false
 
 
-get_more_items()
+$('#list-box-wrapper-link').on 'click', ->
+	get_more_items(true)
+	window.setTimeout(scrollToShowImages(), 200)
 
 
 jQuery ->

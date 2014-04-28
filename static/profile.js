@@ -180,7 +180,7 @@ $('.profile_list_subtab').on('click', function(event) {
   get_more_items();
 });
 
-get_more_items = function() {
+get_more_items = function(show_images) {
   var boardid, offset;
   boardid = $.current_board;
   $.loading[boardid] = true;
@@ -204,6 +204,11 @@ get_more_items = function() {
       pin['simplifiedurl'] = simplify_url(pin['link']);
       if (pin['tags'] !== null) {
         pin['taglist'] = pin['tags'].split(' ');
+      }
+      if (show_images !== null && show_images) {
+        pin['image_loading'] = pin['image_212_url'];
+      } else {
+        pin['image_loading'] = '/static/img/loading.png';
       }
       html_text = $.pin_template(pin);
       selector = '#column_' + boardid + '_' + column;
@@ -316,7 +321,10 @@ disableNormalScroll = function(e) {
   return false;
 };
 
-get_more_items();
+$('#list-box-wrapper-link').on('click', function() {
+  get_more_items(true);
+  return window.setTimeout(scrollToShowImages(), 200);
+});
 
 jQuery(function() {
   return $.ajaxSetup({
