@@ -82,7 +82,6 @@ $("#myTab a").click (e) ->
 $('.editPinModal').on 'submit', event, ->
 	form = $(this)
 	if validate_edit_pin_form(form)
-		prepare_form_to_send(form)
 		return true
 	return false
 	
@@ -102,21 +101,9 @@ validate_edit_pin_form = (form) ->
 	if form.find('input[name="price_range"]:checked').val() is undefined
 		add_error_message(form.find('#price_range'), 'Select a price range')
 		is_ok = false
-	if form.find('input[name="category_check"]:checked').val() is undefined
-		add_error_message(form.find('#categories'), 'Select a category')
-		is_ok = false
 	return is_ok
 
 
-prepare_form_to_send = (form) ->
-	categories_list = ''
-	for x in form.find('input[name="category_check"]:checked')
-		if categories_list isnt ''
-			categories_list = categories_list + ','
-		categories_list = categories_list + x.value
-	form.find('input[name="categories"]').val(categories_list)
-	
-	
 add_error_message = (item, message) ->
 	item.after('<div class="red">' + message + '</div>');
 	

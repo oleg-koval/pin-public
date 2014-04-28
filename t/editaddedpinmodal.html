@@ -45,21 +45,6 @@ $def with (pin,categories_to_select, boards)
 	    		</div>
 	    	</td>
 	    </tr>
-	    <tr><th>Categories</th>
-	    $if categories_to_select:
-	    	<td rowspan="2">
-				<div style="width: 100%; height: 200px; overflow:auto;">
-				$for category in categories_to_select:
-					<label><input type="checkbox" name='category_check' value="$category['id']">$category['name']</label>
-					$if category['subcategories']:
-						$for subcat in category['subcategories']:
-							<div class="subcategory_checkbox"><label><input type="checkbox" name='category_check' value="$subcat['id']">$subcat['name']</label></div>
-					$else:
-						<br>
-				</div>
-				<input type="hidden" id="categories" name="categories"/>
-	    		</td>
-	    	</tr>
 	    <tr>
 	    	<td valign="top">
 	    		<div id="layer_preview_of_selected_image" >
@@ -67,8 +52,8 @@ $def with (pin,categories_to_select, boards)
 	    		<img id="preview_of_selected_image" src="$pin.image_202_url" style="width:160px;height:auto;">
 	    		</div>
 	    	</td>
+			<td valign="top"><button id="btn-add" name="add">Save changes</button></td>
 	    </tr>
-	    <tr><th><label for="btn-add"></label></th><td><button id="btn-add" name="add">Save changes</button></td></tr>
 	</table>
 </form>
 
