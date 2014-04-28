@@ -18,6 +18,8 @@ jQuery ->
 				else
 					$.column_control += 1
 			$.loading_more = false
+			window.setTimeout($('img.lazy').lazyload({
+				failure_limit: 100}), 100)
 			return
 		return
 
