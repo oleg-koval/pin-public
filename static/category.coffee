@@ -11,6 +11,7 @@ jQuery ->
 				pin['simplifiedurl'] = simplify_url(pin['link'])
 				if pin['tags'] isnt null
 					pin['taglist'] = pin['tags'].split(' ')
+				pin['image_loading'] = '/static/img/loading.png'
 				html_text = $.pin_template(pin)
 				$('#category_column_' + $.column_control).append(html_text)
 				if $.column_control is 5
@@ -18,6 +19,8 @@ jQuery ->
 				else
 					$.column_control += 1
 			$.loading_more = false
+			window.setTimeout($('img.lazy').lazyload({
+				failure_limit: 100}), 100)
 			return
 		return
 
@@ -43,7 +46,7 @@ jQuery ->
 		top = $(window).scrollTop()
 		height = $(window).innerHeight();
 		doc_height = $(document).height()
-		sensitivity = 600
+		sensitivity = 1000
 		if top + height + sensitivity > doc_height
 			get_more_items()
 		return

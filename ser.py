@@ -15,6 +15,8 @@ import HTMLParser
 import logging
 import decimal
 import BeautifulSoup
+import cStringIO
+import urllib2
 
 from mypinnings.database import connect_db, dbget
 db = connect_db()
@@ -32,6 +34,7 @@ import mypinnings.register
 import mypinnings.facebook
 import mypinnings.google
 import mypinnings.register_twitter
+import mypinnings.pin
 import admin
 import glob
 import api_server
@@ -45,6 +48,7 @@ urls = (
     '/google', mypinnings.google.app,
     '/register_twitter', mypinnings.register_twitter.app,
     '/register', mypinnings.register.app,
+    '/pin', mypinnings.pin.app,
     '/', 'PageIndex',
     '/(first-time)', 'PageIndex',
     '/login', 'PageLogin',
@@ -61,7 +65,6 @@ urls = (
     '/browse', 'PageBrowse',
     '/category/.*?/(\d*)', 'mypinnings.category_listing.PageCategory',
     '/new-list', 'PageNewBoard',
-    '/addpin', 'PageAddPin',
     '/newaddpin', 'NewPageAddPin',
     '/newaddpinform', 'NewPageAddPinForm',
 
@@ -370,94 +373,9 @@ def make_tag(tag):
     return tag.replace('#', '')
 
 
-class PageAddPin:
-    def make_form(self, categories=None):
-        return form.Form(
-            form.File('image', form.notnull),
-            form.Textarea('description'),
-            form.Textbox('categories', form.notnull),
-            form.Textbox('tags', form.notnull),
-            form.Textbox('title', form.notnull),
-            form.Textbox('price_range', form.notnull),
-            form.Textbox('price'),
-            form.Textbox('link'),
-            form.Textbox('product_url'),
-        )()
-
-    def GET(self):
-        global all_categories
-
-        force_login(sess)
-        form = self.make_form()
-        categories_to_select = cached_models.get_categories_with_children(db)
-        msg = web.input(msg=None)['msg']
-        return ltpl('addpin', form, categories_to_select, msg)
-
-    def upload_image(self):
-        image = web.input(image={}).image
-        fname = generate_salt()
-        ext = os.path.splitext(image.filename)[1].lower()
-
-        with open('static/tmp/%s%s' % (fname, ext), 'w') as f:
-            f.write(image.file.read())
-
-        if ext != '.png':
-            img = Image.open('static/tmp/%s%s' % (fname, ext))
-            img.save('static/tmp/%s.png' % fname)
-
-        img = Image.open('static/tmp/%s.png' % fname)
-        width, height = img.size
-        ratio = 202 / width
-        width = 202
-        height *= ratio
-        img.thumbnail((width, height), Image.ANTIALIAS)
-        img.save('static/tmp/pinthumb%s.png' % fname)
-
-        return fname
-
-    def POST(self):
-        force_login(sess)
-        form = self.make_form()
-        if not form.validates():
-            web.seeother(url='?msg={}'.format('Invalid product data, please review'), absolute=False)
-        transaction = db.transaction()
-        try:
-            fname = self.upload_image()
-            external_id = pin_utils.generate_external_id()
-            pin_id = db.insert('pins',
-                description=form.d.description,
-                user_id=sess.user_id,
-                link=form.d.link,
-                product_url=form.d.product_url,
-                name=form.d.title,
-                price=decimal.Decimal(form.d.price or 0),
-                price_range=int(form.d.price_range),
-                external_id=external_id
-                )
-
-            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in form.d.categories.split(',')]
-            db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
-
-            if form.d.tags:
-                tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
-                db.insert('tags', pin_id=pin_id, tags=tags)
-
-            os.rename('static/tmp/%s.png' % fname,
-                      'static/tmp/%d.png' % pin_id)
-            os.rename('static/tmp/pinthumb%s.png' % fname,
-                      'static/tmp/pinthumb%d.png' % pin_id)
-            transaction.commit()
-            return web.seeother('/p/%s' % external_id)
-        except Exception as e:
-            logger.error('Failed to create a pin from a file upload', exc_info=True)
-            transaction.rollback()
-            return web.seeother(url='?msg={}'.format('This is embarrassing. We where unable to create the product. Please try again.'),
-                         absolute=False)
-
 class NewPageAddPinForm:
     def POST(self):
         data = web.input()
-        fname = data.fname
         transaction = db.transaction()
         try:
             if data.board:
@@ -467,28 +385,26 @@ class NewPageAddPinForm:
                                   user_id = sess.user_id)
             else:
                 board=None
-            external_id = pin_utils.generate_external_id()
+            pin = pin_utils.create_pin(db=db,
+                                       user_id=sess.user_id,
+                                       title=data.title,
+                                       description=data.comments,
+                                       link=data.weblink,
+                                       tags=None,
+                                       price=None,
+                                       product_url='',
+                                       price_range=1,
+                                       image_filename=data.fname,
+                                       board_id=board,
+                                       )
 
-            pin_id = db.insert('pins',
-                description=data.comments,
-                user_id=sess.user_id,
-                link=data.weblink,
-                name=data.title,
-                board_id=board,
-                external_id=external_id
-                )
+            categories_to_insert = (int(c) for c in data.category.split(','))
+            pin_utils.add_pin_to_categories(db=db,
+                                            pin_id=pin.id,
+                                            category_id_list=categories_to_insert)
 
-            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in data.category.split(',') if c!='']
-            if categories_to_insert:
-                db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
-
-            os.rename('static/tmp/%s.png' % fname,
-                      'static/tmp/%d.png' % pin_id)
-            os.rename('static/tmp/pinthumb%s.png' % fname,
-                      'static/tmp/pinthumb%d.png' % pin_id)
             transaction.commit()
-            print "=================", pin_id, "============",external_id
-            return '/p/%s' % external_id
+            return '/p/%s' % pin.external_id
         except Exception as e:
             logger.error('Failed to create a pin from a file upload', exc_info=True)
             transaction.rollback()
@@ -500,23 +416,12 @@ class NewPageAddPin:
         image = web.input(image={}).image
         fname = generate_salt()
         ext = os.path.splitext(image.filename)[1].lower()
+        new_filename = os.path.join('static', 'tmp', '{}{}'.format(fname, ext))
 
-        with open('static/tmp/%s%s' % (fname, ext), 'w') as f:
+        with open(new_filename, 'w') as f:
             f.write(image.file.read())
 
-        if ext != '.png':
-            img = Image.open('static/tmp/%s%s' % (fname, ext))
-            img.save('static/tmp/%s.png' % fname)
-
-        img = Image.open('static/tmp/%s.png' % fname)
-        width, height = img.size
-        ratio = 202 / width
-        width = 202
-        height *= ratio
-        img.thumbnail((width, height), Image.ANTIALIAS)
-        img.save('static/tmp/pinthumb%s.png' % fname)
-
-        return fname, image.filename
+        return new_filename, image.filename
 
     def POST(self):
         force_login(sess)
@@ -528,21 +433,8 @@ class PageAddPinUrl:
     def upload_image(self, url):
         fname = generate_salt()
         ext = os.path.splitext(url)[1].lower()
-
-        urllib.urlretrieve(url, 'static/tmp/%s%s' % (fname, ext))
-        if ext != '.png':
-            t_img = 'static/tmp/%s%s' % (fname, ext)
-            img = Image.open(t_img)
-            img.save('static/tmp/%s.png' % fname)
-
-        img = Image.open('static/tmp/%s.png' % fname)
-        width, height = img.size
-        ratio = 202 / width
-        width = 202
-        height *= ratio
-        img.thumbnail((width, height), Image.ANTIALIAS)
-        img.save('static/tmp/pinthumb%s.png' % fname)
-
+        fname = os.path.join('static', 'tmp', '{}{}'.format(fname, ext))
+        urllib.urlretrieve(url, fname)
         return fname
 
     def POST(self):
@@ -565,28 +457,24 @@ class PageAddPinUrl:
             else:
                 board_id = None
 
-            external_id = pin_utils.generate_external_id()
-            pin_id = db.insert('pins',
-                description=data.description,
-                user_id=sess.user_id,
-                link=link,
-                name=data.title,
-                image_url=data.image_url,
-                #board_id=data.list,
-                price_range=data.price,
-                product_url = data.websiteurl,
-                external_id=external_id
-                )
+            pin = pin_utils.create_pin(db=db,
+                                 user_id=sess.user_id,
+                                 title=data.title,
+                                 description=data.description,
+                                 link=link,
+                                 tags=None,
+                                 price=None,
+                                 product_url=data.websiteurl,
+                                 price_range=data.price,
+                                 image_filename=fname,
+                                 board_id=board_id)
 
-            categories_to_insert = [{'pin_id': pin_id, 'category_id': int(c)} for c in data.categories.split(',')]
-            db.multiple_insert(tablename='pins_categories', values=categories_to_insert, seqname=False)
-
-            os.rename('static/tmp/%s.png' % fname,
-                      'static/tmp/%d.png' % pin_id)
-            os.rename('static/tmp/pinthumb%s.png' % fname,
-                      'static/tmp/pinthumb%d.png' % pin_id)
+            categories_to_insert = (int(c) for c in data.categories.split(','))
+            pin_utils.add_pin_to_categories(db=db,
+                                            pin_id=pin.id,
+                                            category_id_list=categories_to_insert)
             transaction.commit()
-            return '/p/%s' % external_id
+            return '/p/%s' % pin.external_id
         except Exception as e:
             logger.error('Failed to create a pin from an image URL', exc_info=True)
             transaction.rollback()
@@ -600,16 +488,15 @@ class PageRemoveRepin:
 
         force_login(sess)
         info = {'error':True}
-        ajax = int(web.input(ajax=0).ajax)
         get_input = web.input(_method='get')
         if 'repinid' in get_input and 'pinid' in get_input:
             pin_id = int(get_input['pinid'])
-            repin_id = int(get_input['repinid'])
-            pin = dbget('pins', pin_id)
-            if pin:
+            try:
+                pin_utils.delete_pin_from_db(db=db, pin_id=pin_id, user_id=sess.user_id)
                 info = {'error':False}
-                db.delete('pins_categories', where='pin_id=$pin', vars={'pin': pin_id})
-                db.delete('pins', where='user_id = $uid and repin = $repin and id = $pid', vars={'uid': sess.user_id, 'pid': pin_id , 'repin':repin_id})
+            except:
+                #just return the info with error set to True
+                logger.error('Could not delete pin', exc_info=True)
         return json.dumps(info)
 
 
@@ -661,9 +548,6 @@ class PageRepin:
             if pin is None:
                 return 'pin doesn\'t exist'
 
-            if pin.repin:
-                pin_id = pin.repin
-
             form = self.make_form()
             if not form.validates():
                 return 'please fill out all the form fields'
@@ -674,33 +558,40 @@ class PageRepin:
                                   user_id=sess.user_id)
             else:
                 return 'Please fill aout all the form fields'
-            # preserve all data from original pin, update description, repin and board
-            new_pin_id = db.insert('pins',
-                                   name=pin.name,
-                                   description=form.d.description,
-                                   user_id=sess.user_id,
-                                   repin=pin_id,
-                                   link=pin.link,
-                                   image_url=pin.image_url,
-                                   price=pin.price,
-                                   product_url=pin.product_url,
-                                   price_range=pin.price_range,
-                                   board_id=board,
-                                   external_id=pin_utils.generate_external_id())
-
-            # preserve all the categories from original pin
-            results = db.where(table='pins_categories', pin_id=pin_id)
-            categories_from_previous_item = [{'pin_id': new_pin_id, 'category_id': row.category_id} for row in results]
-            db.multiple_insert(tablename='pins_categories', values=categories_from_previous_item)
-
             if form.d.tags:
                 tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
-                db.insert('tags', pin_id=new_pin_id, tags=tags)
+            else:
+                tags = None
+            # preserve all data from original pin, update description, repin and board
+            new_pin = pin_utils.create_pin(db=db,
+                                       user_id=sess.user_id,
+                                       title=pin.name,
+                                       description=form.d.description,
+                                       link=pin.link,
+                                       tags=tags,
+                                       price=pin.price,
+                                       product_url=pin.product_url,
+                                       price_range=pin.price_range,
+                                       image_filename=None,
+                                       board_id=board,
+                                       repin=pin.id
+                                       )
+            # copy the same images url from the old pin, no need to upload the same image
+            pin_utils.update_pin_image_urls(db=db,
+                                            pin_id=new_pin.id,
+                                            user_id=sess.user_id,
+                                            image_url=pin.image_url,
+                                            image_202_url=pin.image_202_url,
+                                            image_212_url=pin.image_212_url,
+                                            )
+            # preserve all the categories from original pin
+            results = db.where(table='pins_categories', pin_id=pin_id)
+            categories_from_previous_item = (row.category_id for row in results)
+            pin_utils.add_pin_to_categories(db=db, pin_id=new_pin.id, category_id_list=categories_from_previous_item)
 
             user = dbget('users', sess.user_id)
-            make_notif(pin.user_id, 'Someone has added your item to their Getlist!', '/pin/%d' % pin_id)
+            make_notif(pin.user_id, 'Someone has added your item to their Getlist!', '/p/%s' % pin.external_id)
             transaction.commit()
-            # raise web.seeother('/pin/%d' % pin_id)
             raise web.seeother('/%s/list/%d' % (user.username, board))
         except:
             logger.error('Failed to add to get list', exc_info=True)

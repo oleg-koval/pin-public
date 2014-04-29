@@ -51,4 +51,4 @@ COUNTRIES = [
     'Virgin Islands, British', 'Virgin Islands, U.s.', 'Wallis and Futuna', 'Western Sahara', 'Yemen', 'Zambia', 'Zimbabwe',
 ]
 
-PIN_COUNT = 50
+PIN_COUNT = 100

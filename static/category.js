@@ -22,6 +22,7 @@ jQuery(function() {
         if (pin['tags'] !== null) {
           pin['taglist'] = pin['tags'].split(' ');
         }
+        pin['image_loading'] = '/static/img/loading.png';
         html_text = $.pin_template(pin);
         $('#category_column_' + $.column_control).append(html_text);
         if ($.column_control === 5) {
@@ -31,6 +32,9 @@ jQuery(function() {
         }
       }
       $.loading_more = false;
+      window.setTimeout($('img.lazy').lazyload({
+        failure_limit: 100
+      }), 100);
     });
   };
   simplify_url = function(url) {
@@ -59,7 +63,7 @@ jQuery(function() {
     top = $(window).scrollTop();
     height = $(window).innerHeight();
     doc_height = $(document).height();
-    sensitivity = 600;
+    sensitivity = 1000;
     if (top + height + sensitivity > doc_height) {
       get_more_items();
     }
