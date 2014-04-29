@@ -1,0 +1,165 @@
+﻿#mainPage
+{
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    background: white;
+    overflow: hidden; /*display: none;*/ /*tmp*/
+}
+
+#mainForm
+{
+    /*display: none;*/
+}
+/*tmp*/
+
+#mainPage .buttons
+{
+    display: none;
+}
+
+#mainPage .pinRoll
+{
+    width: 100%;
+    overflow: hidden;
+}
+#firstRow, #secondRow, #thirdRow, #fourthRow
+{
+    width: auto;
+    height: 280px;
+    position: relative;
+}
+
+#mainPage .pinRollItem
+{
+    position: absolute;
+    height: 240px; /*width: 300px;*/
+    padding: 20px;
+    text-align: center;
+}
+
+#mainPage .pinRollItem img
+{
+    height: 180px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+
+#mainPage .info > p:first-child, #mainPage .pinRollItem hr, #mainPage .info > .faded /*, .faded:last-child */
+{
+    display: none;
+}
+
+#mainPage .user img
+{
+    width: 50px;
+    height: 50px; /* margin-left: 40px;*/ /*display: none;*/
+    padding: 0;
+}
+
+#mainPage .right
+{
+    float: none; /* text-align: left;     padding-left: 90px;*/
+    padding-top: 10px;
+}
+
+#mainPage .right a:last-child
+{
+    color: #f8a41a;
+}
+
+#mainForm
+{
+    background: rgba(255,255,255,0.5);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+}
+
+
+#mainForm .signForm
+{
+    position: absolute;
+    background: white;
+    top: 50%;
+    left: 52%;
+    border: 3px solid red;
+    padding: 40px;
+    text-align: center;
+    margin: -241px 0 0 -224px;
+}
+
+.header
+{
+    position: relative;
+    z-index: 5;
+    background-color: #0088cc;
+    padding: 0;
+    border-top: 6px solid #009fe4;
+    border-bottom: 2px solid #67828d;
+}
+
+.header .avatar
+{
+    height: 26px !important;
+}
+
+#switch3
+{
+    padding: 3px;
+    margin-top: 10px;
+    height: 32px;
+}
+
+
+.header .nav .logo
+{
+    color: rgba(0,0,0, 0);
+    background: url('../img/header_logo.png') no-repeat;
+    background-position: center -5px;
+    padding: 7px;
+}
+
+.header .white-links
+{
+    position: absolute;
+    right: 0;
+    z-index: 6;
+    top: 0;
+}
+
+a.signupfb:hover
+{
+    text-decoration: none;
+    background-color: #3b66a5;
+}
+
+
+a.signupgg:hover
+{
+    text-decoration: none;
+    background-color: #ff5f4b;
+}
+
+
+.inlineB
+{
+    display: inline-block;
+    display: -moz-inline-box;
+    -moz-box-orient: vertical;
+    vertical-align: top;
+}
+
+.mcFirstRow, .mcSecondRow, .mcThirdRow {display: block; padding-bottom: 10px;}
+
+.mcBlock {width: 32%;}
+
+
+

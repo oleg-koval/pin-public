@@ -4,6 +4,10 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
   <head>
     <title>MyPinnings</title>
     <link rel='stylesheet' type='text/css' href='/static/main.css'/>
+    <link rel='stylesheet' type='text/css' href='/static/css/redesign.css'/>   
+    <link rel='stylesheet' type='text/css' href='/static/css/register.css'/> <!--Temp-->
+
+
     <link href='//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' rel='stylesheet'>
     <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" type="text/css" media="all" />
 	<script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
@@ -15,8 +19,10 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
     <link href="/static/modal.css" rel="stylesheet" />
     <script src="/static/bootstrap.min.js"></script>
     <script src="/static/jquery.rs.slideshow.min.js"></script>
+    <script src="/static/js/custom.js"></script>
   </head>
   <body>
+  
     <div class='header'>
       <div class='nav clearfix'>
         <a class='logo' href='/'>MyPinnings</a>
@@ -36,16 +42,15 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
             <div class='nav-item item' id='switch1'>
               <i class='fa fa-bars'></i> Discover
               <div class='menu invis' id='menu1'>
-                <table width='100%' cellpadding='5'>
-                  $ i = 0
-                  <tr>
+                <div style="width: 100%;">
+                 
+                  
                   $for cat in categories:
-                    $if i % 3 == 0:
-                      </tr><tr>
-                    <td style='width: 250px'><b><a href='/category/$cat['url_name']/$cat['id']'>$cat['name']</a></b></td>
-                    $ i += 1
-                  </tr>
-                </table>
+                    
+                    <a href='/category/$cat['url_name']/$cat['id']'>$cat['name']</a>
+                    
+                  
+                </div>
               </div>
             </div>
             &nbsp;
@@ -87,13 +92,45 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
           </div>
           <script type='text/javascript' src='/static/main.js'></script>
         $else:
+          
           <div class='white-links pad-top'>
             <a href='/login'>Login</a>
-            <a href='/register'>Signup</a>
+            <!--<a href='/register'>Signup</a>-->
             <a href='/browse'>Browse</a>
           </div>
       </div>
     </div>
+    <div id="mainPage">
+            <div class="pinRoll">
+                <div id="firstRow">
+                    <!--Roll Pins On Main Page-->
+                </div>
+                <div id="secondRow">
+                    <!--Roll Pins On Main Page-->
+                </div>
+                <div id="thirdRow">
+                    <!--Roll Pins On Main Page-->
+                </div>
+                <div id="fourthRow">
+                    <!--Roll Pins On Main Page-->
+                </div>
+            </div>
+    </div>
+    <div id="mainForm">
+        <div class="signForm">
+            <p style="color: #f8a41a; font-size: 36px;">MyPinnings</p>
+            <br />
+              
+            <div>
+                <a class="signupfb" href="/facebook/register/">Signup with Facebook</a>
+            </div>
+            <div>
+                <a class="signupgg" href="/google/register/">Signup with Google+</a>
+            </div>
+        </div>
+
+    </div>
+
     <div class='content'>
         $if acti_needed is not None:
             $if acti_needed:
