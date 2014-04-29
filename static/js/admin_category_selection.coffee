@@ -16,7 +16,6 @@ jQuery ->
 				pin['simplifiedurl'] = simplify_url(pin['link'])
 				if pin['tags'] isnt null
 					pin['taglist'] = pin['tags'].split(' ')
-				pin['image_loading'] = '/static/img/loading.png'
 				pin_html = $.pin_template(pin)
 				$('#column' + $.current_column).append(pin_html)
 				$.current_column += 1
