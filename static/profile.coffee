@@ -152,7 +152,7 @@ get_more_items = (show_images) ->
 			if show_images isnt null and show_images
 				pin['image_loading'] = pin['image_212_url']
 			else
-				pin['image_loading'] = '/static/img/loading.png'
+				pin['image_loading'] = ''
 			html_text = $.pin_template(pin)
 			selector = '#column_' + boardid + '_' + column
 			$(selector).append(html_text)

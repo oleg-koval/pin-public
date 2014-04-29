@@ -189,7 +189,7 @@ get_more_items = function(show_images) {
       if (show_images !== null && show_images) {
         pin['image_loading'] = pin['image_212_url'];
       } else {
-        pin['image_loading'] = '/static/img/loading.png';
+        pin['image_loading'] = '';
       }
       html_text = $.pin_template(pin);
       selector = '#column_' + boardid + '_' + column;
