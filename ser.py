@@ -570,8 +570,12 @@ class PageRepin:
                                             pin_id=new_pin.id,
                                             user_id=sess.user_id,
                                             image_url=pin.image_url,
+                                            image_width=pin.image_width,
+                                            image_height=pin.image_height,
                                             image_202_url=pin.image_202_url,
+                                            image_202_height=pin.image_202_height,
                                             image_212_url=pin.image_212_url,
+                                            image_212_height=pin.image_212_height,
                                             )
             # preserve all the categories from original pin
             results = db.where(table='pins_categories', pin_id=pin_id)

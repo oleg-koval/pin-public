@@ -14,7 +14,7 @@ $for category in categories:
 <script type="text/html" id="pin_template">
 <div class="category_pin" pin_id="<%= id %>">
 	<div class="category_pin_image" pinid="<%= external_id %>">
-		<img data-original="<%= image_212_url %>" width="212" class="lazy">
+		<img data-original="<%= image_212_url %>" width="212" height="<%= image_212_height %>" class="lazy">
 	</div>
 	<% if (name !== '') { %>
 		<div class="category_pin_title"><%= name %></div>

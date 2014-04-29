@@ -21,7 +21,8 @@ def create_pin(db, user_id, title, description, link, tags, price, product_url,
         if image_filename:
             images_dict = media.store_image_from_filename(db, image_filename, widths=(202, 212))
         else:
-            images_dict = {0: None, 202: None, 212: None}
+            empty = {'url': None, 'width': None, 'height': None}
+            images_dict = {0: empty, 202: empty, 212: empty}
         if not price:
             price = None
         external_id = _generate_external_id()
@@ -32,9 +33,13 @@ def create_pin(db, user_id, title, description, link, tags, price, product_url,
                            link=link,
                            views=1,
                            price=price,
-                           image_url=images_dict[0],
-                           image_202_url=images_dict[202],
-                           image_212_url=images_dict[212],
+                           image_url=images_dict[0]['url'],
+                           image_width=images_dict[0]['width'],
+                           image_height=images_dict[0]['height'],
+                           image_202_url=images_dict[202]['url'],
+                           image_202_height=images_dict[202]['height'],
+                           image_212_url=images_dict[212]['url'],
+                           image_212_height=images_dict[212]['height'],
                            product_url=product_url,
                            price_range=price_range,
                            external_id=external_id,
@@ -79,19 +84,28 @@ def update_pin_images(db, pin_id, user_id, image_filename):
     db.update(tables='pins',
               where='id=$id and user_id=$user_id',
               vars={'id': pin_id, 'user_id': user_id},
-              image_url=images_dict[0],
-              image_202_url=images_dict[202],
-              image_212_url=images_dict[212],
+              image_url=images_dict[0]['url'],
+              image_width=images_dict[0]['width'],
+              image_height=images_dict[0]['height'],
+              image_202_url=images_dict[202]['url'],
+              image_202_height=images_dict[202]['height'],
+              image_212_url=images_dict[212]['url'],
+              image_212_height=images_dict[212]['height'],
               )
     
 
-def update_pin_image_urls(db, pin_id, user_id, image_url, image_202_url, image_212_url):
+def update_pin_image_urls(db, pin_id, user_id, image_url, image_width, image_height,
+                          image_202_url, image_202_height, image_212_url, image_212_height):
     db.update(tables='pins',
               where='id=$id and user_id=$user_id',
               vars={'id': pin_id, 'user_id': user_id},
               image_url=image_url,
+              image_width=image_width,
+              image_height=image_height,
               image_202_url=image_202_url,
+              image_202_height=image_202_height,
               image_212_url=image_212_url,
+              image_212_height=image_212_height,
               )
 
 
