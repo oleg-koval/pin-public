@@ -206,7 +206,7 @@ def json_pins(pins, template=None):
 
 
 class PageIndex:
-    def GET(self, first_time=None):
+    def GET(self, first_time=None, form=None):
         query1 = '''
             select
                 pins.*, tags.tags, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
@@ -250,7 +250,9 @@ class PageIndex:
 
         if ajax:
             return json_pins(pins)
-        return ltpl('index', pins, first_time)
+
+        form = mypinnings.register.PageRegister().get_form()
+        return ltpl('index', pins, first_time, form)
 
 class PageLogin:
     _form = form.Form(

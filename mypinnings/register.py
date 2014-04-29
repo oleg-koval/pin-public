@@ -41,6 +41,10 @@ class PageRegister:
         web.form.Button('Let\'s get started!')
     )
 
+    def get_form(self):
+        form = self._form()
+        return form
+
     def msg(self, s):
         raise web.seeother('?msg=%s' % s, absolute=False)
 
