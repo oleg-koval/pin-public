@@ -1,8 +1,58 @@
 .bottom-separator {
   margin-top: 30px;
-  border-bottom: 1px dotted lightgrey; }
+  border-bottom: 1px dotted lightgray; }
 
 .shadow-box {
   padding: 3px;
   border-radius: 5px;
   box-shadow: 0px 0px 5px gray; }
+
+.category_pin {
+  width: 212px;
+  max-width: 212px;
+  border-radius: 4px;
+  background-color: white;
+  margin-bottom: 13px; }
+
+.category_pin_inner_text, .category_pin_title, .category_pin_description, .category_pin_tags, .category_pin_source_url, .category_pin_likes {
+  margin-top: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin-bottom: 0px; }
+
+.category_pin_inner_text_separator, .category_pin_title, .category_pin_likes {
+  padding-bottom: 5px;
+  border-bottom: 1px solid lightgray; }
+
+.category_pin_title {
+  font-weight: bold;
+  font-size: 120%; }
+
+.category_pin_description {
+  font-size: 120%; }
+
+.category_pin_source_url {
+  padding-bottom: 10px;
+  font-size: 80%; }
+
+.category_pin_image {
+  cursor: pointer; }
+  .category_pin_image .pinned_from {
+    color: light-gray;
+    font-weight: bold; }
+  .category_pin_image .pinned_link a {
+    text-decorator: none; }
+
+.category_selection_list {
+  width: 150px;
+  height: 500px;
+  float: left;
+  clear: none;
+  position: fixed;
+  top: 150;
+  left: 250px;
+  overflow-y: scroll; }
+  .category_selection_list label {
+    font-weight: normal;
+    font-size: 70%;
+    line-height: normal; }

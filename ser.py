@@ -397,12 +397,6 @@ class NewPageAddPinForm:
                                        image_filename=data.fname,
                                        board_id=board,
                                        )
-
-            categories_to_insert = (int(c) for c in data.category.split(','))
-            pin_utils.add_pin_to_categories(db=db,
-                                            pin_id=pin.id,
-                                            category_id_list=categories_to_insert)
-
             transaction.commit()
             return '/p/%s' % pin.external_id
         except Exception as e:
@@ -468,11 +462,6 @@ class PageAddPinUrl:
                                  price_range=data.price,
                                  image_filename=fname,
                                  board_id=board_id)
-
-            categories_to_insert = (int(c) for c in data.categories.split(','))
-            pin_utils.add_pin_to_categories(db=db,
-                                            pin_id=pin.id,
-                                            category_id_list=categories_to_insert)
             transaction.commit()
             return '/p/%s' % pin.external_id
         except Exception as e:
@@ -581,8 +570,12 @@ class PageRepin:
                                             pin_id=new_pin.id,
                                             user_id=sess.user_id,
                                             image_url=pin.image_url,
+                                            image_width=pin.image_width,
+                                            image_height=pin.image_height,
                                             image_202_url=pin.image_202_url,
+                                            image_202_height=pin.image_202_height,
                                             image_212_url=pin.image_212_url,
+                                            image_212_height=pin.image_212_height,
                                             )
             # preserve all the categories from original pin
             results = db.where(table='pins_categories', pin_id=pin_id)
@@ -722,8 +715,6 @@ class PagePin:
                             where='pins_categories.category_id=categories.id and pins_categories.pin_id=$id',
                             vars={'id': pin.id},
                             order='categories.name')
-        if not pin.categories:
-            return 'pin not found'
 
         if logged and sess.user_id != pin.user_id:
             db.update('pins', where='id = $id', vars={'id': pin.id}, views=web.SQLLiteral('views + 1'))

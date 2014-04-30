@@ -172,23 +172,10 @@ $(document).ready(function() {
 
     }
 
-    function getCategories(name){
-        var elements = $("input[name="+name+"]");
-        var categories = new Array();
-        $.each(elements, function(id,v){
-            if($(v).prop('checked')){
-                categories.push($(v).val());
-            }
-        });
-        return categories.join();
-
-    }
-
     function getdata(){
         var data = {
             'title':$("#title").val(),
             'weblink':$("#weblink").val(),
-            'category':getCategories("category_check"),
             'lists':$("#board").val(),
             'comments':$("#comments").val(),
             'fname':$("#fname").val(),
@@ -200,7 +187,6 @@ $(document).ready(function() {
         var data = {
             'title':$("#titleweb").val(),
             'link':$("#weblinkweb").val(),
-            'categories':getCategories("category_check_web"),
             'description':$("#commentsweb").val(),
             'image_url':$("#image_urlweb").val(),
             'list':$("#boardweb").val(),
@@ -249,18 +235,8 @@ $(document).ready(function() {
         var title = $("#title");
         var weblink = $("#weblink");
         var list = $("#board");
-        var cat = getCategories("category_check");
-        var category = $("input[name=category_check]");
 
         var errors = new Array();
-        if(cat===""){
-            errors.push(category);
-        }else{
-            $.each(category, function(i,v){
-                $(v).attr("style", "");
-            });
-        }
-
         if(title.val()===""){
             errors.push(title);
         }else{
@@ -294,17 +270,8 @@ $(document).ready(function() {
     function validate_from_web(formData, jqForm, options) {
         var title = $("#titleweb");
         var list = $("#boardweb");
-        var cat = getCategories("category_check_web");
-        var category = $("input[name=category_check_web]");
 
         var errors = new Array();
-        if(cat===""){
-            errors.push(category);
-        }else{
-            $.each(category, function(i,v){
-                $(v).attr("style", "");
-            });
-        }
         if(title.val()===""){
             errors.push(title);
         }else{

@@ -23,8 +23,8 @@ class ListItemsJson:
                 left join likes l1 on l1.pin_id = pins.id
                 left join users on users.id = pins.user_id
                 left join follows on follows.follow = users.id
-                join pins_categories on pins.id=pins_categories.pin_id
-                join categories on pins_categories.category_id = categories.id
+                left join pins_categories on pins.id=pins_categories.pin_id
+                left join categories on pins_categories.category_id = categories.id
                 join boards on pins.board_id = boards.id
             where boards.id = $board_id
             group by tags.tags, categories.id, pins.id, users.id

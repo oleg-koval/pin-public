@@ -1,0 +1,44 @@
+$def with (categories)
+<div class="category_selection_list">
+$for category in categories:
+	<label><input type="checkbox" value="$category.id" class="category_check">$category.name</label><br/>	
+</div>
+<div style="margin-left:150px;" class="container-fluid">
+	<div class="row">
+		<div id="column1" class="col-xs-4"></div>
+		<div id="column2" class="col-xs-4"></div>
+		<div id="column3" class="col-xs-4"></div>
+	</div>
+</div>
+<script src="/static/js/admin_category_selection.js"></script>
+<script type="text/html" id="pin_template">
+<div class="category_pin" pin_id="<%= id %>">
+	<div class="category_pin_image" pinid="<%= external_id %>">
+		<img data-original="<%= image_212_url %>" width="212" height="<%= image_212_height %>" class="lazy">
+	</div>
+	<% if (name !== '') { %>
+		<div class="category_pin_title"><%= name %></div>
+	<% }
+	   if (description !== '') { %>
+	<div class="category_pin_description"><%= description %></div>
+	<% }
+	   if (tags !== null) { %>
+	<div class="category_pin_tags">
+		<% for (i = 0; i < taglist.length ; i++) { %>
+			<a href="/search/items?q=<%= taglist[i] %>">#<%= taglist[i] %></a>
+		<% } %>
+	</div>
+	<% } %>
+	<div class="category_pin_likes">
+		<i class="fa fa-thumbs-up"></i> <%= like_count %>
+		&nbsp;&nbsp;
+		<i class="fa fa-thumb-tack"></i> <%= repin_count %>
+	</div>
+	<% if (link !== null) { %>
+	<div class="category_pin_source_url">
+		<div class="pinned_from">pinned from</div>
+		<div class="pinned_link"><a href="<%= link %>"><%= simplifiedurl %></a></div>
+	</div>
+	<% } %>
+</div>
+</script>

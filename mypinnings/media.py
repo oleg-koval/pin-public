@@ -47,14 +47,20 @@ def store_image_from_filename(db, filename, widths=[]):
     new_filename = os.path.join(path, new_filename)
     os.rename(filename, new_filename)
     image_url = _upload_file_to_bucket(server, new_filename)
-    original_image_width = _get_image_width(new_filename)
-    images_by_width[original_image_width] = image_url
-    images_by_width[0] = image_url
+    original_image_width, original_image_height = _get_image_size(new_filename)
+    images_by_width[original_image_width] = {'url': image_url,
+                                             'width': original_image_width,
+                                             'height': original_image_height}
+    images_by_width[0] = {'url': image_url,
+                         'width': original_image_width,
+                         'height': original_image_height}
     if widths:
         for width in widths:
-            scaled_image_filename = _scale_image(new_filename, width)
+            scaled_image_filename, width, height = _scale_image(new_filename, width)
             scaled_image_url = _upload_file_to_bucket(server, scaled_image_filename)
-            images_by_width[width] = scaled_image_url
+            images_by_width[width] = {'url': scaled_image_url,
+                                     'width': width,
+                                     'height': height}
             # once uploaded to the media server, this file is no longer used
             os.unlink(scaled_image_filename)
     # once uploaded to the media server and scaled to the widths, this file is no longer used
@@ -173,13 +179,12 @@ def _upload_file_to_bucket(server, filename):
     return '{}/{}'.format(server.url, pathname)
     
     
-def _get_image_width(filename):
+def _get_image_size(filename):
     '''
     Returns the width of the image contained in the file.
     '''
     image = Image.open(filename)
-    width, _ = image.size
-    return width
+    return image.size
     
 
 def _scale_image(filename, width):
@@ -199,4 +204,4 @@ def _scale_image(filename, width):
     scaled_size = (width, height)
     image.thumbnail(scaled_size, Image.ANTIALIAS)
     image.save(scaled_image_filename)
-    return scaled_image_filename
+    return (scaled_image_filename, width, height)
