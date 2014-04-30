@@ -1,13 +1,11 @@
 import web
 import os
-
 from api.utils import api_response, save_api_request
 from api.views.base import BaseAPI
-
 from mypinnings.database import connect_db
 import facebook
-
-from urllib import urlencode
+import urllib
+import requests
 
 db = connect_db()
 
@@ -85,6 +83,8 @@ def share(access_token, share_list, social_network="facebook"):
     # Get status of access token for social network
     if social_network == "facebook":
         access_token_status = check_facebook_access_token(access_token)
+    if social_network == "linkedin":
+        access_token_status = check_linkedin_access_token(access_token)
 
     if not access_token_status:
         return [], 400, "Bad access token"
@@ -100,6 +100,8 @@ def share(access_token, share_list, social_network="facebook"):
 
         pin = pin[0]
         message = ""
+        link = ""
+
         if pin.get('name'):
             message += pin.get('name')+"\n"
         if pin.get('description'):
@@ -107,18 +109,22 @@ def share(access_token, share_list, social_network="facebook"):
         if pin.get('price'):
             message += "Price: "+pin.get('price')+"\n"
         if pin.get('link'):
-            message += pin.get('link')+"\n"
+            link = pin.get('link')
 
-        image = None
-        image_path = 'static/tmp/%d.png' % pin_id
-        if os.path.isfile(image_path):
-            image = open(image_path)
+        image_url = pin.get('image_url')
 
         share_pin_status = False
         if social_network == "facebook":
             share_pin_status = share_via_facebook(access_token,
                                                   message,
-                                                  image)
+                                                  link,
+                                                  image_url)
+
+        if social_network == "linkedin":
+            share_pin_status = share_via_linkedin(access_token,
+                                                  message,
+                                                  link,
+                                                  image_url)
 
         if share_pin_status:
             shared_pins.append(pin_id)
@@ -135,17 +141,73 @@ def check_facebook_access_token(access_token):
         return False
 
 
-def share_via_facebook(access_token, message, image):
+def check_linkedin_access_token(access_token):
+    try:
+        url = 'https://api.linkedin.com/v1/people/~' + \
+            '?oauth2_access_token=%s' % access_token
+
+        result = requests.get(url)
+
+        if result.status_code == 200:
+            return True
+        else:
+            return False
+    except Exception, exc:
+        return False
+
+
+def share_via_facebook(access_token, message, link, image_url):
     """
     Share pin to facebook
     """
+    if link:
+        message += link+"\n"
+
     try:
         graph = facebook.GraphAPI(access_token)
-        if image:
-            graph.put_photo(image, message)
+        if image_url:
+            graph.put_photo(urllib.urlopen(image_url), message)
         else:
             graph.put_object("me", "feed", message=message)
 
         return True
+    except Exception, exc:
+        return False
+
+
+def share_via_linkedin(access_token, message, link, image_url):
+    """
+    Share pin to Linkedin
+    """
+    try:
+        url = 'https://api.linkedin.com/v1/people/~/shares' + \
+            '?oauth2_access_token=%s' % access_token
+        data = ""
+        data += "<share>"
+        data += "<content>"
+        data += "<description>%s</description>" % message
+        data += "<submitted-url>%s</submitted-url>" % link
+
+        if image_url:
+            data += "<submitted-image-url>%s</submitted-image-url>" % image_url
+
+        data += "</content>"
+        data += "<visibility>"
+        data += "<code>anyone</code>"
+        data += "</visibility>"
+        data += "</share>"
+
+        headers = {'content-type': 'application/xml'}
+
+        result = requests.post(
+            url,
+            data=data,
+            headers=headers
+        )
+
+        if result.status_code == 201:
+            return True
+        else:
+            return False
     except Exception, exc:
         return False
