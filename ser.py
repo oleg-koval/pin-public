@@ -319,9 +319,28 @@ class PageActivate:
         uid = web.input(uid=0).uid
 
         user = dbget('users', uid)
+
         if user:
-            if key == hash(str(user.activation)):
-                db.update('users', where='id=$id', vars={'id': uid}, activation=0)
+            logintoken = user['logintoken']
+
+            data = {
+                "logintoken": logintoken,
+                "hashed_activation": key,
+            }
+
+            url = settings.API_URL + "api/signup/confirmuser"
+            result = requests.post(
+                url,
+                data=data
+            )
+
+            data = json.loads(result.content)
+
+        # user = dbget('users', uid)
+        # if user:
+        #     if key == hash(str(user.activation)):
+        #         db.update('users', where='id=$id', vars={'id': uid}, activation=0)
+
         raise web.seeother('/')
 
 
