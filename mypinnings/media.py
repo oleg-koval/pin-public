@@ -7,7 +7,7 @@ import boto.s3.key
 from PIL import Image
 
 
-NAME_CHARACTERS = 'abcdefghijklmnopqrstuvwxyz123456789012345678901234567890'
+NAME_CHARACTERS = '1234567890'
 
 
 def store_image_from_filename(db, filename, widths=[]):
