@@ -53,6 +53,10 @@ jQuery ->
 				can_submit = false
 			if not can_submit
 				window.alert('Errors pending, please check')
+			if can_submit
+				$('#wait_for_process_to_finish_layer').height($(window).innerHeight())
+				$('#wait_for_process_to_finish_layer div').css('margin-top', ($(window).innerHeight() / 2) - 150)
+				$('#wait_for_process_to_finish_layer').show()
 			return can_submit
 		catch error
 			alert(error)
