@@ -41,7 +41,7 @@ $def with (pin, comments, rating, embeded=False)
             <label for='input-comment'>Comment</label> &middot;
           <span class='link' id='share'>Share</span>
           $if pin.tags:
-            &middot; <span class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags.split(' ')]))</span>
+            &middot; <span class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags]))</span>
           <span class='invis' id='sharelinks'>
             $ url = 'http://mypinnings.com/p/%s' % pin.external_id
 

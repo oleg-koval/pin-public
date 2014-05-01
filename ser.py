@@ -690,7 +690,7 @@ class PagePin:
 
         pin = db.query('''
             select
-                tags.tags, pins.*, users.name as user_name, users.pic as user_pic, users.username as user_username,
+                pins.*, users.name as user_name, users.pic as user_pic, users.username as user_username,
                 ''' + query1 + ''' as liked,
                 count(distinct l2) as likes,
                 count(distinct p1) as repin_count
@@ -701,7 +701,7 @@ class PagePin:
                 left join likes l2 on l2.pin_id = pins.id
                 left join pins p1 on p1.repin = pins.id
             where pins.external_id = $external_id
-            group by pins.id, tags.tags, users.id''', vars=qvars)
+            group by pins.id, users.id''', vars=qvars)
         if not pin:
             return 'pin not found'
 
@@ -713,6 +713,9 @@ class PagePin:
 
         if logged and sess.user_id != pin.user_id:
             db.update('pins', where='id = $id', vars={'id': pin.id}, views=web.SQLLiteral('views + 1'))
+            
+        results = db.where(table='tags', pin_id=pin.id)
+        pin.tags = [row.tags for row in results]
 
         comments = db.query('''
             select
