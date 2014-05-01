@@ -243,7 +243,7 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 				</tr>
 				<tr>
 					<th><label for="tags11">#Tags</label></th>
-					<td><input name="tags11" i="11" placeholder="#this #is #awesome" id="tags11" type="text" class="tagwords"/></td>
+					<td><input name="tags11" i="11" placeholder="#this is awesome #product" id="tags11" type="text" class="tagwords"/></td>
 				</tr>
 				<tr>
 					<th><label for="price11">Price (optional)</label></th>
@@ -297,7 +297,7 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 			<%= separate_link %>
 		</a></td></tr>
 <% } %>
-	<tr><th>Tags</th><td><%= tags %></td></tr>
+	<tr><th>Tags</th><td><%= $$.put_hash_symbol(tags) %></td></tr>
 		
 <% if (price !== 'None') { %>
 	<tr><th>Price</th><td>$$<%= price %></td></tr>

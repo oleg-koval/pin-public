@@ -90,16 +90,16 @@ class PinLoaderPage(object):
                              web.form.Textbox('product_url8', placeholder="Where can you buy this item? www.rolex.com", **{'class': 'urlproduct_url', 'i': 1}),
                              web.form.Textbox('product_url9', placeholder="Where can you buy this item? www.rolex.com", **{'class': 'urlproduct_url', 'i': 1}),
                              web.form.Textbox('product_url10', placeholder="Where can you buy this item? www.rolex.com", **{'class': 'urlproduct_url', 'i': 1}),
-                             web.form.Textbox('tags1', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 1}),
-                             web.form.Textbox('tags2', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 2}),
-                             web.form.Textbox('tags3', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 3}),
-                             web.form.Textbox('tags4', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 4}),
-                             web.form.Textbox('tags5', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 5}),
-                             web.form.Textbox('tags6', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 6}),
-                             web.form.Textbox('tags7', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 7}),
-                             web.form.Textbox('tags8', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 8}),
-                             web.form.Textbox('tags9', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 9}),
-                             web.form.Textbox('tags10', placeholder='#this #is #awesome', **{'class': 'tagwords', 'i': 10}),
+                             web.form.Textbox('tags1', placeholder='#this is awesome #product', **{'class': 'tagwords', 'i': 1}),
+                             web.form.Textbox('tags2', placeholder='#this is awesome #product', **{'class': 'tagwords', 'i': 2}),
+                             web.form.Textbox('tags3', placeholder='#this is awesome #product', **{'class': 'tagwords', 'i': 3}),
+                             web.form.Textbox('tags4', placeholder='#this is awesome #product', **{'class': 'tagwords', 'i': 4}),
+                             web.form.Textbox('tags5', placeholder='#this is awesome #product', **{'class': 'tagwords', 'i': 5}),
+                             web.form.Textbox('tags6', placeholder='#this is awesome #product', **{'class': 'tagwords', 'i': 6}),
+                             web.form.Textbox('tags7', placeholder='#this is awesome #product', **{'class': 'tagwords', 'i': 7}),
+                             web.form.Textbox('tags8', placeholder='#this is awesome #product', **{'class': 'tagwords', 'i': 8}),
+                             web.form.Textbox('tags9', placeholder='#this is awesome #product', **{'class': 'tagwords', 'i': 9}),
+                             web.form.Textbox('tags10', placeholder='#this is awesome #product', **{'class': 'tagwords', 'i': 10}),
                              web.form.Textbox('price1', placeholder='$888.00', **{'class': 'prodprice', 'i': 1}),
                              web.form.Textbox('price2', placeholder='$888.00', **{'class': 'prodprice', 'i': 2}),
                              web.form.Textbox('price3', placeholder='$888.00', **{'class': 'prodprice', 'i': 3}),
@@ -271,8 +271,8 @@ class LoadersEditAPI(object):
     def get_by_id(self, id):
         sess = session.get_session()
         db = database.get_db()
-        results = db.query('''select pins.*, tags.tags
-                            from pins left join tags on pins.id = tags.pin_id
+        results = db.query('''select pins.*
+                            from pins
                             where pins.id=$id and user_id=$user_id''',
                             vars={'id': id, 'user_id': sess.user_id})
         for row in results:
@@ -284,6 +284,9 @@ class LoadersEditAPI(object):
                                         where='categories.id = pins_categories.category_id and pins_categories.pin_id=$id',
                                         vars={'id': id})
             row['categories'] = [{'id': catrow.id, 'name': catrow.name} for catrow in results]
+            results = db.where(table='tags', pin_id=id)
+            tags = [r.tags for r in results]
+            row['tags'] = tags
             return json.dumps(row)
         raise web.notfound()
 
@@ -300,6 +303,7 @@ class LoadersEditAPI(object):
                             join categories on pc.category_id=categories.id
                             left join tags on pins.id = tags.pin_id
                             where user_id=$user_id
+                            group by pins.id, categories.id, tags.tags
                             order by timestamp desc, categories.name
                             offset $offset limit $limit''',
                             vars={'user_id': sess.user_id, 'offset': sess.offset, 'limit': limit})
@@ -310,12 +314,17 @@ class LoadersEditAPI(object):
             if not current_pin or current_pin['id'] != r.id:
                 current_pin = dict(r)
                 current_pin['price'] = str(r.price)
-                current_pin['tags'] = pin_utils.add_hash_symbol_to_tags(r.tags)
                 current_pin['price_range_repr'] = '$' * r.price_range if r.price_range < 5 else '$$$$+'
                 current_pin['categories'] = []
+                categories = []
+                current_pin['tags'] = []
                 pin_list.append(current_pin)
-            category = {'id': r.category_id, 'name': r.category_name}
-            current_pin['categories'].append(category)
+            if r.category_id not in categories:
+                category = {'id': r.category_id, 'name': r.category_name}
+                current_pin['categories'].append(category)
+                categories.append(r.category_id)
+            if r.tags and r.tags not in current_pin['tags']:
+                current_pin['tags'].append(r.tags)
         json_pins = json.dumps(pin_list)
         web.header('Content-Type', 'application/json')
         return json_pins

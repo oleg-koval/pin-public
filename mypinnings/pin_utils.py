@@ -46,8 +46,9 @@ def create_pin(db, user_id, title, description, link, tags, price, product_url,
                            board_id=board_id,
                            repin=repin)
         if tags:
-            tags = remove_hash_symbol_from_tags(tags)
-            db.insert(tablename='tags', pin_id=pin_id, tags=tags)
+            tags = parse_tags(tags)
+            values_to_insert = [{'pin_id':pin_id, 'tags':tag} for tag in tags]
+            db.multiple_insert(tablename='tags', values=values_to_insert)
         pin = db.where(table='pins', id=pin_id)[0]
         return pin
     except:
@@ -68,13 +69,10 @@ def update_base_pin_information(db, pin_id, user_id, title, description, link, t
                price_range=price_range,
                board_id=board_id,
                )
-    tags = remove_hash_symbol_from_tags(tags)
-    results = db.where(table='tags', pin_id=pin_id)
-    for _ in results:
-        db.update(tables='tags', where='pin_id=$id', vars={'id': pin_id}, tags=tags)
-        break
-    else:
-        db.insert(tablename='tags', pin_id=pin_id, tags=tags)
+    db.delete(table='tags', where='pin_id=$pin_id', vars={'pin_id': pin_id})
+    tags = parse_tags(tags)
+    values_to_insert = [{'pin_id':pin_id, 'tags':tag} for tag in tags]
+    db.multiple_insert(tablename='tags', values=values_to_insert)
     pin = db.where('pins', id=pin_id)[0]
     return pin
         
@@ -144,16 +142,16 @@ def update_pin_into_categories(db, pin_id, category_id_list):
     add_pin_to_categories(db, pin_id, category_id_list)
 
 
-def remove_hash_symbol_from_tags(value):
+def parse_tags(value):
+    parsed = []
     if value:
-        separated = value.split(' ')
-        fixed = []
+        separated = value.split('#')
         for v in separated:
             new_v = v.replace('#', '')
-            fixed.append(new_v)
-        return ' '.join(fixed)
-    else:
-        return value
+            new_v = new_v.strip()
+            if new_v:
+                parsed.append(new_v)
+    return parsed
     
     
 def add_hash_symbol_to_tags(value):

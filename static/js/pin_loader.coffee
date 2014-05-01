@@ -89,7 +89,6 @@ jQuery ->
 			show_error_for_field(tags, 'Empty tags', i)
 		else
 			remove_error_from_field(tags, i)
-			ensure_tags_has_hash_symbol(tags)
 		# should have a valid price
 		if not have_valid_price(price, i)
 			no_error = false
@@ -176,25 +175,6 @@ jQuery ->
 					show_error_for_field(image, 'Image doesn\'t seem to be in a internet friendly format: .png, ,jpg, .gif, .svn', i)
 		return true
 		
-		
-	ensure_tags_has_hash_symbol = (field) ->
-		value = field.val()
-		new_value = ''
-		some_has_no_hash_symbol = false
-		for tag in value.split(" ")
-			if tag.indexOf('#') isnt 0
-				some_has_no_hash_symbol = true
-				new_tag = '#' + tag
-			else
-				new_tag = tag
-			if new_value is ''
-				new_value = new_tag
-			else
-				new_value = new_value + ' ' + new_tag
-		if some_has_no_hash_symbol
-			field.val(new_value)
-		return
-		
 	
 	# test price has format with only digits and decimal point
 	price_regex  = /^\d+(?:\.?\d{0,2})$/;
@@ -217,14 +197,6 @@ jQuery ->
 			else if value.indexOf('.') == value.length - 2
 				price.val(value + '0')
 		return true
-
-	
-	# ensure every tag has # symbol in front
-	$('.tagwords').on 'change', ->
-		i = $(this).attr('i')
-		remove_error_from_field($(this), i)
-		if $(this).val() isnt ''
-			ensure_tags_has_hash_symbol($(this))
 			
 			
 	# ensure a price range is selected
@@ -426,7 +398,6 @@ jQuery ->
 			show_error_for_field(tags, 'Empty tags', 11)
 		else
 			remove_error_from_field(tags, 11)
-			ensure_tags_has_hash_symbol(tags)
 		# should have a valid price
 		if not have_valid_price(price, 11)
 			no_error = false
@@ -500,6 +471,15 @@ jQuery ->
 			slice = url.slice(i, i + 16)
 			sep.push(slice)
 		return sep.join(' ')
-	
+
+
+	$.put_hash_symbol = (tags) ->
+		result = ''
+		for tag in tags
+			if result isnt ''
+				result = result + ', '
+			result = result + '#' + tag
+		return result
+
 	
 	return
