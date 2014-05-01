@@ -31,9 +31,20 @@ class ListItemsJson:
             order by timestamp desc offset $offset limit $limit'''
         results = db.query(self.query, vars={'board_id': self.board_id, 'offset': self.offset * settings.PIN_COUNT, 'limit': settings.PIN_COUNT})
         pin_list = []
+        current_pin = None
         for pin in results:
-            pin.price = str(pin.price)
-            pin_list.append(pin)
+            if not current_pin or current_pin.id != pin.id:
+                current_pin = pin
+                current_pin.price = str(current_pin.price)
+                pin_list.append(current_pin)
+                tag = current_pin.tags
+                current_pin.tags = []
+                if tag:
+                    current_pin.tags.append(tag)
+            else:
+                tag = pin.tags
+                if tag and tag not in current_pin.tags:
+                    current_pin.tags.append(tag)
         return pin_list
     
     def GET(self, board_id):

@@ -148,7 +148,7 @@ get_more_items = (show_images) ->
 				$.column[boardid] = 1
 			pin['simplifiedurl'] = simplify_url(pin['link'])
 			if pin['tags'] isnt null
-				pin['taglist'] = pin['tags'].split(' ')
+				pin['taglist'] = pin['tags']
 			if show_images isnt null and show_images
 				pin['image_loading'] = pin['image_212_url']
 			else
