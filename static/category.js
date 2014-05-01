@@ -20,7 +20,7 @@ jQuery(function() {
         pin = data[_i];
         pin['simplifiedurl'] = simplify_url(pin['link']);
         if (pin['tags'] !== null) {
-          pin['taglist'] = pin['tags'].split(' ');
+          pin['taglist'] = pin['tags'];
         }
         pin['image_loading'] = '';
         html_text = $.pin_template(pin);

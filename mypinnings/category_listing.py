@@ -87,9 +87,20 @@ class PageCategory:
         self.get_items_query()
         pins = self.db.query(self.query, vars={'cid': self.cid})
         pin_list = []
+        current_pin = None
         for pin in pins:
-            pin_list.append(pin)
-            pin.price = str(pin.price)
+            if not current_pin or current_pin.id != pin.id:
+                current_pin = pin
+                tag = pin.tags
+                current_pin.tags = []
+                if tag:
+                    current_pin.tags.append(tag)
+                pin_list.append(pin)
+                pin.price = str(pin.price)
+            else:
+                tag = pin.tags
+                if tag and tag not in current_pin.tags:
+                    current_pin.tags.append(tag)
         offset = self.sess.get('offset', 0)
         if len(pin_list) > 0:
             offset = offset + 1

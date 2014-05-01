@@ -10,7 +10,7 @@ jQuery ->
 			for pin in data
 				pin['simplifiedurl'] = simplify_url(pin['link'])
 				if pin['tags'] isnt null
-					pin['taglist'] = pin['tags'].split(' ')
+					pin['taglist'] = pin['tags']
 				pin['image_loading'] = ''
 				html_text = $.pin_template(pin)
 				$('#category_column_' + $.column_control).append(html_text)
