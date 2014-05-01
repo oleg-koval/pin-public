@@ -278,7 +278,6 @@ class LoadersEditAPI(object):
         for row in results:
             web.header('Content-Type', 'application/json')
             row.price = str(row.price)
-            row.tags = pin_utils.add_hash_symbol_to_tags(row.tags)
             row.price_range_repr = '$' * row.price_range if row.price_range < 5 else '$$$$+'
             results = db.select(tables=['categories', 'pins_categories'],
                                         where='categories.id = pins_categories.category_id and pins_categories.pin_id=$id',

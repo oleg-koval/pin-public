@@ -354,7 +354,7 @@ jQuery(function() {
     $("#description11").val(pin['description']);
     $("#link11").val(pin['link']);
     $("#product_url11").val(pin['product_url']);
-    $("#tags11").val(pin['tags']);
+    $("#tags11").val($.put_hash_symbol(pin['tags']));
     $("#imgtag11").attr('src', pin['image_202_url'] + '?_=' + new Date().getTime());
     $("#imgfulllink11").attr('href', '/p/' + pin['external_id']);
     $("#category11").val('');
