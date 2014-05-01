@@ -61,7 +61,6 @@ urls = (
     '/dashboard', 'PageDashboard',
     '/lists/(\d+)/items/?','mypinnings.lists.ListItemsJson',
     '/lists', 'PageBoards',
-    '/(.*?)/list/(\d*)', 'PageBoardList',
     '/browse', 'PageBrowse',
     '/category/.*?/(\d*)', 'mypinnings.category_listing.PageCategory',
     '/new-list', 'PageNewBoard',
@@ -547,17 +546,13 @@ class PageRepin:
                                   user_id=sess.user_id)
             else:
                 return 'Please fill aout all the form fields'
-            if form.d.tags:
-                tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
-            else:
-                tags = None
             # preserve all data from original pin, update description, repin and board
             new_pin = pin_utils.create_pin(db=db,
                                        user_id=sess.user_id,
                                        title=pin.name,
                                        description=form.d.description,
                                        link=pin.link,
-                                       tags=tags,
+                                       tags=form.d.tags,
                                        price=pin.price,
                                        product_url=pin.product_url,
                                        price_range=pin.price_range,
@@ -585,7 +580,7 @@ class PageRepin:
             user = dbget('users', sess.user_id)
             make_notif(pin.user_id, 'Someone has added your item to their Getlist!', '/p/%s' % pin.external_id)
             transaction.commit()
-            raise web.seeother('/%s/list/%d' % (user.username, board))
+            raise web.seeother('/%s' % user.username)
         except:
             logger.error('Failed to add to get list', exc_info=True)
             transaction.rollback()
@@ -768,49 +763,6 @@ class PagePin:
         for row in results:
             external_id=row.external_id
         raise web.seeother('/p/%s' % external_id)
-
-
-class PageBoardList:
-
-    def GET(self, username, board_id):
-        board_id = int(board_id)
-
-        user = db.select('users', where='username = $username', vars={'username': username})
-        if not user:
-            return 'user not found'
-
-        user = user[0]
-
-        offset = int(web.input(offset=0).offset)
-        ajax = int(web.input(ajax=0).ajax)
-
-        board = dbget('boards', board_id)
-        if not board:
-            return "List not Found"
-
-        pins = db.query('''
-            select
-                tags.tags, pins.*, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
-                count(distinct p1) as repin_count,
-                count(distinct l1) as like_count
-            from pins
-                left join users on users.id = pins.user_id
-                left join tags on tags.pin_id = pins.id
-                left join pins p1 on p1.repin = pins.id
-                left join likes l1 on l1.pin_id = pins.id
-                left join categories on categories.id in
-                    (select category_id from pins_categories
-                    where pin_id = pins.id
-                    limit 1)
-            where not users.private
-                and pins.board_id=$board_id
-            group by pins.id, tags.tags, users.id, categories.id
-            offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT),
-            vars={'board_id': board_id})
-
-        if ajax:
-            return json_pins(pins)
-        return ltpl('board', user, board, pins)
 
 
 class PageBuyList:
