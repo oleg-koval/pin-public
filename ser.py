@@ -249,7 +249,21 @@ class PageIndex:
         if logged_in(sess):
             qvars['id'] = sess.user_id
 
-        pins = list(db.query(query, vars=qvars))
+        pins = []
+        results = db.query(query, vars=qvars)
+        current_pin = None
+        for row in results:
+            if not current_pin or current_pin.id != row.id:
+                current_pin = row
+                pins.append(current_pin)
+                tag = current_pin.tags
+                current_pin.tags = []
+                if tag:
+                    current_pin.tags.append(tag)
+            else:
+                tag = row.tags
+                if tag and tag not in current_pin.tags:
+                    current_pin.tags.append(tag)
 
         if ajax:
             return json_pins(pins)
@@ -1842,7 +1856,21 @@ class PageSearchItems:
             group by tags.tags, categories.id, pins.id, users.id, query.query
             order by rank1, rank2 desc offset %d limit %d""" % (offset * PIN_COUNT, PIN_COUNT)
 
-        pins = db.query(query)
+        results = db.query(query)
+        pins = []
+        current_pin = None
+        for row in results:
+            if not current_pin or current_pin.id != row.id:
+                current_pin = row
+                pins.append(current_pin)
+                tag = current_pin.tags
+                current_pin.tags = []
+                if tag:
+                    current_pin.tags.append(tag)
+            else:
+                tag = row.tags
+                if tag and tag not in current_pin.tags:
+                    current_pin.tags.append(tag)
         if ajax:
             return json_pins(pins, 'horzpin')
         return ltpl('search', pins, orig)
