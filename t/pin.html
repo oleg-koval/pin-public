@@ -21,7 +21,7 @@ $def with (pin, comments, rating, embeded=False)
       $if pin.product_url:
         <a class='button' rel='nofollow' href='$pin.product_url'><i class='fa fa-external-link-square'></i> Buy It Here</a>
       $if pin.link:
-        <a class='button' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i> Buy It Here</a>
+        <a class='button' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i> Source URL</a>
     </p>
     <a href="$pin.image_url" target="_blank">
 	$if embeded:
