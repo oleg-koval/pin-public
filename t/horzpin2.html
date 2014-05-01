@@ -15,8 +15,10 @@ $if pin.id:
       $else:
         <a target='_blank' href='/add-to-your-own-getlist/$pin.repin' class='button small-pad'>Add to Getlist</a>
     <a href='/share/$pin.id' class='button small-pad'>Share</i></a>
+    $if pin.product_url:
+      <a class='button small-pad' rel='nofollow' href='$pin.product_url'>Buy It Here</a>
     $if pin.link:
-      <a class='button small-pad' rel='nofollow' href='$pin.link'>Visit Link</a>
+      <a class='button small-pad' rel='nofollow' href='$pin.link'>Source URL</a>
     </div>
     <div class='clearfix'>
       <div class='count left'></div>
