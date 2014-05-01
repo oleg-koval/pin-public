@@ -877,7 +877,22 @@ def get_pins(user_id, offset=None, limit=None, show_private=False):
     if limit is not None:
         query += ' limit %d' % limit
 
-    return db.query(query, vars={'id': user_id})
+    results = db.query(query, vars={'id': user_id})
+    pins = []
+    current_row = None
+    for row in results:
+        if not current_row or current_row.id != row.id:
+            current_row = row
+            tag = row.tags
+            current_row.tags = []
+            if tag:
+                current_row.tags.append(tag)
+            pins.append(current_row)
+        else:
+            tag = row.tags
+            if tag not in current_row.tags:
+                current_row.tags.append(tag)
+    return pins
 
 
 class PageProfile:
