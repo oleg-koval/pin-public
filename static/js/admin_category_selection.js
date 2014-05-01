@@ -22,7 +22,7 @@ jQuery(function() {
         }
         pin['simplifiedurl'] = simplify_url(pin['link']);
         if (pin['tags'] !== null) {
-          pin['taglist'] = pin['tags'].split(' ');
+          pin['taglist'] = pin['tags'];
         }
         pin_html = $.pin_template(pin);
         $('#column' + $.current_column).append(pin_html);
