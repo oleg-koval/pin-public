@@ -40,7 +40,12 @@ class PageCategory:
         if self.category['id'] == 0:
             self.where = 'random() < 0.1'
         else:
-            self.where = 'categories.id = $cid'
+            results = self.db.where(table='categories', parent=self.category['id'])
+            subcategories_ids = [str(self.category['id']),]
+            for row in results:
+                subcategories_ids.append(str(row.id))
+            subcategories_string = ','.join(subcategories_ids)
+            self.where = 'categories.id in ({})'.format(subcategories_string)
         start = web.input(start=False).start
         if start:
             offset = 0
@@ -67,25 +72,24 @@ class PageCategory:
         return self.query
 
     def template_for_showing_categories(self):
-        self.get_items_query()
         subcategories = self.db.where(table='categories', parent=self.category['id'], order='is_default_sub_category desc, name')
         results = self.db.where(table='categories', parent=self.category['parent'], order='is_default_sub_category desc, name')
         siblings_categories = []
         for row in results:
             if row.id != self.category['id']:
                 siblings_categories.append(row)
-        existsrs = self.db.query('select exists(' + self.query + ') as exists', vars={'cid': self.category['id']})
-        for r in existsrs:
-            if not r.exists:
-                subcatrs = self.db.where(table='categories', parent=self.category.id, is_default_sub_category=True)
-                for scrow in subcatrs:
-                    return web.seeother('/category/{}'.format(scrow.slug), absolute=True)
+        results = self.db.where(table='categories', id=self.category['parent'])
+        for row in results:
+            parent = row
+            break
+        else:
+            parent = None
         boards = self.db.where(table='boards', order='name', user_id=self.sess.user_id)
-        return template.ltpl('category', self.category, cached_models.all_categories, subcategories, boards, siblings_categories)
+        return template.ltpl('category', self.category, cached_models.all_categories, subcategories, boards, siblings_categories, parent)
 
     def get_more_items_as_json(self):
         self.get_items_query()
-        pins = self.db.query(self.query, vars={'cid': self.category['id']})
+        pins = self.db.query(self.query)
         pin_list = []
         current_pin = None
         for pin in pins:

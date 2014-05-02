@@ -1,4 +1,4 @@
-$def with (category, categories, subcategories, boards, sibling_categories)
+$def with (category, categories, subcategories, boards, sibling_categories, parent)
 $if category['id'] == 0:
   <h1>Browsing <a href=''>Random Pins</a></h1>
 $else:
@@ -12,6 +12,8 @@ $else:
   	</div>
   $if sibling_categories:
   	<div class="subcategory_block">Related:
+  		<a href="/category/$parent.slug">$parent.name</a>
+		<span class="subcategory_spacer">&nbsp;</span>
   	$for subcat in sibling_categories:
   		<a href="/category/$subcat.slug">$subcat.name</a>
   		$if not loop.last:
