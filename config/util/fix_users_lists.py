@@ -32,9 +32,6 @@ def add_default_lists(uid, conn):
     conn.commit()
 
 
-def fix_users_without_pins(conn):
-
-
 if __name__ =='__main__':
     parser = argparse.ArgumentParser(description="Creates the external id for pins.\nFist create the external_id column in pins table")
     parser.add_argument('--server', '-s', help='Server name or IP address (default localhost)', default='localhost')
