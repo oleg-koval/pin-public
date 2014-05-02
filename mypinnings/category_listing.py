@@ -74,9 +74,7 @@ class PageCategory:
             if not r.exists:
                 subcatrs = self.db.where(table='categories', parent=self.category.id, is_default_sub_category=True)
                 for scrow in subcatrs:
-                    cid = scrow.id
-                    name = scrow.name
-                    return web.seeother('/category/{}/{}'.format(name, cid), absolute=True)
+                    return web.seeother('/category/{}'.format(scrow.slug), absolute=True)
         boards = self.db.where(table='boards', order='name', user_id=self.sess.user_id)
         return template.ltpl('category', self.category, cached_models.all_categories, subcategories, boards)
 
