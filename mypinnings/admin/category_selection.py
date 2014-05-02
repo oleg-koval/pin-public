@@ -41,10 +41,18 @@ class PendingItems(object):
             order by timestamp desc offset $offset limit $limit''',
             vars={'offset': offset, 'limit': conf.settings.PIN_COUNT})
         pins = []
+        current_pin = None
         for row in pins_result:
-            pin = dict(row)
-            pin['price'] = str(pin['price'])
-            pins.append(pin)
+            if not current_pin or current_pin['id'] != row.id:
+                current_pin = dict(row)
+                current_pin['price'] = str(current_pin['price'])
+                pins.append(current_pin)
+                current_pin['tags'] = []
+                if row.tags:
+                    current_pin['tags'].append(row.tags)
+            else:
+                if row.tags and row.tags not in current_pin['tags']:
+                    current_pin['tags'].append(row.tags)
         print(json.dumps(pins))
         return json.dumps(pins)
     

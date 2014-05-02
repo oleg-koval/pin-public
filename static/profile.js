@@ -184,7 +184,7 @@ get_more_items = function(show_images) {
       }
       pin['simplifiedurl'] = simplify_url(pin['link']);
       if (pin['tags'] !== null) {
-        pin['taglist'] = pin['tags'].split(' ');
+        pin['taglist'] = pin['tags'];
       }
       if (show_images !== null && show_images) {
         pin['image_loading'] = pin['image_212_url'];

@@ -5,11 +5,7 @@
 <div class="category_pin">
     <div class='category_pins_buttons'>
       <a id="repinlink" onclick=repin_image_load(this) data-category="<%= category %>" data-description="<%= description %>" href='#' data-toggle="modal" data-target="#addToGetListModal"
-      <% if (repin == 0) { %>
         data-id="<%= id %>"
-      <% } else { %>
-        data-id="<%= repin %>"
-	  <% } %> 
       imagesrc="<%= image_212_url %>" class='repinlink button small-pad'>Add to Your Getlist</a>
       <a href='/share/<%= id %>' class='button small-pad'><i class='fa fa-share-square'></i></a>
       <% if (link !== null) { %>

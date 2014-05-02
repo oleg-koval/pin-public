@@ -23,7 +23,7 @@ $if pin.id and pin.category:
         <p class='faded'>Source: <a href='$pin.link'>$tpllib.condense_link(pin.link)</a></p>
       $if pin.tags:
         <hr>
-        <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags.split(' ')]))</p>
+        <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags]))</p>
     </div>
   </div>
 <script type="text/javascript">

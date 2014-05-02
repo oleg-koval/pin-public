@@ -15,7 +15,7 @@ jQuery ->
 					$.current_column = 1
 				pin['simplifiedurl'] = simplify_url(pin['link'])
 				if pin['tags'] isnt null
-					pin['taglist'] = pin['tags'].split(' ')
+					pin['taglist'] = pin['tags']
 				pin_html = $.pin_template(pin)
 				$('#column' + $.current_column).append(pin_html)
 				$.current_column += 1

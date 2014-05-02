@@ -10,7 +10,7 @@ jQuery ->
 			for pin in data
 				pin['simplifiedurl'] = simplify_url(pin['link'])
 				if pin['tags'] isnt null
-					pin['taglist'] = pin['tags'].split(' ')
+					pin['taglist'] = pin['tags']
 				pin['image_loading'] = ''
 				html_text = $.pin_template(pin)
 				$('#category_column_' + $.column_control).append(html_text)
@@ -132,4 +132,28 @@ jQuery ->
 	$.column_control = 1
 	$.loading_more = false
 	get_more_items(true)
+	
+	
+	$('#repin-form').on 'submit', ->
+		clear_repin_form_notifications()
+		form_has_errors = false
+		if $(this).find('#description').val() is ''
+			form_has_errors = true
+			show_error($(this).find('#description_error'), 'Please add a description')
+		if $(this).find('#board_name').val() is '' and $(this).find('#board').val() is ''
+			form_has_errors = true
+			show_error($(this).find('#board_creation_layer'), 'Please select or add a list')
+		if form_has_errors
+			return false
+		return true
+	
+	
+	show_error = (element, message) ->
+		element.after('<span class="red">' + message + '</span>')
+	
+	
+	clear_repin_form_notifications = ->
+		$('span.red').remove()
+	
+	
 	return

@@ -43,6 +43,6 @@ $if pin.id and pin.category:
       </div>
       $if pin.tags:
         <hr>
-        <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags.split(' ')]))</p>
+        <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags]))</p>
     </div>
   </div>
