@@ -10,12 +10,16 @@ $if msg:
 		<label for="name">URL for the Category</label>
 		<input type="text" name="slug" id="slug" class="form-control" value="$category['slug']">
 	</div>
+	<div class="form-group">
+		<label for="name">Position priority</label>
+		<input type="text" name="position" id="position" class="form-control" value="$category['position']">
+	</div>
 	<div id="inline_forms_container">
 	$for i, subcat in enumerate(category['subcategories']):
 		<div class="form-horizontal" id="subcategory_form$i">
 			<div class="container-fluid">
 				<div class="row">
-					<div class="col-xs-5">
+					<div class="col-xs-4">
 						<label>Name
 							<input type="text" name="name$i" class="form-control sub-category" value="$subcat['name']">
 							<input type="hidden" name="subid$i" value="$subcat['id']">
@@ -24,6 +28,11 @@ $if msg:
 					<div class="col-xs-4">
 						<label>URL
 							<input type="text" name="slug$i" class="form-control sub-category" value="$subcat['slug']">
+						</label>
+					</div>
+					<div class="col-xs-1">
+						<label>Position
+							<input type="text" name="position$i" class="form-control sub-category" value="$subcat['position']">
 						</label>
 					</div>
 					<div class="col-xs-2">
@@ -55,7 +64,7 @@ $if msg:
 	<div class="form-horizontal" id="subcategory_form<%= i %>">
 		<div class="container-fluid">
 			<div class="row">
-				<div class="col-xs-5">
+				<div class="col-xs-4">
 					<label>Name
 						<input type="text" name="name<%= i %>" class="form-control sub-category">
 					</label>
@@ -63,6 +72,11 @@ $if msg:
 				<div class="col-xs-4">
 					<label>URL
 						<input type="text" name="slug<%= i %>" class="form-control sub-category">
+					</label>
+				</div>
+				<div class="col-xs-1">
+					<label>URL
+						<input type="text" name="position<%= i %>" class="form-control sub-category">
 					</label>
 				</div>
 				<div class="col-xs-2">

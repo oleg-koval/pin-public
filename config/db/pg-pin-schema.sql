@@ -1117,3 +1117,4 @@ create index tags_pin_id_index on tags(pin_id);
 alter table categories add slug text not null default '';
 create index categories_slug_index on categories(slug);
 
+alter table categories add position integer not null default 0;
