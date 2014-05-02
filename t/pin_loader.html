@@ -307,3 +307,11 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 		<button class="button_pin_delete" pinid="<%= id %>">Delete</button></td></tr>
 </table>
 </script>
+$if result_info:
+	<script language="javascript">
+	jQuery(function() {
+	$for ri in result_info:
+		$if ri['error']:
+			$$.put_failed_pin_to_edit($:ri['json']);
+	});
+	</script>

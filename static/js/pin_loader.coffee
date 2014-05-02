@@ -481,5 +481,26 @@ jQuery ->
 			result = result + '#' + tag
 		return result
 
+
+	$.put_failed_pin_to_edit = (pin) ->
+		if pin['imageurl'] isnt ''
+			$('#imageurl' + pin['index']).val(pin['imageurl'])
+		if pin['link'] isnt ''
+			$('#link' + pin['index']).val(pin['link'])
+		if pin['title'] isnt ''
+			$('#title' + pin['index']).val(pin['title'])
+		if pin['description'] isnt ''
+			$('#description' + pin['index']).val(pin['description'])
+		if pin['product_url'] isnt ''
+			$('#product_url' + pin['index']).val(pin['product_url'])
+		if pin['tags'] isnt ''
+			$('#tags' + pin['index']).val(pin['tags'])
+		if pin['price'] isnt ''
+			$('#price' + pin['index']).val(pin['price'])
+		if pin['price_range'] isnt ''
+			$('input[name=price_range' + pin['index'] + '][value=' + pin['price_range'] + ']').attr('checked', 'checked')
+		$('#imageurl' + pin['index']).before('<div class="error_text">' + pin['error'] + '</div>')
+		return
+
 	
 	return

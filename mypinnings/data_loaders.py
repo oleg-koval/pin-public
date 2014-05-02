@@ -3,16 +3,12 @@ This module is for interfaces to speed user data loading, like Pin Loaders
 '''
 import logging
 import urllib
-import os
-import os.path
 import json
 from gettext import gettext as _
 import math
-from PIL import Image
 
 import web
 
-from mypinnings import cached_models
 from mypinnings import template
 from mypinnings import session
 from mypinnings import auth
@@ -173,12 +169,14 @@ class PinLoaderPage(object):
             for i in range(10):
                 result = self.save_pin(form, str(i + 1))
                 if not result.get('pin_id', False) and result.get('error', False):
+                    json_repr = json.dumps(result)
+                    result['json'] = json_repr
                     result_info.append(result)
         sess.result_info = result_info
         return web.seeother('')
 
     def save_pin(self, form, i):
-        result_info = {'index': i}
+        result_info = {'index': i, 'json': ''}
         title = form['title' + i]
         if title and title.value:
             description = form['description' + i]
