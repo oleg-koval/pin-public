@@ -37,7 +37,7 @@ class PageCategory:
             return self.template_for_showing_categories()
         
     def get_items_query(self):
-        if self.category.id == 0:
+        if self.category['id'] == 0:
             self.where = 'random() < 0.1'
         else:
             self.where = 'categories.id = $cid'
@@ -68,8 +68,8 @@ class PageCategory:
 
     def template_for_showing_categories(self):
         self.get_items_query()
-        subcategories = self.db.where(table='categories', parent=self.category.id, order='is_default_sub_category desc, name')
-        existsrs = self.db.query('select exists(' + self.query + ') as exists', vars={'cid': self.category.id})
+        subcategories = self.db.where(table='categories', parent=self.category['id'], order='is_default_sub_category desc, name')
+        existsrs = self.db.query('select exists(' + self.query + ') as exists', vars={'cid': self.category['id']})
         for r in existsrs:
             if not r.exists:
                 subcatrs = self.db.where(table='categories', parent=self.category.id, is_default_sub_category=True)
@@ -80,7 +80,7 @@ class PageCategory:
 
     def get_more_items_as_json(self):
         self.get_items_query()
-        pins = self.db.query(self.query, vars={'cid': self.category.id})
+        pins = self.db.query(self.query, vars={'cid': self.category['id']})
         pin_list = []
         current_pin = None
         for pin in pins:
