@@ -1,9 +1,7 @@
 import json
-import os.path
 import logging
 
 import web
-from PIL import Image
 
 from mypinnings import database
 from mypinnings import session
@@ -17,20 +15,19 @@ logger = logging.getLogger('mypinnings.categories')
 
 
 class PageCategory:
-    def GET(self, cid):
-        self.cid = int(cid)
+    def GET(self, slug=None):
         self.db = database.get_db()
         self.sess = session.get_session()
         auth.force_login(self.sess)
-        if self.cid == 0:
-            self.category = {'name':'Random', 'id': 0}
-        else:
-            results = self.db.where('categories', id=cid)
+        if slug:
+            results = self.db.where('categories', slug=slug)
             for r in results:
                 self.category = r
                 break
             else:
-                return 'Category not found.'
+                self.category = {'name':'Random', 'id': 0}
+        else:
+            self.category = {'name':'Random', 'id': 0}
 
         self.ajax = int(web.input(ajax=0).ajax)
         
@@ -40,7 +37,7 @@ class PageCategory:
             return self.template_for_showing_categories()
         
     def get_items_query(self):
-        if self.cid == 0:
+        if self.category.id == 0:
             self.where = 'random() < 0.1'
         else:
             self.where = 'categories.id = $cid'
@@ -71,11 +68,11 @@ class PageCategory:
 
     def template_for_showing_categories(self):
         self.get_items_query()
-        subcategories = self.db.where(table='categories', parent=self.cid, order='is_default_sub_category desc, name')
-        existsrs = self.db.query('select exists(' + self.query + ') as exists', vars={'cid': self.cid})
+        subcategories = self.db.where(table='categories', parent=self.category.id, order='is_default_sub_category desc, name')
+        existsrs = self.db.query('select exists(' + self.query + ') as exists', vars={'cid': self.category.id})
         for r in existsrs:
             if not r.exists:
-                subcatrs = self.db.where(table='categories', parent=self.cid, is_default_sub_category=True)
+                subcatrs = self.db.where(table='categories', parent=self.category.id, is_default_sub_category=True)
                 for scrow in subcatrs:
                     cid = scrow.id
                     name = scrow.name
@@ -85,7 +82,7 @@ class PageCategory:
 
     def get_more_items_as_json(self):
         self.get_items_query()
-        pins = self.db.query(self.query, vars={'cid': self.cid})
+        pins = self.db.query(self.query, vars={'cid': self.category.id})
         pin_list = []
         current_pin = None
         for pin in pins:

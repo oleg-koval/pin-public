@@ -62,7 +62,7 @@ urls = (
     '/lists/(\d+)/items/?','mypinnings.lists.ListItemsJson',
     '/lists', 'PageBoards',
     '/browse', 'PageBrowse',
-    '/category/.*?/(\d*)', 'mypinnings.category_listing.PageCategory',
+    '/category/(.*)', 'mypinnings.category_listing.PageCategory',
     '/new-list', 'PageNewBoard',
     '/newaddpin', 'NewPageAddPin',
     '/newaddpinform', 'NewPageAddPinForm',

@@ -1115,3 +1115,5 @@ drop index tags_pkey;
 create index tags_pin_id_index on tags(pin_id);
 
 alter table categories add slug text not null default '';
+create index categories_slug_index on categories(slug);
+
