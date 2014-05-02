@@ -25,7 +25,7 @@ class ListCategories(object):
         results = db.query('''select root.id, root.name, child.id as child_id, child.name as child_name, child.is_default_sub_category
                                     from categories root left join categories child on root.id=child.parent
                                     where root.parent is NULL
-                                    order by root.name, child.name
+                                    order by root.position desc, root.name, child.name
                                     '''
                                   )
         category_list = []
