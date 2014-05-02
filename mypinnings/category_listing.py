@@ -69,6 +69,11 @@ class PageCategory:
     def template_for_showing_categories(self):
         self.get_items_query()
         subcategories = self.db.where(table='categories', parent=self.category['id'], order='is_default_sub_category desc, name')
+        results = self.db.where(table='categories', parent=self.category['parent'], order='is_default_sub_category desc, name')
+        siblings_categories = []
+        for row in results:
+            if row.id != self.category['id']:
+                siblings_categories.append(row)
         existsrs = self.db.query('select exists(' + self.query + ') as exists', vars={'cid': self.category['id']})
         for r in existsrs:
             if not r.exists:
@@ -76,7 +81,7 @@ class PageCategory:
                 for scrow in subcatrs:
                     return web.seeother('/category/{}'.format(scrow.slug), absolute=True)
         boards = self.db.where(table='boards', order='name', user_id=self.sess.user_id)
-        return template.ltpl('category', self.category, cached_models.all_categories, subcategories, boards)
+        return template.ltpl('category', self.category, cached_models.all_categories, subcategories, boards, siblings_categories)
 
     def get_more_items_as_json(self):
         self.get_items_query()
