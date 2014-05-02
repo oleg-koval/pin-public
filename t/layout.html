@@ -42,7 +42,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
                   $for cat in categories:
                     $if i % 3 == 0:
                       </tr><tr>
-                    <td style='width: 250px'><b><a href='/category/$cat['url_name']/$cat['id']'>$cat['name']</a></b></td>
+                    <td style='width: 250px'><b><a href="/category/$cat['slug']">$cat['name']</a></b></td>
                     $ i += 1
                   </tr>
                 </table>
