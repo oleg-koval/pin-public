@@ -97,7 +97,7 @@ $("#myTab a").click(function(e) {
   $(this).tab("show");
 });
 
-$('.editPinModal').on('submit', event, function() {
+$('.editPinModal').on('submit', function(event) {
   var form;
   form = $(this);
   if (validate_edit_pin_form(form)) {
@@ -131,11 +131,11 @@ validate_edit_pin_form = function(form) {
 };
 
 add_error_message = function(item, message) {
-  return item.after('<div class="red">' + message + '</div>');
+  item.after('<div class="red">' + message + '</div>');
 };
 
 clear_all_error_messages = function(form) {
-  return form.find('div.red').remove();
+  form.find('div.red').remove();
 };
 
 $('#profile_lists_tabs').tabs();
@@ -201,7 +201,7 @@ get_more_items = function(show_images) {
       }
     }
     $.loading[boardid] = false;
-    window.setTimeout($('img.lazy').lazyload({
+    setTimeout($('img.lazy').lazyload({
       failure_limit: 100
     }), 100);
   });
@@ -303,13 +303,13 @@ disable_scroll = function() {
   $(document).on('mousedown', disableMiddleMouseButtonScrolling);
   $(document).on('mousewheel DOMMouseScroll wheel', disableNormalScroll);
   $(window).on('scroll', disableNormalScroll);
-  return $.oldScrollTop = $(document).scrollTop();
+  $.oldScrollTop = $(document).scrollTop();
 };
 
 enable_scroll = function() {
   $(document).off('mousedown', disableMiddleMouseButtonScrolling);
   $(document).off('mousewheel DOMMouseScroll wheel', disableNormalScroll);
-  return $(window).off('scroll', disableNormalScroll);
+  $(window).off('scroll', disableNormalScroll);
 };
 
 disableMiddleMouseButtonScrolling = function(e) {
@@ -335,16 +335,16 @@ disableNormalScroll = function(e) {
 
 $('#list-box-wrapper-link').on('click', function() {
   get_more_items(true);
-  return window.setTimeout(scrollToShowImages(), 200);
+  setTimeout(scrollToShowImages(), 200);
 });
 
 scrollToShowImages = function() {
   $(window).scroll(10);
-  return $(window).scroll(0);
+  $(window).scroll(0);
 };
 
 jQuery(function() {
-  return $.ajaxSetup({
+  $.ajaxSetup({
     cache: false
   });
 });

@@ -79,7 +79,7 @@ $("#myTab a").click (e) ->
 
 
 # ******** edit pin
-$('.editPinModal').on 'submit', event, ->
+$('.editPinModal').on 'submit', (event) ->
 	form = $(this)
 	if validate_edit_pin_form(form)
 		return true
@@ -106,10 +106,12 @@ validate_edit_pin_form = (form) ->
 
 add_error_message = (item, message) ->
 	item.after('<div class="red">' + message + '</div>');
+	return
 	
 
 clear_all_error_messages = (form) ->
 	form.find('div.red').remove()
+	return
 
 
 # ******** boards (lists) related code
@@ -161,7 +163,7 @@ get_more_items = (show_images) ->
 			else
 				$.column[boardid] += 1
 		$.loading[boardid] = false
-		window.setTimeout($('img.lazy').lazyload({
+		setTimeout($('img.lazy').lazyload({
 				failure_limit: 100}), 100)
 		return
 	return
@@ -256,12 +258,14 @@ disable_scroll = () ->
 	$(document).on('mousewheel DOMMouseScroll wheel',disableNormalScroll)
 	$(window).on('scroll',disableNormalScroll)
 	$.oldScrollTop = $(document).scrollTop()
+	return
 
 
 enable_scroll = () ->
 	$(document).off('mousedown',disableMiddleMouseButtonScrolling)
 	$(document).off('mousewheel DOMMouseScroll wheel',disableNormalScroll)
 	$(window).off('scroll',disableNormalScroll)
+	return
 	
 
 disableMiddleMouseButtonScrolling = (e) ->
@@ -284,13 +288,16 @@ disableNormalScroll = (e) ->
 
 $('#list-box-wrapper-link').on 'click', ->
 	get_more_items(true)
-	window.setTimeout(scrollToShowImages(), 200)
+	setTimeout(scrollToShowImages(), 200)
+	return
 	
 
 scrollToShowImages = ->
 	$(window).scroll(10)
 	$(window).scroll(0)
+	return
 
 
 jQuery ->
 	$.ajaxSetup({ cache: false })
+	return
