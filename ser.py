@@ -760,14 +760,14 @@ class PagePin:
 
         pin = db.where('pins', external_id=external_id)[0]
         if not pin:
-            return 'pin does not exist'
+            return web.seeother('/')
 
         form = self._form()
         if not form.validates():
-            return 'form did not validate'
+            return web.seeother('/p/%s' % external_id)
 
         if not form.d.comment:
-            return 'please write a comment'
+            return web.seeother('/p/%s' % external_id)
 
         db.insert('comments',
                   pin_id=pin.id,
@@ -775,10 +775,7 @@ class PagePin:
                   comment=form.d.comment)
 
         if int(pin.user_id) != int(sess.user_id):
-            make_notif(pin.user_id, 'Someone has commented on your pin!', '/pin/%d' % pin.id)
-        results = db.where(table='pins', id=pin.id)
-        for row in results:
-            external_id=row.external_id
+            make_notif(pin.user_id, 'Someone has commented on your pin!', '/p/%s' % external_id)
         raise web.seeother('/p/%s' % external_id)
 
 
