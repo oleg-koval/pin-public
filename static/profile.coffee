@@ -197,6 +197,11 @@ $(window).scroll ->
 $(document).on 'click', '.category_pin_image', (event) ->
 	event.preventDefault()
 	pinid = $(this).attr('pinid')
+	open_pin_detail(pinid)
+	return
+
+
+open_pin_detail = (pinid) ->
 	$.get '/p/' + pinid + '?embed=true',
 		(data) ->
 			$('#show_pin_layer_content').html(data)
@@ -207,20 +212,42 @@ $(document).on 'click', '.category_pin_image', (event) ->
 			$('#show_pin_layer').height($(window).height())
 			$('#show_pin_layer').show()
 			disable_scroll()
+			try
+				if window.history.state is null
+					window.history.pushState(pinid, '', '/p/' + pinid);
+				else
+					window.history.replaceState(pinid, '', '/p/' + pinid);
+			catch error
+				print(error)
 			return
 	return
-
 
 $('#show_pin_layer').on 'click', (event) ->
 	event.preventDefault()
 	$(this).hide()
 	enable_scroll()
+	try
+		window.history.back();
+	catch error
+		print(error)
+	return
 	return
 	
 	
 $('#show_pin_layer_content').on 'click', (event) ->
 	event.stopPropagation()
 	event.stopInmediatePropagation()
+	return
+	
+	
+window.onpopstate = (event)->
+	path = document.location.pathname
+	if path.substring(0, 3) is '/p/'
+		pinid = path.substring(3, path.length)
+		open_pin_detail(pinid)
+	else
+		$('#show_pin_layer').hide()
+		enable_scroll()
 	return
 		
 		
@@ -258,6 +285,11 @@ disableNormalScroll = (e) ->
 $('#list-box-wrapper-link').on 'click', ->
 	get_more_items(true)
 	window.setTimeout(scrollToShowImages(), 200)
+	
+
+scrollToShowImages = ->
+	$(window).scroll(10)
+	$(window).scroll(0)
 
 
 jQuery ->
