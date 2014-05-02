@@ -368,6 +368,8 @@ class EditCategory(object):
                 pins_to_move.append({'pin_id': row.pin_id, 'category_id': row.category_id})
             self.db.multiple_insert(tablename='pins_categories', values=pins_to_move)
             self.db.delete(table='pins_categories', where='category_id in ({})'.format(ids_to_delete_list))
+            self.db.delete(table='cool_pins', where='category_id in ({})'.format(ids_to_delete_list))
+            self.db.delete(table='user_prefered_categories', where='category_id in ({})'.format(ids_to_delete_list))
             # remove the sub-categories
             self.db.delete('categories', where='id in ({})'.format(ids_to_delete_list))
             
