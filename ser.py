@@ -1714,7 +1714,7 @@ class PageBrowse:
         global all_categories
 
         categories = list(all_categories)
-        categories.append({'name': 'Random', 'id': 0, 'url_name': 'random'})
+        categories.append({'name': 'Random', 'id': 0, 'slug': ''})
         return ltpl('browse', categories)
 
 
