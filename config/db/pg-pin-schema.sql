@@ -1111,7 +1111,9 @@ alter table pins add image_212_height integer;
 alter table pins add image_202_height integer;
 
 
-drop index tags_pkey;
+ALTER TABLE tags DROP CONSTRAINT tags_pkey;
 create index tags_pin_id_index on tags(pin_id);
 
 alter table categories add slug text not null default '';
+create index categories_slug_index on categories(slug);
+

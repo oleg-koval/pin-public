@@ -8,6 +8,7 @@ from PIL import Image
 
 
 NAME_CHARACTERS = '1234567890' * 10
+DIRECTORY_CHARACTERS = 'qwertyuiopasdfghjklzxcvbnm01234657901234657980123465789'
 
 
 def store_image_from_filename(db, filename, widths=[]):
@@ -153,7 +154,10 @@ def _generate_path_name_for(filename):
     filesystems like ext4 does. If later we move the files to a
     different storage, this can save us from a large amount of work.
     '''
-    pathname = os.path.join(filename[0:3], filename[3:6], filename[6:9], filename)
+    path1 = ''.join(random.sample(DIRECTORY_CHARACTERS, 3))
+    path2 = ''.join(random.sample(DIRECTORY_CHARACTERS, 3))
+    path3 = ''.join(random.sample(DIRECTORY_CHARACTERS, 3))
+    pathname = os.path.join(path1, path2, path3, filename)
     return pathname
 
 

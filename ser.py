@@ -62,7 +62,7 @@ urls = (
     '/lists/(\d+)/items/?','mypinnings.lists.ListItemsJson',
     '/lists', 'PageBoards',
     '/browse', 'PageBrowse',
-    '/category/.*?/(\d*)', 'mypinnings.category_listing.PageCategory',
+    '/category/(.*)', 'mypinnings.category_listing.PageCategory',
     '/new-list', 'PageNewBoard',
     '/newaddpin', 'NewPageAddPin',
     '/newaddpinform', 'NewPageAddPinForm',
@@ -78,7 +78,6 @@ urls = (
     '/settings/(privacy)', 'PageEditProfile',
     '/settings/(email-settings)', 'PageEditProfile',
     '/p/(.*)', 'PagePin',
-    '/(.*?)/buy-list/(\d*)', 'PageBuyList',
     '/messages', 'PageMessages',
     '/newconvo/(\d*)', 'PageNewConvo',
     '/convo/(\d*)', 'PageConvo',
@@ -212,7 +211,7 @@ class PageIndex:
     def GET(self, first_time=None):
         query1 = '''
             select
-                pins.*, tags.tags, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+                pins.*, tags.tags, categories.slug as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
                 count(distinct p1) as repin_count,
                 count(distinct l1) as like_count
             from pins
@@ -228,7 +227,7 @@ class PageIndex:
 
         query2 = '''
             select
-                tags.tags, pins.*, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+                tags.tags, pins.*, categories.slug as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
                 count(distinct p1.id) as repin_count,
                 count(distinct l1) as like_count
             from pins
@@ -777,50 +776,6 @@ class PagePin:
         if int(pin.user_id) != int(sess.user_id):
             make_notif(pin.user_id, 'Someone has commented on your pin!', '/p/%s' % external_id)
         raise web.seeother('/p/%s' % external_id)
-
-
-class PageBuyList:
-    def is_friends(self, category_id):
-        ids = sorted([user_id, sess.user_id])
-
-        result = db.select('friends', what='1', where='id1=$id1 and id2=$id2', vars={'id1': ids[0], 'id2': ids[1]})
-        return bool(result)
-
-    def GET(self, username, cid):
-        cid = int(cid)
-
-        user = db.select('users', where='username = $username', vars={'username': username})
-        if not user:
-            return 'user not found'
-
-        user = user[0]
-
-        offset = int(web.input(offset=0).offset)
-        ajax = int(web.input(ajax=0).ajax)
-
-        category = dbget('categories', cid)
-
-        pins = db.query('''
-            select
-                tags.tags, pins.*, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
-                count(distinct p1) as repin_count,
-                count(distinct l1) as like_count
-            from pins
-                left join users on users.id = pins.user_id
-                left join tags on tags.pin_id = pins.id
-                left join pins p1 on p1.repin = pins.id
-                left join likes l1 on l1.pin_id = pins.id
-                left join pins_categories on pins.id = pins_categories.pin_id
-                left join categories on categories.id = pins_categories.category_id
-            where categories.id = $cid and not users.private
-            group by pins.id, tags.tags, users.id, categories.id
-            offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT),
-            vars={'cid': cid})
-
-        if ajax:
-            return json_pins(pins)
-        print category
-        return ltpl('board', user, category, pins)
 
 
 def get_pins(user_id, offset=None, limit=None, show_private=False):
@@ -1759,7 +1714,7 @@ class PageBrowse:
         global all_categories
 
         categories = list(all_categories)
-        categories.append({'name': 'Random', 'id': 0, 'url_name': 'random'})
+        categories.append({'name': 'Random', 'id': 0, 'slug': ''})
         return ltpl('browse', categories)
 
 
