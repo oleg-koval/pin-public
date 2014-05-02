@@ -847,6 +847,8 @@ def get_pins(user_id, offset=None, limit=None, show_private=False):
     pins = []
     current_row = None
     for row in results:
+        if not row.id:
+            continue
         if not current_row or current_row.id != row.id:
             current_row = row
             tag = row.tags
