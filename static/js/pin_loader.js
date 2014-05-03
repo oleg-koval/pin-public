@@ -496,4 +496,31 @@ jQuery(function() {
     }
     return result;
   };
+  $.put_failed_pin_to_edit = function(pin) {
+    if (pin['imageurl'] !== '') {
+      $('#imageurl' + pin['index']).val(pin['imageurl']);
+    }
+    if (pin['link'] !== '') {
+      $('#link' + pin['index']).val(pin['link']);
+    }
+    if (pin['title'] !== '') {
+      $('#title' + pin['index']).val(pin['title']);
+    }
+    if (pin['description'] !== '') {
+      $('#description' + pin['index']).val(pin['description']);
+    }
+    if (pin['product_url'] !== '') {
+      $('#product_url' + pin['index']).val(pin['product_url']);
+    }
+    if (pin['tags'] !== '') {
+      $('#tags' + pin['index']).val(pin['tags']);
+    }
+    if (pin['price'] !== '') {
+      $('#price' + pin['index']).val(pin['price']);
+    }
+    if (pin['price_range'] !== '') {
+      $('input[name=price_range' + pin['index'] + '][value=' + pin['price_range'] + ']').attr('checked', 'checked');
+    }
+    $('#imageurl' + pin['index']).before('<div class="error_text">' + pin['error'] + '</div>');
+  };
 });
