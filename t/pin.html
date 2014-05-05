@@ -23,7 +23,10 @@ $def with (pin, comments, rating, embeded=False)
       $if pin.link:
         <a class='button' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i> Source URL</a>
     </p>
-    <a href="$pin.image_url" target="_blank">
+   	$if pin.link:
+   		<a href="$pin.link" target="_blank">
+   	$else:
+   		<a href="/profile/$pin.user_id">
 	$if embeded:
 		<img src='$pin.image_url' alt='' style="max-height:530px;width:auto"/>
 	$else:
