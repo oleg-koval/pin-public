@@ -8,7 +8,7 @@ from mypinnings.conf import settings
 from mypinnings.database import connect_db, dbget
 db = connect_db()
 
-urls = ('', 'PageEditProfile',
+urls = ('/', 'PageEditProfile',
         '/(email)', 'PageEditProfile',
         '/(profile)', 'PageEditProfile',
         '/(password)', 'PageEditProfile',
@@ -17,8 +17,6 @@ urls = ('', 'PageEditProfile',
         '/(email-settings)', 'PageEditProfile',
         )
 
-app = web.application(urls, locals())
-mypinnings.session.initialize(app)
 sess = mypinnings.session.sess
 
 class PageEditProfile:
@@ -57,3 +55,5 @@ class PageEditProfile:
         if 'user_profile' in get_input:
             raise web.seeother('/%s?editprofile=1' % user.username)
         raise web.seeother('/settings/profile')
+
+app = web.application(urls, locals())
