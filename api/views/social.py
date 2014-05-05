@@ -103,11 +103,11 @@ def share(access_token, share_list, social_network="facebook"):
         link = ""
 
         if pin.get('name'):
-            message += pin.get('name')+"\n"
+            message += pin.get('name') + "\n"
         if pin.get('description'):
-            message += pin.get('description')+"\n"
+            message += pin.get('description') + "\n"
         if pin.get('price'):
-            message += "Price: "+pin.get('price')+"\n"
+            message += "Price: " + pin.get('price') + "\n"
         if pin.get('link'):
             link = pin.get('link')
 
@@ -161,7 +161,7 @@ def share_via_facebook(access_token, message, link, image_url):
     Share pin to facebook
     """
     if link:
-        message += link+"\n"
+        message += link + "\n"
 
     try:
         graph = facebook.GraphAPI(access_token)
@@ -211,3 +211,54 @@ def share_via_linkedin(access_token, message, link, image_url):
             return False
     except Exception, exc:
         return False
+
+
+class QueryFollowers(BaseAPI):
+    """
+    Class responsible for providing access to followers of a given user
+    """
+    def GET(self, username, query_type):
+        """ Depending on query_type (which can be follow or followers) returns
+        a list of users (ids), following or followed by current user
+
+        Can be testing samples:
+
+        curl http://localhost:8080/api/social/query/oleg/follow - returns all
+        users who followed by user oleg
+
+        curl http://localhost:8080/api/social/query/oleg/follower - returns
+        all users who follow user oleg
+        """
+
+        data = web.input()
+        save_api_request(data)
+        kwparams = {}
+
+        if data.get('new'):
+            kwparams['order'] = 'follow_time'
+
+        # Get user from the database
+        user = db.select(
+            'users',
+            {"username": username},
+            where="username=$username"
+        )
+
+        if not user:
+            return api_response(data={}, status=405,
+                                error_code="Object does not exist")
+        user = user.list()[0]
+
+        # Selecting followers or followed
+        if query_type == 'follower':
+            kwparams['where'] = 'follower=%s' % (user.id)
+            kwparams['what'] = 'follow'
+        else:
+            kwparams['where'] = 'follow=%s' % (user.id)
+            kwparams['what'] = 'follower'
+
+        followers = db.select('follows', **kwparams).list()
+
+        # Composing user ids
+        user_id_list = [follower[kwparams['what']] for follower in followers]
+        return api_response(data={'user_id_list': user_id_list})

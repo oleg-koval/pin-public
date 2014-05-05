@@ -358,6 +358,8 @@ CREATE TABLE follows (
     follow integer NOT NULL
 );
 
+ALTER TABLE follows
+   ADD COLUMN follow_time timestamp without time zone DEFAULT current_timestamp;
 
 ALTER TABLE public.follows OWNER TO postgres;
 
