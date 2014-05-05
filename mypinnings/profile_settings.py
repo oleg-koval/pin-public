@@ -170,8 +170,22 @@ class PageChangePrivacy(PageEditProfile):
         form = self._form()
         form.validates()
 
-        db.update('users', where='id = $id', vars={'id': sess.user_id}, **form.d)
-        raise web.seeother('/privacy')
+        # db.update('users', where='id = $id', vars={'id': sess.user_id}, **form.d)
+        logintoken = convert_to_logintoken(sess.user_id)
+
+        if logintoken:
+            data = {
+                "private": form.d.private,
+                "logintoken": logintoken,
+                "csid_from_client": "None"
+            }
+
+            data = api_request("api/profile/userinfo/set_privacy", "POST", data)
+            if data['status'] == 200:
+                raise web.seeother('/privacy')
+            else:
+                msg = data['error_code']
+                raise web.seeother('/privacy?msg=%s' % msg)
 
 app = web.application(urls, locals())
 
