@@ -2,12 +2,14 @@ $def with (pin, comments, rating, embeded=False)
 <div class='pin-display'>
   <div class='display'>
     <h1>$pin.description</h1>
-    <p class='faded'>Posted by <a href='/profile/$pin.user_id'>$pin.user_name</a> in
-    $for cat in pin.categories: 
-    	<a href='/$pin.user_username/buy-list/$cat.id'>$cat.name</a>
-    	$if not loop.last:
-    		,
-    </p>
+    <p class='faded'>Posted by <a href='/profile/$pin.user_id'>$pin.user_name</a>
+    $if pin.categories:
+    	in
+	    $for cat in pin.categories: 
+	    	<a href='/category/$cat.slug'>$cat.name</a>
+	    	$if not loop.last:
+	    		,
+	    </p>
     <p>
       $if 'logged_in' in sess and sess.user_id == pin.user_id:
         <a class='button' href='/setprivacy/$pin.id'>
@@ -16,8 +18,10 @@ $def with (pin, comments, rating, embeded=False)
         </a>
         <a class='button' href='/add-to-your-own-getlist/$pin.id'><i class='fa fa-thumb-tack'></i> Add to Your Getlist</a>
 
+      $if pin.product_url:
+        <a class='button' rel='nofollow' href='$pin.product_url'><i class='fa fa-shopping-cart'></i> Buy It Here</a>
       $if pin.link:
-        <a class='button' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i> Visit Product</a>
+        <a class='button' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i> Source URL</a>
     </p>
     <a href="$pin.image_url" target="_blank">
 	$if embeded:
@@ -37,7 +41,7 @@ $def with (pin, comments, rating, embeded=False)
             <label for='input-comment'>Comment</label> &middot;
           <span class='link' id='share'>Share</span>
           $if pin.tags:
-            &middot; <span class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags.split(' ')]))</span>
+            &middot; <span class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags]))</span>
           <span class='invis' id='sharelinks'>
             $ url = 'http://mypinnings.com/p/%s' % pin.external_id
 

@@ -53,6 +53,10 @@ jQuery ->
 				can_submit = false
 			if not can_submit
 				window.alert('Errors pending, please check')
+			if can_submit
+				$('#wait_for_process_to_finish_layer').height($(window).innerHeight())
+				$('#wait_for_process_to_finish_layer div').css('margin-top', ($(window).innerHeight() / 2) - 150)
+				$('#wait_for_process_to_finish_layer').show()
 			return can_submit
 		catch error
 			alert(error)
@@ -85,7 +89,6 @@ jQuery ->
 			show_error_for_field(tags, 'Empty tags', i)
 		else
 			remove_error_from_field(tags, i)
-			ensure_tags_has_hash_symbol(tags)
 		# should have a valid price
 		if not have_valid_price(price, i)
 			no_error = false
@@ -172,25 +175,6 @@ jQuery ->
 					show_error_for_field(image, 'Image doesn\'t seem to be in a internet friendly format: .png, ,jpg, .gif, .svn', i)
 		return true
 		
-		
-	ensure_tags_has_hash_symbol = (field) ->
-		value = field.val()
-		new_value = ''
-		some_has_no_hash_symbol = false
-		for tag in value.split(" ")
-			if tag.indexOf('#') isnt 0
-				some_has_no_hash_symbol = true
-				new_tag = '#' + tag
-			else
-				new_tag = tag
-			if new_value is ''
-				new_value = new_tag
-			else
-				new_value = new_value + ' ' + new_tag
-		if some_has_no_hash_symbol
-			field.val(new_value)
-		return
-		
 	
 	# test price has format with only digits and decimal point
 	price_regex  = /^\d+(?:\.?\d{0,2})$/;
@@ -213,14 +197,6 @@ jQuery ->
 			else if value.indexOf('.') == value.length - 2
 				price.val(value + '0')
 		return true
-
-	
-	# ensure every tag has # symbol in front
-	$('.tagwords').on 'change', ->
-		i = $(this).attr('i')
-		remove_error_from_field($(this), i)
-		if $(this).val() isnt ''
-			ensure_tags_has_hash_symbol($(this))
 			
 			
 	# ensure a price range is selected
@@ -370,7 +346,7 @@ jQuery ->
 		$("#description11").val(pin['description'])
 		$("#link11").val(pin['link'])
 		$("#product_url11").val(pin['product_url'])
-		$("#tags11").val(pin['tags'])
+		$("#tags11").val($.put_hash_symbol(pin['tags']))
 		$("#imgtag11").attr('src', pin['image_202_url'] + '?_=' + new Date().getTime())
 		$("#imgfulllink11").attr('href', '/p/' + pin['external_id'])
 		$("#category11").val('')
@@ -422,7 +398,6 @@ jQuery ->
 			show_error_for_field(tags, 'Empty tags', 11)
 		else
 			remove_error_from_field(tags, 11)
-			ensure_tags_has_hash_symbol(tags)
 		# should have a valid price
 		if not have_valid_price(price, 11)
 			no_error = false
@@ -496,6 +471,36 @@ jQuery ->
 			slice = url.slice(i, i + 16)
 			sep.push(slice)
 		return sep.join(' ')
-	
+
+
+	$.put_hash_symbol = (tags) ->
+		result = ''
+		for tag in tags
+			if result isnt ''
+				result = result + ', '
+			result = result + '#' + tag
+		return result
+
+
+	$.put_failed_pin_to_edit = (pin) ->
+		if pin['imageurl'] isnt ''
+			$('#imageurl' + pin['index']).val(pin['imageurl'])
+		if pin['link'] isnt ''
+			$('#link' + pin['index']).val(pin['link'])
+		if pin['title'] isnt ''
+			$('#title' + pin['index']).val(pin['title'])
+		if pin['description'] isnt ''
+			$('#description' + pin['index']).val(pin['description'])
+		if pin['product_url'] isnt ''
+			$('#product_url' + pin['index']).val(pin['product_url'])
+		if pin['tags'] isnt ''
+			$('#tags' + pin['index']).val(pin['tags'])
+		if pin['price'] isnt ''
+			$('#price' + pin['index']).val(pin['price'])
+		if pin['price_range'] isnt ''
+			$('input[name=price_range' + pin['index'] + '][value=' + pin['price_range'] + ']').attr('checked', 'checked')
+		$('#imageurl' + pin['index']).before('<div class="error_text">' + pin['error'] + '</div>')
+		return
+
 	
 	return

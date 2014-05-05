@@ -79,10 +79,9 @@ $("#myTab a").click (e) ->
 
 
 # ******** edit pin
-$('.editPinModal').on 'submit', event, ->
+$('.editPinModal').on 'submit', (event) ->
 	form = $(this)
 	if validate_edit_pin_form(form)
-		prepare_form_to_send(form)
 		return true
 	return false
 	
@@ -102,27 +101,17 @@ validate_edit_pin_form = (form) ->
 	if form.find('input[name="price_range"]:checked').val() is undefined
 		add_error_message(form.find('#price_range'), 'Select a price range')
 		is_ok = false
-	if form.find('input[name="category_check"]:checked').val() is undefined
-		add_error_message(form.find('#categories'), 'Select a category')
-		is_ok = false
 	return is_ok
 
 
-prepare_form_to_send = (form) ->
-	categories_list = ''
-	for x in form.find('input[name="category_check"]:checked')
-		if categories_list isnt ''
-			categories_list = categories_list + ','
-		categories_list = categories_list + x.value
-	form.find('input[name="categories"]').val(categories_list)
-	
-	
 add_error_message = (item, message) ->
 	item.after('<div class="red">' + message + '</div>');
+	return
 	
 
 clear_all_error_messages = (form) ->
 	form.find('div.red').remove()
+	return
 
 
 # ******** boards (lists) related code
@@ -161,11 +150,11 @@ get_more_items = (show_images) ->
 				$.column[boardid] = 1
 			pin['simplifiedurl'] = simplify_url(pin['link'])
 			if pin['tags'] isnt null
-				pin['taglist'] = pin['tags'].split(' ')
+				pin['taglist'] = pin['tags']
 			if show_images isnt null and show_images
 				pin['image_loading'] = pin['image_212_url']
 			else
-				pin['image_loading'] = '/static/img/loading.png'
+				pin['image_loading'] = ''
 			html_text = $.pin_template(pin)
 			selector = '#column_' + boardid + '_' + column
 			$(selector).append(html_text)
@@ -174,7 +163,7 @@ get_more_items = (show_images) ->
 			else
 				$.column[boardid] += 1
 		$.loading[boardid] = false
-		window.setTimeout($('img.lazy').lazyload({
+		setTimeout($('img.lazy').lazyload({
 				failure_limit: 100}), 100)
 		return
 	return
@@ -210,6 +199,11 @@ $(window).scroll ->
 $(document).on 'click', '.category_pin_image', (event) ->
 	event.preventDefault()
 	pinid = $(this).attr('pinid')
+	open_pin_detail(pinid)
+	return
+
+
+open_pin_detail = (pinid) ->
 	$.get '/p/' + pinid + '?embed=true',
 		(data) ->
 			$('#show_pin_layer_content').html(data)
@@ -220,20 +214,42 @@ $(document).on 'click', '.category_pin_image', (event) ->
 			$('#show_pin_layer').height($(window).height())
 			$('#show_pin_layer').show()
 			disable_scroll()
+			try
+				if window.history.state is null
+					window.history.pushState(pinid, '', '/p/' + pinid);
+				else
+					window.history.replaceState(pinid, '', '/p/' + pinid);
+			catch error
+				print(error)
 			return
 	return
-
 
 $('#show_pin_layer').on 'click', (event) ->
 	event.preventDefault()
 	$(this).hide()
 	enable_scroll()
+	try
+		window.history.back();
+	catch error
+		print(error)
+	return
 	return
 	
 	
 $('#show_pin_layer_content').on 'click', (event) ->
 	event.stopPropagation()
 	event.stopInmediatePropagation()
+	return
+	
+	
+window.onpopstate = (event)->
+	path = document.location.pathname
+	if path.substring(0, 3) is '/p/'
+		pinid = path.substring(3, path.length)
+		open_pin_detail(pinid)
+	else
+		$('#show_pin_layer').hide()
+		enable_scroll()
 	return
 		
 		
@@ -242,12 +258,14 @@ disable_scroll = () ->
 	$(document).on('mousewheel DOMMouseScroll wheel',disableNormalScroll)
 	$(window).on('scroll',disableNormalScroll)
 	$.oldScrollTop = $(document).scrollTop()
+	return
 
 
 enable_scroll = () ->
 	$(document).off('mousedown',disableMiddleMouseButtonScrolling)
 	$(document).off('mousewheel DOMMouseScroll wheel',disableNormalScroll)
 	$(window).off('scroll',disableNormalScroll)
+	return
 	
 
 disableMiddleMouseButtonScrolling = (e) ->
@@ -270,8 +288,16 @@ disableNormalScroll = (e) ->
 
 $('#list-box-wrapper-link').on 'click', ->
 	get_more_items(true)
-	window.setTimeout(scrollToShowImages(), 200)
+	setTimeout(scrollToShowImages(), 200)
+	return
+	
+
+scrollToShowImages = ->
+	$(window).scroll(10)
+	$(window).scroll(0)
+	return
 
 
 jQuery ->
 	$.ajaxSetup({ cache: false })
+	return

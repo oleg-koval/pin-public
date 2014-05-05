@@ -49,7 +49,10 @@ urls = ('', 'admin.PageIndex',
         '/category-cool-items/(\d*)/?', 'mypinnings.admin.categories.ListCoolProductsForCategory',
         '/api/categories/(\d*)/pins/?', 'mypinnings.admin.categories.ApiCategoryListPins',
         '/api/pin/(\d*)/?', 'mypinnings.admin.categories.ApiCategoryPins',
-         '/api/categories/(\d*)/cool_pins/(\d*)/?', 'mypinnings.admin.categories.ApiCategoryCoolPins'
+        '/api/categories/(\d*)/cool_pins/(\d*)/?', 'mypinnings.admin.categories.ApiCategoryCoolPins',
+        '/selection/pending_items', 'mypinnings.admin.category_selection.PendingItems',
+        '/selection/add_to_categories', 'mypinnings.admin.category_selection.AddPinToCategories',
+        '/selection','mypinnings.admin.category_selection.CategorySelection',
         )
 
 

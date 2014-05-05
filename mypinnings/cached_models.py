@@ -3,7 +3,7 @@ all_categories = None
 
 def initialize(db):
     global all_categories
-    all_categories = list(db.select('categories', order='name',
+    all_categories = list(db.select('categories', order='position desc, name',
                                     where='parent is null'))
     
     

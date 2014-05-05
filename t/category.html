@@ -1,12 +1,21 @@
-$def with (category, categories, subcategories, boards)
+$def with (category, categories, subcategories, boards, sibling_categories, parent)
 $if category['id'] == 0:
   <h1>Browsing <a href=''>Random Pins</a></h1>
 $else:
   <h1>Browsing Category <a href=''>$category['name']</a></h1>
   $if subcategories:
-  	<div class="subcategory_block">
+  	<div class="subcategory_block">Related:
   	$for subcat in subcategories:
-  		<a href="/category/$subcat.name/$subcat.id">$subcat.name</a>
+  		<a href="/category/$subcat.slug">$subcat.name</a>
+  		$if not loop.last:
+  			<span class="subcategory_spacer">&nbsp;</span>
+  	</div>
+  $if sibling_categories:
+  	<div class="subcategory_block">Related:
+  		<a href="/category/$parent.slug">$parent.name</a>
+		<span class="subcategory_spacer">&nbsp;</span>
+  	$for subcat in sibling_categories:
+  		<a href="/category/$subcat.slug">$subcat.name</a>
   		$if not loop.last:
   			<span class="subcategory_spacer">&nbsp;</span>
   	</div>
@@ -44,7 +53,7 @@ $else:
 
                   <table>
     <tbody><tr><th><label for="description">description</label></th><td>
-    <textarea id="description" name="description"></textarea></td></tr>
+    <textarea id="description" name="description"></textarea><br id="description_error"/></td></tr>
     <tr><th><label for="board">Get list</label></th><td>
 <div id="board_selection_layer">
     <select id="board" name="board" class="category-list">

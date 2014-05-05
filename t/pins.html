@@ -15,7 +15,7 @@ $else:
 	    $if not pin.repin:
 	    	$:tpl('editaddedpinmodal', pin,categories_to_select, boards)
 	    $:tpl(template, pin)
-	</div>
+</div>
 	$if not [x for x in pins if x.id]:
 	  <center>No pins to see here!</center>
 	  <center><br><a class='button' href='/browse'>Browse pins by category</a></center>

@@ -24,7 +24,6 @@ class Pin(object):
                          web.form.Textbox('product_url'),
                          web.form.Textbox('board_id'),
                          web.form.Textbox('board_name'),
-                         web.form.Textbox('categories'),
                          )
     
     def POST(self, pin_id):
@@ -54,10 +53,6 @@ class Pin(object):
                                                             product_url=form_data.d.product_url,
                                                             price_range=form_data.d.price_range,
                                                             board_id=board)
-                categories = (int(c) for c in form_data.d.categories.split(','))
-                pin_utils.update_pin_into_categories(db=db,
-                                                     pin_id=pin.id,
-                                                     category_id_list=categories)
                 transaction.commit()
                 return web.seeother(url='/p/{}'.format(pin.external_id), absolute=True)
             except Exception as e:

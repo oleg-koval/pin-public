@@ -61,9 +61,8 @@ urls = (
     '/dashboard', 'PageDashboard',
     '/lists/(\d+)/items/?','mypinnings.lists.ListItemsJson',
     '/lists', 'PageBoards',
-    '/(.*?)/list/(\d*)', 'PageBoardList',
     '/browse', 'PageBrowse',
-    '/category/.*?/(\d*)', 'mypinnings.category_listing.PageCategory',
+    '/category/(.*)', 'mypinnings.category_listing.PageCategory',
     '/new-list', 'PageNewBoard',
     '/newaddpin', 'NewPageAddPin',
     '/newaddpinform', 'NewPageAddPinForm',
@@ -79,7 +78,6 @@ urls = (
     '/settings/(privacy)', 'PageEditProfile',
     '/settings/(email-settings)', 'PageEditProfile',
     '/p/(.*)', 'PagePin',
-    '/(.*?)/buy-list/(\d*)', 'PageBuyList',
     '/messages', 'PageMessages',
     '/newconvo/(\d*)', 'PageNewConvo',
     '/convo/(\d*)', 'PageConvo',
@@ -213,7 +211,7 @@ class PageIndex:
     def GET(self, first_time=None):
         query1 = '''
             select
-                pins.*, tags.tags, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+                pins.*, tags.tags, categories.slug as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
                 count(distinct p1) as repin_count,
                 count(distinct l1) as like_count
             from pins
@@ -229,7 +227,7 @@ class PageIndex:
 
         query2 = '''
             select
-                tags.tags, pins.*, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+                tags.tags, pins.*, categories.slug as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
                 count(distinct p1.id) as repin_count,
                 count(distinct l1) as like_count
             from pins
@@ -250,7 +248,21 @@ class PageIndex:
         if logged_in(sess):
             qvars['id'] = sess.user_id
 
-        pins = list(db.query(query, vars=qvars))
+        pins = []
+        results = db.query(query, vars=qvars)
+        current_pin = None
+        for row in results:
+            if not current_pin or current_pin.id != row.id:
+                current_pin = row
+                pins.append(current_pin)
+                tag = current_pin.tags
+                current_pin.tags = []
+                if tag:
+                    current_pin.tags.append(tag)
+            else:
+                tag = row.tags
+                if tag and tag not in current_pin.tags:
+                    current_pin.tags.append(tag)
 
         if ajax:
             return json_pins(pins)
@@ -416,12 +428,6 @@ class NewPageAddPinForm:
                                        image_filename=data.fname,
                                        board_id=board,
                                        )
-
-            categories_to_insert = (int(c) for c in data.category.split(','))
-            pin_utils.add_pin_to_categories(db=db,
-                                            pin_id=pin.id,
-                                            category_id_list=categories_to_insert)
-
             transaction.commit()
             return '/p/%s' % pin.external_id
         except Exception as e:
@@ -487,11 +493,6 @@ class PageAddPinUrl:
                                  price_range=data.price,
                                  image_filename=fname,
                                  board_id=board_id)
-
-            categories_to_insert = (int(c) for c in data.categories.split(','))
-            pin_utils.add_pin_to_categories(db=db,
-                                            pin_id=pin.id,
-                                            category_id_list=categories_to_insert)
             transaction.commit()
             return '/p/%s' % pin.external_id
         except Exception as e:
@@ -577,17 +578,13 @@ class PageRepin:
                                   user_id=sess.user_id)
             else:
                 return 'Please fill aout all the form fields'
-            if form.d.tags:
-                tags = ' '.join([make_tag(x) for x in form.d.tags.split(' ')])
-            else:
-                tags = None
             # preserve all data from original pin, update description, repin and board
             new_pin = pin_utils.create_pin(db=db,
                                        user_id=sess.user_id,
                                        title=pin.name,
                                        description=form.d.description,
                                        link=pin.link,
-                                       tags=tags,
+                                       tags=form.d.tags,
                                        price=pin.price,
                                        product_url=pin.product_url,
                                        price_range=pin.price_range,
@@ -600,8 +597,12 @@ class PageRepin:
                                             pin_id=new_pin.id,
                                             user_id=sess.user_id,
                                             image_url=pin.image_url,
+                                            image_width=pin.image_width,
+                                            image_height=pin.image_height,
                                             image_202_url=pin.image_202_url,
+                                            image_202_height=pin.image_202_height,
                                             image_212_url=pin.image_212_url,
+                                            image_212_height=pin.image_212_height,
                                             )
             # preserve all the categories from original pin
             results = db.where(table='pins_categories', pin_id=pin_id)
@@ -611,7 +612,7 @@ class PageRepin:
             user = dbget('users', sess.user_id)
             make_notif(pin.user_id, 'Someone has added your item to their Getlist!', '/p/%s' % pin.external_id)
             transaction.commit()
-            raise web.seeother('/%s/list/%d' % (user.username, board))
+            raise web.seeother('/%s' % user.username)
         except:
             logger.error('Failed to add to get list', exc_info=True)
             transaction.rollback()
@@ -721,7 +722,7 @@ class PagePin:
 
         pin = db.query('''
             select
-                tags.tags, pins.*, users.name as user_name, users.pic as user_pic, users.username as user_username,
+                pins.*, users.name as user_name, users.pic as user_pic, users.username as user_username,
                 ''' + query1 + ''' as liked,
                 count(distinct l2) as likes,
                 count(distinct p1) as repin_count
@@ -732,7 +733,7 @@ class PagePin:
                 left join likes l2 on l2.pin_id = pins.id
                 left join pins p1 on p1.repin = pins.id
             where pins.external_id = $external_id
-            group by pins.id, tags.tags, users.id''', vars=qvars)
+            group by pins.id, users.id''', vars=qvars)
         if not pin:
             return 'pin not found'
 
@@ -741,11 +742,12 @@ class PagePin:
                             where='pins_categories.category_id=categories.id and pins_categories.pin_id=$id',
                             vars={'id': pin.id},
                             order='categories.name')
-        if not pin.categories:
-            return 'pin not found'
 
         if logged and sess.user_id != pin.user_id:
             db.update('pins', where='id = $id', vars={'id': pin.id}, views=web.SQLLiteral('views + 1'))
+            
+        results = db.where(table='tags', pin_id=pin.id)
+        pin.tags = [row.tags for row in results]
 
         comments = db.query('''
             select
@@ -776,14 +778,14 @@ class PagePin:
 
         pin = db.where('pins', external_id=external_id)[0]
         if not pin:
-            return 'pin does not exist'
+            return web.seeother('/')
 
         form = self._form()
         if not form.validates():
-            return 'form did not validate'
+            return web.seeother('/p/%s' % external_id)
 
         if not form.d.comment:
-            return 'please write a comment'
+            return web.seeother('/p/%s' % external_id)
 
         db.insert('comments',
                   pin_id=pin.id,
@@ -791,98 +793,8 @@ class PagePin:
                   comment=form.d.comment)
 
         if int(pin.user_id) != int(sess.user_id):
-            make_notif(pin.user_id, 'Someone has commented on your pin!', '/pin/%d' % pin.id)
-        results = db.where(table='pins', id=pin.id)
-        for row in results:
-            external_id=row.external_id
+            make_notif(pin.user_id, 'Someone has commented on your pin!', '/p/%s' % external_id)
         raise web.seeother('/p/%s' % external_id)
-
-
-class PageBoardList:
-
-    def GET(self, username, board_id):
-        board_id = int(board_id)
-
-        user = db.select('users', where='username = $username', vars={'username': username})
-        if not user:
-            return 'user not found'
-
-        user = user[0]
-
-        offset = int(web.input(offset=0).offset)
-        ajax = int(web.input(ajax=0).ajax)
-
-        board = dbget('boards', board_id)
-        if not board:
-            return "List not Found"
-
-        pins = db.query('''
-            select
-                tags.tags, pins.*, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
-                count(distinct p1) as repin_count,
-                count(distinct l1) as like_count
-            from pins
-                left join users on users.id = pins.user_id
-                left join tags on tags.pin_id = pins.id
-                left join pins p1 on p1.repin = pins.id
-                left join likes l1 on l1.pin_id = pins.id
-                left join categories on categories.id in
-                    (select category_id from pins_categories
-                    where pin_id = pins.id
-                    limit 1)
-            where not users.private
-                and pins.board_id=$board_id
-            group by pins.id, tags.tags, users.id, categories.id
-            offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT),
-            vars={'board_id': board_id})
-
-        if ajax:
-            return json_pins(pins)
-        return ltpl('board', user, board, pins)
-
-
-class PageBuyList:
-    def is_friends(self, category_id):
-        ids = sorted([user_id, sess.user_id])
-
-        result = db.select('friends', what='1', where='id1=$id1 and id2=$id2', vars={'id1': ids[0], 'id2': ids[1]})
-        return bool(result)
-
-    def GET(self, username, cid):
-        cid = int(cid)
-
-        user = db.select('users', where='username = $username', vars={'username': username})
-        if not user:
-            return 'user not found'
-
-        user = user[0]
-
-        offset = int(web.input(offset=0).offset)
-        ajax = int(web.input(ajax=0).ajax)
-
-        category = dbget('categories', cid)
-
-        pins = db.query('''
-            select
-                tags.tags, pins.*, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
-                count(distinct p1) as repin_count,
-                count(distinct l1) as like_count
-            from pins
-                left join users on users.id = pins.user_id
-                left join tags on tags.pin_id = pins.id
-                left join pins p1 on p1.repin = pins.id
-                left join likes l1 on l1.pin_id = pins.id
-                left join pins_categories on pins.id = pins_categories.pin_id
-                left join categories on categories.id = pins_categories.category_id
-            where categories.id = $cid and not users.private
-            group by pins.id, tags.tags, users.id, categories.id
-            offset %d limit %d''' % (offset * PIN_COUNT, PIN_COUNT),
-            vars={'cid': cid})
-
-        if ajax:
-            return json_pins(pins)
-        print category
-        return ltpl('board', user, category, pins)
 
 
 def get_pins(user_id, offset=None, limit=None, show_private=False):
@@ -905,7 +817,24 @@ def get_pins(user_id, offset=None, limit=None, show_private=False):
     if limit is not None:
         query += ' limit %d' % limit
 
-    return db.query(query, vars={'id': user_id})
+    results = db.query(query, vars={'id': user_id})
+    pins = []
+    current_row = None
+    for row in results:
+        if not row.id:
+            continue
+        if not current_row or current_row.id != row.id:
+            current_row = row
+            tag = row.tags
+            current_row.tags = []
+            if tag:
+                current_row.tags.append(tag)
+            pins.append(current_row)
+        else:
+            tag = row.tags
+            if tag not in current_row.tags:
+                current_row.tags.append(tag)
+    return pins
 
 
 class PageProfile:
@@ -1804,7 +1733,7 @@ class PageBrowse:
         global all_categories
 
         categories = list(all_categories)
-        categories.append({'name': 'Random', 'id': 0, 'url_name': 'random'})
+        categories.append({'name': 'Random', 'id': 0, 'slug': ''})
         return ltpl('browse', categories)
 
 
@@ -1900,7 +1829,21 @@ class PageSearchItems:
             group by tags.tags, categories.id, pins.id, users.id, query.query
             order by rank1, rank2 desc offset %d limit %d""" % (offset * PIN_COUNT, PIN_COUNT)
 
-        pins = db.query(query)
+        results = db.query(query)
+        pins = []
+        current_pin = None
+        for row in results:
+            if not current_pin or current_pin.id != row.id:
+                current_pin = row
+                pins.append(current_pin)
+                tag = current_pin.tags
+                current_pin.tags = []
+                if tag:
+                    current_pin.tags.append(tag)
+            else:
+                tag = row.tags
+                if tag and tag not in current_pin.tags:
+                    current_pin.tags.append(tag)
         if ajax:
             return json_pins(pins, 'horzpin')
         return ltpl('search', pins, orig)
