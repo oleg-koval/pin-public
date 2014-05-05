@@ -1,14 +1,14 @@
 import web
 from web import form
 
-import mypinnings.session
+from mypinnings import session
 from mypinnings.template import tpl, ltpl, lmsg
 from mypinnings.auth import force_login
 from mypinnings.conf import settings
 from mypinnings.database import connect_db, dbget
 db = connect_db()
 
-urls = ('/', 'PageEditProfile',
+urls = ('', 'PageEditProfile',
         '/(email)', 'PageEditProfile',
         '/(profile)', 'PageEditProfile',
         '/(password)', 'PageEditProfile',
@@ -17,7 +17,6 @@ urls = ('/', 'PageEditProfile',
         '/(email-settings)', 'PageEditProfile',
         )
 
-sess = mypinnings.session.sess
 
 class PageEditProfile:
     _form = form.Form(
@@ -32,6 +31,7 @@ class PageEditProfile:
     )
 
     def GET(self, name=None):
+        sess = session.get_session()
         force_login(sess)
         user = dbget('users', sess.user_id)
         photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id})
@@ -39,6 +39,7 @@ class PageEditProfile:
         return ltpl('editprofile', user, settings.COUNTRIES, name, photos, msg)
 
     def POST(self, name=None):
+        sess = session.get_session()
         user = dbget('users', sess.user_id)
         force_login(sess)
 
