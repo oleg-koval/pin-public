@@ -5,8 +5,6 @@ import datetime
 import os.path
 from gettext import gettext as _
 
-import requests
-
 import web
 
 from mypinnings import auth
@@ -16,6 +14,7 @@ from mypinnings import database
 from mypinnings import cached_models
 from mypinnings import pin_utils
 from mypinnings.conf import settings
+from mypinnings.api import api_request, convert_to_id
 
 
 urls = ('/after-signup/(\d*)', 'PageAfterSignup',
@@ -84,21 +83,11 @@ class PageRegister:
                 "language": form.d.language
             }
 
-            url = settings.API_URL + "api/signup/register"
-            result = requests.post(
-                url,
-                data=data
-            )
-
-            data = json.loads(result.content)
-            if result.status_code == 200 and data['status'] == 200:
-                user = database.get_db().select(
-                    'users',
-                    {"logintoken": data['data']['logintoken']},
-                    where="logintoken=$logintoken"
-                )
-                if len(user) > 0:
-                    auth.login_user(session.get_session(), user.list()[0]['id'])
+            data = api_request("api/signup/register", "POST", data)
+            if data['status'] == 200:
+                user_id = convert_to_id(data['data']['logintoken'])
+                if user_id:
+                    auth.login_user(session.get_session(), user_id)
                     raise web.seeother('/after-signup')
             else:
                 msg = _(data['error_code'])

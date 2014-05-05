@@ -330,23 +330,16 @@ class PageActivate:
         key = web.input(key='').key
         uid = web.input(uid=0).uid
 
-        user = dbget('users', uid)
+        logintoken = convert_to_logintoken(uid)
 
-        if user:
-            logintoken = user['logintoken']
-
+        if logintoken:
             data = {
                 "logintoken": logintoken,
                 "hashed_activation": key,
             }
 
-            url = settings.API_URL + "api/signup/confirmuser"
-            result = requests.post(
-                url,
-                data=data
-            )
+            data = api_request("api/signup/confirmuser", "POST", data)
 
-            data = json.loads(result.content)
 
         # user = dbget('users', uid)
         # if user:
