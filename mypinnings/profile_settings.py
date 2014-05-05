@@ -8,17 +8,20 @@ from mypinnings.conf import settings
 from mypinnings.database import connect_db, dbget
 db = connect_db()
 
+from mypinnings.api import api_request, convert_to_id, convert_to_logintoken
+
 urls = ('', 'PageEditProfile',
-        '/(email)', 'PageEditProfile',
+        '/(email)', 'PageChangeEmail',
         '/(profile)', 'PageEditProfile',
-        '/(password)', 'PageEditProfile',
-        '/(social-media)', 'PageEditProfile',
-        '/(privacy)', 'PageEditProfile',
+        '/(password)', 'PageChangePw',
+        '/(social-media)', 'PageChangeSM',
+        '/(privacy)', 'PageChangePrivacy',
         '/(email-settings)', 'PageEditProfile',
-        '/changeemail', 'PageChangeEmail',
-        '/changepw', 'PageChangePw',
-        '/changesm', 'PageChangeSM',
-        '/changeprivacy', 'PageChangePrivacy',
+
+        # '/changeemail', 'PageChangeEmail',
+        # '/changepw', 'PageChangePw',
+        # '/changesm', 'PageChangeSM',
+        # '/changeprivacy', 'PageChangePrivacy',
         )
 
 
@@ -58,16 +61,17 @@ class PageEditProfile:
             vars={'id': sess.user_id})
         get_input = web.input(_method='get')
         if 'user_profile' in get_input:
-            raise web.seeother('/%s?editprofile=1' % user.username)
-        raise web.seeother('/settings/profile')
+            raise web.seeother('/settings/%s?editprofile=1' % user.username)
+        raise web.seeother('/profile')
 
-class PageChangeEmail:
+class PageChangeEmail(PageEditProfile):
     _form = form.Form(
         form.Textbox('email'),
         form.Textbox('username'))
 
     # @csrf_protected # Verify this is not CSRF, or fail
-    def POST(self):
+    def POST(self, name=None):
+        sess = session.get_session()
         force_login(sess)
 
         form = self._form()
@@ -78,16 +82,17 @@ class PageChangeEmail:
         if db.select('users', where='username = $username', vars={'username':form.d.username}):
             return 'Pick another username'
         db.update('users', where='id = $id', vars={'id': sess.user_id}, email=form.d.email, username=form.d.username)
-        raise web.seeother('/settings/email')
+        raise web.seeother('/email')
 
-class PageChangePw:
+class PageChangePw(PageEditProfile):
     _form = form.Form(
         form.Textbox('old'),
         form.Textbox('pwd1'),
         form.Textbox('pwd2')
     )
 
-    def POST(self):
+    def POST(self, name=None):
+        sess = session.get_session()
         force_login(sess)
 
         form = self._form()
@@ -119,7 +124,7 @@ class PageChangePw:
 
             data = api_request("api/profile/pwd", "POST", data)
             if data['status'] == 200:
-                raise web.seeother('/settings/password')
+                raise web.seeother('/password')
             else:
                 msg = data['error_code']
                 raise web.seeother('/settings/password?msg=%s' % msg, absolute=True)
@@ -127,7 +132,7 @@ class PageChangePw:
 
         # auth.chage_user_password(sess.user_id, form.d.pwd1)
 
-class PageChangeSM:
+class PageChangeSM(PageEditProfile):
     _form = form.Form(
         form.Textbox('facebook'),
         form.Textbox('linkedin'),
@@ -135,7 +140,8 @@ class PageChangeSM:
         form.Textbox('gplus'),
     )
 
-    def POST(self):
+    def POST(self, name=None):
+        sess = session.get_session()
         force_login(sess)
 
         form = self._form()
@@ -147,21 +153,22 @@ class PageChangeSM:
             return 'error getting user'
 
         db.update('users', where='id = $id', vars={'id': sess.user_id}, **form.d)
-        raise web.seeother('/settings/social-media')
+        raise web.seeother('/social-media')
 
-class PageChangePrivacy:
+class PageChangePrivacy(PageEditProfile):
     _form = form.Form(
         form.Checkbox('private'),
     )
 
-    def POST(self):
+    def POST(self, name=None):
+        sess = session.get_session()
         force_login(sess)
 
         form = self._form()
         form.validates()
 
         db.update('users', where='id = $id', vars={'id': sess.user_id}, **form.d)
-        raise web.seeother('/settings/privacy')
+        raise web.seeother('/privacy')
 
 app = web.application(urls, locals())
 

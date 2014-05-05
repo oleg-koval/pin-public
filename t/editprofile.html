@@ -32,7 +32,7 @@ $def with (user, countries, name, photos, msg=None)
   </div>
   
   <div>    
-  <form method='post' class='inner-form' action='/changeemail' autocomplete='off'>
+  <form method='post' class='inner-form' action='/settings/email' autocomplete='off'>
     <table>
     
         <tr>
@@ -203,7 +203,7 @@ $def with (user, countries, name, photos, msg=None)
 
 <div class='invis' id='box-password'>
   <h1>Change Password</h1>
-  <form method='post' class='inner-form' action='/changepw' autocomplete='off' enctype='multipart/form-data' id='change_pwd_form'>
+  <form method='post' class='inner-form' action='/settings/password' autocomplete='off' enctype='multipart/form-data' id='change_pwd_form'>
     <table>
       <tr>
         <th>Old Password</th>
@@ -228,7 +228,7 @@ $def with (user, countries, name, photos, msg=None)
 <div class='invis' id='box-social-media'>
   <h1>Social Media</h1>
   <p>Display your social media links on your MyPinnings profile.</p>
-  <form method='post' class='inner-form' action='/changesm' autocomplete='off' enctype='multipart/form-data'>
+  <form method='post' class='inner-form' action='/settings/social-media' autocomplete='off' enctype='multipart/form-data'>
     <table>
       <tr>
         <th>Facebook</th>
@@ -257,7 +257,7 @@ $def with (user, countries, name, photos, msg=None)
 
 <div class='invis' id='box-privacy'>
   <h1>Privacy</h1>
-  <form method='post' class='inner-form' action='/changeprivacy' autocomplete='off'>
+  <form method='post' class='inner-form' action='/settings/privacy' autocomplete='off'>
     <table>
       <tr>
         <th>Make Getlist Private</th>
