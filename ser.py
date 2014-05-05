@@ -35,6 +35,7 @@ import mypinnings.facebook
 import mypinnings.google
 import mypinnings.register_twitter
 import mypinnings.pin
+import mypinnings.profile_settings
 import admin
 import glob
 import api_server
@@ -51,6 +52,7 @@ urls = (
     '/google', mypinnings.google.app,
     '/register_twitter', mypinnings.register_twitter.app,
     '/register', mypinnings.register.app,
+    '/settings', mypinnings.profile_settings.app,
     '/pin', mypinnings.pin.app,
     '/', 'PageIndex',
     '/(first-time)', 'PageIndex',
@@ -73,13 +75,6 @@ urls = (
     '/add-from-website', 'PageAddPinUrl',
     '/add-to-your-own-getlist/(\d*)', 'PageRepin',
     '/remove-from-own-getlist', 'PageRemoveRepin',
-    '/settings', 'PageEditProfile',
-    '/settings/(email)', 'PageEditProfile',
-    '/settings/(profile)', 'PageEditProfile',
-    '/settings/(password)', 'PageEditProfile',
-    '/settings/(social-media)', 'PageEditProfile',
-    '/settings/(privacy)', 'PageEditProfile',
-    '/settings/(email-settings)', 'PageEditProfile',
     '/p/(.*)', 'PagePin',
     '/messages', 'PageMessages',
     '/newconvo/(\d*)', 'PageNewConvo',
@@ -613,45 +608,6 @@ class PageRepin:
             logger.error('Failed to add to get list', exc_info=True)
             transaction.rollback()
             return 'Server error'
-
-
-class PageEditProfile:
-    _form = form.Form(
-        form.Textbox('name'),
-        form.Dropdown('country', []),
-        form.Textbox('hometown'),
-        form.Textbox('city'),
-        form.Textbox('zip'),
-        form.Textbox('username'),
-        form.Textbox('website'),
-        form.Textarea('about'),
-    )
-
-    def GET(self, name=None):
-        force_login(sess)
-        user = dbget('users', sess.user_id)
-        photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id})
-        msg = web.input(msg=None)['msg']
-        return ltpl('editprofile', user, settings.COUNTRIES, name, photos, msg)
-
-    def POST(self, name=None):
-        user = dbget('users', sess.user_id)
-        force_login(sess)
-
-        form = self._form()
-        if not form.validates():
-            return 'you need to fill in everything'
-
-        db.update('users', where='id = $id',
-            name=form.d.name, about=form.d.about, username=form.d.username,
-            zip=(form.d.zip or None), website=form.d.website, country=form.d.country,
-            hometown=form.d.hometown, city=form.d.city,
-            vars={'id': sess.user_id})
-        get_input = web.input(_method='get')
-        if 'user_profile' in get_input:
-            raise web.seeother('/%s?editprofile=1' % user.username)
-        raise web.seeother('/settings/profile')
-
 
 
 class PageChangeEmail:
