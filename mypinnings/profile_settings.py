@@ -99,18 +99,8 @@ class PageChangePw(PageEditProfile):
         if not form.validates():
             raise web.seeother('/settings/password?msg=bad input', absolute=True)
 
-        # user = dbget('users', sess.user_id)
-        # if not user:
-        #     raise web.seeother('/settings/password?msg=error getting user', absolute=True)
-
-        # if form.d.pwd1 != form.d.pwd2:
-        #     raise web.seeother('/settings/password?msg=Your passwords don\'t match!', absolute=True)
-
         if not form.d.pwd1 or len(form.d.pwd1) < 6:
             raise web.seeother('/settings/password?msg=Your password must have at least 6 characters.', absolute=True)
-
-        # if not auth.authenticate_user_username(user.username, form.d.old):
-        #     raise web.seeother('/settings/password?msg=Your old password did not match!', absolute=True)
 
         logintoken = convert_to_logintoken(sess.user_id)
 
@@ -129,8 +119,6 @@ class PageChangePw(PageEditProfile):
                 msg = data['error_code']
                 raise web.seeother('/settings/password?msg=%s' % msg, absolute=True)
 
-
-        # auth.chage_user_password(sess.user_id, form.d.pwd1)
 
 class PageChangeSM(PageEditProfile):
     _form = form.Form(
