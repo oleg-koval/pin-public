@@ -40,7 +40,7 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 							<div class="subcategory_checkbox"><label style="font-size: 1.3em"><input type="checkbox" name='category_check' value="$subcat['id']"
 							$if subcat['id'] in preselected_categories:
 								checked
-							>$subcat['name']</label></div>
+							parent-category="$category['id']">$subcat['name']</label></div>
 					$else:
 						<br/>
 				</td>

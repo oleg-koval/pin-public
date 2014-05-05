@@ -523,4 +523,13 @@ jQuery(function() {
     }
     $('#imageurl' + pin['index']).before('<div class="error_text">' + pin['error'] + '</div>');
   };
+  $('input[name=category_check]').change(function(event) {
+    var parent_category;
+    parent_category = $(this).attr('parent-category');
+    if (parent_category !== void 0) {
+      if ($(this).prop('checked')) {
+        $('input[name=category_check][value=' + parent_category + ']').prop('checked', true);
+      }
+    }
+  });
 });
