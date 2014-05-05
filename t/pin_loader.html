@@ -26,18 +26,18 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 		<p>You can upload up to 10 images at a time, using the fields below. You can view the results in the 'Items Added' tab.</p>
 		<div style="margin-top: 10px"></div>
 		<h1>Categories for these Pins: </h1>
-		<table>
+		<table style="width:100%">
 			<tr style="font-size:80%">
 			$for category_column in categories:
 				<td width="25%" class="category_selection_td">
 				$for category in category_column:
-					<label><input type="checkbox" name='category_check' value="$category['id']"
+					<label style="font-size: 1.3em"><input type="checkbox" name='category_check' value="$category['id']"
 					$if category['id'] in preselected_categories:
 						checked
 					>$category['name']</label>
 					$if category['subcategories']:
 						$for subcat in category['subcategories']:
-							<div class="subcategory_checkbox"><label><input type="checkbox" name='category_check' value="$subcat['id']"
+							<div class="subcategory_checkbox"><label style="font-size: 1.3em"><input type="checkbox" name='category_check' value="$subcat['id']"
 							$if subcat['id'] in preselected_categories:
 								checked
 							>$subcat['name']</label></div>
