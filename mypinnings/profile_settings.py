@@ -15,10 +15,10 @@ urls = ('', 'PageEditProfile',
         '/(social-media)', 'PageEditProfile',
         '/(privacy)', 'PageEditProfile',
         '/(email-settings)', 'PageEditProfile',
-        # '/changeemail', 'PageChangeEmail',
-        # '/changepw', 'PageChangePw',
-        # '/changesm', 'PageChangeSM',
-        # '/changeprivacy', 'PageChangePrivacy',
+        '/changeemail', 'PageChangeEmail',
+        '/changepw', 'PageChangePw',
+        '/changesm', 'PageChangeSM',
+        '/changeprivacy', 'PageChangePrivacy',
         )
 
 app = web.application(urls, locals())
