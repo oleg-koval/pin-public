@@ -90,6 +90,16 @@ jQuery(function() {
   open_pin_detail = function(pinid) {
     $.get('/p/' + pinid + '?embed=true', function(data) {
       var current_position;
+      try {
+        if (window.history.state === null) {
+          window.history.pushState(pinid, '', '/p/' + pinid);
+        } else {
+          window.history.replaceState(pinid, '', '/p/' + pinid);
+        }
+      } catch (error) {
+        window.location.href = '/p/' + pinid;
+        return;
+      }
       $('#show_pin_layer_content').html(data);
       current_position = $('#show_pin_layer_content').position();
       current_position.top = $(window).scrollTop();
@@ -98,15 +108,6 @@ jQuery(function() {
       $('#show_pin_layer').height($(window).height());
       $('#show_pin_layer').show();
       disable_scroll();
-      try {
-        if (window.history.state === null) {
-          window.history.pushState(pinid, '', '/p/' + pinid);
-        } else {
-          window.history.replaceState(pinid, '', '/p/' + pinid);
-        }
-      } catch (error) {
-        print(error);
-      }
     });
   };
   $('#show_pin_layer').on('click', function(event) {

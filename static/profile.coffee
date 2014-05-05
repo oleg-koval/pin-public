@@ -206,6 +206,14 @@ $(document).on 'click', '.category_pin_image', (event) ->
 open_pin_detail = (pinid) ->
 	$.get '/p/' + pinid + '?embed=true',
 		(data) ->
+			try
+				if window.history.state is null
+					window.history.pushState(pinid, '', '/p/' + pinid);
+				else
+					window.history.replaceState(pinid, '', '/p/' + pinid);
+			catch error
+				window.location.href = '/p/' + pinid
+				return
 			$('#show_pin_layer_content').html(data)
 			current_position = $('#show_pin_layer_content').position()
 			current_position.top = $(window).scrollTop()
@@ -214,13 +222,6 @@ open_pin_detail = (pinid) ->
 			$('#show_pin_layer').height($(window).height())
 			$('#show_pin_layer').show()
 			disable_scroll()
-			try
-				if window.history.state is null
-					window.history.pushState(pinid, '', '/p/' + pinid);
-				else
-					window.history.replaceState(pinid, '', '/p/' + pinid);
-			catch error
-				print(error)
 			return
 	return
 
