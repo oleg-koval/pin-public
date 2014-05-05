@@ -1,7 +1,7 @@
 import web
 from web import form
 
-import mypinnings.session
+from mypinnings import session
 from mypinnings.template import tpl, ltpl, lmsg
 from mypinnings.auth import force_login
 from mypinnings.conf import settings
@@ -21,9 +21,6 @@ urls = ('', 'PageEditProfile',
         '/changeprivacy', 'PageChangePrivacy',
         )
 
-app = web.application(urls, locals())
-mypinnings.session.initialize(app)
-sess = mypinnings.session.sess
 
 class PageEditProfile:
     _form = form.Form(
@@ -38,6 +35,7 @@ class PageEditProfile:
     )
 
     def GET(self, name=None):
+        sess = session.get_session()
         force_login(sess)
         user = dbget('users', sess.user_id)
         photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id})
@@ -45,6 +43,7 @@ class PageEditProfile:
         return ltpl('editprofile', user, settings.COUNTRIES, name, photos, msg)
 
     def POST(self, name=None):
+        sess = session.get_session()
         user = dbget('users', sess.user_id)
         force_login(sess)
 
@@ -163,3 +162,6 @@ class PageChangePrivacy:
 
         db.update('users', where='id = $id', vars={'id': sess.user_id}, **form.d)
         raise web.seeother('/settings/privacy')
+
+app = web.application(urls, locals())
+
