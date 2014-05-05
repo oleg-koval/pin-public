@@ -19,7 +19,7 @@ $if users:
             $for user in users:
                 <tr>
                     <td><a href='/admin/user/$user.id'><b>$user.name</b></a></td>
-                    <td>$user.username</td>
+                    <td><a href="/$user.username" target="_blank">$user.username</a></td>
                     <td>$user.email</td>
                     <td>$user.pin_count</td>
                     <td>$user.repin_count</td>
