@@ -80,3 +80,13 @@ $def with (pin, comments, rating, embeded=False)
 $if 'logged_in' in sess:
   <script type='text/javascript'>window.pinId = $pin.id;</script>
   <script type='text/javascript' src='/static/pin.js'></script>
+$if not embeded:
+	<script>
+	window.onpopstate = function(event) {
+	  var path;
+	  path = document.location.pathname;
+	  if (path.substring(0, 3) !== '/p/') {
+	    window.location.reload();
+	  }
+	};
+  	</script>
