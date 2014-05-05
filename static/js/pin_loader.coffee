@@ -502,5 +502,13 @@ jQuery ->
 		$('#imageurl' + pin['index']).before('<div class="error_text">' + pin['error'] + '</div>')
 		return
 
+
+	$('input[name=category_check]').change (event) ->
+		parent_category = $(this).attr('parent-category')
+		if parent_category isnt undefined
+			if $(this).prop('checked')
+				$('input[name=category_check][value=' + parent_category + ']').prop('checked', true)
+		return
+
 	
 	return

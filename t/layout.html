@@ -36,15 +36,17 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
             <div class='nav-item item' id='switch1'>
               <i class='fa fa-bars'></i> Discover
               <div class='menu invis' id='menu1'>
+				$ rows_x_column = float(len(categories)) / 3.0
+				$ if int(rows_x_column) < rows_x_column: rows_x_column = int(rows_x_column) + 1
                 <table width='100%' cellpadding='5'>
-                  $ i = 0
-                  <tr>
-                  $for cat in categories:
-                    $if i % 3 == 0:
-                      </tr><tr>
-                    <td style='width: 250px'><b><a href="/category/$cat['slug']">$cat['name']</a></b></td>
-                    $ i += 1
-                  </tr>
+				$for cat in categories:
+					$if loop.first:
+						<tr valign="top"><td style='width: 250px'>:
+					<div style="clear:both;height:30px;"><b><a href="/category/$cat['slug']">$cat['name']</a></b></div>
+					$if not loop.first and not loop.last and loop.index % rows_x_column == 0:
+						</td><td style='width: 250px'>:
+					$if loop.last:
+						</td></tr>
                 </table>
               </div>
             </div>

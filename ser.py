@@ -222,7 +222,7 @@ class PageIndex:
                 left join follows on follows.follow = users.id
                 left join categories on categories.id in
                     (select category_id from pins_categories where pin_id = pins.id limit 1)
-            where follows.follower = $id
+            where users.id = $id
             group by tags.tags, categories.id, pins.id, users.id offset %d limit %d'''
 
         query2 = '''
