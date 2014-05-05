@@ -271,20 +271,30 @@ open_pin_detail = function(pinid) {
 };
 
 $('#show_pin_layer').on('click', function(event) {
+  if (event.target.id === 'input-comment') {
+    $('#input-comment').focus();
+    return;
+  }
   event.preventDefault();
   $(this).hide();
   enable_scroll();
   try {
     window.history.back();
   } catch (error) {
-    print(error);
+    $.noop();
   }
-  return;
 });
 
 $('#show_pin_layer_content').on('click', function(event) {
   event.stopPropagation();
-  event.stopInmediatePropagation();
+  try {
+    event.stopInmediatePropagation();
+  } catch (error) {
+    $.noop();
+  }
+  if (event.target.id === 'input-comment') {
+    $('#input-comment').focus();
+  }
 });
 
 window.onpopstate = function(event) {

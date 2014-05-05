@@ -225,20 +225,27 @@ open_pin_detail = (pinid) ->
 	return
 
 $('#show_pin_layer').on 'click', (event) ->
+	if event.target.id is 'input-comment'
+		$('#input-comment').focus()
+		return
 	event.preventDefault()
 	$(this).hide()
 	enable_scroll()
 	try
 		window.history.back();
 	catch error
-		print(error)
-	return
+		$.noop()
 	return
 	
 	
 $('#show_pin_layer_content').on 'click', (event) ->
 	event.stopPropagation()
-	event.stopInmediatePropagation()
+	try
+		event.stopInmediatePropagation()
+	catch error
+		$.noop()
+	if event.target.id is 'input-comment'
+		$('#input-comment').focus()
 	return
 	
 	
