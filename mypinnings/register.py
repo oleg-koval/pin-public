@@ -112,7 +112,8 @@ class PageResendActivation:
 
         hashed = hash(str(user.activation))
         send_activation_email(user.email, hashed, user.id)
-        return template.lmsg('An email has been resent. <a href="/"><b>Back</b></a> |  <a href=""><b>Send another one</b></a>')
+        return template.lmsg('An email has been resent. <a href="/"><b>Back</b></a>\
+             |  <a href=""><b>Send another one</b></a>', user)
 
 
 class PageAfterSignup:

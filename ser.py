@@ -61,7 +61,7 @@ urls = (
     '/reg-checkpw', 'PageCheckPassword',
     '/reg-checkemail', 'PageCheckEmail',
     '/activate', 'PageActivate',
-    '/resend-activation', 'PageResendActivation',
+    '/resend-activation', 'mypinnings.register.PageResendActivation',
     '/logout', 'PageLogout',
     '/dashboard', 'PageDashboard',
     '/lists/(\d+)/items/?','mypinnings.lists.ListItemsJson',

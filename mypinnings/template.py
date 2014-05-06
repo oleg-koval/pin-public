@@ -43,8 +43,8 @@ def ltpl(*params):
     return tpl('layout', tpl(*params), cached_models.all_categories)
 
 
-def lmsg(msg):
-    return tpl('layout', msg, {})
+def lmsg(msg, user=None):
+    return tpl('layout', msg, {}, [], None, user)
 
 
 def atpl(*params, **kwargs):
