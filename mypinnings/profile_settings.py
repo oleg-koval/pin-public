@@ -54,15 +54,30 @@ class PageEditProfile:
         if not form.validates():
             return 'you need to fill in everything'
 
-        db.update('users', where='id = $id',
-            name=form.d.name, about=form.d.about, username=form.d.username,
-            zip=(form.d.zip or None), website=form.d.website, country=form.d.country,
-            hometown=form.d.hometown, city=form.d.city,
-            vars={'id': sess.user_id})
+        logintoken = convert_to_logintoken(sess.user_id)
+
+        if logintoken:
+            data = {
+                "name":form.d.name,
+                "about":form.d.about,
+                "website":form.d.website,
+                "country":form.d.country,
+                "hometown":form.d.hometown,
+                "city":form.d.city,
+                "csid_from_client": 'None',
+                "logintoken": logintoken
+            }
+
+            data = api_request("api/profile/userinfo/update", "POST", data)
+            if data['status'] == 200:
+                raise web.seeother('/profile')
+            else:
+                msg = data['error_code']
+                raise web.seeother('/profile?msg=%s' % msg)
+
         get_input = web.input(_method='get')
         if 'user_profile' in get_input:
             raise web.seeother('/%s?editprofile=1' % user.username)
-        raise web.seeother('/profile')
 
 class PageChangeEmail(PageEditProfile):
     _form = form.Form(
