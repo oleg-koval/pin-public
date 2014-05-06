@@ -42,7 +42,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
                   $for cat in categories:
                     $if i % 3 == 0:
                       </tr><tr>
-                    <td style='width: 250px'><b><a href='/category/$cat['url_name']/$cat['id']'>$cat['name']</a></b></td>
+                    <td style='width: 250px'><b><a href="/category/$cat['slug']">$cat['name']</a></b></td>
                     $ i += 1
                   </tr>
                 </table>
@@ -143,19 +143,6 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
         <tr><th><label for="title"></label></th><td><div id="imagename"></div></td></tr>
         <tr><th><label for="title">Title</label></th><td><input type="text" id="title"></td></tr>
         <tr><th><label for="weblink">Link</label></th><td><input type="text" id="weblink" placeholder="Where to buy?"></td></tr>
-        <tr><th><label for="category">Category</label></th><td>
-        <div style="width: 100%; height: 200px; overflow:auto;">
-            $if categories_to_select:
-                $for category in categories_to_select:
-                    <label><input type="checkbox" name='category_check' value="$category['id']">$category['name']</label>
-                    $if category['subcategories']:
-                        $for subcat in category['subcategories']:
-                            <div class="subcategory_checkbox"><label><input type="checkbox" name='category_check' value="$subcat['id']">$subcat['name']</label></div>
-                    $else:
-                        <br>
-                </div>
-                <input type="hidden" id="categories" name="categories"/>
-                </td></tr>
 	    <tr><th><label for="board">Get list</label></th>
 	    	<td>
 	    		<div id="board_selection_layer">
@@ -201,19 +188,6 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
         <tr><th><label for="title">Title</label></th><td><input type="text" id="titleweb"></td></tr>
         <tr><th><label for="weblink">Link</label></th><td><input type="text" id="weblinkweb" placeholder="Where to buy?"></td></tr>
         <tr><th><label for="weblink">Website Link</label></th><td><input type="text" id="websitelinkweb" ></td></tr>
-        <tr><th><label for="category">Category</label></th><td>
-        <div style="width: 100%; height: 200px; overflow:auto;">
-            $if categories_to_select:
-                $for category in categories_to_select:
-                    <label><input type="checkbox" name='category_check_web' value="$category['id']">$category['name']</label>
-                    $if category['subcategories']:
-                        $for subcat in category['subcategories']:
-                            <div class="subcategory_checkbox"><label><input type="checkbox" name='category_check_web' value="$subcat['id']">$subcat['name']</label></div>
-                    $else:
-                        <br>
-                </div>
-                <input type="hidden" id="categories" name="categories"/>
-        </td></tr>
         <tr><th><label for="lists">Lists</label></th><td>
                     <div id="board_selection_layerweb">
                     <select id="boardweb" name="boardweb">

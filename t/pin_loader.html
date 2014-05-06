@@ -16,7 +16,8 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					<p><h2>Review your added item in the 'Items Added' tab</h2></p>
 				$for ri in result_info:
 					$if ri['error']:
-						<p><blockquote><div class="red">There are errors in you upload, please review the 'Items Added' tab</div></blockquote></p>
+						<p><blockquote><div class="red">There are errors in you upload, please review below and the 'Items Added' tab</div></blockquote></p>
+						$ break
 				</div>
 		<p>All the items you upload will belong to the same category, so carefully select the category.</p>
 		<p>You must provide, for each pin you upload: Title, Description, URL from where to buy this item, Link to the original source, Tags (#rolex #coolstuff) and an image via URL or upload.</p>
@@ -55,35 +56,35 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					<table style="box-shadow:0px 0px 10px gray">
 						<tr>
 							<th><label for="imageurl$i">Image URL</label></th>
-							<td>$:form['imageurl{}'.format(i)].render()</td>
+							<td><input i="$i" type="text" class="imagelink" name="imageurl$i" id="imageurl$i" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="image$i">Image File</label></th>
-							<td>$:form['image{}'.format(i)].render()</td>
+							<td><input i="$i" type="file" class="imagefile" name="image$i" id="image$i" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="link$i">Original Source URL</label></th>
-							<td>$:form['link{}'.format(i)].render()</td>
+							<td><input name="link$i" i="$i" placeholder="The original source for this image" id="link$i" type="text" class="urllink" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="title$i">Title</label></th>
-							<td>$:form['title{}'.format(i)].render()</td>
+							<td><input i="$i" type="text" class="titleentry" name="title$i" id="title$i" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="description$i">Description (optional)</label></th>
-							<td>$:form['description{}'.format(i)].render()</td>
+							<td><textarea i="$i" class="descrentry" name="description$i" id="description$i" style="width: 450px;font-size: 1.3em;height:60px"></textarea></td>
 						</tr>
 						<tr>
-							<th><label for="product_url$i">Product URL</label></th>
-							<td>$:form['product_url{}'.format(i)].render()</td>
+							<th><label for="product_url$i">Get It Here</label></th>
+							<td><input name="product_url$i" i="$i" placeholder="Where can you buy this item? www.rolex.com" id="product_url$i" type="text" class="urlproduct_url" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="tags$i">#Tags</label></th>
-							<td>$:form['tags{}'.format(i)].render()</td>
+							<td><input name="tags$i" i="$i" placeholder="#this is awesome #product" id="tags$i" type="text" class="tagwords" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="price$i">Price (optional)</label></th>
-							<td>$:form['price{}'.format(i)].render()</td>
+							<td><input name="price$i" i="$i" placeholder="$888.00" id="price$i" type="text" class="prodprice" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th>Price Category</th>
@@ -103,35 +104,35 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					<table style="box-shadow:0px 0px 10px gray">
 						<tr>
 							<th><label for="imageurl$j">Image URL</label></th>
-							<td>$:form['imageurl{}'.format(j)].render()</td>
+							<td><input i="$j" type="text" class="imagelink" name="imageurl$j" id="imageurl$j" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="image$j">Image File</label></th>
-							<td>$:form['image{}'.format(j)].render()</td>
+							<td><input i="$j" type="file" class="imagefile" name="image$j" id="image$j" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="link$j">Original Source URL</label></th>
-							<td>$:form['link{}'.format(j)].render()</td>
+							<td><input name="link$j" i="$j" placeholder="The original source for this image" id="link$j" type="text" class="urllink" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="title$j">Title</label></th>
-							<td>$:form['title{}'.format(j)].render()</td>
+							<td><input i="$j" type="text" class="titleentry" name="title$j" id="title$j" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="description$j">Description (optional)</label></th>
-							<td>$:form['description{}'.format(j)].render()</td>
+							<td><textarea i="$j" class="descrentry" name="description$j" id="description$j" style="width: 450px;font-size: 1.3em;height:60px;"></textarea></td>
 						</tr>
 						<tr>
-							<th><label for="product_url$j">Product URL</label></th>
-							<td>$:form['product_url{}'.format(j)].render()</td>
+							<th><label for="product_url$j">Get It Here</label></th>
+							<td><input name="product_url$j" i="$j" placeholder="Where can you buy this item? www.rolex.com" id="product_url$j" type="text" class="urlproduct_url" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="tags$j">#Tags</label></th>
-							<td>$:form['tags{}'.format(j)].render()</td>
+							<td><input name="tags$j" i="$j" placeholder="#this is awesome #product" id="tags$j" type="text" class="tagwords" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="price$j">Price (optional)</label></th>
-							<td>$:form['price{}'.format(j)].render()</td>
+							<td><input name="price$j" i="$j" placeholder="$888.00" id="price$j" type="text" class="prodprice" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th>Price Category</th>
@@ -174,7 +175,7 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 								$else:
 									<th></th><td><strong>You did not provided an image!</strong></th>
 							</tr><tr>
-								<th>Product URL:</th><td><a href="$ri.get('product_url')">$ri.get('product_url', '')</a></td>
+								<th>Get It Here:</th><td><a href="$ri.get('product_url')">$ri.get('product_url', '')</a></td>
 							</tr><tr>
 								<th>Source URL:</th><td><a href="$ri.get('link')">$ri.get('link', '')</a></td>
 							</tr><tr>
@@ -238,12 +239,12 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					<td><textarea i="11" class="descrentry" name="description11" id="description11"></textarea></td>
 				</tr>
 				<tr>
-					<th><label for="product_url11">Product URL</label></th>
+					<th><label for="product_url11">Get It Here</label></th>
 					<td><input i="11" type="text" class="urlproduct_url" name="product_url11" id="product_url11" placeholder="Where can you buy this item? www.rolex.com"/></td>
 				</tr>
 				<tr>
 					<th><label for="tags11">#Tags</label></th>
-					<td><input name="tags11" i="11" placeholder="#this #is #awesome" id="tags11" type="text" class="tagwords"/></td>
+					<td><input name="tags11" i="11" placeholder="#this is awesome #product" id="tags11" type="text" class="tagwords"/></td>
 				</tr>
 				<tr>
 					<th><label for="price11">Price (optional)</label></th>
@@ -272,6 +273,9 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 	<div><button id="load_more_button">Load more</button></div>
 </div><!-- added -->
 </div><!-- tabs -->
+<div id="wait_for_process_to_finish_layer">
+	<div><img src="/static/img/loading.gif"></div>
+</div>
 <script type="text/html" id="pin_template">
 <div class="pin_image">
 	<a href="/p/<%= external_id %>" target="_blank" title="See full size">
@@ -285,7 +289,7 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 	<tr><th>Descr.</th><td><%= description %></td></tr>
 <% } %>
 <% if (product_url !== null && product_url !== '') { %>
-	<tr><th>Product Link</th><td><a href="<%= product_url %>" title="<%= product_url %>">
+	<tr><th>Get It Here</th><td><a href="<%= product_url %>" title="<%= product_url %>">
 			<%= separate_product %>
 		</a></td></tr>
 <% } %>
@@ -294,7 +298,7 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 			<%= separate_link %>
 		</a></td></tr>
 <% } %>
-	<tr><th>Tags</th><td><%= tags %></td></tr>
+	<tr><th>Tags</th><td><%= $$.put_hash_symbol(tags) %></td></tr>
 		
 <% if (price !== 'None') { %>
 	<tr><th>Price</th><td>$$<%= price %></td></tr>
@@ -304,3 +308,11 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 		<button class="button_pin_delete" pinid="<%= id %>">Delete</button></td></tr>
 </table>
 </script>
+$if result_info:
+	<script language="javascript">
+	jQuery(function() {
+	$for ri in result_info:
+		$if ri['error']:
+			$$.put_failed_pin_to_edit($:ri['json']);
+	});
+	</script>

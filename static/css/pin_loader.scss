@@ -49,3 +49,25 @@ div.pin_image img {
 p {
 	font-size: 80%;
 }
+
+#wait_for_process_to_finish_layer {
+	display:none;
+	position:fixed;
+	top:0;
+	left:0;
+	width:100%;
+	height:100%;
+	z-index:10;
+	background-color:rgba(60,60,60,0.3);
+}
+
+#wait_for_process_to_finish_layer div {
+	width:300px;
+	height:300px;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.error_text {
+	font-size: 1.3em;
+}

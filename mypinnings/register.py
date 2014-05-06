@@ -14,6 +14,7 @@ from mypinnings import database
 from mypinnings import cached_models
 from mypinnings import pin_utils
 from mypinnings.conf import settings
+from mypinnings.api import api_request, convert_to_id
 
 
 urls = ('/after-signup/(\d*)', 'PageAfterSignup',
@@ -55,24 +56,42 @@ class PageRegister:
     def POST(self):
         form = self._form()
         if form.validates():
-            if auth.email_exists(form.d.email):
-                self.msg('Sorry, that email already exists.')
+            # if auth.email_exists(form.d.email):
+            #     self.msg('Sorry, that email already exists.')
 
-            if auth.username_exists(form.d.username):
-                self.msg('Sorry, that username already exists.')
+            # if auth.username_exists(form.d.username):
+            #     self.msg('Sorry, that username already exists.')
 
-            activation = random.randint(1, 10000)
-            hashed = hash(str(activation))
+            # activation = random.randint(1, 10000)
+            # hashed = hash(str(activation))
 
-            user_id = auth.create_user(form.d.email, form.d.password, name=form.d.name, username=form.d.username, activation=activation,
-                                       locale=form.d.language)
-            if not user_id:
-                msg = _('Sorry, a database error occurred and we couldn\'t create your account.')
+            # user_id = auth.create_user(form.d.email, form.d.password, name=form.d.name, username=form.d.username, activation=activation,
+            #                            locale=form.d.language)
+            # if not user_id:
+            #     msg = _('Sorry, a database error occurred and we couldn\'t create your account.')
+            #     return template.tpl('register/reg', form, msg)
+            # add_default_lists(user_id)
+            # send_activation_email(form.d.email, hashed, user_id)
+            # auth.login_user(session.get_session(), user_id)
+            # raise web.seeother('/after-signup')
+
+            data = {
+                "uname": form.d.username,
+                "pwd": form.d.password,
+                "email": form.d.email,
+                "first_name": form.d.name,
+                "language": form.d.language
+            }
+
+            data = api_request("api/signup/register", "POST", data)
+            if data['status'] == 200:
+                user_id = convert_to_id(data['data']['logintoken'])
+                if user_id:
+                    auth.login_user(session.get_session(), user_id)
+                    raise web.seeother('/after-signup')
+            else:
+                msg = _(data['error_code'])
                 return template.tpl('register/reg', form, msg)
-            add_default_lists(user_id)
-            send_activation_email(form.d.email, hashed, user_id)
-            auth.login_user(session.get_session(), user_id)
-            raise web.seeother('/after-signup')
         else:
             message = _('Please enter an username, full name, email, pasword, and language.')
             return template.tpl('register/reg', form, message)

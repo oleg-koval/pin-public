@@ -1,5 +1,3 @@
-import os
-import os.path
 import json
 import logging
 import urllib
@@ -27,7 +25,7 @@ class ListCategories(object):
         results = db.query('''select root.id, root.name, child.id as child_id, child.name as child_name, child.is_default_sub_category
                                     from categories root left join categories child on root.id=child.parent
                                     where root.parent is NULL
-                                    order by root.name, child.name
+                                    order by root.position desc, root.name, child.name
                                     '''
                                   )
         category_list = []
@@ -238,26 +236,31 @@ class AddCategory(object):
     def POST(self):
         web_input = web.input(name=None, number_of_sub_categories=None)
         name = web_input['name']
+        slug = web_input['slug']
+        position = int(web_input.get('position', 0))
         number_of_sub_categories = web_input['number_of_sub_categories']
-        if not name or not number_of_sub_categories:
+        if not name or not slug or not number_of_sub_categories:
             return template.admin.category_add('No category added. Review your data')
         db = database.get_db()
         t = db.transaction()
         try:
-            category_id = db.insert(tablename='categories', seqname='categories_id_seq', name=name, is_default_sub_category=False, parent=None)
+            category_id = db.insert(tablename='categories', seqname='categories_id_seq', name=name, slug=slug,
+                                    position=position, is_default_sub_category=False, parent=None)
             number_of_sub_categories = int(number_of_sub_categories)
             default_sub_category = web_input.get('default-sub-category', None)
             default_sub_category_mark_not_found = True
             last_sub_category_id = None
             for i in range(number_of_sub_categories):
                 name = web_input.get('name{}'.format(i), None)
-                if name:
+                slug = web_input.get('slug{}'.format(i), None)
+                position = int(web_input.get('position{}'.format(i), 0))
+                if name and slug:
                     is_default = False
                     if default_sub_category and int(default_sub_category) == i:
                         is_default = True
                         default_sub_category_mark_not_found = False
                     last_sub_category_id = db.insert(tablename='categories', seqname='categories_id_seq', name=name,
-                              is_default_sub_category=is_default, parent=category_id)
+                              slug=slug, position=position, is_default_sub_category=is_default, parent=category_id)
             if default_sub_category_mark_not_found and last_sub_category_id:
                 db.update(tables='categories', where='id=$id', vars={'id': last_sub_category_id}, is_default_sub_category=True)
             t.commit()
@@ -291,12 +294,15 @@ class EditCategory(object):
         self.category_id = category_id
         self.web_input = web.input(name=None, number_of_sub_categories=None)
         name = self.web_input['name']
+        slug = self.web_input['slug']
+        position = int(self.web_input.get('position', 0))
         self.number_of_sub_categories = self.web_input['number_of_sub_categories']
-        if name:
+        if name and slug:
             self.db = database.get_db()
             transaction = self.db.transaction()
             try:
-                self.db.update(tables='categories', where='id=$id', vars={'id': category_id}, name=name)
+                self.db.update(tables='categories', where='id=$id', vars={'id': category_id}, name=name, slug=slug,
+                               position=position)
                 if self.number_of_sub_categories:
                     self.save_sub_categories()
                 transaction.commit()
@@ -321,6 +327,8 @@ class EditCategory(object):
         for i in range(number_of_sub_categories):
             subid = self.web_input.get('subid{}'.format(i), None)
             name = self.web_input.get('name{}'.format(i), None)
+            slug = self.web_input.get('slug{}'.format(i), None)
+            position = int(self.web_input.get('position{}'.format(i), 0))
             if default_sub_category_mark_not_found and default_sub_category == i:
                 is_default = True
                 default_sub_category_mark_not_found = False
@@ -329,12 +337,12 @@ class EditCategory(object):
             if subid:
                 self.db.update(tables='categories', where=('id=$id and parent=$parent'),
                           vars={'id': subid, 'parent': self.category_id},
-                          name=name, is_default_sub_category=is_default)
+                          name=name, slug=slug, position=position, is_default_sub_category=is_default)
                 last_sub_category_id = subid
                 self.ids_found.append(int(subid))
             elif name:
                 last_sub_category_id = self.db.insert(tablename='categories', seqname='categories_id_seq', name=name,
-                      is_default_sub_category=is_default, parent=self.category_id)
+                      slug=slug, position=position, is_default_sub_category=is_default, parent=self.category_id)
                 self.ids_found.append(last_sub_category_id)
         if default_sub_category_mark_not_found and last_sub_category_id:
             self.db.update(tables='categories', where='id=$id', vars={'id': last_sub_category_id}, is_default_sub_category=True)
@@ -360,11 +368,14 @@ class EditCategory(object):
                 pins_to_move.append({'pin_id': row.pin_id, 'category_id': row.category_id})
             self.db.multiple_insert(tablename='pins_categories', values=pins_to_move)
             self.db.delete(table='pins_categories', where='category_id in ({})'.format(ids_to_delete_list))
+            self.db.delete(table='cool_pins', where='category_id in ({})'.format(ids_to_delete_list))
+            self.db.delete(table='user_prefered_categories', where='category_id in ({})'.format(ids_to_delete_list))
             # remove the sub-categories
             self.db.delete('categories', where='id in ({})'.format(ids_to_delete_list))
             
             
 class DeleteCategory(object):
+    @login_required
     def GET(self, category_id):
         db = database.get_db()
         results = db.where(table='categories', id=category_id)
@@ -397,6 +408,7 @@ class DeleteCategory(object):
                           web.form.Button('Delete category'))
         return F()
     
+    @login_required
     def POST(self, category_id):
         self.others = tuple()
         form = self.get_form()
