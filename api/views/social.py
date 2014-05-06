@@ -223,11 +223,11 @@ class QueryFollowers(BaseAPI):
 
         Can be testing samples:
 
-        curl http://localhost:8080/api/social/query/oleg/follow - returns all
-        users who followed by user oleg
+        curl http://localhost:8080/api/social/query/oleg/follow\
+        ?csid_from_client=1 - returns all users who followed by user oleg
 
-        curl http://localhost:8080/api/social/query/oleg/follower - returns
-        all users who follow user oleg
+        curl http://localhost:8080/api/social/query/oleg/follower\
+        ?csid_from_client=1 - returns all users who follow user oleg
         """
 
         data = web.input()
@@ -261,4 +261,7 @@ class QueryFollowers(BaseAPI):
 
         # Composing user ids
         user_id_list = [follower[kwparams['what']] for follower in followers]
-        return api_response(data={'user_id_list': user_id_list})
+        csid_from_client = data.pop('csid_from_client')
+        return api_response(data={'user_id_list': user_id_list},
+                            csid_from_client=csid_from_client,
+                            csid_from_server="")
