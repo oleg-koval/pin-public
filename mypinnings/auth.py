@@ -143,7 +143,24 @@ def chage_user_password(user_id, password):
     pw_salt = generate_salt()
     pw_hash = str(hash(pw_hash + pw_salt))
 
-    return database.get_db().update('users', where='id=$id', vars={'id': user_id}, pw_hash=pw_hash, pw_salt=pw_salt)
+    return database.get_db().update('users', where='id=$id', 
+        vars={'id': user_id}, pw_hash=pw_hash, pw_salt=pw_salt)
+
+
+def check_password(uname, pwd, email):
+    '''
+    Checks password. Returns status and error message.
+    '''
+    if not pwd or len(pwd) < 6:
+        return False, "Your password must have at least 6 characters."
+    if all(c.isdigit() for c in pwd):
+        return False, "Your password cannot contains only digits."
+    if pwd == uname:
+        return False, "Your password is equal to your username."
+    if pwd == email:
+        return False, "Your password is equal to your email."
+
+    return True, ""
 
 
 class UniqueUsernameMixin(object):

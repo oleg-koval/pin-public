@@ -83,8 +83,10 @@ class SetPrivacy(BaseUserProfile):
         if not status:
             return response_or_user
 
-        db.update('users', where='id = %s' % (response_or_user['id']),
-                  **data)
+        if len(data) > 0:
+            db.update('users', where='id = %s' % (response_or_user['id']),
+                      **data)
+
         csid_from_server = response_or_user['seriesid']
         return api_response(data=data,
                             csid_from_client=csid_from_client,
@@ -129,8 +131,10 @@ class UserInfoUpdate(BaseUserProfile):
             item = request_data.get(field)
             if item:
                 to_insert[field] = item
-        db.update('users', where='id = %s' % (response_or_user['id']),
-                  **to_insert)
+
+        if len(to_insert) > 0:
+            db.update('users', where='id = %s' % (response_or_user['id']),
+                      **to_insert)
         csid_from_server = response_or_user['seriesid']
         return api_response(data=request_data,
                             csid_from_client=csid_from_client,
@@ -220,8 +224,8 @@ class ManageGetList(BaseAPI):
             add_list_result = self.add(response_or_user["id"],
                                        image_id_add_list)
 
-        image_id_remove_list = map(int, request_data\
-                                   .get("image_id_remove_list"))
+        image_id_remove_list = map(int,
+                                   request_data.get("image_id_remove_list"))
         remove_list_result = []
         if len(image_id_remove_list) > 0:
             remove_list_result = self.remove(response_or_user["id"],
@@ -317,7 +321,9 @@ class ChangePassword(BaseAPI):
 
         status, error = self.passwords_validation(pw_salt, pw_hash,
                                                   old_password, new_password,
-                                                  new_password2)
+                                                  new_password2,
+                                                  response_or_user["username"],
+                                                  response_or_user["email"])
         if status:
             new_password_hash = self.create_password(pw_salt, new_password)
             db.update('users', pw_hash=new_password_hash,
@@ -337,12 +343,24 @@ class ChangePassword(BaseAPI):
             }
             response = api_response(data, csid_from_client,
                                     csid_from_server=csid_from_server)
-            return response
         else:
-            return error
+            data = {}
+            user = db.select('users', {'id': response_or_user["id"]},
+                             where='id=$id')[0]
+            csid_from_server = user.get('seriesid')
+            csid_from_client = request_data.get("csid_from_client")
+
+            response = api_response(data=data,
+                                    status=400,
+                                    error_code=error,
+                                    csid_from_client=csid_from_client,
+                                    csid_from_server=csid_from_server)
+
+        return response
 
     def passwords_validation(self, pw_salt, pw_hash, old_pwd=None,
-                             new_pwd=None, new_pwd2=None):
+                             new_pwd=None, new_pwd2=None, uname=None,
+                             email=None):
         """
         Check if new password match with confirmation.
         Check relevance old password.
@@ -359,6 +377,10 @@ class ChangePassword(BaseAPI):
 
         if str(hash(str(hash(old_pwd)) + pw_salt)) != pw_hash:
             return False, self.access_denied("Incorrect old password")
+
+        pwd_status, error_code = auth.check_password(uname, new_pwd, email)
+        if not pwd_status:
+            return False, error_code
 
         return True, "Success"
 
