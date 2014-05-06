@@ -59,10 +59,6 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 							<td><input i="$i" type="text" class="imagelink" name="imageurl$i" id="imageurl$i" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
-							<th><label for="image$i">Image File</label></th>
-							<td><input i="$i" type="file" class="imagefile" name="image$i" id="image$i" style="width: 450px;font-size: 1.3em;"/></td>
-						</tr>
-						<tr>
 							<th><label for="link$i">Original Source URL</label></th>
 							<td><input name="link$i" i="$i" placeholder="The original source for this image" id="link$i" type="text" class="urllink" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
@@ -105,10 +101,6 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 						<tr>
 							<th><label for="imageurl$j">Image URL</label></th>
 							<td><input i="$j" type="text" class="imagelink" name="imageurl$j" id="imageurl$j" style="width: 450px;font-size: 1.3em;"/></td>
-						</tr>
-						<tr>
-							<th><label for="image$j">Image File</label></th>
-							<td><input i="$j" type="file" class="imagefile" name="image$j" id="image$j" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="link$j">Original Source URL</label></th>
@@ -168,12 +160,7 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 							</tr><tr>
 								<th>Description:</th><td>$ri.get('description', '')</td>
 							</tr><tr>
-								$if ri.get('imageurl', False):
-									<th>Tried this Image URL:</th><td><a href="$ri['imageurl']">$ri['imageurl']</a></td>
-								$elif ri.get('image', False):
-									<th>Tried this Image uploaded by you:</th><td>$ri.get('image', '')</td>
-								$else:
-									<th></th><td><strong>You did not provided an image!</strong></th>
+								<th>Tried this Image URL:</th><td><a href="$ri['imageurl']">$ri['imageurl']</a></td>
 							</tr><tr>
 								<th>Get It Here:</th><td><a href="$ri.get('product_url')">$ri.get('product_url', '')</a></td>
 							</tr><tr>
@@ -221,10 +208,6 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 				<tr>
 					<th><label for="imageurl11">Image URL</label></th>
 					<td><input i="11" type="text" class="imagelink" name="imageurl11" id="imageurl11"/></td>
-				</tr>
-				<tr>
-					<th><label for="image11">Image File</label></th>
-					<td><input i="11" type="file" class="imagefile" name="image11" id="image11"/></td>
 				</tr>
 				<tr>
 					<th><label for="link11">Source URL</label></th>
