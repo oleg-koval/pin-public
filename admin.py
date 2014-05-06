@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import os.path
+import datetime
 from gettext import gettext as _
 
 from PIL import Image
@@ -173,7 +174,7 @@ class PageSearch:
         if allusers is not None:
             query = make_query(USERS_QUERY % '')
             results = db.query(query)
-            return template.admin.search(results)
+            return template.admin.search(self.fix_creation_date(results))
 
         search_query = params.query
         if search_query is None:
@@ -186,7 +187,15 @@ class PageSearch:
                 users.about ilike $search''')
 
         results = db.query(query, vars={'search': '%%%s%%' % search_query})
-        return template.admin.search(results)
+        return template.admin.search(self.fix_creation_date(results))
+
+    def fix_creation_date(self, results):
+        fixed = []
+        for row in results:
+            date_created = datetime.date.fromtimestamp(row.timestamp)
+            row['creation_date'] = date_created.isoformat()
+            fixed.append(row)
+        return fixed
 
 
 class PageUser:

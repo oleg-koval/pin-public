@@ -36,16 +36,6 @@ class PinLoaderPage(object):
                              web.form.Textbox('imageurl8', **{'class': 'imagelink', 'i': 8}),
                              web.form.Textbox('imageurl9', **{'class': 'imagelink', 'i': 9}),
                              web.form.Textbox('imageurl10', **{'class': 'imagelink', 'i': 10}),
-                             web.form.File('image1', **{'class': 'imagefile', 'i': 1}),
-                             web.form.File('image2', **{'class': 'imagefile', 'i': 2}),
-                             web.form.File('image3', **{'class': 'imagefile', 'i': 3}),
-                             web.form.File('image4', **{'class': 'imagefile', 'i': 4}),
-                             web.form.File('image5', **{'class': 'imagefile', 'i': 5}),
-                             web.form.File('image6', **{'class': 'imagefile', 'i': 6}),
-                             web.form.File('image7', **{'class': 'imagefile', 'i': 7}),
-                             web.form.File('image8', **{'class': 'imagefile', 'i': 8}),
-                             web.form.File('image9', **{'class': 'imagefile', 'i': 9}),
-                             web.form.File('image10', **{'class': 'imagefile', 'i': 10}),
                              web.form.Textbox('title1', **{'class': 'titleentry', 'i': 1}),
                              web.form.Textbox('title2', **{'class': 'titleentry', 'i': 2}),
                              web.form.Textbox('title3', **{'class': 'titleentry', 'i': 3}),
@@ -183,18 +173,16 @@ class PinLoaderPage(object):
             link = form['link' + i]
             product_url = form['product_url' + i]
             imageurl = form['imageurl' + i]
-            image = web.input(**{'image' + i: {}}).get('image' + i, None)
             tags = form['tags' + i]
             price = form['price' + i]
             price_range = form['price_range' + i]
-            error = self.validate_errors(title, description, link, product_url, imageurl, image, tags, price,
+            error = self.validate_errors(title, description, link, product_url, imageurl, tags, price,
                                          price_range)
             result_info['title'] = title.value
             result_info['description'] = description.value
             result_info['link'] = link.value
             result_info['product_url'] = product_url.value
             result_info['imageurl'] = imageurl.value
-            result_info['image'] = image.filename
             result_info['tags'] = tags.value
             result_info['price'] = price.value
             result_info['price_range'] = price_range.value
@@ -204,7 +192,7 @@ class PinLoaderPage(object):
                 return result_info
             try:
                 transaction = self.db.transaction()
-                filename = self.save_image(self.pin_id, imageurl, image)
+                filename = self.save_image(self.pin_id, imageurl)
                 self.pin_id = self.save_pin_in_db(title.value, description.value, link.value,
                                              tags.value, price.value, imageurl.value,
                                              product_url.value, price_range.value, filename)
@@ -220,7 +208,7 @@ class PinLoaderPage(object):
             result_info['error'] = ''
         return result_info
 
-    def validate_errors(self, title, description, link, product_url, imageurl, image, tags, price,
+    def validate_errors(self, title, description, link, product_url, imageurl, tags, price,
                         price_range):
         if not link.value and not product_url.value:
             return _("You must provide at least one of source link or product link")
@@ -228,8 +216,8 @@ class PinLoaderPage(object):
             return _("No tags")
         if not price_range.value:
             return _("No price range")
-        if not image.filename and not imageurl.value:
-            return _("No image URL or no uploaded image file")
+        if not imageurl.value:
+            return _("No image URL")
         return None
 
     def save_pin_in_db(self, title, description, link, tags, price, imageurl, product_url,
@@ -246,15 +234,9 @@ class PinLoaderPage(object):
             raise
 
     
-    def save_image(self, pin_id, imageurl, image):
-        if imageurl and imageurl.value:
-            filename, _ = urllib.urlretrieve(imageurl.value)
-            return filename
-        else:
-            new_filename = 'static/tmp/{}'.format(image.filename)
-            with open(new_filename, 'w') as f:
-                f.write(image.file.read())
-            return new_filename
+    def save_image(self, pin_id, imageurl):
+        filename, _ = urllib.urlretrieve(imageurl.value)
+        return filename
 
 
 PIN_LIST_LIMIT = 20
@@ -380,57 +362,3 @@ class LoadersEditAPI(object):
             return json.dumps({'status': 'ok'})
         else:
             return web.notfound()
-
-
-class UpdatePin(object):
-    def POST(self):
-        sess = session.get_session()
-        result_info = []
-        pin_id = int(web.input(id11=0)['id11'])
-        name = web.input(title11=None)['title11']
-        description = web.input(description11=None)['description11']
-        image = web.input(image11={})['image11']
-        tags = web.input(tags11=None)['tags11']
-        link = web.input(link11=None)['link11']
-        product_url = web.input(product_url11=None)['product_url11']
-        price = web.input(price11=None)['price11'] or None
-        price_range = web.input(price_range11=None)['price_range11']
-        categories = web.input(category11=None)['categories11']
-        errors = {'error': 'Invalid data',
-                  'index': 11,
-                  'pin_id': pin_id,
-                  'title': name,
-                  'description': description,
-                  'imageurl': '',
-                  'image': image.filename,
-                  'tags': tags,
-                  'price': price,
-                  'link': link,
-                  'product_url': product_url}
-        if pin_id > 0 and name  and tags and (link or product_url) and price_range:
-            db = database.get_db()
-            pin_utils.update_base_pin_information(db,
-                                                  pin_id,
-                                                  sess.user_id,
-                                                  name,
-                                                  description,
-                                                  link,
-                                                  tags,
-                                                  price,
-                                                  product_url,
-                                                  price_range)
-            categories = [int(c) for c in categories.split(',')]
-            pin_utils.update_pin_into_categories(db, pin_id, categories)
-            try:
-                new_filename = 'static/tmp/{}'.format(image.filename)
-                with open(new_filename, 'w') as f:
-                    f.write(image.file.read())
-                pin_utils.update_pin_images(db, pin_id, sess.user_id, new_filename)
-            except Exception as e:
-                logger.error('Could not save the image for pin: {} from URL: {}'.format(pin_id, image.filename), exc_info=True)
-                errors['error'] = str(e)
-                result_info.append(errors)
-        else:
-            result_info.append(errors)
-        sess.result_info = result_info
-        return web.seeother(url='/admin/input/#added', absolute=True)
