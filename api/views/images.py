@@ -51,15 +51,21 @@ class ImageUpload(BaseAPI):
             filename = "%s.%s" % (uuid.uuid4().hex[:10], filename)
         return filename
 
+
 class ImageQuery(BaseAPI):
     """
     Image query for getting information about image
+
+    method need some actual "logintoken" in security reason
     """
     def POST(self):
         """
         You can tested it using:
-        curl --data "csid_from_client=1&query_type=all&image_data_list=[200,890]" \
+        curl --data "csid_from_client=1&query_type=all&logintoken=2mwvVHVFga&
+        query_params=840&query_params=841&&query_params=842"
         http://localhost:8080/api/image/query
+
+        "image_url" in response related with "link" in pins table.
         """
         request_data = web.input(query_params=[],)
         save_api_request(request_data)
@@ -77,7 +83,7 @@ class ImageQuery(BaseAPI):
         image_data_list = []
         if len(query_params) > 0:
             image_data_list = self.query_image(query_params)
-        
+
         csid_from_client = request_data.get("csid_from_client")
         data = {
             "image_data_list": image_data_list,
@@ -85,20 +91,22 @@ class ImageQuery(BaseAPI):
         response = api_response(data,
                                 csid_from_client=csid_from_client,
                                 csid_from_server=csid_from_server)
-        return response 
+        return response
 
-    def query_image(self, image_data_list):
-        for param in query_params:
-            pass
-            
-        image_properties = {
-            "image_id":image_id,
-            "image_title":image_title,
-            "image_desc":image_desc,
-            "image_url":image_url,
-            "image_hash_tag":image_hash_tag,
-            }
-        return True
+    def query_image(self, query_params):
+        image_data_list = []
+        for image_id in query_params:
+            image = db.select('pins', where='id = %s' % (image_id)).list()
+
+            if len(image) > 0:
+                image_properties = {
+                    "image_id": image_id,
+                    "image_title": image[0]['name'],
+                    "image_desc": image[0]['description'],
+                    "image_url": image[0]['link'], }
+                image_data_list.append(image_properties)
+
+        return image_data_list
 
 
 class ManageProperties(BaseAPI):
@@ -144,7 +152,7 @@ class ManageProperties(BaseAPI):
             update_data['description'] = image_desc
             data['image_desc'] = image_desc
         if product_url:
-            update_data['product_url'] = product_url
+            update_data['link'] = product_url
             data['product_url'] = product_url
 
         # Temporary unavailable field
@@ -158,7 +166,7 @@ class ManageProperties(BaseAPI):
 
         csid_from_server = user['seriesid']
 
-        tags = db.select('tags', where='pin_id = %s' % (image_id))
+        tags = db.select('tags', where='pin_id = %s' % (image_id)).list()
         if len(tags) > 0:
             tags = tags[0]['tags'].split()
             tags = set(tags) - set(hash_tag_remove_list)
@@ -181,6 +189,7 @@ class ManageProperties(BaseAPI):
                                 csid_from_client=csid_from_client,
                                 csid_from_server=csid_from_server)
         return response
+
 
 class Categorize(BaseAPI):
     """
