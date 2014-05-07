@@ -7,6 +7,7 @@ import math
 from api.views.base import BaseAPI
 from api.utils import api_response, save_api_request
 from mypinnings.database import connect_db
+from mypinnings.conf import settings
 
 
 db = connect_db()
@@ -286,9 +287,13 @@ class QueryCategory(BaseAPI):
                         image_id_list.append(pin['pin_id'])
 
         elif query_type == "new":
-            timestamp_with_delta = int((datetime.datetime.utcnow() -
-                                        datetime.timedelta(days=7))
-                                       .strftime("%s"))
+            timestamp_with_delta = int(
+                (
+                    datetime.datetime.utcnow() -
+                    datetime.timedelta(days=settings.PIN_NEW_DAYS)
+                )
+                .strftime("%s")
+            )
             for category_id in category_id_list:
                 pins = db.query("SELECT * FROM pins_categories \
                                 JOIN pins ON pins_categories.pin_id = pins.id \
