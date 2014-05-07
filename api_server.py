@@ -32,6 +32,7 @@ urls = (
 
     # API to upload images
     "/image/upload", api.views.images.ImageUpload,
+    "/image/query", api.views.images.ImageQuery,
     "/image/mp", api.views.images.ManageProperties,
     "/image/categorize", api.views.images.Categorize,
     "/image/query/category", api.views.images.QueryCategory,
