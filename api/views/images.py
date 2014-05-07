@@ -54,7 +54,7 @@ class ImageUpload(BaseAPI):
 
 class ManageProperties(BaseAPI):
     """
-    Manage properties method
+    API method for changing pin properties
     """
     def POST(self):
         request_data = web.input(
@@ -125,6 +125,57 @@ class ManageProperties(BaseAPI):
         if status == 200 and len(update_data) > 0:
             db.update('pins', where='id = %s' % (image_id),
                       **update_data)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+
+class Categorize(BaseAPI):
+    """
+    API method for changing category of pin
+    """
+    def POST(self):
+        request_data = web.input(
+            category_id_list=[],
+        )
+
+        update_data = {}
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from request
+        image_id = request_data.get("image_id")
+        category_id_list = map(int,
+                               request_data.get("category_id_list"))
+
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        if not image_id:
+            status = 400
+            error_code = "Invalid input data"
+
+        data['image_id'] = image_id
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+
+        if status == 200:
+            db.delete('pins_categories', where='pin_id = %s' % (image_id))
+            for category_id in category_id_list:
+                db.insert('pins_categories',
+                          pin_id=image_id,
+                          category_id=category_id)
 
         response = api_response(data=data,
                                 status=status,
