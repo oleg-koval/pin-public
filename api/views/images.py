@@ -276,68 +276,143 @@ class QueryCategory(BaseAPI):
 
         csid_from_server = user['seriesid']
 
-        image_id_list = []
         if query_type == "all" or not query_type:
-            for category_id in category_id_list:
-                pins = db.select('pins_categories',
-                                 where='category_id = %s' % (category_id))
-
-                for pin in pins:
-                    if pin['pin_id'] not in image_id_list:
-                        image_id_list.append(pin['pin_id'])
+            data = self.get_all(category_id_list)
 
         elif query_type == "new":
-            timestamp_with_delta = int(
-                (
-                    datetime.datetime.utcnow() -
-                    datetime.timedelta(days=settings.PIN_NEW_DAYS)
-                )
-                .strftime("%s")
-            )
-            for category_id in category_id_list:
-                pins = db.query("SELECT * FROM pins_categories \
-                                JOIN pins ON pins_categories.pin_id = pins.id \
-                                WHERE pins_categories.category_id = %s and \
-                                pins.timestamp >= %d" % (category_id,
-                                                         timestamp_with_delta))
-
-                for pin in pins:
-                    if pin['pin_id'] not in image_id_list:
-                        image_id_list.append(pin['pin_id'])
+            data = self.get_new(category_id_list)
 
         elif query_type == "range":
-            if not page:
-                page = 1
-            else:
-                page = int(page)
-                if page < 1:
-                    page = 1
-            if not items_per_page:
-                items_per_page = 10
-                if items_per_page < 1:
-                    items_per_page = 1
-            else:
-                items_per_page = int(items_per_page)
+            data = self.get_range(category_id_list, page, items_per_page)
 
-            for category_id in category_id_list:
-                pins = db.select('pins_categories',
-                                 where='category_id = %s' % (category_id))
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
 
-                for pin in pins:
-                    if pin['pin_id'] not in image_id_list:
-                        image_id_list.append(pin['pin_id'])
+    def get_all(self, category_id_list):
+        data = {}
+        image_id_list = []
+        for category_id in category_id_list:
+            pins = db.select('pins_categories',
+                             where='category_id = %s' % (category_id))\
+                .list()
 
-            data['pages_count'] = math.ceil(float(len(image_id_list)) /
-                                            float(items_per_page))
-            data['pages_count'] = int(data['pages_count'])
-            data['page'] = page
-            data['items_per_page'] = items_per_page
-
-            start = (page-1) * items_per_page
-            end = start + items_per_page
-            image_id_list = image_id_list[start:end]
+            for pin in pins:
+                if pin['pin_id'] not in image_id_list:
+                    image_id_list.append(pin['pin_id'])
 
         data['image_id_list'] = image_id_list
+
+        return data
+
+    def get_new(self, category_id_list):
+        data = {}
+        image_id_list = []
+        timestamp_with_delta = int(
+            (
+                datetime.datetime.utcnow() -
+                datetime.timedelta(days=settings.PIN_NEW_DAYS)
+            )
+            .strftime("%s")
+        )
+        for category_id in category_id_list:
+            pins = db.query("SELECT * FROM pins_categories \
+                            JOIN pins ON pins_categories.pin_id = pins.id \
+                            WHERE pins_categories.category_id = %s and \
+                            pins.timestamp >= %d" % (category_id,
+                                                     timestamp_with_delta))\
+                .list()
+
+            for pin in pins:
+                if pin['pin_id'] not in image_id_list:
+                    image_id_list.append(pin['pin_id'])
+
+        data['image_id_list'] = image_id_list
+
+        return data
+
+    def get_range(self, category_id_list, page, items_per_page):
+        data = {}
+        image_id_list = []
+
+        if not page:
+            page = 1
+        else:
+            page = int(page)
+            if page < 1:
+                page = 1
+        if not items_per_page:
+            items_per_page = 10
+            if items_per_page < 1:
+                items_per_page = 1
+        else:
+            items_per_page = int(items_per_page)
+
+        for category_id in category_id_list:
+            pins = db.select('pins_categories',
+                             where='category_id = %s' % (category_id))\
+                .list()
+
+            for pin in pins:
+                if pin['pin_id'] not in image_id_list:
+                    image_id_list.append(pin['pin_id'])
+
+        data['pages_count'] = math.ceil(float(len(image_id_list)) /
+                                        float(items_per_page))
+        data['pages_count'] = int(data['pages_count'])
+        data['page'] = page
+        data['items_per_page'] = items_per_page
+
+        start = (page-1) * items_per_page
+        end = start + items_per_page
+        data['image_id_list'] = image_id_list[start:end]
+
+        return data
+
+
+class QueryHashtags(BaseAPI):
+    """
+    API method for get hashtags of pin
+    """
+    def POST(self):
+        request_data = web.input()
+
+        update_data = {}
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from request
+        image_id = request_data.get("image_id")
+
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        if not image_id:
+            status = 400
+            error_code = "Invalid input data"
+
+        data['image_id'] = image_id
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+
+        if status == 200:
+            tags = db.select('tags', where='pin_id = %s' % (image_id)).list()
+            if len(tags) > 0:
+                tags = tags[0]['tags'].split()
+            else:
+                tags = []
+
+            data['hashtag_list'] = tags
 
         response = api_response(data=data,
                                 status=status,
