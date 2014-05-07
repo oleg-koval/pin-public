@@ -32,6 +32,7 @@ urls = (
 
     # API to upload images
     "/image/upload", api.views.images.ImageUpload,
+    "/image/mp", api.views.images.ManageProperties,
 
     # API to user profile: manage user products
     "/profile/mgl", api.views.profile.ManageGetList,
