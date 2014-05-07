@@ -1,6 +1,8 @@
 import os
 import web
 import uuid
+import datetime
+import math
 
 from api.views.base import BaseAPI
 from api.utils import api_response, save_api_request
@@ -176,6 +178,104 @@ class Categorize(BaseAPI):
                 db.insert('pins_categories',
                           pin_id=image_id,
                           category_id=category_id)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+
+class QueryCategory(BaseAPI):
+    """
+    API for receiving pins by category
+    """
+    def POST(self):
+        request_data = web.input(
+            category_id_list=[],
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from request
+        query_type = request_data.get("query_type")
+        category_id_list = map(int,
+                               request_data.get("category_id_list"))
+        page = request_data.get("page")
+        items_per_page = request_data.get("items_per_page")
+
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+
+        image_id_list = []
+        if query_type == "all" or not query_type:
+            for category_id in category_id_list:
+                pins = db.select('pins_categories',
+                                 where='category_id = %s' % (category_id))
+
+                for pin in pins:
+                    if pin['pin_id'] not in image_id_list:
+                        image_id_list.append(pin['pin_id'])
+
+        elif query_type == "new":
+            timestamp_with_delta = int((datetime.datetime.utcnow() -
+                                        datetime.timedelta(days=7))
+                                       .strftime("%s"))
+            for category_id in category_id_list:
+                pins = db.query("SELECT * FROM pins_categories \
+                                JOIN pins ON pins_categories.pin_id = pins.id \
+                                WHERE pins_categories.category_id = %s and \
+                                pins.timestamp >= %d" % (category_id,
+                                                         timestamp_with_delta))
+
+                for pin in pins:
+                    if pin['pin_id'] not in image_id_list:
+                        image_id_list.append(pin['pin_id'])
+
+        elif query_type == "range":
+            if not page:
+                page = 1
+            else:
+                page = int(page)
+                if page < 1:
+                    page = 1
+            if not items_per_page:
+                items_per_page = 10
+                if items_per_page < 1:
+                    items_per_page = 1
+            else:
+                items_per_page = int(items_per_page)
+
+            for category_id in category_id_list:
+                pins = db.select('pins_categories',
+                                 where='category_id = %s' % (category_id))
+
+                for pin in pins:
+                    if pin['pin_id'] not in image_id_list:
+                        image_id_list.append(pin['pin_id'])
+
+            data['pages_count'] = math.ceil(float(len(image_id_list)) /
+                                            float(items_per_page))
+            data['pages_count'] = int(data['pages_count'])
+            data['page'] = page
+            data['items_per_page'] = items_per_page
+
+            start = (page-1) * items_per_page
+            end = start + items_per_page
+            image_id_list = image_id_list[start:end]
+
+        data['image_id_list'] = image_id_list
 
         response = api_response(data=data,
                                 status=status,

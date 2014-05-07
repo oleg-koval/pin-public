@@ -34,6 +34,7 @@ urls = (
     "/image/upload", api.views.images.ImageUpload,
     "/image/mp", api.views.images.ManageProperties,
     "/image/categorize", api.views.images.Categorize,
+    "/image/query/category", api.views.images.QueryCategory,
 
     # API to user profile: manage user products
     "/profile/mgl", api.views.profile.ManageGetList,
