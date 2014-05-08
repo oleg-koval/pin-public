@@ -32,6 +32,7 @@ urls = ('', 'admin.PageIndex',
         '/login', 'admin.PageLogin',
         '/search', 'admin.PageSearch',
         '/search/(all)', 'admin.PageSearch',
+        '/search-results', 'admin.PageSearchResults',
         '/create', 'admin.PageCreate',
         '/user/(\d*)/change_password', 'admin.ChangePassword',
         '/user/(\d*)/change_pic/', 'admin.ChangeUserPicture',
@@ -149,8 +150,10 @@ USERS_QUERY = '''
                               friends.id2 = users.id)
         left join pins p1 on p1.repin = users.id
         left join pins p2 on p2.user_id = users.id
-        %s
-        group by users.id'''
+    {where}
+    group by users.id
+    order by {sort} {dir}
+    offset {offset} limit {limit}'''
 
 
 class PageSearch:
@@ -161,33 +164,50 @@ class PageSearch:
 
     def GET(self, allusers=None):
         login()
+        params = web.input(query='')
+        query = params.query
+        if allusers:
+            return template.admin.search('')
+        elif query:
+            return template.admin.search(query)
+        else:
+            return template.admin.searchform(self._form())
 
-        params = web.input(order=None, query=None)
-        order = params.order
 
-        def make_query(query):
-            if order is not None:
-                return query + (' order by %s' % order)
-            return query
+class PageSearchResults:
+    _form = form.Form(
+        form.Textbox('query'),
+        form.Button('search')
+    )
+    
+    page_size = 50
 
-        db = database.get_db()
-        if allusers is not None:
-            query = make_query(USERS_QUERY % '')
-            results = db.query(query)
-            return template.admin.search(self.fix_creation_date(results))
+    def GET(self, allusers=None):
+        login()
 
+        params = web.input(page=1, sort='users.name', dir='asc', query='')
+        page = int(params.page) - 1
+        sort = params.sort
+        direction = params.dir
         search_query = params.query
-        if search_query is None:
-            return template.admin.searchform(self._form(), params)
 
-        query = make_query(USERS_QUERY % '''
-            where
-                users.email ilike $search or
-                users.name ilike $search or
-                users.about ilike $search''')
-
-        results = db.query(query, vars={'search': '%%%s%%' % search_query})
-        return template.admin.search(self.fix_creation_date(results))
+        if search_query:
+            where = """where
+            users.email ilike '%%{query}%%' or
+            users.name ilike '%%{query}%%' or
+            users.about ilike '%%{query}%%'""".format(query=search_query)
+        else:
+            where = ''
+        query = USERS_QUERY.format(where=where,
+                                  sort=sort,
+                                  dir=direction,
+                                  offset=page * self.page_size,
+                                  limit=self.page_size)
+            
+        db = database.get_db()
+        results = db.query(query)
+        results = self.fix_creation_date(results)
+        return web.template.frender('t/admin/search_results.html')(results)
 
     def fix_creation_date(self, results):
         fixed = []
