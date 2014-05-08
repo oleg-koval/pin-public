@@ -91,7 +91,6 @@ class Register(BaseAPI):
             pwd - user password
             email - user email
             first_name - user first name
-            last_name - user last name
             language - user language
 
             output response also included:
@@ -131,8 +130,8 @@ class Register(BaseAPI):
             user = db.select('users', {'id': user_id}, where='id=$id')[0]
             login_token = user.get('logintoken')
             data.update({
-                "login_token": login_token,
-                "hashed_activation": hashed,
+                "logintoken": login_token,
+                # "hashed_activation": hashed,
                 })
         else:
             status_error = 405
@@ -164,6 +163,10 @@ class Register(BaseAPI):
                 error_code += str(field)+"' for register method SignUp APIs"
                 return False, error_code
 
+        pwd_status, error_code = auth.check_password(uname, pwd, email)
+        if not pwd_status:
+            return False, error_code
+
         if auth.email_exists(email):
             error_code = 'Sorry, that email already exists.'
             return False, error_code
@@ -173,3 +176,53 @@ class Register(BaseAPI):
             return False, error_code
 
         return True, error_code
+
+class Confirmuser(BaseAPI):
+    """Confirmation of user email
+
+    Response:
+        status = 200 or error_code
+    """
+    def POST(self):
+        """
+        Compare given activation code with existed. 
+        If they are identical - activate new user
+        """
+        status_error = 200
+        error_code = ""
+        data = {}
+
+        request_data = web.input()
+        save_api_request(request_data)
+        login_token = request_data.get("logintoken")
+        hashed_activation = request_data.get("hashed_activation")
+        csid_from_client = request_data.get('csid_from_client')
+
+        status, response_or_user = self.authenticate_by_token(login_token)
+        if not status:
+            return response_or_user
+
+        user = db.select('users', {'id': response_or_user['id']}, where='id=$id')[0]
+        csid_from_server = user.get('seriesid')
+        activation = user.get('activation')
+        hashed = hash(str(activation))
+ 
+        if hashed != int(hashed_activation):
+            status_error = 405
+            error_code = "wrong activation code given from user"
+
+        if status_error == 200:
+            db.update('users', activation=0,
+                      vars={'id': response_or_user["id"]}, where="id=$id")
+
+        response = api_response(
+            data,
+            status=status_error,
+            error_code=error_code,
+            csid_from_client=csid_from_client,
+            csid_from_server=csid_from_server,)
+
+        return response
+
+
+        

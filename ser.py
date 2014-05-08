@@ -35,9 +35,13 @@ import mypinnings.facebook
 import mypinnings.google
 import mypinnings.register_twitter
 import mypinnings.pin
+import mypinnings.profile_settings
 import admin
 import glob
 import api_server
+
+from mypinnings.api import api_request, convert_to_id, convert_to_logintoken
+
 # #
 
 web.config.debug = True
@@ -49,6 +53,7 @@ urls = (
     '/register_twitter', mypinnings.register_twitter.app,
     '/register', mypinnings.register.app,
     '/pin', mypinnings.pin.app,
+    '/settings', mypinnings.profile_settings.app,
     '/', 'PageIndex',
     '/(first-time)', 'PageIndex',
     '/login', 'PageLogin',
@@ -56,7 +61,7 @@ urls = (
     '/reg-checkpw', 'PageCheckPassword',
     '/reg-checkemail', 'PageCheckEmail',
     '/activate', 'PageActivate',
-    '/resend-activation', 'PageResendActivation',
+    '/resend-activation', 'mypinnings.register.PageResendActivation',
     '/logout', 'PageLogout',
     '/dashboard', 'PageDashboard',
     '/lists/(\d+)/items/?','mypinnings.lists.ListItemsJson',
@@ -70,13 +75,13 @@ urls = (
     '/add-from-website', 'PageAddPinUrl',
     '/add-to-your-own-getlist/(\d*)', 'PageRepin',
     '/remove-from-own-getlist', 'PageRemoveRepin',
-    '/settings', 'PageEditProfile',
-    '/settings/(email)', 'PageEditProfile',
-    '/settings/(profile)', 'PageEditProfile',
-    '/settings/(password)', 'PageEditProfile',
-    '/settings/(social-media)', 'PageEditProfile',
-    '/settings/(privacy)', 'PageEditProfile',
-    '/settings/(email-settings)', 'PageEditProfile',
+    # '/settings', 'PageEditProfile',
+    # '/settings/(email)', 'PageEditProfile',
+    # '/settings/(profile)', 'PageEditProfile',
+    # '/settings/(password)', 'PageEditProfile',
+    # '/settings/(social-media)', 'PageEditProfile',
+    # '/settings/(privacy)', 'PageEditProfile',
+    # '/settings/(email-settings)', 'PageEditProfile',
     '/p/(.*)', 'PagePin',
     '/messages', 'PageMessages',
     '/newconvo/(\d*)', 'PageNewConvo',
@@ -89,10 +94,10 @@ urls = (
     '/users', 'PageUsers',
     '/notifications', 'PageNotifications',
     '/notif/(\d*)', 'PageNotif',
-    '/changepw', 'PageChangePw',
-    '/changesm', 'PageChangeSM',
-    '/changeprivacy', 'PageChangePrivacy',
-    '/changeemail', 'PageChangeEmail',
+    # '/changepw', 'PageChangePw',
+    # '/changesm', 'PageChangeSM',
+    # '/changeprivacy', 'PageChangePrivacy',
+    # '/changeemail', 'PageChangeEmail',
     '/categories/(.*?)/', 'PageViewCategory',
     '/changebg', 'PageChangeBG',
     '/bg/remove', 'PageRemoveBg',
@@ -222,7 +227,7 @@ class PageIndex:
                 left join follows on follows.follow = users.id
                 left join categories on categories.id in
                     (select category_id from pins_categories where pin_id = pins.id limit 1)
-            where follows.follower = $id
+            where users.id = $id
             group by tags.tags, categories.id, pins.id, users.id offset %d limit %d'''
 
         query2 = '''
@@ -330,10 +335,22 @@ class PageActivate:
         key = web.input(key='').key
         uid = web.input(uid=0).uid
 
-        user = dbget('users', uid)
-        if user:
-            if key == hash(str(user.activation)):
-                db.update('users', where='id=$id', vars={'id': uid}, activation=0)
+        logintoken = convert_to_logintoken(uid)
+
+        if logintoken:
+            data = {
+                "logintoken": logintoken,
+                "hashed_activation": key,
+            }
+
+            data = api_request("api/signup/confirmuser", "POST", data)
+
+
+        # user = dbget('users', uid)
+        # if user:
+        #     if key == hash(str(user.activation)):
+        #         db.update('users', where='id=$id', vars={'id': uid}, activation=0)
+
         raise web.seeother('/')
 
 
@@ -639,24 +656,24 @@ class PageEditProfile:
 
 
 
-class PageChangeEmail:
-    _form = form.Form(
-        form.Textbox('email'),
-        form.Textbox('username'))
+# class PageChangeEmail:
+#     _form = form.Form(
+#         form.Textbox('email'),
+#         form.Textbox('username'))
 
-    # @csrf_protected # Verify this is not CSRF, or fail
-    def POST(self):
-        force_login(sess)
+#     # @csrf_protected # Verify this is not CSRF, or fail
+#     def POST(self):
+#         force_login(sess)
 
-        form = self._form()
-        if not form.validates():
-            return 'you need to fill in everything'
-        if db.select('users', where='email = $email', vars={'email' : form.d.email}):
-            return 'Pick another email address'
-        if db.select('users', where='username = $username', vars={'username':form.d.username}):
-            return 'Pick another username'
-        db.update('users', where='id = $id', vars={'id': sess.user_id}, email=form.d.email, username=form.d.username)
-        raise web.seeother('/settings/email')
+#         form = self._form()
+#         if not form.validates():
+#             return 'you need to fill in everything'
+#         if db.select('users', where='email = $email', vars={'email' : form.d.email}):
+#             return 'Pick another email address'
+#         if db.select('users', where='username = $username', vars={'username':form.d.username}):
+#             return 'Pick another username'
+#         db.update('users', where='id = $id', vars={'id': sess.user_id}, email=form.d.email, username=form.d.username)
+#         raise web.seeother('/settings/email')
 
 
 class PageConnect:
@@ -1156,73 +1173,91 @@ class PageNotif:
         raise web.seeother(url)
 
 
-class PageChangePw:
-    _form = form.Form(
-        form.Textbox('old'),
-        form.Textbox('pwd1'),
-        form.Textbox('pwd2')
-    )
+# class PageChangePw:
+#     _form = form.Form(
+#         form.Textbox('old'),
+#         form.Textbox('pwd1'),
+#         form.Textbox('pwd2')
+#     )
 
-    def POST(self):
-        force_login(sess)
+#     def POST(self):
+#         force_login(sess)
 
-        form = self._form()
-        if not form.validates():
-            raise web.seeother('/settings/password?msg=bad input', absolute=True)
+#         form = self._form()
+#         if not form.validates():
+#             raise web.seeother('/settings/password?msg=bad input', absolute=True)
 
-        user = dbget('users', sess.user_id)
-        if not user:
-            raise web.seeother('/settings/password?msg=error getting user', absolute=True)
+#         # user = dbget('users', sess.user_id)
+#         # if not user:
+#         #     raise web.seeother('/settings/password?msg=error getting user', absolute=True)
 
-        if form.d.pwd1 != form.d.pwd2:
-            raise web.seeother('/settings/password?msg=Your passwords don\'t match!', absolute=True)
+#         # if form.d.pwd1 != form.d.pwd2:
+#         #     raise web.seeother('/settings/password?msg=Your passwords don\'t match!', absolute=True)
 
-        if not form.d.pwd1 or len(form.d.pwd1) < 6:
-            raise web.seeother('/settings/password?msg=Your password must have at least 6 characters.', absolute=True)
+#         if not form.d.pwd1 or len(form.d.pwd1) < 6:
+#             raise web.seeother('/settings/password?msg=Your password must have at least 6 characters.', absolute=True)
 
-        if not auth.authenticate_user_username(user.username, form.d.old):
-            raise web.seeother('/settings/password?msg=Your old password did not match!', absolute=True)
+#         # if not auth.authenticate_user_username(user.username, form.d.old):
+#         #     raise web.seeother('/settings/password?msg=Your old password did not match!', absolute=True)
 
-        auth.chage_user_password(sess.user_id, form.d.pwd1)
-        raise web.seeother('/settings/password')
+#         logintoken = convert_to_logintoken(sess.user_id)
 
+#         if logintoken:
+#             data = {
+#                 "old_password": form.d.old,
+#                 "new_password": form.d.pwd1,
+#                 "new_password2": form.d.pwd2,
+#                 "logintoken": logintoken
+#             }
 
-class PageChangeSM:
-    _form = form.Form(
-        form.Textbox('facebook'),
-        form.Textbox('linkedin'),
-        form.Textbox('twitter'),
-        form.Textbox('gplus'),
-    )
-
-    def POST(self):
-        force_login(sess)
-
-        form = self._form()
-        if not form.validates():
-            return 'bad input'
-
-        user = dbget('users', sess.user_id)
-        if not user:
-            return 'error getting user'
-
-        db.update('users', where='id = $id', vars={'id': sess.user_id}, **form.d)
-        raise web.seeother('/settings/social-media')
+#             data = api_request("api/profile/pwd", "POST", data)
+#             if data['status'] == 200:
+#                 raise web.seeother('/settings/password')
+#             else:
+#                 msg = data['error_code']
+#                 raise web.seeother('/settings/password?msg=%s' % msg, absolute=True)
 
 
-class PageChangePrivacy:
-    _form = form.Form(
-        form.Checkbox('private'),
-    )
+#         # auth.chage_user_password(sess.user_id, form.d.pwd1)
+        
 
-    def POST(self):
-        force_login(sess)
 
-        form = self._form()
-        form.validates()
+# class PageChangeSM:
+#     _form = form.Form(
+#         form.Textbox('facebook'),
+#         form.Textbox('linkedin'),
+#         form.Textbox('twitter'),
+#         form.Textbox('gplus'),
+#     )
 
-        db.update('users', where='id = $id', vars={'id': sess.user_id}, **form.d)
-        raise web.seeother('/settings/privacy')
+#     def POST(self):
+#         force_login(sess)
+
+#         form = self._form()
+#         if not form.validates():
+#             return 'bad input'
+
+#         user = dbget('users', sess.user_id)
+#         if not user:
+#             return 'error getting user'
+
+#         db.update('users', where='id = $id', vars={'id': sess.user_id}, **form.d)
+#         raise web.seeother('/settings/social-media')
+
+
+# class PageChangePrivacy:
+#     _form = form.Form(
+#         form.Checkbox('private'),
+#     )
+
+#     def POST(self):
+#         force_login(sess)
+
+#         form = self._form()
+#         form.validates()
+
+#         db.update('users', where='id = $id', vars={'id': sess.user_id}, **form.d)
+#         raise web.seeother('/settings/privacy')
 
 
 class PageUnfriend:
