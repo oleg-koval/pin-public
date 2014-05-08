@@ -45,6 +45,7 @@ urls = (
     "/profile/userinfo/info/(?P<profile>\w+)", api.views.profile.ProfileInfo,
     "/profile/userinfo/set_privacy", api.views.profile.SetPrivacy,
     "/profile/userinfo/boards", api.views.profile.QueryBoards,
+    "/profile/userinfo/pins", api.views.profile.QueryPins,
 
     # API to user profile: change user password
     "/profile/pwd", api.views.profile.ChangePassword,

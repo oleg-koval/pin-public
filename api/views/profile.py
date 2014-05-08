@@ -468,3 +468,35 @@ class QueryBoards(BaseAPI):
         return api_response(data=boards.list(),
                             csid_from_server=csid_from_server,
                             csid_from_client=csid_from_client)
+
+
+class QueryPins(BaseAPI):
+    """
+    Responsible for getting pins of a given user
+    """
+    def POST(self):
+        """ Returns all pins associated with a given user
+
+        Required parameters:
+        user_id: required parameter, sent via request data
+        csid_from_client
+
+        Can be tested using the following command:
+        curl --data "user_id=2&csid_from_client=1" \
+        http://localhost:8080/api/profile/userinfo/pins
+        """
+        request_data = web.input()
+        csid_from_client = request_data.get('csid_from_client')
+        csid_from_server = ""
+        user_id = request_data.get('user_id')
+
+        if not user_id:
+            return api_response(data={}, status=405,
+                                error_code="Missing user_id")
+        pins = db.select('pins',
+                           where='user_id=$user_id',
+                           vars={'user_id': user_id})
+
+        return api_response(data=pins.list(),
+                            csid_from_server=csid_from_server,
+                            csid_from_client=csid_from_client)
