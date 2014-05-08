@@ -1,3 +1,4 @@
+""" Implements images part of the API """
 import os
 import web
 import uuid
@@ -8,48 +9,112 @@ from api.views.base import BaseAPI
 from api.utils import api_response, save_api_request
 from mypinnings.database import connect_db
 from mypinnings.conf import settings
-
+from mypinnings.media import store_image_from_filename
 
 db = connect_db()
 
 
 class ImageUpload(BaseAPI):
+    """ Handles image upload and storing it on the file system """
     def POST(self):
-        data = web.input()
-        save_api_request(data)
-        userfile = web.input(image_file={})
-        file_url = self.upload_file(userfile)
-        if file_url:
-            data = {
-                "file_url": file_url
-            }
-            return api_response(data=data)
-        data = {}
-        return api_response(data=data)
+        """ Images upload main handler
 
-    def upload_file(self, file_obj, upload_dir=None):
+        Can be tested using the following command:
+        curl -F "image_title=some_title" -F "image_descr=some_descr" \
+        -F "image_file=@/home/oleg/Desktop/hard.jpg" \
+        http://localhost:8080/api/image/upload
+        """
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        request_data = web.input(image_file={})
+        logintoken = request_data.get('logintoken')
+
+        user_status, user = self.authenticate_by_token(logintoken)
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        csid_from_client = request_data.get("csid_from_client")
+
+        save_api_request(request_data)
+        file_obj = request_data.get('image_file')
+
+        # For some reason, FileStorage object treats itself as False
+        if type(file_obj) == dict:
+            return api_response(data={}, status=405,
+                                error_code="Required args are missing")
+
+        file_path = self.save_file(file_obj)
+        images_dict = store_image_from_filename(db,
+                                                file_path,
+                                                widths=(202, 212))
+
+        image_kwargs = {'name': request_data.get("image_title"),
+                        'description': request_data.get("image_descr"),
+                        'user_id': user['id'],
+                        'link': request_data.get("link"),
+                        'product_url': request_data.get("product_url"),
+                        'image_url': images_dict[0]['url'],
+                        'image_width': images_dict[0]['width'],
+                        'image_height': images_dict[0]['height'],
+                        'image_202_url': images_dict[202]['url'],
+                        'image_202_height': images_dict[202]['height'],
+                        'image_212_url': images_dict[212]['url'],
+                        'image_212_height': images_dict[212]['height']}
+
+        self.create_db_record(image_kwargs)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+
+        return response
+
+    def create_db_record(self, kwargs):
+        """
+        Creates image record in the database.
+        """
+        # Do not record empty fields
+        kwargs = {key: value for (key, value) in kwargs.items()
+                  if value is not None}
+        db.insert("pins", **kwargs)
+
+    def save_file(self, file_obj, upload_dir=None):
+        """
+        Saves uploaded file to a given upload dir.
+        """
         if not upload_dir:
             upload_dir = self.get_media_path()
-        filename = file_obj.image_file.filename
-        filename = self.check_file_existence(filename, upload_dir)
-        print filename
+        filename = file_obj.filename
+        filename = self.get_file_name(filename, upload_dir)
         filepath = os.path.join(upload_dir, filename)
         upload_file = open(filepath, 'w')
-        upload_file.write(file_obj.image_file.file.read())
+        upload_file.write(file_obj.file.read())
         upload_file.close()
         return filepath
 
-    def get_media_path(self, media_dir="media"):
-        current_path = os.path.realpath(os.path.dirname(__file__))
-        prj_dir = os.path.join(current_path, "..", "..")
-        media_path = os.path.join(prj_dir, media_dir)
+    def get_media_path(self):
+        """
+        Returns or creates media directory.
+        """
+        media_path = settings.MEDIA_PATH
         if not os.path.exists(media_path):
             os.makedirs(media_path)
         return media_path
 
-    def check_file_existence(self, filename, upload_dir):
+    def get_file_name(self, filename, upload_dir):
+        """
+        Method responsible for avoiding duplicated filenames.
+        """
         filepath = os.path.join(upload_dir, filename)
         exists = os.path.isfile(filepath)
+        # Suggest uuid hex as a filename to avoid duplicates
         if exists:
             filename = "%s.%s" % (uuid.uuid4().hex[:10], filename)
         return filename
