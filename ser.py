@@ -402,7 +402,7 @@ class NewPageAddPinForm:
                                        title=data.title,
                                        description=data.comments,
                                        link=data.weblink,
-                                       tags=None,
+                                       tags=data.hashtags,
                                        price=None,
                                        product_url='',
                                        price_range=1,
@@ -468,7 +468,7 @@ class PageAddPinUrl:
                                  title=data.title,
                                  description=data.description,
                                  link=link,
-                                 tags=None,
+                                 tags=data.hashtags,
                                  price=None,
                                  product_url=data.websiteurl,
                                  price_range=data.price,
@@ -726,7 +726,7 @@ class PagePin:
 
         if logged and sess.user_id != pin.user_id:
             db.update('pins', where='id = $id', vars={'id': pin.id}, views=web.SQLLiteral('views + 1'))
-            
+
         results = db.where(table='tags', pin_id=pin.id)
         pin.tags = [row.tags for row in results]
 
