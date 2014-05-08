@@ -217,17 +217,19 @@ class QueryFollowers(BaseAPI):
     """
     Class responsible for providing access to followers of a given user
     """
-    def GET(self, username, query_type):
+    def POST(self, username, query_type):
         """ Depending on query_type (which can be follow or followers) returns
         a list of users (ids), following or followed by current user
 
         Can be testing samples:
 
-        curl http://localhost:8080/api/social/query/oleg/follow\
-        ?csid_from_client=1 - returns all users who followed by user oleg
+        curl --data "csid_from_client=1" \
+        http://localhost:8080/api/social/query/oleg/follow
+        returns all users who followed by user oleg
 
-        curl http://localhost:8080/api/social/query/oleg/follower\
-        ?csid_from_client=1 - returns all users who follow user oleg
+        curl --data "csid_from_client=1" \
+        http://localhost:8080/api/social/query/oleg/follower
+        returns all users who follow user oleg
         """
 
         data = web.input()
