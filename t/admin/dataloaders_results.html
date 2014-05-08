@@ -1,8 +1,11 @@
 $def with (query)
-<h1>Search results</h1>
+<h1>Data loaders</h1>
 <ul class="nav nav-tabs">
-  <li class="active"><a href="#">Users of any Kind</a></li>
-  <li><a href="/admin/dataloaders-results?query=$query">Data loaders</a></li>
+  $if query:
+    <li><a href="/admin/search?query=$query">Users of any Kind</a></li>
+  $else:
+    <li><a href="/admin/search/all">Users of any Kind</a></li>
+  <li class="active"><a href="#">Data loaders</a></li>
 </ul>
    <table id="results_table">
        <thead>
@@ -36,7 +39,7 @@ $def with (query)
 $$(document).ready(
 	function() {
 		$$("#results_table").ingrid({ 
-			url: '/admin/search-results',
+			url: '/admin/dataloaders-results/pagination',
 			initialLoad: true,
 			height: 600,
 			colWidths: [200, 200, 200, 50, 50, 50, 50, 120],
