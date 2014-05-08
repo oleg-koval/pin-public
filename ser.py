@@ -463,41 +463,61 @@ class PageAddPinUrl:
     def POST(self):
         force_login(sess)
         data = web.input()
-        transaction = db.transaction()
-        try:
-            fname = self.upload_image(data.image_url)
+        # transaction = db.transaction()
+        # try:
+        fname = self.upload_image(data.image_url)
 
-            link = data.link
-            if link and '://' not in link:
-                link = 'http://%s' % link
+        link = data.link
+        if link and '://' not in link:
+            link = 'http://%s' % link
 
-            # create a new board if necessary
-            if data.list:
-                board_id = int(data.list)
-            elif data.board_name:
-                board_id = db.insert(tablename='boards', name=data.board_name, description=data.board_name,
-                                     user_id=sess.user_id)
-            else:
-                board_id = None
+        # create a new board if necessary
+        if data.list:
+            board_id = int(data.list)
+        elif data.board_name:
+            board_id = db.insert(tablename='boards', name=data.board_name, description=data.board_name,
+                                 user_id=sess.user_id)
+        else:
+            board_id = None
 
-            pin = pin_utils.create_pin(db=db,
-                                 user_id=sess.user_id,
-                                 title=data.title,
-                                 description=data.description,
-                                 link=link,
-                                 tags=None,
-                                 price=None,
-                                 product_url=data.websiteurl,
-                                 price_range=data.price,
-                                 image_filename=fname,
-                                 board_id=board_id)
-            transaction.commit()
-            return '/p/%s' % pin.external_id
-        except Exception as e:
-            logger.error('Failed to create a pin from an image URL', exc_info=True)
-            transaction.rollback()
-            return web.seeother(url='?msg={}'.format('This is embarrassing. We where unable to create the product. Please try again.'),
-                         absolute=False)
+        logintoken = convert_to_logintoken(sess.user_id)
+
+        data = {
+            'image_title': data.title,
+            'image_descr': data.description,
+            'link': link,
+            'price': None,
+            'product_url': data.websiteurl,
+            'price_range': data.price,
+            'board_id': board_id,
+            "csid_from_client": '',
+            "logintoken": logintoken
+        }
+
+        files = {'image_file': open(fname)}
+
+        data = api_request("api/image/upload", "POST", data, files)
+        if data['status'] == 200:
+            return '/p/%s' % data['data']['external_id']
+
+            # pin = pin_utils.create_pin(db=db,
+            #                      user_id=sess.user_id,
+            #                      title=data.title,
+            #                      description=data.description,
+            #                      link=link,
+            #                      tags=None,
+            #                      price=None,
+            #                      product_url=data.websiteurl,
+            #                      price_range=data.price,
+            #                      image_filename=fname,
+            #                      board_id=board_id)
+            # transaction.commit()
+            # return '/p/%s' % pin.external_id
+        # except Exception as e:
+        #     logger.error('Failed to create a pin from an image URL', exc_info=True)
+        #     transaction.rollback()
+        #     return web.seeother(url='?msg={}'.format('This is embarrassing. We where unable to create the product. Please try again.'),
+        #                  absolute=False)
 
 
 class PageRemoveRepin:

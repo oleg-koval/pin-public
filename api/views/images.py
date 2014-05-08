@@ -4,7 +4,9 @@ import web
 import uuid
 import datetime
 import math
+import random
 
+from mypinnings import database
 from api.views.base import BaseAPI
 from api.utils import api_response, save_api_request
 from mypinnings.database import connect_db
@@ -12,6 +14,9 @@ from mypinnings.conf import settings
 from mypinnings.media import store_image_from_filename
 
 db = connect_db()
+
+DIGITS_AND_LETTERS = \
+    'abcdefghijklmnopqrstuvwxwzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
 
 
 class ImageUpload(BaseAPI):
@@ -53,6 +58,8 @@ class ImageUpload(BaseAPI):
                                                 file_path,
                                                 widths=(202, 212))
 
+        external_id = _generate_external_id()
+
         image_kwargs = {'name': request_data.get("image_title"),
                         'description': request_data.get("image_descr"),
                         'user_id': user['id'],
@@ -61,6 +68,7 @@ class ImageUpload(BaseAPI):
                         'price': request_data.get("price"),
                         'price_range': request_data.get("price_range"),
                         'board_id': request_data.get("board_id"),
+                        'external_id': external_id,
                         'image_url': images_dict[0]['url'],
                         'image_width': images_dict[0]['width'],
                         'image_height': images_dict[0]['height'],
@@ -69,7 +77,10 @@ class ImageUpload(BaseAPI):
                         'image_212_url': images_dict[212]['url'],
                         'image_212_height': images_dict[212]['height']}
 
-        self.create_db_record(image_kwargs)
+        pin_id = self.create_db_record(image_kwargs)
+
+        data['image_id'] = pin_id
+        data['external_id'] = external_id
 
         response = api_response(data=data,
                                 status=status,
@@ -86,7 +97,7 @@ class ImageUpload(BaseAPI):
         # Do not record empty fields
         kwargs = {key: value for (key, value) in kwargs.items()
                   if value is not None}
-        db.insert("pins", **kwargs)
+        return db.insert("pins", **kwargs)
 
     def save_file(self, file_obj, upload_dir=None):
         """
@@ -488,3 +499,23 @@ class QueryHashtags(BaseAPI):
                                 csid_from_client=csid_from_client,
                                 csid_from_server=csid_from_server)
         return response
+
+
+def _generate_external_id():
+    id = _new_external_id()
+    while _already_exists(id):
+        id = _new_external_id()
+    return id
+
+
+def _new_external_id():
+    digits_and_letters = random.sample(DIGITS_AND_LETTERS, 9)
+    return ''.join(digits_and_letters)
+
+
+def _already_exists(id):
+    db = database.get_db()
+    results = db.where('pins', external_id=id)
+    for _ in results:
+        return True
+    return False
