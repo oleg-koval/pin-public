@@ -109,7 +109,7 @@ class Register(BaseAPI):
         email = request_data.get("email")
         first_name = request_data.get("first_name")
         # last_name = request_data.get("last_name")
-        language = request_data.get("language", "en")
+        language = str(request_data.get("language", "en"))
 
         status_error = 200
         error_code = ""
