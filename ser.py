@@ -452,12 +452,21 @@ class NewPageAddPin:
         return json.dumps({'fname':fname, 'original_filename':original_filename})
 
 
+class MyOpener(urllib.FancyURLopener):
+    version = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; it; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11'
+
 class PageAddPinUrl:
     def upload_image(self, url):
         fname = generate_salt()
         ext = os.path.splitext(url)[1].lower()
         fname = os.path.join('static', 'tmp', '{}{}'.format(fname, ext))
-        urllib.urlretrieve(url, fname)
+        opener = MyOpener() 
+        opener.retrieve(url, fname)
+        if ext.strip() == '':
+            im = Image.open(fname)
+            new_filename = '{}{}'.format(fname, '.png')
+            im.save(new_filename)
+            return new_filename
         return fname
 
     def POST(self):
