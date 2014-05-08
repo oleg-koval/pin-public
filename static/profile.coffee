@@ -206,6 +206,14 @@ $(document).on 'click', '.category_pin_image', (event) ->
 open_pin_detail = (pinid) ->
 	$.get '/p/' + pinid + '?embed=true',
 		(data) ->
+			try
+				if window.history.state is null
+					window.history.pushState(pinid, '', '/p/' + pinid);
+				else
+					window.history.replaceState(pinid, '', '/p/' + pinid);
+			catch error
+				window.location.href = '/p/' + pinid
+				return
 			$('#show_pin_layer_content').html(data)
 			current_position = $('#show_pin_layer_content').position()
 			current_position.top = $(window).scrollTop()
@@ -214,31 +222,31 @@ open_pin_detail = (pinid) ->
 			$('#show_pin_layer').height($(window).height())
 			$('#show_pin_layer').show()
 			disable_scroll()
-			try
-				if window.history.state is null
-					window.history.pushState(pinid, '', '/p/' + pinid);
-				else
-					window.history.replaceState(pinid, '', '/p/' + pinid);
-			catch error
-				print(error)
 			return
 	return
 
 $('#show_pin_layer').on 'click', (event) ->
+	if event.target.id is 'input-comment'
+		$('#input-comment').focus()
+		return
 	event.preventDefault()
 	$(this).hide()
 	enable_scroll()
 	try
 		window.history.back();
 	catch error
-		print(error)
-	return
+		$.noop()
 	return
 	
 	
 $('#show_pin_layer_content').on 'click', (event) ->
 	event.stopPropagation()
-	event.stopInmediatePropagation()
+	try
+		event.stopInmediatePropagation()
+	catch error
+		$.noop()
+	if event.target.id is 'input-comment'
+		$('#input-comment').focus()
 	return
 	
 	
