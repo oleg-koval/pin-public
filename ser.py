@@ -405,33 +405,58 @@ def make_tag(tag):
 class NewPageAddPinForm:
     def POST(self):
         data = web.input()
-        transaction = db.transaction()
-        try:
-            if data.board:
-                board = int(data.board)
-            elif data.board_name:
-                board = db.insert(tablename='boards', name=data.board_name, description=data.board_name,
-                                  user_id = sess.user_id)
-            else:
-                board=None
-            pin = pin_utils.create_pin(db=db,
-                                       user_id=sess.user_id,
-                                       title=data.title,
-                                       description=data.comments,
-                                       link=data.weblink,
-                                       tags=None,
-                                       price=None,
-                                       product_url='',
-                                       price_range=1,
-                                       image_filename=data.fname,
-                                       board_id=board,
-                                       )
-            transaction.commit()
-            return '/p/%s' % pin.external_id
-        except Exception as e:
-            logger.error('Failed to create a pin from a file upload', exc_info=True)
-            transaction.rollback()
-            return '/'
+        # transaction = db.transaction()
+        # try:
+        if data.board:
+            board = int(data.board)
+        elif data.board_name:
+            board = db.insert(tablename='boards', name=data.board_name, description=data.board_name,
+                              user_id = sess.user_id)
+        else:
+            board=None
+
+        link = data.weblink
+        if link and '://' not in link:
+            link = 'http://%s' % link
+
+        logintoken = convert_to_logintoken(sess.user_id)
+
+        data_to_send = {
+            'image_title': data.title,
+            'image_descr': data.comments,
+            'link': link,
+            'price': None,
+            # 'product_url': data.websiteurl,
+            'price_range': 1,
+            'board_id': board,
+            "csid_from_client": '',
+            "logintoken": logintoken
+        }
+
+        files = {'image_file': open(data.fname)}
+
+        data = api_request("api/image/upload", "POST", data_to_send, files)
+        if data['status'] == 200:
+            return '/p/%s' % data['data']['external_id']
+
+            # pin = pin_utils.create_pin(db=db,
+            #                            user_id=sess.user_id,
+            #                            title=data.title,
+            #                            description=data.comments,
+            #                            link=data.weblink,
+            #                            tags=None,
+            #                            price=None,
+            #                            product_url='',
+            #                            price_range=1,
+            #                            image_filename=data.fname,
+            #                            board_id=board,
+            #                            )
+            # transaction.commit()
+            # return '/p/%s' % pin.external_id
+        # except Exception as e:
+        #     logger.error('Failed to create a pin from a file upload', exc_info=True)
+        #     transaction.rollback()
+        #     return '/'
 
 
 class NewPageAddPin:
