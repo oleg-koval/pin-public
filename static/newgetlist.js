@@ -4,6 +4,7 @@ $(document).ready(function() {
     function getMeta(url) {
         var img = new Image();
        img.src = url;
+       img.onerror = function(){gallery.loadError();}
        img.onload = function(){gallery.setdata({url: url, w: this.width, h: this.height});}
     }
     $( "#dialog-form" ).dialog({
@@ -100,7 +101,7 @@ $(document).ready(function() {
             $("#fname").val(obj.fname);
             $("#imagename").html(obj.original_filename);
 	        $( "#dialog-form" ).dialog("close");
-	        $("#imagediv").html('<img src="'+'/static/tmp/pinthumb'+obj.fname+'.png" alt="">')
+	        $("#imagediv").html('<img src="/'+obj.fname+'" alt="">')
 		    $( "#addpindialogform" ).dialog("open");
 		    $("#comments").focus();
 	    }
@@ -142,8 +143,8 @@ $(document).ready(function() {
 	            var percentVal = '100%';
                 barweb.width(percentVal)
                 percentweb.html(percentVal);
-                $( "#addpindialogformweb" ).dialog("open");
-                $("#commentsweb").focus();
+                //$( "#addpindialogformweb" ).dialog("open");
+                //$("#commentsweb").focus();
                 initgallery(data);
             }else{
                 $("#statusweb").html("please provide a valid image url");
@@ -167,19 +168,7 @@ $(document).ready(function() {
             getMeta(data["images"][i]);
         }
 
-        gallery.init();
-
-    }
-
-    function getCategories(name){
-        var elements = $("input[name="+name+"]");
-        var categories = new Array();
-        $.each(elements, function(id,v){
-            if($(v).prop('checked')){
-                categories.push($(v).val());
-            }
-        });
-        return categories.join();
+        //gallery.init();
 
     }
 
@@ -187,7 +176,6 @@ $(document).ready(function() {
         var data = {
             'title':$("#title").val(),
             'weblink':$("#weblink").val(),
-            'category':getCategories("category_check"),
             'lists':$("#board").val(),
             'comments':$("#comments").val(),
             'fname':$("#fname").val(),
@@ -199,7 +187,6 @@ $(document).ready(function() {
         var data = {
             'title':$("#titleweb").val(),
             'link':$("#weblinkweb").val(),
-            'categories':getCategories("category_check_web"),
             'description':$("#commentsweb").val(),
             'image_url':$("#image_urlweb").val(),
             'list':$("#boardweb").val(),
@@ -248,18 +235,8 @@ $(document).ready(function() {
         var title = $("#title");
         var weblink = $("#weblink");
         var list = $("#board");
-        var cat = getCategories("category_check");
-        var category = $("input[name=category_check]");
 
         var errors = new Array();
-        if(cat===""){
-            errors.push(category);
-        }else{
-            $.each(category, function(i,v){
-                $(v).attr("style", "");
-            });
-        }
-
         if(title.val()===""){
             errors.push(title);
         }else{
@@ -293,17 +270,8 @@ $(document).ready(function() {
     function validate_from_web(formData, jqForm, options) {
         var title = $("#titleweb");
         var list = $("#boardweb");
-        var cat = getCategories("category_check_web");
-        var category = $("input[name=category_check_web]");
 
         var errors = new Array();
-        if(cat===""){
-            errors.push(category);
-        }else{
-            $.each(category, function(i,v){
-                $(v).attr("style", "");
-            });
-        }
         if(title.val()===""){
             errors.push(title);
         }else{
@@ -341,6 +309,19 @@ $(document).ready(function() {
 
             if(this.lengthTotal===0){
                 this.len = this.data.length;
+                $( "#addpindialogformweb" ).dialog("open");
+                $("#commentsweb").focus();
+                this.init();
+                this.showitem();
+            }
+        },
+        loadError: function(){
+            this.lengthTotal = this.lengthTotal - 1;
+            if(this.lengthTotal===0){
+                this.len = this.data.length;
+                $( "#addpindialogformweb" ).dialog("open");
+                $("#commentsweb").focus();
+                this.init();
                 this.showitem();
             }
         },
@@ -358,6 +339,11 @@ $(document).ready(function() {
         },
         showitem : function(){
             this.element.attr("src", this.data[this.current].url);
+            if(this.data[this.current].w>this.data[this.current].h){
+                this.element.attr("class", "img-width");
+            }else{
+                this.element.attr("class", "img-height");
+            }
             $("#image_urlweb").attr("value", this.data[this.current].url);
             this.showstatus();
         },

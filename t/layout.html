@@ -9,6 +9,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
 	<script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
     <script src="http://malsup.github.com/jquery.form.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js" type="text/javascript"></script>
+    <script src="/static/js/jquery.lazyload.min.js" type="text/javascript"></script>
 	<link rel="stylesheet" href="/static/newgetlist.css">
 	<script type="text/javascript" src="/static/newgetlist.js"></script>
     <script type="text/javascript" src="/static/main.js"></script>
@@ -41,7 +42,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
                   $for cat in categories:
                     $if i % 3 == 0:
                       </tr><tr>
-                    <td style='width: 250px'><b><a href='/category/$cat['url_name']/$cat['id']'>$cat['name']</a></b></td>
+                    <td style='width: 250px'><b><a href="/category/$cat['slug']">$cat['name']</a></b></td>
                     $ i += 1
                   </tr>
                 </table>
@@ -97,7 +98,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
         $if acti_needed is not None:
             $if acti_needed:
                 <div class='notice'>Notice: You haven't activated your account yet! Please check $user.email. <a href='/resend-activation'>Resend</a></div>
-    <div id="getlist-from-web">
+    <div id="getlist-from-web" style="display:none">
     <form method="get" action="/preview"  id="web_getlist_form">
     Image Link Or website Address
 	<input type="input" name="url" id="url" placeholder="http://"><br/>
@@ -110,7 +111,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
 		<div id="statusweb"></div>
 	</div>
     </div>
-	<div id="dialog-form" >
+	<div id="dialog-form" style="display:none">
 	<form method="post" action="/newaddpin" enctype="multipart/form-data" id="upload_form">
 	<input type="file" name="image" id="image" accept="image/*" placeholder="Please choose a file"><br/>
 	    <input type="button" id="upload_cancel" value="Go Back">
@@ -124,7 +125,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
 
 	<div id="status"></div>
 	</div>
-	<div id="addpindialogform">
+	<div id="addpindialogform" style="display:none">
 	<div class="wrapper">
 	<form method="post" action="/newaddpinform" id="ajaxpinform">
 	    <div class="c1" id="imagediv">
@@ -142,19 +143,6 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
         <tr><th><label for="title"></label></th><td><div id="imagename"></div></td></tr>
         <tr><th><label for="title">Title</label></th><td><input type="text" id="title"></td></tr>
         <tr><th><label for="weblink">Link</label></th><td><input type="text" id="weblink" placeholder="Where to buy?"></td></tr>
-        <tr><th><label for="category">Category</label></th><td>
-        <div style="width: 100%; height: 200px; overflow:auto;">
-            $if categories_to_select:
-                $for category in categories_to_select:
-                    <label><input type="checkbox" name='category_check' value="$category['id']">$category['name']</label>
-                    $if category['subcategories']:
-                        $for subcat in category['subcategories']:
-                            <div class="subcategory_checkbox"><label><input type="checkbox" name='category_check' value="$subcat['id']">$subcat['name']</label></div>
-                    $else:
-                        <br>
-                </div>
-                <input type="hidden" id="categories" name="categories"/>
-                </td></tr>
 	    <tr><th><label for="board">Get list</label></th>
 	    	<td>
 	    		<div id="board_selection_layer">
@@ -182,7 +170,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
     </div>
     </form>
     </div>
-    <div id="addpindialogformweb">
+    <div id="addpindialogformweb" style="display:none">
 	<div class="wrapper">
 	<form method="post" action="/add-from-website" id="ajaxpinformweb">
 	    <div class="c1" id="imagedivweb">
@@ -200,19 +188,6 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
         <tr><th><label for="title">Title</label></th><td><input type="text" id="titleweb"></td></tr>
         <tr><th><label for="weblink">Link</label></th><td><input type="text" id="weblinkweb" placeholder="Where to buy?"></td></tr>
         <tr><th><label for="weblink">Website Link</label></th><td><input type="text" id="websitelinkweb" ></td></tr>
-        <tr><th><label for="category">Category</label></th><td>
-        <div style="width: 100%; height: 200px; overflow:auto;">
-            $if categories_to_select:
-                $for category in categories_to_select:
-                    <label><input type="checkbox" name='category_check_web' value="$category['id']">$category['name']</label>
-                    $if category['subcategories']:
-                        $for subcat in category['subcategories']:
-                            <div class="subcategory_checkbox"><label><input type="checkbox" name='category_check_web' value="$subcat['id']">$subcat['name']</label></div>
-                    $else:
-                        <br>
-                </div>
-                <input type="hidden" id="categories" name="categories"/>
-        </td></tr>
         <tr><th><label for="lists">Lists</label></th><td>
                     <div id="board_selection_layerweb">
                     <select id="boardweb" name="boardweb">

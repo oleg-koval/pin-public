@@ -1,16 +1,13 @@
 import json
-import os.path
 import logging
 
 import web
-from PIL import Image
 
 from mypinnings import database
 from mypinnings import session
 from mypinnings import template
 from mypinnings import cached_models
 from mypinnings.conf import settings
-from mypinnings import image_utils
 from mypinnings import auth
 
 
@@ -18,20 +15,19 @@ logger = logging.getLogger('mypinnings.categories')
 
 
 class PageCategory:
-    def GET(self, cid):
-        self.cid = int(cid)
+    def GET(self, slug=None):
         self.db = database.get_db()
         self.sess = session.get_session()
         auth.force_login(self.sess)
-        if self.cid == 0:
-            self.category = {'name':'Random', 'id': 0}
-        else:
-            results = self.db.where('categories', id=cid)
+        if slug:
+            results = self.db.where('categories', slug=slug)
             for r in results:
                 self.category = r
                 break
             else:
-                return 'Category not found.'
+                self.category = {'name':'Random', 'id': 0}
+        else:
+            self.category = {'name':'Random', 'id': 0}
 
         self.ajax = int(web.input(ajax=0).ajax)
         
@@ -41,10 +37,15 @@ class PageCategory:
             return self.template_for_showing_categories()
         
     def get_items_query(self):
-        if self.cid == 0:
+        if self.category['id'] == 0:
             self.where = 'random() < 0.1'
         else:
-            self.where = 'categories.id = $cid'
+            results = self.db.where(table='categories', parent=self.category['id'])
+            subcategories_ids = [str(self.category['id']),]
+            for row in results:
+                subcategories_ids.append(str(row.id))
+            subcategories_string = ','.join(subcategories_ids)
+            self.where = 'categories.id in ({})'.format(subcategories_string)
         start = web.input(start=False).start
         if start:
             offset = 0
@@ -71,28 +72,39 @@ class PageCategory:
         return self.query
 
     def template_for_showing_categories(self):
-        self.get_items_query()
-        subcategories = self.db.where(table='categories', parent=self.cid, order='is_default_sub_category desc, name')
-        existsrs = self.db.query('select exists(' + self.query + ') as exists', vars={'cid': self.cid})
-        for r in existsrs:
-            if not r.exists:
-                subcatrs = self.db.where(table='categories', parent=self.cid, is_default_sub_category=True)
-                for scrow in subcatrs:
-                    cid = scrow.id
-                    name = scrow.name
-                    return web.seeother('/category/{}/{}'.format(name, cid), absolute=True)
+        subcategories = self.db.where(table='categories', parent=self.category['id'], order='is_default_sub_category desc, name')
+        results = self.db.where(table='categories', parent=self.category['parent'], order='is_default_sub_category desc, name')
+        siblings_categories = []
+        for row in results:
+            if row.id != self.category['id']:
+                siblings_categories.append(row)
+        results = self.db.where(table='categories', id=self.category['parent'])
+        for row in results:
+            parent = row
+            break
+        else:
+            parent = None
         boards = self.db.where(table='boards', order='name', user_id=self.sess.user_id)
-        return template.ltpl('category', self.category, cached_models.all_categories, subcategories, boards)
+        return template.ltpl('category', self.category, cached_models.all_categories, subcategories, boards, siblings_categories, parent)
 
     def get_more_items_as_json(self):
         self.get_items_query()
-        pins = self.db.query(self.query, vars={'cid': self.cid})
+        pins = self.db.query(self.query)
         pin_list = []
+        current_pin = None
         for pin in pins:
-            if not image_utils.create_thumbnail_212px_for_pin(pin):
-                continue
-            pin_list.append(pin)
-            pin.price = str(pin.price)
+            if not current_pin or current_pin.id != pin.id:
+                current_pin = pin
+                tag = pin.tags
+                current_pin.tags = []
+                if tag:
+                    current_pin.tags.append(tag)
+                pin_list.append(pin)
+                pin.price = str(pin.price)
+            else:
+                tag = pin.tags
+                if tag and tag not in current_pin.tags:
+                    current_pin.tags.append(tag)
         offset = self.sess.get('offset', 0)
         if len(pin_list) > 0:
             offset = offset + 1

@@ -12,7 +12,7 @@ import api.views.social
 
 class redirect:
     """
-        Find and redirect to existed controller with '/' or without it
+    Find and redirect to existed controller with '/' or without it
     """
     def GET(self, path):
         web.seeother('/' + path)
@@ -27,19 +27,30 @@ urls = (
     # API to user signup: register user
     "/signup/register", api.views.signup.Register,
 
+    # API to user signup: confirmation user email
+    "/signup/confirmuser", api.views.signup.Confirmuser,
+
     # API to upload images
     "/image/upload", api.views.images.ImageUpload,
+    "/image/query", api.views.images.ImageQuery,
+    "/image/mp", api.views.images.ManageProperties,
+    "/image/categorize", api.views.images.Categorize,
+    "/image/query/category", api.views.images.QueryCategory,
+    "/image/query/hashtags", api.views.images.QueryHashtags,
 
     # API to user profile: manage user products
     "/profile/mgl", api.views.profile.ManageGetList,
     "/profile/userinfo/update", api.views.profile.UserInfoUpdate,
     "/profile/userinfo/get", api.views.profile.GetProfileInfo,
+    "/profile/userinfo/info/(?P<profile>\w+)", api.views.profile.ProfileInfo,
     "/profile/userinfo/set_privacy", api.views.profile.SetPrivacy,
+    "/profile/userinfo/boards", api.views.profile.QueryBoards,
 
     # API to user profile: change user password
     "/profile/pwd", api.views.profile.ChangePassword,
     # API for social networks: posting on user page
     "/social/poup", api.views.social.PostingOnUserPage,
+    "/social/query/(.*)/(follower|follow)", api.views.social.QueryFollowers
 )
 web.config.debug = True
 api_app = web.application(urls, globals(), autoreload=True)

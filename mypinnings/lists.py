@@ -2,7 +2,7 @@ import json
 
 import web
 
-from mypinnings import database, image_utils
+from mypinnings import database
 from mypinnings import session
 from mypinnings import auth
 from mypinnings.conf import settings
@@ -23,19 +23,28 @@ class ListItemsJson:
                 left join likes l1 on l1.pin_id = pins.id
                 left join users on users.id = pins.user_id
                 left join follows on follows.follow = users.id
-                join pins_categories on pins.id=pins_categories.pin_id
-                join categories on pins_categories.category_id = categories.id
+                left join pins_categories on pins.id=pins_categories.pin_id
+                left join categories on pins_categories.category_id = categories.id
                 join boards on pins.board_id = boards.id
             where boards.id = $board_id
             group by tags.tags, categories.id, pins.id, users.id
             order by timestamp desc offset $offset limit $limit'''
         results = db.query(self.query, vars={'board_id': self.board_id, 'offset': self.offset * settings.PIN_COUNT, 'limit': settings.PIN_COUNT})
         pin_list = []
+        current_pin = None
         for pin in results:
-            if not image_utils.create_thumbnail_212px_for_pin(pin):
-                continue
-            pin.price = str(pin.price)
-            pin_list.append(pin)
+            if not current_pin or current_pin.id != pin.id:
+                current_pin = pin
+                current_pin.price = str(current_pin.price)
+                pin_list.append(current_pin)
+                tag = current_pin.tags
+                current_pin.tags = []
+                if tag:
+                    current_pin.tags.append(tag)
+            else:
+                tag = pin.tags
+                if tag and tag not in current_pin.tags:
+                    current_pin.tags.append(tag)
         return pin_list
     
     def GET(self, board_id):

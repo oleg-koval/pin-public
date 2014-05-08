@@ -7,7 +7,7 @@ $.add_pin_to_page = (pin) ->
 		$.column_control = 1
 	$('.column' + $.column_control).append('<div class="shadowbox">' +
 		'<div class="pin-image" pinid="' + pin['id'] + '">' +
-		'<img class="img-responsive" src="' + pin['image_name'] + '"/>' +
+		'<img class="img-responsive" src="' + pin['image_202_url'] + '"/>' +
 		'</div></div>')
 	$.column_control += 1
 	return
