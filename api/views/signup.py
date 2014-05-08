@@ -163,6 +163,10 @@ class Register(BaseAPI):
                 error_code += str(field)+"' for register method SignUp APIs"
                 return False, error_code
 
+        pwd_status, error_code = auth.check_password(uname, pwd, email)
+        if not pwd_status:
+            return False, error_code
+
         if auth.email_exists(email):
             error_code = 'Sorry, that email already exists.'
             return False, error_code

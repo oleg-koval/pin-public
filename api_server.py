@@ -12,7 +12,7 @@ import api.views.social
 
 class redirect:
     """
-        Find and redirect to existed controller with '/' or without it
+    Find and redirect to existed controller with '/' or without it
     """
     def GET(self, path):
         web.seeother('/' + path)
@@ -32,12 +32,20 @@ urls = (
 
     # API to upload images
     "/image/upload", api.views.images.ImageUpload,
+    "/image/query", api.views.images.ImageQuery,
+    "/image/mp", api.views.images.ManageProperties,
+    "/image/categorize", api.views.images.Categorize,
+    "/image/query/category", api.views.images.QueryCategory,
+    "/image/query/hashtags", api.views.images.QueryHashtags,
 
     # API to user profile: manage user products
     "/profile/mgl", api.views.profile.ManageGetList,
     "/profile/userinfo/update", api.views.profile.UserInfoUpdate,
     "/profile/userinfo/get", api.views.profile.GetProfileInfo,
+    "/profile/userinfo/info/(?P<profile>\w+)", api.views.profile.ProfileInfo,
     "/profile/userinfo/set_privacy", api.views.profile.SetPrivacy,
+    "/profile/userinfo/boards", api.views.profile.QueryBoards,
+    "/profile/userinfo/pins", api.views.profile.QueryPins,
 
     # API to user profile: change user password
     "/profile/pwd", api.views.profile.ChangePassword,

@@ -114,9 +114,6 @@ class PageChangePw(PageEditProfile):
         if not form.validates():
             raise web.seeother('/password?msg=bad input')
 
-        if not form.d.pwd1 or len(form.d.pwd1) < 6:
-            raise web.seeother('/password?msg=Your password must have at least 6 characters.')
-
         logintoken = convert_to_logintoken(sess.user_id)
 
         if logintoken:

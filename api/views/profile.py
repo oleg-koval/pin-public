@@ -19,12 +19,25 @@ class BaseUserProfile(BaseAPI):
     General class which holds list of fields used by user profile methods
     """
     def __init__(self):
-        self._fields = ['name', 'about', 'city', 'hometown', 'about',
+        self._fields = ['id', 'name', 'about', 'city', 'hometown', 'about',
                         'email', 'pic', 'website', 'facebook', 'twitter',
                         'getlist_privacy_level', 'private']
         self._birthday_fields = ['birthday_year', 'birthday_month',
                                  'birthday_day']
         self.required = ['csid_from_client', 'logintoken']
+
+    @staticmethod
+    def format_birthday(user, response):
+        """
+        Composes birthday response, returning year, day and month
+        as separate response fields
+        """
+        if user['birthday']:
+            response['birthday_year'] = user['birthday'].year
+            response['birthday_day'] = user['birthday'].day
+            response['birthday_month'] = user['birthday'].month
+        return response
+
 
     def is_request_valid(self, request_data):
         """
@@ -83,8 +96,10 @@ class SetPrivacy(BaseUserProfile):
         if not status:
             return response_or_user
 
-        db.update('users', where='id = %s' % (response_or_user['id']),
-                  **data)
+        if len(data) > 0:
+            db.update('users', where='id = %s' % (response_or_user['id']),
+                      **data)
+
         csid_from_server = response_or_user['seriesid']
         return api_response(data=data,
                             csid_from_client=csid_from_client,
@@ -129,8 +144,10 @@ class UserInfoUpdate(BaseUserProfile):
             item = request_data.get(field)
             if item:
                 to_insert[field] = item
-        db.update('users', where='id = %s' % (response_or_user['id']),
-                  **to_insert)
+
+        if len(to_insert) > 0:
+            db.update('users', where='id = %s' % (response_or_user['id']),
+                      **to_insert)
         csid_from_server = response_or_user['seriesid']
         return api_response(data=request_data,
                             csid_from_client=csid_from_client,
@@ -164,21 +181,55 @@ class GetProfileInfo(BaseUserProfile):
         if not status:
             return response_or_user
 
-        csid_from_client = request_data.pop('csid_from_client')
+
         # User id contains error code
         if not status:
             return response_or_user
 
         response = {field: response_or_user[field] for field in self._fields}
+        csid_from_client = request_data.pop('csid_from_client')
         csid_from_server = response_or_user['seriesid']
-        # Formatting response of birthday_ year, day, month from 'birthday'
-        if response_or_user['birthday']:
-            response['birthday_year'] = response_or_user['birthday'].year
-            response['birthday_day'] = response_or_user['birthday'].day
-            response['birthday_month'] = response_or_user['birthday'].month
+        self.format_birthday(response_or_user, response)
         return api_response(data=response,
                             csid_from_client=csid_from_client,
                             csid_from_server=csid_from_server)
+
+
+class ProfileInfo(BaseUserProfile):
+    """
+    Returns publically available profile information
+    """
+
+    def POST(self, profile):
+        """ Returns profile information
+
+        Required fields:
+        - profile (sent via url)
+        - csid_from_client
+
+        Example usage:
+        curl --data "csid_from_client=11" \
+        http://localhost:8080/api/profile/userinfo/info/oleg
+        """
+        request_data = web.input()
+        # Removing logintoken from request check
+        self.required.remove('logintoken')
+        if not self.is_request_valid(request_data):
+            return api_response(data={}, status=405,
+                                error_code="Required args are missing")
+        query = db.select('users', vars={'username': profile},
+                         where='username=$username')
+        if query is not None:
+            user = query.list()[0]
+
+        response = {field: user[field] for field in self._fields}
+        csid_from_client = request_data.pop('csid_from_client')
+        csid_from_server = user['seriesid']
+        self.format_birthday(user, response)
+        return api_response(data=response,
+                            csid_from_client=csid_from_client,
+                            csid_from_server=csid_from_server)
+
 
 
 class ManageGetList(BaseAPI):
@@ -220,8 +271,8 @@ class ManageGetList(BaseAPI):
             add_list_result = self.add(response_or_user["id"],
                                        image_id_add_list)
 
-        image_id_remove_list = map(int, request_data\
-                                   .get("image_id_remove_list"))
+        image_id_remove_list = map(int,
+                                   request_data.get("image_id_remove_list"))
         remove_list_result = []
         if len(image_id_remove_list) > 0:
             remove_list_result = self.remove(response_or_user["id"],
@@ -317,7 +368,9 @@ class ChangePassword(BaseAPI):
 
         status, error = self.passwords_validation(pw_salt, pw_hash,
                                                   old_password, new_password,
-                                                  new_password2)
+                                                  new_password2,
+                                                  response_or_user["username"],
+                                                  response_or_user["email"])
         if status:
             new_password_hash = self.create_password(pw_salt, new_password)
             db.update('users', pw_hash=new_password_hash,
@@ -337,12 +390,24 @@ class ChangePassword(BaseAPI):
             }
             response = api_response(data, csid_from_client,
                                     csid_from_server=csid_from_server)
-            return response
         else:
-            return error
+            data = {}
+            user = db.select('users', {'id': response_or_user["id"]},
+                             where='id=$id')[0]
+            csid_from_server = user.get('seriesid')
+            csid_from_client = request_data.get("csid_from_client")
+
+            response = api_response(data=data,
+                                    status=400,
+                                    error_code=error,
+                                    csid_from_client=csid_from_client,
+                                    csid_from_server=csid_from_server)
+
+        return response
 
     def passwords_validation(self, pw_salt, pw_hash, old_pwd=None,
-                             new_pwd=None, new_pwd2=None):
+                             new_pwd=None, new_pwd2=None, uname=None,
+                             email=None):
         """
         Check if new password match with confirmation.
         Check relevance old password.
@@ -360,9 +425,78 @@ class ChangePassword(BaseAPI):
         if str(hash(str(hash(old_pwd)) + pw_salt)) != pw_hash:
             return False, self.access_denied("Incorrect old password")
 
+        pwd_status, error_code = auth.check_password(uname, new_pwd, email)
+        if not pwd_status:
+            return False, error_code
+
         return True, "Success"
 
     def create_password(self, pw_salt, new_pwd):
         new_pwd_hash = str(hash(new_pwd))
         new_pwd_hash = str(hash(new_pwd_hash + pw_salt))
         return new_pwd_hash
+
+
+class QueryBoards(BaseAPI):
+    """
+    Class responsible for getting boards of a given user
+    """
+    def POST(self):
+        """ Returns all boards associated with a given user
+
+        Required parameters:
+        user_id: required parameter, sent via request data
+        csid_from_client
+
+        Can be tested using the following command:
+        curl --data "user_id=2&csid_from_client=1" \
+        http://localhost:8080/api/profile/userinfo/boards
+        """
+        request_data = web.input()
+        csid_from_client = request_data.get('csid_from_client')
+        csid_from_server = ""
+        user_id = request_data.get('user_id')
+
+        if not user_id:
+            return api_response(data={}, status=405,
+                                error_code="Missing user_id")
+        boards = db.select('boards',
+                           where='user_id=$user_id',
+                           vars={'user_id': user_id})
+
+
+        return api_response(data=boards.list(),
+                            csid_from_server=csid_from_server,
+                            csid_from_client=csid_from_client)
+
+
+class QueryPins(BaseAPI):
+    """
+    Responsible for getting pins of a given user
+    """
+    def POST(self):
+        """ Returns all pins associated with a given user
+
+        Required parameters:
+        user_id: required parameter, sent via request data
+        csid_from_client
+
+        Can be tested using the following command:
+        curl --data "user_id=2&csid_from_client=1" \
+        http://localhost:8080/api/profile/userinfo/pins
+        """
+        request_data = web.input()
+        csid_from_client = request_data.get('csid_from_client')
+        csid_from_server = ""
+        user_id = request_data.get('user_id')
+
+        if not user_id:
+            return api_response(data={}, status=405,
+                                error_code="Missing user_id")
+        pins = db.select('pins',
+                           where='user_id=$user_id',
+                           vars={'user_id': user_id})
+
+        return api_response(data=pins.list(),
+                            csid_from_server=csid_from_server,
+                            csid_from_client=csid_from_client)
