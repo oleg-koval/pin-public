@@ -16,15 +16,6 @@ jQuery(function() {
       }
     }
   });
-  $('.imagefile').on('change', function(e) {
-    var i, value;
-    i = $(this).attr('i');
-    remove_error_from_field($(this), i);
-    value = $(this).val().toLowerCase();
-    if (value.indexOf('.png') === -1 && value.indexOf('.jpg') === -1 && value.indexOf('.jpeg') === -1 && value.indexOf('.gif') === -1 && value.indexOf('.svg') === -1) {
-      show_error_for_field($(this), 'Image doesn\'t seem to be in a internet friendly format: .png, ,jpg, .gif, .svn', i);
-    }
-  });
   $('.titleentry').on('change', function() {
     var i;
     i = $(this).attr('i');
@@ -66,17 +57,16 @@ jQuery(function() {
     }
   });
   validate_errors = function(i) {
-    var description, image, imageurl, link, no_error, price, product_url, tags, title;
+    var description, imageurl, link, no_error, price, product_url, tags, title;
     no_error = true;
     title = $('#title' + i);
     description = $('#description' + i);
     link = $('#link' + i);
     product_url = $('#product_url' + i);
     imageurl = $('#imageurl' + i);
-    image = $('#image' + i);
     tags = $('#tags' + i);
     price = $('#price' + i);
-    if (all_fields_blank(title, description, link, imageurl, image, tags, price, product_url)) {
+    if (all_fields_blank(title, description, link, imageurl, tags, price, product_url)) {
       return no_error;
     }
     if (title.val() === '') {
@@ -100,13 +90,13 @@ jQuery(function() {
     if (!selected_a_price_range(i)) {
       no_error = false;
     }
-    if (!validate_image(imageurl, image, i)) {
+    if (!validate_image(imageurl, i)) {
       no_error = false;
     }
     return no_error;
   };
-  all_fields_blank = function(title, description, link, imageurl, image, tags, price, product_url) {
-    return title.val() === '' && description.val() === '' && link.val() === '' && imageurl.val() === '' && tags.val() === '' && image.val() === '' && price.val() === '' && product_url.val() === '';
+  all_fields_blank = function(title, description, link, imageurl, tags, price, product_url) {
+    return title.val() === '' && description.val() === '' && link.val() === '' && imageurl.val() === '' && tags.val() === '' && price.val() === '' && product_url.val() === '';
   };
   show_error_for_field = function(field, text, i) {
     field.addClass('field_error');
@@ -148,28 +138,19 @@ jQuery(function() {
     }
     return true;
   };
-  validate_image = function(imageurl, image, i) {
+  validate_image = function(imageurl, i) {
     var value;
-    if (imageurl.val() === '' && image.val() === '') {
+    if (imageurl.val() === '') {
       show_error_for_field(imageurl, 'Empty image', i);
-      show_error_for_field(image, 'Empty image', i);
       return false;
     } else {
       remove_error_from_field(imageurl, i);
-      remove_error_from_field(image, i);
       value = imageurl.val().toLowerCase();
-      if (value) {
-        if (value.indexOf('http://') !== 0 && value.indexOf('https://') !== 0) {
-          if (value.indexOf('//') === 0) {
-            $(this).val('http:' + value);
-          } else {
-            $(this).val('http://' + value);
-          }
-        }
-      } else {
-        value = image.val().toLowerCase();
-        if (value.indexOf('.png') === -1 && value.indexOf('.jpg') === -1 && value.indexOf('.jpeg') === -1 && value.indexOf('.gif') === -1 && value.indexOf('.svg') === -1) {
-          show_error_for_field(image, 'Image doesn\'t seem to be in a internet friendly format: .png, ,jpg, .gif, .svn', i);
+      if (value.indexOf('http://') !== 0 && value.indexOf('https://') !== 0) {
+        if (value.indexOf('//') === 0) {
+          $(this).val('http:' + value);
+        } else {
+          $(this).val('http://' + value);
         }
       }
     }
@@ -359,7 +340,6 @@ jQuery(function() {
     $("#imgfulllink11").attr('href', '/p/' + pin['external_id']);
     $("#category11").val('');
     $("#imageurl11").val('');
-    $("#image11").val('');
     if (pin['price'] !== 'None') {
       $("#price11").val(pin['price']);
     } else {
@@ -378,7 +358,7 @@ jQuery(function() {
     $('#pin_edit_dialog').dialog('open');
   };
   $('#pin_edit_form').submit(function() {
-    var category, description, image, imageurl, link, no_error, pinid, price, price_range, product_url, tags, title;
+    var category, description, imageurl, link, no_error, pinid, price, price_range, product_url, tags, title;
     no_error = true;
     pinid = $('#id11');
     title = $('#title11');
@@ -386,7 +366,6 @@ jQuery(function() {
     link = $('#link11');
     product_url = $('#product_url11');
     imageurl = $('#imageurl11');
-    image = $('#image11');
     tags = $('#tags11');
     category = $('#categories11');
     price = $('#price11');
@@ -416,12 +395,8 @@ jQuery(function() {
       no_error = false;
     }
     if (no_error) {
-      if (image.val() !== '' && imageurl.val() === '') {
-        return true;
-      } else {
-        update_pin_in_backgroud(pinid, title, description, link, product_url, imageurl, tags, category, price, price_range);
-        $('#pin_edit_dialog').dialog('close');
-      }
+      update_pin_in_backgroud(pinid, title, description, link, product_url, imageurl, tags, category, price, price_range);
+      $('#pin_edit_dialog').dialog('close');
     }
     return false;
   });
@@ -523,4 +498,13 @@ jQuery(function() {
     }
     $('#imageurl' + pin['index']).before('<div class="error_text">' + pin['error'] + '</div>');
   };
+  $('input[name=category_check]').change(function(event) {
+    var parent_category;
+    parent_category = $(this).attr('parent-category');
+    if (parent_category !== void 0) {
+      if ($(this).prop('checked')) {
+        $('input[name=category_check][value=' + parent_category + ']').prop('checked', true);
+      }
+    }
+  });
 });

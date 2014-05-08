@@ -26,41 +26,40 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 		<p>You can upload up to 10 images at a time, using the fields below. You can view the results in the 'Items Added' tab.</p>
 		<div style="margin-top: 10px"></div>
 		<h1>Categories for these Pins: </h1>
-		<table>
+		<table style="width:100%">
 			<tr style="font-size:80%">
 			$for category_column in categories:
 				<td width="25%" class="category_selection_td">
 				$for category in category_column:
-					<label><input type="checkbox" name='category_check' value="$category['id']"
+					<label style="font-size: 1.3em"><input type="checkbox" name='category_check' value="$category['id']"
 					$if category['id'] in preselected_categories:
 						checked
 					>$category['name']</label>
 					$if category['subcategories']:
 						$for subcat in category['subcategories']:
-							<div class="subcategory_checkbox"><label><input type="checkbox" name='category_check' value="$subcat['id']"
+							<div class="subcategory_checkbox"><label style="font-size: 1.3em"><input type="checkbox" name='category_check' value="$subcat['id']"
 							$if subcat['id'] in preselected_categories:
 								checked
-							>$subcat['name']</label></div>
+							parent-category="$category['id']">$subcat['name']</label></div>
 					$else:
 						<br/>
 				</td>
 			</tr>
 		</table>
-		$:form['upload'].render()
 		<div id="category_error_message" class="red hide">You must select a category</div>
 		<input type="hidden" value="" name="categories">
+		<div style="height:20px;"></div>
+		$:form['upload'].render()
+		<div style="height:20px;"></div>
 		<table style="font-size:80%">
 		$for i in range(1, 11, 2):
 			<tr>
-				<td style="padding-right:20px">
+				<td style="padding-right:20px;">
 					<table style="box-shadow:0px 0px 10px gray">
+						<tr><th colspan="2" valign="bottom"><span style="font-size: 2em;">Product #$i</span></th></tr>
 						<tr>
 							<th><label for="imageurl$i">Image URL</label></th>
 							<td><input i="$i" type="text" class="imagelink" name="imageurl$i" id="imageurl$i" style="width: 450px;font-size: 1.3em;"/></td>
-						</tr>
-						<tr>
-							<th><label for="image$i">Image File</label></th>
-							<td><input i="$i" type="file" class="imagefile" name="image$i" id="image$i" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="link$i">Original Source URL</label></th>
@@ -102,13 +101,10 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 				$ j = i + 1
 				<td>
 					<table style="box-shadow:0px 0px 10px gray">
+						<tr><th colspan="2" valign="bottom"><span style="font-size: 2em;">Product #$j</span></th></tr>
 						<tr>
 							<th><label for="imageurl$j">Image URL</label></th>
 							<td><input i="$j" type="text" class="imagelink" name="imageurl$j" id="imageurl$j" style="width: 450px;font-size: 1.3em;"/></td>
-						</tr>
-						<tr>
-							<th><label for="image$j">Image File</label></th>
-							<td><input i="$j" type="file" class="imagefile" name="image$j" id="image$j" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="link$j">Original Source URL</label></th>
@@ -148,8 +144,12 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					</table>
 				</td>
 			</tr>
+			$if not loop.last:
+				<tr style="height:40px;"><td colspan="2" valign="bottom"></td></tr>
 		</table>
+		<div style="height:20px;"></div>
 		$:form['upload'].render()
+		<div style="height:20px;"></div>
 	</form>
 </div><!-- upload -->
 <div id="added">
@@ -168,12 +168,7 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 							</tr><tr>
 								<th>Description:</th><td>$ri.get('description', '')</td>
 							</tr><tr>
-								$if ri.get('imageurl', False):
-									<th>Tried this Image URL:</th><td><a href="$ri['imageurl']">$ri['imageurl']</a></td>
-								$elif ri.get('image', False):
-									<th>Tried this Image uploaded by you:</th><td>$ri.get('image', '')</td>
-								$else:
-									<th></th><td><strong>You did not provided an image!</strong></th>
+								<th>Tried this Image URL:</th><td><a href="$ri['imageurl']">$ri['imageurl']</a></td>
 							</tr><tr>
 								<th>Get It Here:</th><td><a href="$ri.get('product_url')">$ri.get('product_url', '')</a></td>
 							</tr><tr>
@@ -221,10 +216,6 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 				<tr>
 					<th><label for="imageurl11">Image URL</label></th>
 					<td><input i="11" type="text" class="imagelink" name="imageurl11" id="imageurl11"/></td>
-				</tr>
-				<tr>
-					<th><label for="image11">Image File</label></th>
-					<td><input i="11" type="file" class="imagefile" name="image11" id="image11"/></td>
 				</tr>
 				<tr>
 					<th><label for="link11">Source URL</label></th>

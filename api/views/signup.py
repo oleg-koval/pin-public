@@ -109,7 +109,7 @@ class Register(BaseAPI):
         email = request_data.get("email")
         first_name = request_data.get("first_name")
         # last_name = request_data.get("last_name")
-        language = request_data.get("language", "en")
+        language = str(request_data.get("language", "en"))
 
         status_error = 200
         error_code = ""
@@ -207,9 +207,13 @@ class Confirmuser(BaseAPI):
         activation = user.get('activation')
         hashed = hash(str(activation))
  
-        if hashed != int(hashed_activation):
+        if hashed_activation:
+            if hashed != int(hashed_activation):
+                status_error = 405
+                error_code = "wrong activation code given from user"
+        else:
             status_error = 405
-            error_code = "wrong activation code given from user"
+            error_code = "Not found hashed_activation field in request"
 
         if status_error == 200:
             db.update('users', activation=0,

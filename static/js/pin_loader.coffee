@@ -15,17 +15,6 @@ jQuery ->
 		return
 			
 	
-	# check that the name of the file to upload seems valid
-	$('.imagefile').on 'change', (e) ->
-		i = $(this).attr('i')
-		remove_error_from_field($(this), i)
-		value = $(this).val().toLowerCase()
-		if value.indexOf('.png') == -1 && value.indexOf('.jpg') == -1 && value.indexOf('.jpeg') == -1 && value.indexOf('.gif') == -1 &&
-			 	value.indexOf('.svg') == -1
-			show_error_for_field($(this), 'Image doesn\'t seem to be in a internet friendly format: .png, ,jpg, .gif, .svn', i)
-		return
-			
-			
 	$('.titleentry').on 'change', ->
 		i = $(this).attr('i')
 		if $(this).val() != ''
@@ -71,11 +60,10 @@ jQuery ->
 		link = $('#link' + i)
 		product_url = $('#product_url' + i)
 		imageurl = $('#imageurl' + i)
-		image = $('#image' + i)
 		tags = $('#tags' + i)
 		price = $('#price' + i)
 		# if all of the fields are blank, no more test is needed
-		if all_fields_blank(title, description, link, imageurl, image, tags, price, product_url)
+		if all_fields_blank(title, description, link, imageurl, tags, price, product_url)
 			return no_error
 		# should have title
 		if title.val() == ''
@@ -99,15 +87,15 @@ jQuery ->
 		if not selected_a_price_range(i)
 			no_error = false
 		# should have a valid image
-		if not validate_image(imageurl, image, i)
+		if not validate_image(imageurl, i)
 			no_error = false
 		return no_error
 	
 	
 	# all of the fields are blank
-	all_fields_blank = (title, description, link, imageurl, image, tags, price, product_url) ->
+	all_fields_blank = (title, description, link, imageurl, tags, price, product_url) ->
 		return title.val() == '' && description.val() == '' and link.val() == '' and
-			imageurl.val() == '' && tags.val() == '' && image.val() == '' and
+			imageurl.val() == '' && tags.val() == '' and
 			price.val() == '' and product_url.val() == ''
 			
 	
@@ -153,26 +141,18 @@ jQuery ->
 			
 	
 	# test if a valid image is provided
-	validate_image = (imageurl, image, i) ->
-		if imageurl.val() == '' and image.val() == ''
+	validate_image = (imageurl, i) ->
+		if imageurl.val() == ''
 			show_error_for_field(imageurl, 'Empty image', i)
-			show_error_for_field(image, 'Empty image', i)
 			return false
 		else
 			remove_error_from_field(imageurl, i)
-			remove_error_from_field(image, i)
 			value = imageurl.val().toLowerCase()
-			if value
-				if value.indexOf('http://') != 0 && value.indexOf('https://') != 0
-					if value.indexOf('//') == 0
-						$(this).val('http:' + value)
-					else
-						$(this).val('http://' + value)
-			else
-				value = image.val().toLowerCase()
-				if value.indexOf('.png') == -1 && value.indexOf('.jpg') == -1 && value.indexOf('.jpeg') == -1 && value.indexOf('.gif') == -1 &&
-					 	value.indexOf('.svg') == -1
-					show_error_for_field(image, 'Image doesn\'t seem to be in a internet friendly format: .png, ,jpg, .gif, .svn', i)
+			if value.indexOf('http://') != 0 && value.indexOf('https://') != 0
+				if value.indexOf('//') == 0
+					$(this).val('http:' + value)
+				else
+					$(this).val('http://' + value)
 		return true
 		
 	
@@ -351,7 +331,6 @@ jQuery ->
 		$("#imgfulllink11").attr('href', '/p/' + pin['external_id'])
 		$("#category11").val('')
 		$("#imageurl11").val('')
-		$("#image11").val('')
 		if pin['price'] isnt 'None'
 			$("#price11").val(pin['price'])
 		else
@@ -367,11 +346,7 @@ jQuery ->
 		return
 		
 	
-	# edits the pin. If the pin does not have a new image,
-	# or the image comes from an URL, edit in the background
-	# with AJAX.
-	# if the pin has a new image via file upload, submit the
-	# form to be processed in a normal post
+	# edits the pin. Edit in the background with AJAX.
 	$('#pin_edit_form').submit ->
 		no_error = true
 		pinid = $('#id11')
@@ -380,7 +355,6 @@ jQuery ->
 		link = $('#link11')
 		product_url = $('#product_url11')
 		imageurl = $('#imageurl11')
-		image = $('#image11')
 		tags = $('#tags11')
 		category = $('#categories11')
 		price = $('#price11')
@@ -410,12 +384,8 @@ jQuery ->
 		if not category_selected('categories11', 'category_check11', $('#category_error_message11'))
 			no_error = false
 		if no_error
-			if image.val() != '' and imageurl.val() == ''
-				# submit to upload the image
-				return true
-			else
-				update_pin_in_backgroud(pinid, title, description, link, product_url, imageurl, tags, category, price, price_range)
-				$('#pin_edit_dialog').dialog('close')
+			update_pin_in_backgroud(pinid, title, description, link, product_url, imageurl, tags, category, price, price_range)
+			$('#pin_edit_dialog').dialog('close')
 		return false
 		
 		
@@ -500,6 +470,14 @@ jQuery ->
 		if pin['price_range'] isnt ''
 			$('input[name=price_range' + pin['index'] + '][value=' + pin['price_range'] + ']').attr('checked', 'checked')
 		$('#imageurl' + pin['index']).before('<div class="error_text">' + pin['error'] + '</div>')
+		return
+
+
+	$('input[name=category_check]').change (event) ->
+		parent_category = $(this).attr('parent-category')
+		if parent_category isnt undefined
+			if $(this).prop('checked')
+				$('input[name=category_check][value=' + parent_category + ']').prop('checked', true)
 		return
 
 	

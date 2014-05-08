@@ -250,6 +250,16 @@ $(document).on('click', '.category_pin_image', function(event) {
 open_pin_detail = function(pinid) {
   $.get('/p/' + pinid + '?embed=true', function(data) {
     var current_position;
+    try {
+      if (window.history.state === null) {
+        window.history.pushState(pinid, '', '/p/' + pinid);
+      } else {
+        window.history.replaceState(pinid, '', '/p/' + pinid);
+      }
+    } catch (error) {
+      window.location.href = '/p/' + pinid;
+      return;
+    }
     $('#show_pin_layer_content').html(data);
     current_position = $('#show_pin_layer_content').position();
     current_position.top = $(window).scrollTop();
@@ -258,33 +268,34 @@ open_pin_detail = function(pinid) {
     $('#show_pin_layer').height($(window).height());
     $('#show_pin_layer').show();
     disable_scroll();
-    try {
-      if (window.history.state === null) {
-        window.history.pushState(pinid, '', '/p/' + pinid);
-      } else {
-        window.history.replaceState(pinid, '', '/p/' + pinid);
-      }
-    } catch (error) {
-      print(error);
-    }
   });
 };
 
 $('#show_pin_layer').on('click', function(event) {
+  if (event.target.id === 'input-comment') {
+    $('#input-comment').focus();
+    return;
+  }
   event.preventDefault();
   $(this).hide();
   enable_scroll();
   try {
     window.history.back();
   } catch (error) {
-    print(error);
+    $.noop();
   }
-  return;
 });
 
 $('#show_pin_layer_content').on('click', function(event) {
   event.stopPropagation();
-  event.stopInmediatePropagation();
+  try {
+    event.stopInmediatePropagation();
+  } catch (error) {
+    $.noop();
+  }
+  if (event.target.id === 'input-comment') {
+    $('#input-comment').focus();
+  }
 });
 
 window.onpopstate = function(event) {
