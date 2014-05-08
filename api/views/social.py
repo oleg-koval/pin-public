@@ -267,3 +267,61 @@ class QueryFollowers(BaseAPI):
         return api_response(data={'user_id_list': user_id_list},
                             csid_from_client=csid_from_client,
                             csid_from_server="")
+
+
+class SocialMessage(BaseAPI):
+    """
+    API method that sends message to user
+    """
+    def POST(self):
+        request_data = web.input(
+            user_id_list=[],
+        )
+
+        update_data = {}
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from request
+        user_id_list = map(int,
+                           request_data.get("user_id_list"))
+        content = request_data.get("content")
+
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        if not content:
+            status = 400
+            error_code = "Content cannot be empty"
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        from_user_id = user['id']
+
+        if status == 200:
+            for to_user_id in user_id_list:
+                ids = sorted([to_user_id, from_user_id])
+                convo = db.select('convos',
+                                  where='id1 = $id1 and id2 = $id2',
+                                  vars={'id1': ids[0], 'id2': ids[1]})\
+                    .list()
+                if convo:
+                    convo_id = convo[0].id
+                else:
+                    convo_id = db.insert('convos', id1=ids[0], id2=ids[1])
+
+                db.insert('messages', convo_id=convo_id, sender=from_user_id,
+                          content=content)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response

@@ -51,7 +51,8 @@ urls = (
     "/profile/pwd", api.views.profile.ChangePassword,
     # API for social networks: posting on user page
     "/social/poup", api.views.social.PostingOnUserPage,
-    "/social/query/(.*)/(follower|follow)", api.views.social.QueryFollowers
+    "/social/query/(.*)/(follower|follow)", api.views.social.QueryFollowers,
+    "/social/message", api.views.social.SocialMessage
 )
 web.config.debug = True
 api_app = web.application(urls, globals(), autoreload=True)
