@@ -19,12 +19,25 @@ class BaseUserProfile(BaseAPI):
     General class which holds list of fields used by user profile methods
     """
     def __init__(self):
-        self._fields = ['name', 'about', 'city', 'hometown', 'about',
+        self._fields = ['id', 'name', 'about', 'city', 'hometown', 'about',
                         'email', 'pic', 'website', 'facebook', 'twitter',
                         'getlist_privacy_level', 'private']
         self._birthday_fields = ['birthday_year', 'birthday_month',
                                  'birthday_day']
         self.required = ['csid_from_client', 'logintoken']
+
+    @staticmethod
+    def format_birthday(user, response):
+        """
+        Composes birthday response, returning year, day and month
+        as separate response fields
+        """
+        if user['birthday']:
+            response['birthday_year'] = user['birthday'].year
+            response['birthday_day'] = user['birthday'].day
+            response['birthday_month'] = user['birthday'].month
+        return response
+
 
     def is_request_valid(self, request_data):
         """
@@ -168,21 +181,55 @@ class GetProfileInfo(BaseUserProfile):
         if not status:
             return response_or_user
 
-        csid_from_client = request_data.pop('csid_from_client')
+
         # User id contains error code
         if not status:
             return response_or_user
 
         response = {field: response_or_user[field] for field in self._fields}
+        csid_from_client = request_data.pop('csid_from_client')
         csid_from_server = response_or_user['seriesid']
-        # Formatting response of birthday_ year, day, month from 'birthday'
-        if response_or_user['birthday']:
-            response['birthday_year'] = response_or_user['birthday'].year
-            response['birthday_day'] = response_or_user['birthday'].day
-            response['birthday_month'] = response_or_user['birthday'].month
+        self.format_birthday(response_or_user, response)
         return api_response(data=response,
                             csid_from_client=csid_from_client,
                             csid_from_server=csid_from_server)
+
+
+class ProfileInfo(BaseUserProfile):
+    """
+    Returns publically available profile information
+    """
+
+    def POST(self, profile):
+        """ Returns profile information
+
+        Required fields:
+        - profile (sent via url)
+        - csid_from_client
+
+        Example usage:
+        curl --data "csid_from_client=11" \
+        http://localhost:8080/api/profile/userinfo/info/oleg
+        """
+        request_data = web.input()
+        # Removing logintoken from request check
+        self.required.remove('logintoken')
+        if not self.is_request_valid(request_data):
+            return api_response(data={}, status=405,
+                                error_code="Required args are missing")
+        query = db.select('users', vars={'username': profile},
+                         where='username=$username')
+        if query is not None:
+            user = query.list()[0]
+
+        response = {field: user[field] for field in self._fields}
+        csid_from_client = request_data.pop('csid_from_client')
+        csid_from_server = user['seriesid']
+        self.format_birthday(user, response)
+        return api_response(data=response,
+                            csid_from_client=csid_from_client,
+                            csid_from_server=csid_from_server)
+
 
 
 class ManageGetList(BaseAPI):

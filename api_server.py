@@ -12,7 +12,7 @@ import api.views.social
 
 class redirect:
     """
-        Find and redirect to existed controller with '/' or without it
+    Find and redirect to existed controller with '/' or without it
     """
     def GET(self, path):
         web.seeother('/' + path)
@@ -42,6 +42,7 @@ urls = (
     "/profile/mgl", api.views.profile.ManageGetList,
     "/profile/userinfo/update", api.views.profile.UserInfoUpdate,
     "/profile/userinfo/get", api.views.profile.GetProfileInfo,
+    "/profile/userinfo/info/(?P<profile>\w+)", api.views.profile.ProfileInfo,
     "/profile/userinfo/set_privacy", api.views.profile.SetPrivacy,
 
     # API to user profile: change user password
