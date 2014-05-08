@@ -76,9 +76,9 @@ class PageRegister:
             # raise web.seeother('/after-signup')
 
             data = {
-                "uname": form.d.username,
+                "uname": form.d.username.lower(),
                 "pwd": form.d.password,
-                "email": form.d.email,
+                "email": form.d.email.lower(),
                 "first_name": form.d.name,
                 "language": form.d.language
             }

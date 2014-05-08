@@ -283,7 +283,7 @@ class LoadersEditAPI(object):
                             left join tags on pins.id = tags.pin_id
                             where user_id=$user_id
                             group by pins.id, categories.id, tags.tags
-                            order by timestamp desc, categories.name
+                            order by timestamp desc, pins.id, categories.name
                             offset $offset limit $limit''',
                             vars={'user_id': sess.user_id, 'offset': sess.offset, 'limit': limit})
         sess.offset += len(results)

@@ -141,12 +141,12 @@ class GoogleOauthReturnMixin(object):
             db = database.get_db()
             if 'nickname' in self.profile:
                 query_result = db.select(tables='users', where="gplus=$username and login_source=$login_source",
-                                           vars={'username': self.profile['nickname'],
+                                           vars={'username': self.profile['nickname'].lower(),
                                                  'login_source': auth.LOGIN_SOURCE_GOOGLE})
             elif 'emails' in self.profile:
                 email = self.profile['emails'][0]['value']
                 query_result = db.select(tables='users', where="email=$email",
-                                           vars={'email': email})
+                                           vars={'email': email.lower()})
             else:
                 return False
             for row in query_result:
@@ -213,7 +213,7 @@ class SelectAUsernameAndPassword(auth.UniqueUsernameMixin):
         if 'nickname' in sess.profile and self.username_already_exists(sess.profile['nickname']):
             username = self.suggest_a_username(sess.profile['nickname'])
         elif 'nickname' in sess.profile:
-            username = sess.profile['nickname']
+            username = sess.profile['nickname'].lower()
         else:
             username = ''
         form = self.username_form()
@@ -247,7 +247,7 @@ class SelectAUsernameAndPassword(auth.UniqueUsernameMixin):
         '''
         sess = session.get_session()
         # basic profile data
-        values = {'username': self.form['username'].value,
+        values = {'username': self.form['username'].value.lower(),
                   'facebook': sess.profile['nickname'] if 'nickname' in sess.profile else '',
                   'login_source': auth.LOGIN_SOURCE_GOOGLE,
                   }

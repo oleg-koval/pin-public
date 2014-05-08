@@ -895,7 +895,8 @@ class PageProfile2:
             from users
                 left join follows f1 on f1.follow = users.id
                 left join follows f2 on f2.follower = users.id
-            where users.username = $username group by users.id''', vars={'username': username})
+            where lower(users.username) = $username group by users.id''',
+            vars={'username': username.lower()})
         if not user:
             return 'Page not found.'
 
