@@ -73,12 +73,12 @@ class PageCategory:
 
     def template_for_showing_categories(self):
         subcategories = self.db.where(table='categories', parent=self.category['id'], order='is_default_sub_category desc, name')
-        results = self.db.where(table='categories', parent=self.category['parent'], order='is_default_sub_category desc, name')
+        results = self.db.where(table='categories', parent=self.category.get('parent'), order='is_default_sub_category desc, name')
         siblings_categories = []
         for row in results:
             if row.id != self.category['id']:
                 siblings_categories.append(row)
-        results = self.db.where(table='categories', id=self.category['parent'])
+        results = self.db.where(table='categories', id=self.category.get('parent'))
         for row in results:
             parent = row
             break
