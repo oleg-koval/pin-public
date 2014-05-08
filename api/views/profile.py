@@ -19,12 +19,25 @@ class BaseUserProfile(BaseAPI):
     General class which holds list of fields used by user profile methods
     """
     def __init__(self):
-        self._fields = ['name', 'about', 'city', 'hometown', 'about',
+        self._fields = ['id', 'name', 'about', 'city', 'hometown', 'about',
                         'email', 'pic', 'website', 'facebook', 'twitter',
                         'getlist_privacy_level', 'private']
         self._birthday_fields = ['birthday_year', 'birthday_month',
                                  'birthday_day']
         self.required = ['csid_from_client', 'logintoken']
+
+    @staticmethod
+    def format_birthday(user, response):
+        """
+        Composes birthday response, returning year, day and month
+        as separate response fields
+        """
+        if user['birthday']:
+            response['birthday_year'] = user['birthday'].year
+            response['birthday_day'] = user['birthday'].day
+            response['birthday_month'] = user['birthday'].month
+        return response
+
 
     def is_request_valid(self, request_data):
         """
@@ -168,21 +181,55 @@ class GetProfileInfo(BaseUserProfile):
         if not status:
             return response_or_user
 
-        csid_from_client = request_data.pop('csid_from_client')
+
         # User id contains error code
         if not status:
             return response_or_user
 
         response = {field: response_or_user[field] for field in self._fields}
+        csid_from_client = request_data.pop('csid_from_client')
         csid_from_server = response_or_user['seriesid']
-        # Formatting response of birthday_ year, day, month from 'birthday'
-        if response_or_user['birthday']:
-            response['birthday_year'] = response_or_user['birthday'].year
-            response['birthday_day'] = response_or_user['birthday'].day
-            response['birthday_month'] = response_or_user['birthday'].month
+        self.format_birthday(response_or_user, response)
         return api_response(data=response,
                             csid_from_client=csid_from_client,
                             csid_from_server=csid_from_server)
+
+
+class ProfileInfo(BaseUserProfile):
+    """
+    Returns publically available profile information
+    """
+
+    def POST(self, profile):
+        """ Returns profile information
+
+        Required fields:
+        - profile (sent via url)
+        - csid_from_client
+
+        Example usage:
+        curl --data "csid_from_client=11" \
+        http://localhost:8080/api/profile/userinfo/info/oleg
+        """
+        request_data = web.input()
+        # Removing logintoken from request check
+        self.required.remove('logintoken')
+        if not self.is_request_valid(request_data):
+            return api_response(data={}, status=405,
+                                error_code="Required args are missing")
+        query = db.select('users', vars={'username': profile},
+                         where='username=$username')
+        if query is not None:
+            user = query.list()[0]
+
+        response = {field: user[field] for field in self._fields}
+        csid_from_client = request_data.pop('csid_from_client')
+        csid_from_server = user['seriesid']
+        self.format_birthday(user, response)
+        return api_response(data=response,
+                            csid_from_client=csid_from_client,
+                            csid_from_server=csid_from_server)
+
 
 
 class ManageGetList(BaseAPI):
@@ -388,3 +435,68 @@ class ChangePassword(BaseAPI):
         new_pwd_hash = str(hash(new_pwd))
         new_pwd_hash = str(hash(new_pwd_hash + pw_salt))
         return new_pwd_hash
+
+
+class QueryBoards(BaseAPI):
+    """
+    Class responsible for getting boards of a given user
+    """
+    def POST(self):
+        """ Returns all boards associated with a given user
+
+        Required parameters:
+        user_id: required parameter, sent via request data
+        csid_from_client
+
+        Can be tested using the following command:
+        curl --data "user_id=2&csid_from_client=1" \
+        http://localhost:8080/api/profile/userinfo/boards
+        """
+        request_data = web.input()
+        csid_from_client = request_data.get('csid_from_client')
+        csid_from_server = ""
+        user_id = request_data.get('user_id')
+
+        if not user_id:
+            return api_response(data={}, status=405,
+                                error_code="Missing user_id")
+        boards = db.select('boards',
+                           where='user_id=$user_id',
+                           vars={'user_id': user_id})
+
+
+        return api_response(data=boards.list(),
+                            csid_from_server=csid_from_server,
+                            csid_from_client=csid_from_client)
+
+
+class QueryPins(BaseAPI):
+    """
+    Responsible for getting pins of a given user
+    """
+    def POST(self):
+        """ Returns all pins associated with a given user
+
+        Required parameters:
+        user_id: required parameter, sent via request data
+        csid_from_client
+
+        Can be tested using the following command:
+        curl --data "user_id=2&csid_from_client=1" \
+        http://localhost:8080/api/profile/userinfo/pins
+        """
+        request_data = web.input()
+        csid_from_client = request_data.get('csid_from_client')
+        csid_from_server = ""
+        user_id = request_data.get('user_id')
+
+        if not user_id:
+            return api_response(data={}, status=405,
+                                error_code="Missing user_id")
+        pins = db.select('pins',
+                           where='user_id=$user_id',
+                           vars={'user_id': user_id})
+
+        return api_response(data=pins.list(),
+                            csid_from_server=csid_from_server,
+                            csid_from_client=csid_from_client)

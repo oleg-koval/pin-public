@@ -54,3 +54,4 @@ COUNTRIES = [
 PIN_COUNT = 100
 
 API_URL = "http://mypinnings.com/"
+PIN_NEW_DAYS = 7

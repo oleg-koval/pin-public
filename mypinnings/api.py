@@ -1,15 +1,16 @@
 import requests
 import json
-
+import urlparse
 from mypinnings import database
 from mypinnings.conf import settings
 
 
-def api_request(url, method="GET", data={}):
-    '''
-    Allows make requests to API.
-    '''
-    url = settings.API_URL + url
+def api_request(url, method="GET", data=None):
+    """
+    Sends http request to api server and returns server response in json,
+    or none, if http status_code of the response is not 200
+    """
+    url = urlparse.urljoin(settings.API_URL, url)
 
     if method == "GET":
         result = requests.get(
@@ -22,8 +23,8 @@ def api_request(url, method="GET", data={}):
             url,
             data=data
         )
-
     data = None
+
     if result.status_code == 200:
         data = json.loads(result.content)
 
