@@ -9,6 +9,7 @@ from api.views.base import BaseAPI
 from api.utils import api_response, save_api_request
 from mypinnings.database import connect_db
 from mypinnings.conf import settings
+from mypinnings.media import store_image_from_filename
 
 db = connect_db()
 
@@ -20,35 +21,69 @@ class ImageUpload(BaseAPI):
 
         Can be tested using the following command:
         curl -F "image_title=some_title" -F "image_descr=some_descr" \
-        -F "use_for=some text" -F "image_file=@/home/oleg/Desktop/hard.jpg" \
+        -F "image_file=@/home/oleg/Desktop/hard.jpg" \
         http://localhost:8080/api/image/upload
         """
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
         request_data = web.input(image_file={})
+        logintoken = request_data.get('logintoken')
+
+        user_status, user = self.authenticate_by_token(logintoken)
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        csid_from_client = request_data.get("csid_from_client")
+
         save_api_request(request_data)
         file_obj = request_data.get('image_file')
+
         # For some reason, FileStorage object treats itself as False
         if type(file_obj) == dict:
             return api_response(data={}, status=405,
                                 error_code="Required args are missing")
 
         file_path = self.save_file(file_obj)
-        image_kwargs = {'image_title': request_data.get("image_title"),
-                        'image_descr': request_data.get("image_descr"),
-                        'use_for': request_data.get("use_for")}
-        self.create_db_record(file_path, image_kwargs)
-        response = {}
-        if file_path:
-            response["image_file"] = file_path
-        return api_response(data=response)
+        images_dict = store_image_from_filename(db,
+                                                file_path,
+                                                widths=(202, 212))
 
-    def create_db_record(self, file_path, kwargs):
+        image_kwargs = {'name': request_data.get("image_title"),
+                        'description': request_data.get("image_descr"),
+                        'user_id': user['id'],
+                        'link': request_data.get("link"),
+                        'product_url': request_data.get("product_url"),
+                        'image_url': images_dict[0]['url'],
+                        'image_width': images_dict[0]['width'],
+                        'image_height': images_dict[0]['height'],
+                        'image_202_url': images_dict[202]['url'],
+                        'image_202_height': images_dict[202]['height'],
+                        'image_212_url': images_dict[212]['url'],
+                        'image_212_height': images_dict[212]['height']}
+
+        self.create_db_record(image_kwargs)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+
+        return response
+
+    def create_db_record(self, kwargs):
         """
         Creates image record in the database.
         """
         # Do not record empty fields
         kwargs = {key: value for (key, value) in kwargs.items()
                   if value is not None}
-        db.insert("images", image_file=file_path, **kwargs)
+        db.insert("pins", **kwargs)
 
     def save_file(self, file_obj, upload_dir=None):
         """
