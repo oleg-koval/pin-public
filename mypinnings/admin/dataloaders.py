@@ -5,6 +5,16 @@ import web
 from mypinnings.admin import auth
 from mypinnings import template
 from mypinnings import database
+    
+
+class FixCreationDateMixin(object):
+    def fix_creation_date(self, results):
+        fixed = []
+        for row in results:
+            date_created = datetime.date.fromtimestamp(row.timestamp)
+            row['creation_date'] = date_created.isoformat()
+            fixed.append(row)
+        return fixed
 
 
 USERS_QUERY = '''
@@ -36,7 +46,7 @@ class Results(object):
         return template.admin.dataloaders_results(query)
 
 
-class ResultsPagination(object):
+class ResultsPagination(FixCreationDateMixin):
     page_size = 50
 
     def GET(self, allusers=None):
@@ -65,11 +75,3 @@ class ResultsPagination(object):
         results = db.query(query)
         results = self.fix_creation_date(results)
         return web.template.frender('t/admin/search_results.html')(results)
-
-    def fix_creation_date(self, results):
-        fixed = []
-        for row in results:
-            date_created = datetime.date.fromtimestamp(row.timestamp)
-            row['creation_date'] = date_created.isoformat()
-            fixed.append(row)
-        return fixed

@@ -21,6 +21,7 @@ from mypinnings.conf import settings
 from mypinnings import form_controls
 from mypinnings import auth
 from mypinnings.admin.auth import login
+from mypinnings.admin import dataloaders
 
 
 logger = logging.getLogger('admin')
@@ -176,12 +177,7 @@ class PageSearch:
             return template.admin.searchform(self._form())
 
 
-class PageSearchResults:
-    _form = form.Form(
-        form.Textbox('query'),
-        form.Button('search')
-    )
-    
+class PageSearchResults(dataloaders.FixCreationDateMixin):
     page_size = 50
 
     def GET(self, allusers=None):
@@ -210,14 +206,6 @@ class PageSearchResults:
         results = db.query(query)
         results = self.fix_creation_date(results)
         return web.template.frender('t/admin/search_results.html')(results)
-
-    def fix_creation_date(self, results):
-        fixed = []
-        for row in results:
-            date_created = datetime.date.fromtimestamp(row.timestamp)
-            row['creation_date'] = date_created.isoformat()
-            fixed.append(row)
-        return fixed
 
 
 class PageUser:
