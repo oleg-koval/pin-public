@@ -25,14 +25,12 @@ class Notification(BaseAPI):
             return user
 
         csid_from_server = user['seriesid']
-        from_user_id = user['id']
 
-        notification_list = db.select('notifs', order="timestamp DESC")
+        notification_list = db.select('notifs', {"user_id": user['id']}, 
+            where='user_id=$user_id', order="timestamp DESC")
         data = notification_list.list()
 
         response = api_response(data=data,
-                                status=status,
-                                error_code=error_code,
                                 csid_from_client=csid_from_client,
                                 csid_from_server=csid_from_server)
         return response
