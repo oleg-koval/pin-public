@@ -212,7 +212,9 @@ class ManageProperties(BaseAPI):
         image_title = request_data.get("image_title")
         image_desc = request_data.get("image_desc")
         product_url = request_data.get("product_url")
-        # source_url = request_data.get("source_url")
+        link = request_data.get("link")
+        price_range = request_data.get("price_range")
+        board_id = request_data.get("board_id")
         hash_tag_add_list = map(str,
                                 request_data.get("hash_tag_add_list"))
         hash_tag_remove_list = map(str,
@@ -234,13 +236,17 @@ class ManageProperties(BaseAPI):
             update_data['description'] = image_desc
             data['image_desc'] = image_desc
         if product_url:
-            update_data['link'] = product_url
+            update_data['product_url'] = product_url
             data['product_url'] = product_url
-
-        # Temporary unavailable field
-        # if source_url:
-        #     update_data['source_url'] = source_url
-        #     data['source_url'] = source_url
+        if link:
+            update_data['link'] = link
+            data['link'] = link
+        if price_range:
+            update_data['price_range'] = price_range
+            data['price_range'] = price_range
+        if board_id:
+            update_data['board_id'] = board_id
+            data['board_id'] = board_id
 
         # User id contains error code
         if not user_status:
@@ -264,6 +270,10 @@ class ManageProperties(BaseAPI):
         if status == 200 and len(update_data) > 0:
             db.update('pins', where='id = %s' % (image_id),
                       **update_data)
+
+            pins = db.select('pins', where='id = %s' % (image_id)).list()
+            if len(pins) > 0:
+                 data['external_id'] = pins[0]['external_id']
 
         response = api_response(data=data,
                                 status=status,
