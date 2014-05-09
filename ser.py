@@ -18,6 +18,15 @@ import BeautifulSoup
 import cStringIO
 import urllib2
 
+#import Queue
+from Queue import Queue
+import time
+#import threading
+from threading import Thread
+import multiprocessing
+import threadpool
+import concurrent.futures
+
 from mypinnings.database import connect_db, dbget
 db = connect_db()
 
