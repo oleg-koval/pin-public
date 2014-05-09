@@ -131,11 +131,8 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
 	<div class="wrapper">
 	<form method="post" action="/newaddpinform" id="ajaxpinform">
 	    <div class="c1" id="imagediv">
-	    <div id="slideshow" class="photo">
-            <img src="" id="slide-image">
-        </div>
-        <div id="controls">
-        <span> <a href="#" id="galleryprev">prev</a> <a id="gallerynext" href="#">next</a></span><span id="status-text"> </span>
+	    <div id="slideshowupload" class="photo">
+
         </div>
         </div>
 	    <div class="c2">
@@ -145,6 +142,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
         <tr><th><label for="title"></label></th><td><div id="imagename"></div></td></tr>
         <tr><th><label for="title">Title</label></th><td><input type="text" id="title"></td></tr>
         <tr><th><label for="weblink">Link</label></th><td><input type="text" id="weblink" placeholder="Where to buy?"></td></tr>
+        <tr><th><label for="hashtag">Tags</label></th><td><input type="text" id="hashtag" placeholder="#this is great"></td></tr>
 	    <tr><th><label for="board">Get list</label></th>
 	    	<td>
 	    		<div id="board_selection_layer">
@@ -190,6 +188,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
         <tr><th><label for="title">Title</label></th><td><input type="text" id="titleweb"></td></tr>
         <tr><th><label for="weblink">Link</label></th><td><input type="text" id="weblinkweb" placeholder="Where to buy?"></td></tr>
         <tr><th><label for="weblink">Website Link</label></th><td><input type="text" id="websitelinkweb" ></td></tr>
+        <tr><th><label for="hashtagweb">Tags</label></th><td><input type="text" id="hashtagweb" placeholder="#this is great"></td></tr>
         <tr><th><label for="lists">Lists</label></th><td>
                     <div id="board_selection_layerweb">
                     <select id="boardweb" name="boardweb">
