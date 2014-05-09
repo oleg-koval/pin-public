@@ -90,7 +90,7 @@ class Register(BaseAPI):
             uname - user name
             pwd - user password
             email - user email
-            first_name - user first name
+            complete_name - user first name
             language - user language
 
             output response also included:
@@ -107,7 +107,7 @@ class Register(BaseAPI):
         uname = request_data.get("uname")
         pwd = request_data.get("pwd")
         email = request_data.get("email")
-        first_name = request_data.get("first_name")
+        complete_name = request_data.get("complete_name")
         # last_name = request_data.get("last_name")
         language = str(request_data.get("language", "en"))
 
@@ -115,12 +115,12 @@ class Register(BaseAPI):
         error_code = ""
 
         status, error_code = self.register_validation(uname, pwd, 
-                                                      email, first_name)
+                                                      email, complete_name)
         if status:
             activation = random.randint(1, 10000)
             hashed = hash(str(activation))
 
-            user_id = auth.create_user(email, pwd, name=first_name, username=uname,
+            user_id = auth.create_user(email, pwd, name=complete_name, username=uname,
                                        activation=activation, locale=language)
 
             add_default_lists(user_id)
@@ -144,17 +144,17 @@ class Register(BaseAPI):
 
         return response
 
-    def register_validation(self, uname, pwd, email, first_name):
+    def register_validation(self, uname, pwd, email, complete_name):
         """
             Validation entered user's request parameters:
             name, password,
-            email, first_name
+            email, complete_name
         """
         request_params = {
             "uname": uname,
             "pwd": pwd,
             "email": email,
-            "first_name": first_name,
+            "complete_name": complete_name,
         }
         error_code = ""
         for field, value in request_params.items():

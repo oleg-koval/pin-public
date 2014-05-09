@@ -87,7 +87,7 @@ def share(access_token, share_list, social_network="facebook"):
         access_token_status = check_linkedin_access_token(access_token)
 
     if not access_token_status:
-        return [], 400, "Bad access token"
+        return [], 400, "Bad access token for social network"
 
     # Initialize shared pins list
     shared_pins = []
