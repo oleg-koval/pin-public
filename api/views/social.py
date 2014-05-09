@@ -236,6 +236,14 @@ class QueryFollowers(BaseAPI):
         save_api_request(data)
         kwparams = {}
 
+        logintoken = data.get('logintoken')
+        user_status, authenticated_user = self.authenticate_by_token(logintoken)
+
+        # User id contains error code
+        if not user_status:
+            return authenticated_user
+        csid_from_server = = authenticated_user['seriesid']
+
         if data.get('new'):
             kwparams['order'] = 'follow_time'
 
@@ -266,7 +274,7 @@ class QueryFollowers(BaseAPI):
         csid_from_client = data.pop('csid_from_client')
         return api_response(data={'user_id_list': user_id_list},
                             csid_from_client=csid_from_client,
-                            csid_from_server="")
+                            csid_from_server=csid_from_server)
 
 
 class SocialMessage(BaseAPI):
