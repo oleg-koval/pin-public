@@ -15,7 +15,24 @@ class Notification(BaseAPI):
         """
         request_data = web.input()
         save_api_request(request_data)
+
+        logintoken = request_data.get('logintoken')
+        csid_from_client = request_data.get('csid_from_client')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        from_user_id = user['id']
+
         notification_list = db.select('notifs', order="timestamp DESC")
         data = notification_list.list()
-        response = api_response(data)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
         return response
