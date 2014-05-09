@@ -11,7 +11,8 @@ db = connect_db()
 class Notification(BaseAPI):
     def POST(self):
         """
-            Return list of all notifications sorted by timestamp
+            Return list of user notifications sorted by timestamp
+            depeds on user logintoken
         """
         request_data = web.input()
         save_api_request(request_data)
