@@ -25,6 +25,7 @@ class BaseUserProfile(BaseAPI):
         self._birthday_fields = ['birthday_year', 'birthday_month',
                                  'birthday_day']
         self.required = ['csid_from_client', 'logintoken']
+        self.default_fields = ['project_id', 'os_type', 'version_id','format_type']
 
     @staticmethod
     def format_birthday(user, response):
@@ -52,7 +53,8 @@ class BaseUserProfile(BaseAPI):
             # Checking if current field is among the fields we have in the db
             if (field not in self._fields and
                     field not in self._birthday_fields and
-                    field not in self.required):
+                    field not in self.required and
+                    field not in self.default_fields):
                 return False
         return True
 
