@@ -242,7 +242,7 @@ class QueryFollowers(BaseAPI):
         # User id contains error code
         if not user_status:
             return authenticated_user
-        csid_from_server = = authenticated_user['seriesid']
+        csid_from_server = authenticated_user['seriesid']
 
         if data.get('new'):
             kwparams['order'] = 'follow_time'
