@@ -237,7 +237,7 @@ class ProfileInfo(BaseUserProfile):
 class ManageGetList(BaseAPI):
     def POST(self):
         """
-        Manage list of user products: share, add, remove
+        Manage list of user products: sharing, add, remove
 
         Method for image_id_share_list must additional receive next
         required params:
@@ -250,22 +250,22 @@ class ManageGetList(BaseAPI):
             image_id_add_list=[],
         )
 
+        # Setting default status code as 200
+        status = 200
+        # Setting empty error
+        error_code = ""
+
         save_api_request(request_data)
         login_token = request_data.get("logintoken")
 
-        status, response_or_user = self.authenticate_by_token(login_token)
-        if not status:
+        status_success, response_or_user = self.authenticate_by_token(login_token)
+        if not status_success:
             return response_or_user
 
         csid_from_client = request_data.get('csid_from_client')
 
         access_token = request_data.get("access_token")
         social_network = request_data.get("social_network")
-
-        # Check input social data for posting
-        if not access_token or not social_network:
-            status_error = 400
-            error_code = "Invalid input data"
 
         image_id_add_list = map(int, request_data.get("image_id_add_list"))
         add_list_result = []
@@ -283,8 +283,13 @@ class ManageGetList(BaseAPI):
         image_id_share_list = map(int, request_data.get("image_id_share_list"))
         share_list_result = []
         if len(image_id_share_list) > 0:
-            share_list_result = self.share(access_token, social_network,
-                                           image_id_share_list)
+            # Check input social data for posting
+            if not access_token or not social_network:
+                status = 400
+                error_code = "Invalid input data"
+            else:
+                share_list_result, status, error_code = self.sharing(access_token, social_network,
+                                                                 image_id_share_list)
 
         csid_from_server = response_or_user.get('seriesid')
 
@@ -293,7 +298,10 @@ class ManageGetList(BaseAPI):
             "removed": remove_list_result,
             "shared": share_list_result,
         }
-        response = api_response(data, csid_from_client,
+        response = api_response(data, 
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
                                 csid_from_server=csid_from_server)
         return response
 
@@ -332,21 +340,16 @@ class ManageGetList(BaseAPI):
                 )
         return remove_list_result
 
-    def share(self, access_token, social_network, share_list):
+    def sharing(self, access_token, social_network, share_list):
         """
         Share products from user profile
         """
-        # for testing only
-        # access_token = 'CAACEdEose0cBABun8SJm4YuGGlT8vTKp51BJZCNPwjd\
-        # X0sWHVrhitlZBm7JagMMDjFj2cZAtadWodSZA0PLitbKubDTFI1ZB6scvaIB9\
-        # c6PkwuhzsiFd9SXoms9zIkVthr7OE2aWpHXhEqGrhD1HBLyNaCXZBz4eq5MovP\
-        # lPZAape19eL9mrxOROsYWrYEbnKsZD'
-        social_network = "facebook"
+
         share_list_result, status, error_code = share(access_token,
                                                       share_list,
                                                       social_network)
 
-        return share_list_result
+        return share_list_result, status, error_code
 
 
 class ChangePassword(BaseAPI):
