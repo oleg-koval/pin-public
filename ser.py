@@ -405,6 +405,7 @@ def make_tag(tag):
 class NewPageAddPinForm:
     def POST(self):
         data = web.input()
+<<<<<<< HEAD
         # transaction = db.transaction()
         # try:
         if data.board:
@@ -457,6 +458,35 @@ class NewPageAddPinForm:
         #     logger.error('Failed to create a pin from a file upload', exc_info=True)
         #     transaction.rollback()
         #     return '/'
+=======
+        transaction = db.transaction()
+        try:
+            if data.board:
+                board = int(data.board)
+            elif data.board_name:
+                board = db.insert(tablename='boards', name=data.board_name, description=data.board_name,
+                                  user_id = sess.user_id)
+            else:
+                board=None
+            pin = pin_utils.create_pin(db=db,
+                                       user_id=sess.user_id,
+                                       title=data.title,
+                                       description=data.comments,
+                                       link=data.weblink,
+                                       tags=data.hashtags,
+                                       price=None,
+                                       product_url='',
+                                       price_range=1,
+                                       image_filename=data.fname,
+                                       board_id=board,
+                                       )
+            transaction.commit()
+            return '/p/%s' % pin.external_id
+        except Exception as e:
+            logger.error('Failed to create a pin from a file upload', exc_info=True)
+            transaction.rollback()
+            return '/'
+>>>>>>> b643b03dfc84f2a08b596bb31b4ce4a64d0f7d62
 
 
 class NewPageAddPin:
@@ -477,17 +507,27 @@ class NewPageAddPin:
         return json.dumps({'fname':fname, 'original_filename':original_filename})
 
 
+class MyOpener(urllib.FancyURLopener):
+    version = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; it; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11'
+
 class PageAddPinUrl:
     def upload_image(self, url):
         fname = generate_salt()
         ext = os.path.splitext(url)[1].lower()
         fname = os.path.join('static', 'tmp', '{}{}'.format(fname, ext))
-        urllib.urlretrieve(url, fname)
+        opener = MyOpener() 
+        opener.retrieve(url, fname)
+        if ext.strip() == '':
+            im = Image.open(fname)
+            new_filename = '{}{}'.format(fname, '.png')
+            im.save(new_filename)
+            return new_filename
         return fname
 
     def POST(self):
         force_login(sess)
         data = web.input()
+<<<<<<< HEAD
         # transaction = db.transaction()
         # try:
         fname = self.upload_image(data.image_url)
@@ -543,6 +583,43 @@ class PageAddPinUrl:
         #     transaction.rollback()
         #     return web.seeother(url='?msg={}'.format('This is embarrassing. We where unable to create the product. Please try again.'),
         #                  absolute=False)
+=======
+        transaction = db.transaction()
+        try:
+            fname = self.upload_image(data.image_url)
+
+            link = data.link
+            if link and '://' not in link:
+                link = 'http://%s' % link
+
+            # create a new board if necessary
+            if data.list:
+                board_id = int(data.list)
+            elif data.board_name:
+                board_id = db.insert(tablename='boards', name=data.board_name, description=data.board_name,
+                                     user_id=sess.user_id)
+            else:
+                board_id = None
+
+            pin = pin_utils.create_pin(db=db,
+                                 user_id=sess.user_id,
+                                 title=data.title,
+                                 description=data.description,
+                                 link=link,
+                                 tags=data.hashtags,
+                                 price=None,
+                                 product_url=data.websiteurl,
+                                 price_range=data.price,
+                                 image_filename=fname,
+                                 board_id=board_id)
+            transaction.commit()
+            return '/p/%s' % pin.external_id
+        except Exception as e:
+            logger.error('Failed to create a pin from an image URL', exc_info=True)
+            transaction.rollback()
+            return web.seeother(url='?msg={}'.format('This is embarrassing. We where unable to create the product. Please try again.'),
+                         absolute=False)
+>>>>>>> b643b03dfc84f2a08b596bb31b4ce4a64d0f7d62
 
 
 class PageRemoveRepin:
@@ -788,7 +865,7 @@ class PagePin:
 
         if logged and sess.user_id != pin.user_id:
             db.update('pins', where='id = $id', vars={'id': pin.id}, views=web.SQLLiteral('views + 1'))
-            
+
         results = db.where(table='tags', pin_id=pin.id)
         pin.tags = [row.tags for row in results]
 
@@ -940,7 +1017,8 @@ class PageProfile2:
             from users
                 left join follows f1 on f1.follow = users.id
                 left join follows f2 on f2.follower = users.id
-            where users.username = $username group by users.id''', vars={'username': username})
+            where lower(users.username) = $username group by users.id''',
+            vars={'username': username.lower()})
         if not user:
             return 'Page not found.'
 

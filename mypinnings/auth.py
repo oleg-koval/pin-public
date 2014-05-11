@@ -43,7 +43,7 @@ def email_exists(email):
     result = database.get_db().select('users',
         what='1',
         where='email=$email',
-        vars={'email': email},
+        vars={'email': email.lower()},
         limit=1)
     return bool(result)
 
@@ -52,7 +52,7 @@ def username_exists(username):
     result = database.get_db().select('users',
         what='1',
         where='username=$username',
-        vars={'username': username},
+        vars={'username': username.lower()},
         limit=1)
     return bool(result)
 
@@ -62,11 +62,11 @@ def create_user(email, password, **params):
     pw_salt = generate_salt()
     pw_hash = str(hash(pw_hash + pw_salt))
 
-    return database.get_db().insert('users', email=email, pw_hash=pw_hash, pw_salt=pw_salt, **params)
+    return database.get_db().insert('users', email=email.lower(), pw_hash=pw_hash, pw_salt=pw_salt, **params)
 
 
 def authenticate_user_email(email, password):
-    users = database.get_db().select('users', where='email = $email', vars={'email': email},
+    users = database.get_db().select('users', where='email = $email', vars={'email': email.lower()},
     what='id, pw_hash, pw_salt')
     if not users:
         return False
@@ -81,7 +81,9 @@ def authenticate_user_email(email, password):
 
 
 def authenticate_user_username(username, password):
-    users = database.get_db().select('users', where='username = $username', vars={'username': username}, what='id, pw_hash, pw_salt')
+    users = database.get_db().select('users', where='username = $username',
+                                     vars={'username': username.lower()},
+                                     what='id, pw_hash, pw_salt')
     if not users:
         return False
 
@@ -171,12 +173,13 @@ class UniqueUsernameMixin(object):
         '''
         db = database.get_db()
         query_result = db.select(tables='users', where="username=$username",
-                                   vars={'username': username})
+                                   vars={'username': username.lower()})
         for _ in query_result:
             return True
         return False
 
     def suggest_a_username(self, username):
+        username = username.lower()
         suggested_username = "{}{}".format(username, random.randrange(999))
         while self.username_already_exists(suggested_username):
             suggested_username = "{}{}".format(username, random.randrange(999))
@@ -188,7 +191,7 @@ class UniqueUsernameMixin(object):
         '''
         db = database.get_db()
         query_result = db.select(tables='users', where="email=$email",
-                                   vars={'email': email})
+                                   vars={'email': email.lower()})
         for _ in query_result:
             return True
         return False
