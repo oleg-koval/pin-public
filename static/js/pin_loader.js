@@ -222,7 +222,7 @@ jQuery(function() {
       if (start) {
         start = false;
       } else {
-        pin['categories_list'] = pin['categories_list'] + ', ';
+        pin['categories_list'] = pin['categories_list'] + '<br>';
       }
       pin['categories_list'] = pin['categories_list'] + cat['name'];
     }
@@ -241,15 +241,17 @@ jQuery(function() {
         type: 'DELETE',
         url: '/admin/input/pins/' + pinid + '/'
       });
-      $('div.pinbox[pinid="' + pinid + '"]').remove();
+      $('tr[pinid="' + pinid + '"]').remove();
     }
   });
   $('#pin_edit_dialog').dialog({
     autoOpen: false,
     minWidth: 500
   });
-  $('body').on('click', '.button_pin_edit', function() {
+  $('body').on('click', '.button_pin_edit', function(event) {
     var pinid;
+    event.stopPropagation();
+    event.stopInmediatePropagation();
     pinid = $(this).attr('pinid');
     $.ajax({
       type: 'GET',
@@ -376,7 +378,7 @@ jQuery(function() {
       cache: false,
       success: function(pin) {
         var box, text;
-        box = $('div.pinbox[pinid="' + pin_id + '"]');
+        box = $('tr[pinid="' + pin_id + '"]');
         text = get_pin_html_text(pin);
         box.html(text);
       },
@@ -402,7 +404,7 @@ jQuery(function() {
     for (_i = 0, _len = tags.length; _i < _len; _i++) {
       tag = tags[_i];
       if (result !== '') {
-        result = result + ', ';
+        result = result + ' ';
       }
       result = result + '#' + tag;
     }

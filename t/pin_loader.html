@@ -295,36 +295,6 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 	<div><img src="/static/img/loading.gif"></div>
 </div>
 <script type="text/html" id="pin_template">
-<div class="pin_image">
-	<a href="/p/<%= external_id %>" target="_blank" title="See full size">
-		<img src="<%= image_202_url %>?_=<%= new Date().getTime() %>">
-	</a>
-</div>
-<table>
-	<tr><th>Categories</th><td><%= categories_list %></td></tr>
-	<tr><th>Title</th><td><%= name %></td></tr>
-<% if (description !== null && description !== '') { %>
-	<tr><th>Descr.</th><td><%= description %></td></tr>
-<% } %>
-<% if (product_url !== null && product_url !== '') { %>
-	<tr><th>Get It Here</th><td><a href="<%= product_url %>" title="<%= product_url %>">
-			<%= separate_product %>
-		</a></td></tr>
-<% } %>
-<% if (link !== null && link !== '') { %>
-	<tr><th>Source Link</th><td><a href="<%= link %>" title="<%= link %>">
-			<%= separate_link %>
-		</a></td></tr>
-<% } %>
-	<tr><th>Tags</th><td><%= $$.put_hash_symbol(tags) %></td></tr>
-		
-<% if (price !== 'None') { %>
-	<tr><th>Price</th><td>$$<%= price %></td></tr>
-<% } %>
-	<tr><th>Price Range</th><td><%= price_range_repr %></td></tr>
-	<tr><td colspan="2"><button class="button_pin_edit" pinid="<%= id %>">Edit</button>
-		<button class="button_pin_delete" pinid="<%= id %>">Delete</button></td></tr>
-</table>
 			<td>
 				<%= categories_list %>
 			</td>
@@ -333,19 +303,28 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					<img src="<%= image_202_url %>?_=<%= new Date().getTime() %>" style="width:40px;height:auto;">
 				</a>
 			</td>
-			<td>$pin['name']</td>
-			<td>$pin['description']</td>
-			<td>$pin['link']</td>
-			<td>$pin['product_url']</td>
+			<td><%= name %></td>
+			<td><%= description %></td>
 			<td>
-			$for tag in pin['tags']:
-				$tag<br>
+				<a href="<%= link %>" title="<%= link %>">
+					<%= separate_link %>
+				</a>
 			</td>
-			<td>$pin['price']</td>
-			<td>$pin['price_range_repr']</td>
 			<td>
-				<button class="button_pin_edit" pinid="$pin['id']">e</button>
-				<button class="button_pin_delete" pinid="$pin['id']">x</button>
+				<a href="<%= product_url %>" title="<%= product_url %>">
+					<%= separate_product %>
+				</a>
+			</td>
+			<td>
+				<% _.each(tags, function(tag) { %>
+					#<%= tag %><br>
+				<% }); %>
+			</td>
+			<td><%= price %></td>
+			<td><%= price_range_repr %></td>
+			<td>
+				<button class="button_pin_edit" pinid="<%= id %>">e</button>
+				<button class="button_pin_delete" pinid="<%= id %>">x</button>
 			</td>
 </script>
 <script type="text/javascript">

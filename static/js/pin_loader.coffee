@@ -214,7 +214,7 @@ jQuery ->
 			if start
 				start = false
 			else
-				pin['categories_list'] = pin['categories_list'] + ', '
+				pin['categories_list'] = pin['categories_list'] + '<br>'
 			pin['categories_list'] = pin['categories_list'] + cat['name']
 		pin['separate_product'] = separate_link_to_fit_small_space(pin['product_url'])
 		pin['separate_link'] = separate_link_to_fit_small_space(pin['link'])
@@ -230,7 +230,7 @@ jQuery ->
 			pinid = $(this).attr('pinid')
 			$.ajax type: 'DELETE'
 				,url: '/admin/input/pins/' + pinid + '/'
-			$('div.pinbox[pinid="' + pinid + '"]').remove()
+			$('tr[pinid="' + pinid + '"]').remove()
 		return
 	
 	
@@ -240,7 +240,9 @@ jQuery ->
 	
 	
 	# opens the dialog to edit a pin
-	$('body').on 'click', '.button_pin_edit', ->
+	$('body').on 'click', '.button_pin_edit', (event) ->
+		event.stopPropagation()
+		event.stopInmediatePropagation()
 		pinid = $(this).attr('pinid')
 		$.ajax type: 'GET'
 			,url: '/admin/input/pins/' + pinid + '/'
@@ -360,7 +362,7 @@ jQuery ->
 			,dataType: 'json'
 			,cache: false
 			,success: (pin) ->
-				box = $('div.pinbox[pinid="' + pin_id + '"]')
+				box = $('tr[pinid="' + pin_id + '"]')
 				text = get_pin_html_text(pin)
 				box.html(text)
 				return
@@ -384,7 +386,7 @@ jQuery ->
 		result = ''
 		for tag in tags
 			if result isnt ''
-				result = result + ', '
+				result = result + ' '
 			result = result + '#' + tag
 		return result
 

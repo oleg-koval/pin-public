@@ -196,7 +196,7 @@ jQuery.fn.ingrid = function(o){
 	jQuery(row).find('td').each(function(i){
 		jQuery(this).width( cfg.colWidths[i] )								
 	});
-	h.width(1100);
+	h.width(1200);
 	var b = jQuery('<div />')
 		.html( jQuery('<table cellpadding="0" cellspacing="0"></table>').html( this.find('tbody') ).width( h.width() ).addClass(cfg.gridClass) )
 		.css('overflow', 'auto')
