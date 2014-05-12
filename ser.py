@@ -405,9 +405,6 @@ def make_tag(tag):
 class NewPageAddPinForm:
     def POST(self):
         data = web.input()
-<<<<<<< HEAD
-        # transaction = db.transaction()
-        # try:
         if data.board:
             board = int(data.board)
         elif data.board_name:
@@ -439,54 +436,6 @@ class NewPageAddPinForm:
         data = api_request("api/image/upload", "POST", data_to_send, files)
         if data['status'] == 200:
             return '/p/%s' % data['data']['external_id']
-
-            # pin = pin_utils.create_pin(db=db,
-            #                            user_id=sess.user_id,
-            #                            title=data.title,
-            #                            description=data.comments,
-            #                            link=data.weblink,
-            #                            tags=None,
-            #                            price=None,
-            #                            product_url='',
-            #                            price_range=1,
-            #                            image_filename=data.fname,
-            #                            board_id=board,
-            #                            )
-            # transaction.commit()
-            # return '/p/%s' % pin.external_id
-        # except Exception as e:
-        #     logger.error('Failed to create a pin from a file upload', exc_info=True)
-        #     transaction.rollback()
-        #     return '/'
-=======
-        transaction = db.transaction()
-        try:
-            if data.board:
-                board = int(data.board)
-            elif data.board_name:
-                board = db.insert(tablename='boards', name=data.board_name, description=data.board_name,
-                                  user_id = sess.user_id)
-            else:
-                board=None
-            pin = pin_utils.create_pin(db=db,
-                                       user_id=sess.user_id,
-                                       title=data.title,
-                                       description=data.comments,
-                                       link=data.weblink,
-                                       tags=data.hashtags,
-                                       price=None,
-                                       product_url='',
-                                       price_range=1,
-                                       image_filename=data.fname,
-                                       board_id=board,
-                                       )
-            transaction.commit()
-            return '/p/%s' % pin.external_id
-        except Exception as e:
-            logger.error('Failed to create a pin from a file upload', exc_info=True)
-            transaction.rollback()
-            return '/'
->>>>>>> b643b03dfc84f2a08b596bb31b4ce4a64d0f7d62
 
 
 class NewPageAddPin:
@@ -527,8 +476,6 @@ class PageAddPinUrl:
     def POST(self):
         force_login(sess)
         data = web.input()
-        # transaction = db.transaction()
-        # try:
         fname = self.upload_image(data.image_url)
 
         link = data.link
@@ -563,25 +510,6 @@ class PageAddPinUrl:
         data = api_request("api/image/upload", "POST", data, files)
         if data['status'] == 200:
             return '/p/%s' % data['data']['external_id']
-
-            # pin = pin_utils.create_pin(db=db,
-            #                      user_id=sess.user_id,
-            #                      title=data.title,
-            #                      description=data.description,
-            #                      link=link,
-            #                      tags=None,
-            #                      price=None,
-            #                      product_url=data.websiteurl,
-            #                      price_range=data.price,
-            #                      image_filename=fname,
-            #                      board_id=board_id)
-            # transaction.commit()
-            # return '/p/%s' % pin.external_id
-        # except Exception as e:
-        #     logger.error('Failed to create a pin from an image URL', exc_info=True)
-        #     transaction.rollback()
-        #     return web.seeother(url='?msg={}'.format('This is embarrassing. We where unable to create the product. Please try again.'),
-        #                  absolute=False)
 
 
 class PageRemoveRepin:
