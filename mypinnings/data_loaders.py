@@ -6,6 +6,7 @@ import urllib
 import json
 from gettext import gettext as _
 import math
+import datetime
 
 import web
 
@@ -239,78 +240,33 @@ class PinLoaderPage(object):
         return filename
 
 
-PIN_LIST_LIMIT = 20
-PIN_LIST_FIRST_LIMIT = 50
 class LoadersEditAPI(object):
     def GET(self, pin_id=None):
-        if pin_id:
-            return self.get_by_id(pin_id)
-        else:
-            return self.get_by_list()
-
-    def get_by_id(self, id):
         sess = session.get_session()
+        auth.force_login(sess)
         db = database.get_db()
         results = db.query('''select pins.*
                             from pins
                             where pins.id=$id and user_id=$user_id''',
-                            vars={'id': id, 'user_id': sess.user_id})
+                            vars={'id': pin_id, 'user_id': sess.user_id})
         for row in results:
             web.header('Content-Type', 'application/json')
             row.price = str(row.price)
             row.price_range_repr = '$' * row.price_range if row.price_range < 5 else '$$$$+'
             results = db.select(tables=['categories', 'pins_categories'],
                                         where='categories.id = pins_categories.category_id and pins_categories.pin_id=$id',
-                                        vars={'id': id})
+                                        vars={'id': pin_id})
             row['categories'] = [{'id': catrow.id, 'name': catrow.name} for catrow in results]
-            results = db.where(table='tags', pin_id=id)
+            results = db.where(table='tags', pin_id=pin_id)
             tags = [r.tags for r in results]
             row['tags'] = tags
             return json.dumps(row)
         raise web.notfound()
 
-    def get_by_list(self):
-        sess = session.get_session()
-        sess.offset = int(web.input(offset=None)['offset'] or sess.get('offset', 0))
-        db = database.get_db()
-        if sess.offset == 0:
-            limit = PIN_LIST_FIRST_LIMIT
-        else:
-            limit = PIN_LIST_LIMIT
-        results = db.query('''select pins.*, tags.tags, categories.id as category_id, categories.name as category_name
-                            from pins join pins_categories pc on pins.id = pc.pin_id
-                            join categories on pc.category_id=categories.id
-                            left join tags on pins.id = tags.pin_id
-                            where user_id=$user_id
-                            group by pins.id, categories.id, tags.tags
-                            order by timestamp desc, pins.id, categories.name
-                            offset $offset limit $limit''',
-                            vars={'user_id': sess.user_id, 'offset': sess.offset, 'limit': limit})
-        sess.offset += len(results)
-        pin_list = []
-        current_pin = None
-        for r in results:
-            if not current_pin or current_pin['id'] != r.id:
-                current_pin = dict(r)
-                current_pin['price'] = str(r.price)
-                current_pin['price_range_repr'] = '$' * r.price_range if r.price_range < 5 else '$$$$+'
-                current_pin['categories'] = []
-                categories = []
-                current_pin['tags'] = []
-                pin_list.append(current_pin)
-            if r.category_id not in categories:
-                category = {'id': r.category_id, 'name': r.category_name}
-                current_pin['categories'].append(category)
-                categories.append(r.category_id)
-            if r.tags and r.tags not in current_pin['tags']:
-                current_pin['tags'].append(r.tags)
-        json_pins = json.dumps(pin_list)
-        web.header('Content-Type', 'application/json')
-        return json_pins
-
     def DELETE(self, pin_id):
         try:
             sess = session.get_session()
+            auth.force_login(sess)
             db = database.get_db()
             pin_utils.delete_pin_from_db(db, pin_id, sess.user_id)
             web.header('Content-Type', 'application/json')
@@ -338,6 +294,7 @@ class LoadersEditAPI(object):
         if form.validates():
             web.header('Content-Type', 'application/json')
             sess = session.get_session()
+            auth.force_login(sess)
             db = database.get_db()
             price = form.d.price or None
             pin_utils.update_base_pin_information(db,
@@ -362,3 +319,45 @@ class LoadersEditAPI(object):
             return json.dumps({'status': 'ok'})
         else:
             return web.notfound()
+
+
+PIN_LIST_LIMIT = 100
+class PaginateLoadedItems(object):
+    def GET(self):
+        sess = session.get_session()
+        auth.force_login(sess)
+        
+        params = web.input(page=1, sort='users.name', dir='asc', query='')
+        page = int(params.page) - 1
+        
+        db = database.get_db()
+        offset = PIN_LIST_LIMIT * page
+        results = db.query('''select pins.*, tags.tags, categories.id as category_id, categories.name as category_name
+                            from pins join pins_categories pc on pins.id = pc.pin_id
+                            join categories on pc.category_id=categories.id
+                            left join tags on pins.id = tags.pin_id
+                            where user_id=$user_id
+                            group by pins.id, categories.id, tags.tags
+                            order by timestamp desc, pins.id, categories.name
+                            offset $offset limit $limit''',
+                            vars={'user_id': sess.user_id, 'offset': offset, 'limit': PIN_LIST_LIMIT})
+        pin_list = []
+        current_pin = None
+        for r in results:
+            if not current_pin or current_pin['id'] != r.id:
+                current_pin = dict(r)
+                current_pin['price'] = str(r.price)
+                current_pin['price_range_repr'] = '$' * r.price_range if r.price_range < 5 else '$$$$+'
+                current_pin['categories'] = []
+                categories = []
+                current_pin['tags'] = []
+                pin_list.append(current_pin)
+            if r.category_id not in categories:
+                category = {'id': r.category_id, 'name': r.category_name}
+                current_pin['categories'].append(category)
+                categories.append(r.category_id)
+            if r.tags and r.tags not in current_pin['tags']:
+                current_pin['tags'].append(r.tags)
+        list = web.template.frender('t/pin_loader_list.html')(pin_list, datetime.datetime.now())
+        print(list)
+        return list

@@ -206,69 +206,6 @@ jQuery ->
 			return false
 			
 	
-	# detect when scrolling to bottom to load more items
-	$(window).scroll ->
-		top = $(window).scrollTop()
-		height = $(window).innerHeight();
-		doc_height = $(document).height()
-		sensitivity = 300
-		if top + height + sensitivity > doc_height
-			load_more_pins()
-		return
-			
-		
-	# load first pins when page loads
-	$.loading_more_pins = true
-	$.ajax type: 'GET'
-		,url: '/admin/input/pins/'
-		,dataType: 'json'
-		,data: {'offset': '0'}
-		,cache: false
-		,success: (d)->
-			put_more_pins_into_the_page(d)
-			return
-		,error: (x, textStatus, errorThrown) ->
-			$.loading_more_pins = false
-			console.log("Error:" + textStatus + ', ' + errorThrown)
-			return
-	
-	
-	# loads more pins with ajax
-	load_more_pins = ->
-		if not $.loading_more_pins
-			$.loading_more_pins = true
-			$.ajax type: 'GET'
-				,url: '/admin/input/pins/'
-				,dataType: 'json'
-				,cache: false
-				,success: (d)->
-					put_more_pins_into_the_page(d)
-					return
-				,error: (x, textStatus, errorThrown) ->
-					$.loading_more_pins = false
-					console.log("Error:" + textStatus + ', ' + errorThrown)
-					return
-			return
-		return
-	
-	
-	$('#load_more_button').on 'click', ->
-		load_more_pins()
-		
-	
-	# dynamically put items in columns, alternating columns
-	$.column_control = 1
-	put_more_pins_into_the_page = (data) ->
-		for pin in data
-			column = $('.column' + $.column_control)
-			column.append('<div class="pinbox" pinid="' + pin['id'] + '">'+ get_pin_html_text(pin) + '</div>')
-			$.column_control += 1
-			if $.column_control > 4
-				$.column_control = 1
-		$.loading_more_pins = false
-		return
-		
-	
 	# creates the HTML to show one pin in the list
 	get_pin_html_text = (pin) ->
 		start = true

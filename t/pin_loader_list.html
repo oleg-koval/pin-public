@@ -1,0 +1,30 @@
+$def with (pin_list, timestamp)
+<table>
+	<tbody>
+	$for pin in pin_list:
+		<tr pinid="$pin['id']">
+			<td>
+			$for category in pin['categories']:
+				$category['name']<br>
+			</td>
+			<td>
+				<a href="/p/$pin['external_id']">
+					<img src="$pin['image_202_url']?_=$timestamp" style="width:40px;height:auto;">
+				</a>
+			</td>
+			<td>$pin['name']</td>
+			<td>$pin['description']</td>
+			<td>$pin['link']</td>
+			<td>$pin['product_url']</td>
+			<td>
+			$for tag in pin['tags']:
+				$tag<br>
+			</td>
+			<td>$pin['price']</td>
+			<td>$pin['price_range_repr']</td>
+			<td>
+				<button class="button_pin_edit" pinid="$pin['id']">e</button>
+				<button class="button_pin_delete" pinid="$pin['id']">x</button>
+			</td>
+		</tr>
+	<tbody>
