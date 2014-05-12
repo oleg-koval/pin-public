@@ -242,7 +242,6 @@ jQuery ->
 	# opens the dialog to edit a pin
 	$('body').on 'click', '.button_pin_edit', (event) ->
 		event.stopPropagation()
-		event.stopInmediatePropagation()
 		pinid = $(this).attr('pinid')
 		$.ajax type: 'GET'
 			,url: '/admin/input/pins/' + pinid + '/'

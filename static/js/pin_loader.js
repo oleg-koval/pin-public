@@ -251,7 +251,6 @@ jQuery(function() {
   $('body').on('click', '.button_pin_edit', function(event) {
     var pinid;
     event.stopPropagation();
-    event.stopInmediatePropagation();
     pinid = $(this).attr('pinid');
     $.ajax({
       type: 'GET',

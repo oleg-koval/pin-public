@@ -338,11 +338,11 @@ jQuery.fn.ingrid = function(o){
 		var pload	= jQuery('<div />').addClass(cfg.pageLoadingClass).addClass(cfg.pageLoadingDoneClass);
 		
 		// page field & form
-		var pfld  = jQuery('<input type="text" value="' + cfg.pageNumber + '"/>').addClass(cfg.pageInputClass);
+		var pfld  = jQuery('<input type="text" style="width:15px;" value="' + cfg.pageNumber + '"/>').addClass(cfg.pageInputClass);
 		var pinfo = jQuery('<div />')
 			.addClass(cfg.pageInfoClass)
 			.append(pfld);
-		var pform = jQuery('<form></form>').append(pinfo).submit(function(){
+		var pform = jQuery('<form style="padding:0px;background-color:transparent;box-shadow:0px;display:inline;"></form>').append(pinfo).submit(function(){
 			var _p = parseInt(p.getPage());
 			if (_p) {
 				if (totp) {
