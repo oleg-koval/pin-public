@@ -284,10 +284,15 @@ $(document).ready(function() {
             }
             return false;
         }
+        $("#addfancy").prop("disabled", true);
+        var spanelememnt = $("#addtogetlistupload");
+        spanelememnt.empty();
+        spanelememnt.append("<img src='/static/img/getlist-load.gif'>")
         return true;
     }
 
     function validate_from_web(formData, jqForm, options) {
+
         var title = $("#titleweb");
         var list = $("#boardweb");
 
@@ -315,6 +320,10 @@ $(document).ready(function() {
             }
             return false;
         }
+        $("#addfancyweb").prop("disabled", true);
+        var spanelememnt = $("#addtogetlist");
+        spanelememnt.empty();
+        spanelememnt.append("<img src='/static/img/getlist-load.gif'>")
         return true;
     }
 
@@ -366,9 +375,15 @@ $(document).ready(function() {
             }
             $("#image_urlweb").attr("value", this.data[this.current].url);
             this.showstatus();
+            this.showsize();
         },
         showstatus : function(){
             $("#status-textweb").html("   "+(this.current+1) + " of "+this.len);
+        },
+        showsize: function(){
+            var elem = $("#imagesize");
+            elem.empty();
+            elem.append("<span >"+this.data[this.current].w+ "  x  "+this.data[this.current].h+"</span>")
         },
         init: function(){
             this.element = $("#slide-imageweb");
