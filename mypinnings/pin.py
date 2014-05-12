@@ -48,6 +48,17 @@ class Pin(object):
 
             data = {
                 'image_id': pin_id,
+                "csid_from_client": '',
+                "logintoken": logintoken
+            }
+
+            data = api_request("api/image/query/hashtags", "POST", data)
+            hash_tag_remove_list = []
+            if data['status'] == 200:
+                hash_tag_remove_list = data['data']['hashtag_list']
+
+            data = {
+                'image_id': pin_id,
                 'image_title': form_data.d.title,
                 'image_desc': form_data.d.description,
                 'link': form_data.d.link,
@@ -55,6 +66,7 @@ class Pin(object):
                 'product_url': form_data.d.product_url,
                 'price_range': form_data.d.price_range,
                 'board_id': board,
+                'hash_tag_remove_list': hash_tag_remove_list,
                 'hash_tag_add_list': form_data.d.tags.split(),
                 "csid_from_client": '',
                 "logintoken": logintoken

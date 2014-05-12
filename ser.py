@@ -836,14 +836,14 @@ def get_pins(user_id, offset=None, limit=None, show_private=False):
         if not current_row or current_row.id != row.id:
             current_row = row
             tag = row.tags
-            current_row.tags = []
+            current_row.tags = ""
             if tag:
-                current_row.tags.append(tag)
+                current_row.tags = tag
             pins.append(current_row)
         else:
             tag = row.tags
             if tag not in current_row.tags:
-                current_row.tags.append(tag)
+                current_row.tags = tag
     return pins
 
 
