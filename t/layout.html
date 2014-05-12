@@ -166,7 +166,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
     <textarea id="comments" class="comments" placeholder="Say something about this"></textarea><br>
     <input type="hidden" id="image-url" >
     <input type="button" id="cancelfancy" name="cancelfancy" value="Cancel">&nbsp;&nbsp;
-    <input type="submit" id="addfancy" name="addfancy" value="Add to your GetList">
+    <span><input type="submit" id="addfancy" name="addfancy" value="Add to your GetList"><span id="addtogetlistupload" class="loadimg"></span></span>
     </div>
     </form>
     </div>
@@ -176,6 +176,8 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
 	    <div class="c1" id="imagedivweb">
 	    <div id="slideshowweb" class="photo">
             <img src="" id="slide-imageweb">
+        </div>
+        <div id="imagesize">
         </div>
         <div id="controls-web">
         <span> <a href="#" id="galleryprevweb">prev</a> <a id="gallerynextweb" href="#">next</a></span><span id="status-textweb"> </span>
@@ -220,7 +222,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
     <textarea id="commentsweb" class="comments" placeholder="Say something about this"></textarea><br>
     <input type="hidden" id="image_urlweb" >
     <input type="button" id="cancelfancyweb" name="cancelfancy" value="Cancel">&nbsp;&nbsp;
-    <input type="submit" id="addfancyweb" name="addfancy" value="Add to your GetList">
+    <span ><input type="submit" id="addfancyweb" name="addfancy" value="Add to your GetList"><span id="addtogetlist" class="loadimg"></span></span>
     </div>
     </form>
     </div>
