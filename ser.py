@@ -150,7 +150,7 @@ urls = (
     '/recover_password_sent/?', 'mypinnings.recover_password.EmailSentPage',
     '/pwreset/(\d*)/(\d*)/(.*)/', 'mypinnings.recover_password.PasswordReset',
     '/recover_password_complete/', 'mypinnings.recover_password.RecoverPasswordComplete',
-    '/(\w*)', 'PageProfile2',
+    '/(.*?)', 'PageProfile2',
     '/(.*?)/(.*?)', 'PageConnect2',
 
 )
@@ -913,13 +913,11 @@ class PageProfile2:
         profile_owner_context = {
             "csid_from_client": "",
             "username": username}
-        user = api_request(profile_url, data=profile_owner_context)
-
-        if user is None:
+        user = api_request(profile_url, data=profile_owner_context)\
+            .get("data", [])
+        if len(user) == 0:
             return u"Profile was not found"
-
-        user = pin_utils.dotdict(user['data'])
-
+        user = pin_utils.dotdict(user)
 
         # Getting followers/follows of a given user
         follow_url = "/api/social/query/%s"
@@ -943,7 +941,8 @@ class PageProfile2:
                              data=data).get("data", [])
         boards = [pin_utils.dotdict(board) for board in boards]
 
-        # Getting categories of a given user (what is that?)
+        # Getting categories. Required in case when user
+        # is editing own pins.
         categories_to_select = cached_models\
             .get_categories_with_children(db)
 
@@ -960,13 +959,16 @@ class PageProfile2:
             # Notify user about update
             url = "/api/profile/userinfo/info"
             this_user_context = {"csid_from_client": "", "id": sess.user_id}
-            this_user = api_request(url, data=this_user_context).get("data")
-
-            notif_context = {
-                "csid_from_client": "",
-                "msg": '%s has viewed your profile!' % this_user["name"],
-                "url": '/%s' % this_user["username"]}
-            api_request("/notifications/add", data=notif_context)
+            this_user = api_request(url, data=this_user_context)\
+                .get("data", [])
+            # Sending notification in case, it's possible to detect this_user
+            if len(this_user) > 0:
+                msg = '%s has viewed your profile!' % this_user.get("name", "")
+                notif_context = {
+                    "csid_from_client": "",
+                    "msg": msg,
+                    "url": '/%s' % this_user.get("username", "")}
+                api_request("/notifications/add", data=notif_context)
 
         # Offset for rendering
         offset = int(web.input(offset=0).offset)
@@ -984,7 +986,7 @@ class PageProfile2:
         # Building hash to use with images
         hashed = rs()
 
-        # Getting link to edit profile... Looks sooo complex
+        # Getting link to edit profile...
         if logged_in(sess):
             get_input = web.input(_method='get')
             edit_profile = edit_profile_done = None

@@ -48,7 +48,7 @@ class CreateNotification(BaseAPI):
         http://localhost:8080/api/notification/add
         """
         request_data = web.input()
-        csid_from_client = request_data.pop('csid_from_client')
+        csid_from_client = request_data.get('csid_from_client', "")
         db.insert('notifs', user_id=request_data["user_id"],
                   message=request_data["msg"],
                   link=request_data["url"])

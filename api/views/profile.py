@@ -235,7 +235,7 @@ class ProfileInfo(BaseUserProfile):
         elif user_id:
             query = db.select('users', vars={'id': user_id},
                               where='id=$id')
-        if query:
+        if len(query) > 0:
             user = query.list()[0]
         else:
             return api_response(data={}, status=405,
@@ -354,7 +354,7 @@ class ManageGetList(BaseAPI):
             "removed": remove_list_result,
             "shared": share_list_result,
         }
-        response = api_response(data, 
+        response = api_response(data,
                                 status=status,
                                 error_code=error_code,
                                 csid_from_client=csid_from_client,
@@ -524,7 +524,6 @@ class QueryBoards(BaseAPI):
         boards = db.select('boards',
                            where='user_id=$user_id',
                            vars={'user_id': user_id})
-
         return api_response(data=boards.list(),
                             csid_from_server=csid_from_server,
                             csid_from_client=csid_from_client)
