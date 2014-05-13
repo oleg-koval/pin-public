@@ -125,7 +125,7 @@ class PinLoaderPage(object):
             select parent.id, parent.name, child.id as child_id, child.name as child_name
             from categories parent left join categories child on parent.id = child.parent
             where parent.parent is null
-            order by parent.name, child.name
+            order by parent.position desc, parent.name, child.position desc, child.name
             ''')
         current_parent = None
         categories_as_list = []
