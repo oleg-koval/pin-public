@@ -217,54 +217,35 @@ class QueryFollowers(BaseAPI):
     """
     Class responsible for providing access to followers of a given user
     """
-    def POST(self, username, query_type):
+    def POST(self, query_type):
         """ Depending on query_type (which can be follow or followers) returns
         a list of users (ids), following or followed by current user
 
-        Can be testing samples:
+        Can be tested this way:
 
-        curl --data "csid_from_client=1" \
-        http://localhost:8080/api/social/query/oleg/follow
+        curl --data "csid_from_client=1&user_id=78" \
+        http://localhost:8080/api/social/query/follow
         returns all users who followed by user oleg
 
-        curl --data "csid_from_client=1" \
-        http://localhost:8080/api/social/query/oleg/follower
+        curl --data "csid_from_client=1&user_id=78" \
+        http://localhost:8080/api/social/query/follower
         returns all users who follow user oleg
         """
 
         data = web.input()
+        user_id = data.get("user_id")
         save_api_request(data)
         kwparams = {}
-
-        logintoken = data.get('logintoken')
-        user_status, authenticated_user = self.authenticate_by_token(logintoken)
-
-        # User id contains error code
-        if not user_status:
-            return authenticated_user
-        csid_from_server = authenticated_user['seriesid']
 
         if data.get('new'):
             kwparams['order'] = 'follow_time'
 
-        # Get user from the database
-        user = db.select(
-            'users',
-            {"username": username},
-            where="username=$username"
-        )
-
-        if not user:
-            return api_response(data={}, status=405,
-                                error_code="Object does not exist")
-        user = user.list()[0]
-
         # Selecting followers or followed
         if query_type == 'follower':
-            kwparams['where'] = 'follower=%s' % (user.id)
+            kwparams['where'] = 'follower=%s' % (user_id)
             kwparams['what'] = 'follow'
         else:
-            kwparams['where'] = 'follow=%s' % (user.id)
+            kwparams['where'] = 'follow=%s' % (user_id)
             kwparams['what'] = 'follower'
 
         followers = db.select('follows', **kwparams).list()
@@ -274,7 +255,7 @@ class QueryFollowers(BaseAPI):
         csid_from_client = data.pop('csid_from_client')
         return api_response(data={'user_id_list': user_id_list},
                             csid_from_client=csid_from_client,
-                            csid_from_server=csid_from_server)
+                            csid_from_server="")
 
 
 class SocialMessage(BaseAPI):

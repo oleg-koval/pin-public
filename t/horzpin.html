@@ -4,9 +4,9 @@ $if pin.id and pin.category:
     <div class='buttons'>
       <a id="repinlink" onclick=rePin(this) data-category="$pin.category" data-description="$pin.description" href='#' data-toggle="modal" data-target="#addToGetListModal"
       $if pin.repin == 0:
-        data-id="$pin.id" 
+        data-id="$pin.id"
       $else:
-        data-id="$pin.repin" 
+        data-id="$pin.repin"
       class='repinlink button small-pad' imagesrc="$pin.image_202_url">Add to Your Getlist</a>
       <a href='/share/$pin.id' class='button small-pad'><i class='fa fa-share-square'></i></a>
       $if pin.link:
@@ -18,7 +18,7 @@ $if pin.id and pin.category:
     <div class='info'>
       $if pin.description:
         <h1>$pin.description</h1>
-      <p class='faded'>Posted by <a href='/$pin.user_username'><b>$pin.user_name</b></a> &middot; <span class='faded'>$tpllib.format_timestamp(pin.timestamp)</span></p> 
+      <p class='faded'>Posted by <a href='/$pin.user_username'><b>$pin.user_name</b></a> &middot; <span class='faded'>$tpllib.format_timestamp(pin.timestamp)</span></p>
       $if pin.link:
         <p class='faded'>Source: <a href='$pin.link'>$tpllib.condense_link(pin.link)</a></p>
       $if pin.tags:

@@ -10,7 +10,6 @@ from mypinnings import auth
 from mypinnings import session
 from mypinnings.database import connect_db
 
-
 db = connect_db()
 
 
@@ -19,9 +18,10 @@ class BaseUserProfile(BaseAPI):
     General class which holds list of fields used by user profile methods
     """
     def __init__(self):
-        self._fields = ['id', 'name', 'about', 'city', 'hometown', 'about',
-                        'email', 'pic', 'website', 'facebook', 'twitter',
-                        'getlist_privacy_level', 'private']
+        self._fields = ['id', 'name', 'about', 'city', 'country', 'hometown',
+                        'about', 'email', 'pic', 'website', 'facebook',
+                        'twitter', 'getlist_privacy_level', 'private', 'bg',
+                        'bgx', 'bgy', 'show_views', 'views', 'username']
         self._birthday_fields = ['birthday_year', 'birthday_month',
                                  'birthday_day']
         self.required = ['csid_from_client', 'logintoken']
@@ -38,7 +38,6 @@ class BaseUserProfile(BaseAPI):
             response['birthday_day'] = user['birthday'].day
             response['birthday_month'] = user['birthday'].month
         return response
-
 
     def is_request_valid(self, request_data):
         """
@@ -183,7 +182,6 @@ class GetProfileInfo(BaseUserProfile):
         if not status:
             return response_or_user
 
-
         # User id contains error code
         if not status:
             return response_or_user
@@ -202,27 +200,46 @@ class ProfileInfo(BaseUserProfile):
     Returns publically available profile information
     """
 
-    def POST(self, profile):
-        """ Returns profile information
+    def POST(self):
+        """ Returns profile information. This function requires either
+        profile or id in order to work
 
         Required fields:
-        - profile (sent via url)
+        - username
+        - id
         - csid_from_client
 
         Example usage:
-        curl --data "csid_from_client=11" \
-        http://localhost:8080/api/profile/userinfo/info/oleg
+        curl --data "csid_from_client=11&id=78"\
+        http://localhost:8080/api/profile/userinfo/info
+
+        curl --data "csid_from_client=11&username=Oleg"\
+        http://localhost:8080/api/profile/userinfo/info
         """
         request_data = web.input()
-        # Removing logintoken from request check
+        profile = request_data.get("username", False)
+        user_id = request_data.get("id", False)
+
         self.required.remove('logintoken')
         if not self.is_request_valid(request_data):
             return api_response(data={}, status=405,
                                 error_code="Required args are missing")
-        query = db.select('users', vars={'username': profile},
-                         where='username=$username')
-        if query is not None:
+
+        if not profile and not user_id:
+            error_code = "This function requires either profile or user_id"
+            return api_response(data={}, status=405,
+                                error_code=error_code)
+        elif profile:
+            query = db.select('users', vars={'username': profile},
+                              where='username=$username')
+        elif user_id:
+            query = db.select('users', vars={'id': user_id},
+                              where='id=$id')
+        if len(query) > 0:
             user = query.list()[0]
+        else:
+            return api_response(data={}, status=405,
+                                error_code="User was not found")
 
         response = {field: user[field] for field in self._fields}
         csid_from_client = request_data.pop('csid_from_client')
@@ -232,6 +249,45 @@ class ProfileInfo(BaseUserProfile):
                             csid_from_client=csid_from_client,
                             csid_from_server=csid_from_server)
 
+
+class UpdateProfileViews(BaseUserProfile):
+    """
+    Responsible for updating count of pofile views
+    """
+    def POST(self, profile):
+        """ Returns profile information
+
+        Required fields:
+        - profile (sent via url)
+        - csid_from_client
+
+        Example usage:
+        curl --data "csid_from_client=11&logintoken=RxPu7fLYgv" \
+        http://localhost:8080/api/profile/updateviews/oleg
+        """
+        request_data = web.input()
+
+        if not self.is_request_valid(request_data):
+            return api_response(data={}, status=405,
+                                error_code="Required args are missing")
+
+        # Checking if user has a valid logintoken
+        status, response_or_user = self.authenticate_by_token(
+            request_data.pop('logintoken'))
+        # Login was not successful
+        if not status:
+            return response_or_user
+
+        db.update('users', where='user = $username',
+                  vars={'username': profile},
+                  views=web.SQLLiteral('views + 1'))
+
+        csid_from_client = request_data.pop('csid_from_client')
+        csid_from_server = ""
+
+        return api_response(data={"status": "success"},
+                            csid_from_client=csid_from_client,
+                            csid_from_server=csid_from_server)
 
 
 class ManageGetList(BaseAPI):
@@ -298,7 +354,7 @@ class ManageGetList(BaseAPI):
             "removed": remove_list_result,
             "shared": share_list_result,
         }
-        response = api_response(data, 
+        response = api_response(data,
                                 status=status,
                                 error_code=error_code,
                                 csid_from_client=csid_from_client,
@@ -468,8 +524,6 @@ class QueryBoards(BaseAPI):
         boards = db.select('boards',
                            where='user_id=$user_id',
                            vars={'user_id': user_id})
-
-
         return api_response(data=boards.list(),
                             csid_from_server=csid_from_server,
                             csid_from_client=csid_from_client)
@@ -487,9 +541,24 @@ class QueryPins(BaseAPI):
         csid_from_client
 
         Can be tested using the following command:
-        curl --data "user_id=2&csid_from_client=1" \
+        curl --data "user_id=78&csid_from_client=1" \
         http://localhost:8080/api/profile/userinfo/pins
         """
+
+        query = '''
+        select tags.tags, pins.*, users.pic as user_pic,
+        users.username as user_username, users.name as user_name,
+        count(distinct p1) as repin_count,
+        count(distinct l1) as like_count
+        from users
+        left join pins on pins.user_id = users.id
+        left join tags on tags.pin_id = pins.id
+        left join pins p1 on p1.repin = pins.id
+        left join likes l1 on l1.pin_id = pins.id
+        where users.id = $id
+        group by tags.tags, pins.id, users.id
+        order by timestamp desc'''
+
         request_data = web.input()
         csid_from_client = request_data.get('csid_from_client')
         csid_from_server = ""
@@ -498,10 +567,25 @@ class QueryPins(BaseAPI):
         if not user_id:
             return api_response(data={}, status=405,
                                 error_code="Missing user_id")
-        pins = db.select('pins',
-                           where='user_id=$user_id',
-                           vars={'user_id': user_id})
+        results = db.query(query, vars={'id': user_id})
 
-        return api_response(data=pins.list(),
+        pins = []
+        current_row = None
+        for row in results:
+            if not row.id:
+                continue
+            if not current_row or current_row.id != row.id:
+                current_row = row
+                tag = row.tags
+                current_row.tags = []
+                if tag:
+                    current_row.tags.append(tag)
+                pins.append(current_row)
+            else:
+                tag = row.tags
+                if tag not in current_row.tags:
+                    current_row.tags.append(tag)
+
+        return api_response(data=pins,
                             csid_from_server=csid_from_server,
                             csid_from_client=csid_from_client)
