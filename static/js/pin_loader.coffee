@@ -430,8 +430,7 @@ jQuery ->
 								
 	
 	$('#change_categories_button').on 'click', (event) ->
-		for row in $.pagination_grid.g.getSelectedRows()
-			console.log(row)
+		$('input[name=category_change_check]').prop('checked', false)
 		$('#change_categories_dialog').dialog('open')
 		return
 
