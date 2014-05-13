@@ -6,17 +6,24 @@ import boto.s3.connection
 import boto.s3.key
 from PIL import Image
 
+from Queue import Queue
+from threading import Thread
+import multiprocessing
+import threadpool
+import concurrent.futures
 
 NAME_CHARACTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._'
-
+AWS_ACCESS_KEY_ID = 'AKIAIQCQILLJN326OSLA'
+AWS_SECRET_ACCESS_KEY = '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'
+NUM_THREADS = 20
 
 def store_image_from_filename(db, filename, widths=[]):
     '''
     Saves the image from the filename into one of the active media servers.
 
     db - A connection to the data base.
-    filename - A valid filename, full path or relative, that the application
-        can actually read
+    filename - A valid filename (string) or list of filenames (list of strings). 
+	Filename(s) should be a full path or relative, that the application can actually read
     widths - A list of integers with the widths of the images you would like
         to be saved in the media server. Like [220, 40]
 
@@ -24,43 +31,112 @@ def store_image_from_filename(db, filename, widths=[]):
     of integers). The images are saved renamed, so you don't need to generate random
     names or unique names.
 
-    Returns a dict(int: string) the keys are the widths of the images, the values
-    are the actual URL to serve the image. To obtain the URL for the image in the
-    original width (and size), look for the key 0 (zero):
-    
-    >>> dict_of_images = store_image_from_filename(db, '/tmp/myfile.jpg', widths=(212, 202))
-    >>> dict_of_images[0] # this returns the URL for the image with the original width (and size).
-    'http://http://32.media.mypinnings.com/asd/qwe/zxc/asdqwezxcasdfasdfasdf.jpg'
-    >>> dict_of_images[212] # returns the URL for the image scaled to a width of 212
-    'http://http://32.media.mypinnings.com/asd/qwe/zxc/asdqwezxcasdfasdfasdf_212.jpg'
-    >>> dict_of_images[212] # returns the URL for the image scaled to a width of 202
-    'http://http://32.media.mypinnings.com/asd/qwe/zxc/asdqwezxcasdfasdfasdf_202.jpg'
+    Returns :
+	1) For one image - a dict(int: string) the keys are the widths of the images, the values
+    	are the actual URL to serve the image. To obtain the URL for the image in the
+    	original width (and size), look for the key 0 (zero)
+	2) For many images - a dict of dicts(int:string) the keys are names of the images with extension, 
+	the values are dicts which keys are width value specified as input parameter and values are URL for the image
+	To obtain the URL for the image in the original width (and size), look for the key 0 (zero)
+	To obtain the URL for the image in the specified width as an input parameter, look for the specified width
 
-    The image is saved in its original size, plus the sizes of the widths you
+	Ad.1.
+	    >>> dict_of_images = store_image_from_filename(db, '/tmp/myfile.jpg', widths=(212, 202))
+	    >>> dict_of_images[0] # this returns the URL for the image with the original width (and size).
+	    'http://http://32.media.mypinnings.com/asd/qwe/zxc/asdqwezxcasdfasdfasdf.jpg'
+	    >>> dict_of_images[212] # returns the URL for the image scaled to a width of 212
+	    'http://http://32.media.mypinnings.com/asd/qwe/zxc/asdqwezxcasdfasdfasdf_212.jpg'
+	    >>> dict_of_images[212] # returns the URL for the image scaled to a width of 202
+	    'http://http://32.media.mypinnings.com/asd/qwe/zxc/asdqwezxcasdfasdfasdf_202.jpg'
+	Ad.2.
+	    >>> filepath = '/tmp/myfile.jpg'
+	    >>> fileslist = []
+		for a in range(0,10): #10 same files
+		    fileslist.append(filepath)
+	    >>> dict_of_dicts_of_images = store_image_from_filename(db, fileslist, widths=(212, 202))
+	    >>> {'myfile.jpg': {0: {'url': 'http://32.media.mypinnings.com/TCi/FBK/J9m/TCiFBKJ9mGkAWnVulv3cz2_4dP5eh6.H.jpg'}, 
+		202: {'width': 'http://32.media.mypinnings.com/TCi/FBK/J9m/TCiFBKJ9mGkAWnVulv3cz2_4dP5eh6.H_202.jpg'}, 
+		212: {'width': 'http://32.media.mypinnings.com/TCi/FBK/J9m/TCiFBKJ9mGkAWnVulv3cz2_4dP5eh6.H_212.jpg'}, 
+		222: {'width': 'http://32.media.mypinnings.com/TCi/FBK/J9m/TCiFBKJ9mGkAWnVulv3cz2_4dP5eh6.H.jpg'}}}
+
+
+    The image(s) is(are) saved in its original size, plus the sizes of the widths you
     specify. The aspect ratio is preserved when scaling. The image is renamed,
     so use the returned dictionary to obtain the filenames for each size.
     '''
-    server = _get_an_active_server(db)
-    images_by_width = dict()
-    path, _, original_extension = _split_path_for(filename)
-    new_filename = _generate_a_new_filename(server, original_extension)
-    new_filename = os.path.join(path, new_filename)
-    os.rename(filename, new_filename)
-    image_url = _upload_file_to_bucket(server, new_filename)
-    original_image_width = _get_image_width(new_filename)
-    images_by_width[original_image_width] = image_url
-    images_by_width[0] = image_url
-    if widths:
-        for width in widths:
-            scaled_image_filename = _scale_image(new_filename, width)
-            scaled_image_url = _upload_file_to_bucket(server, scaled_image_filename)
-            images_by_width[width] = scaled_image_url
-            # once uploaded to the media server, this file is no longer used
-            os.unlink(scaled_image_filename)
-    # once uploaded to the media server and scaled to the widths, this file is no longer used
-    os.unlink(new_filename)
-    return images_by_width
 
+    images_queue = Queue()
+    images_by_width = dict()
+    images_by_width_list = dict()
+
+    def processstoringimages(queue_element, queue_type):
+	while True:
+	    server = _get_an_active_server(db)
+	    path, _, original_extension = _split_path_for(queue_element)
+	    new_filename = _generate_a_new_filename(server, original_extension)
+	    new_filename = os.path.join(path, new_filename)
+	    os.rename(queue_element, new_filename)
+	    image_url = _upload_file_to_bucket(server, new_filename)
+	    original_image_width = _get_image_width(new_filename)
+
+	    if queue_type == 1:
+		images_by_width[original_image_width] = image_url
+		images_by_width[0] = image_url
+		if widths:
+		   for width in widths:
+		       scaled_image_filename = _scale_image(new_filename, width)
+		       scaled_image_url = _upload_file_to_bucket(server, scaled_image_filename)
+		       images_by_width[width] = scaled_image_url
+		       os.unlink(scaled_image_filename)
+		os.unlink(new_filename)
+		queue_element.task_done()
+	    elif queue_type == 2:
+		if widths:
+		   smalldict = dict()
+		   originaldict = dict()
+		   originaldict['url'] = image_url
+		   smalldict[0] = originaldict
+
+		   originalwidthdict = dict()
+		   originalwidthdict['width'] = image_url
+		   smalldict[original_image_width] = originalwidthdict
+
+		   for width in widths:
+		       temp = dict()
+		       scaled_image_filename = _scale_image(new_filename, width)
+		       scaled_image_url = _upload_file_to_bucket(server, scaled_image_filename)
+		       temp['width'] = scaled_image_url
+		       smalldict[width] = temp
+		       os.unlink(scaled_image_filename)
+		   images_by_width_list[_+original_extension] = smalldict
+		os.unlink(new_filename)
+	    	queue_element.task_done()
+
+    filetype = None
+    if isinstance(filename, str):
+	images_queue.put(filename)
+	filetype = 1
+    elif isinstance(filename, list):
+	for files in range(0, len(filename)):
+	    images_queue.put(filename[files])
+	    filetype = 2
+    else:
+	print "Unsupported filename data type"
+	return None
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
+	for num in range(0, images_queue.qsize()):
+	    executor.submit(processstoringimages, images_queue.get(), filetype)
+
+    with images_queue.mutex:
+	images_queue.queue.clear()
+
+    if (filetype == 1):
+	return images_by_width
+    elif (filetype == 2):
+	return images_by_width_list
+    else:
+	return None
 
 def _get_an_active_server(db):
     '''
@@ -126,7 +202,10 @@ def _file_already_exists_in_server(server, filename):
     '''
     pathname = _generate_path_name_for(filename)
     bucket_name = server.path
-    connection = boto.s3.connection.S3Connection()
+    #connection = boto.s3.connection.S3Connection()
+    connection = boto.connect_s3(
+	aws_access_key_id = AWS_ACCESS_KEY_ID,
+	aws_secret_access_key = AWS_SECRET_ACCESS_KEY)
     bucket = connection.get_bucket(bucket_name)
     key = bucket.get_key(pathname)
     connection.close()
@@ -163,7 +242,10 @@ def _upload_file_to_bucket(server, filename):
     _, filename_part = os.path.split(filename)
     pathname = _generate_path_name_for(filename_part)
     bucket_name = server.path
-    connection = boto.s3.connection.S3Connection()
+    #connection = boto.s3.connection.S3Connection()
+    connection = boto.connect_s3(
+	aws_access_key_id = AWS_ACCESS_KEY_ID,
+	aws_secret_access_key = AWS_SECRET_ACCESS_KEY)
     bucket = connection.get_bucket(bucket_name)
     key = boto.s3.key.Key(bucket)
     key.key = pathname
