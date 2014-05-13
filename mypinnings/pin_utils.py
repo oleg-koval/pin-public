@@ -75,8 +75,8 @@ def update_base_pin_information(db, pin_id, user_id, title, description, link, t
     db.multiple_insert(tablename='tags', values=values_to_insert)
     pin = db.where('pins', id=pin_id)[0]
     return pin
-        
-        
+
+
 def update_pin_images(db, pin_id, user_id, image_filename):
     images_dict = media.store_image_from_filename(db, image_filename, widths=(202, 212))
     db.update(tables='pins',
@@ -90,7 +90,7 @@ def update_pin_images(db, pin_id, user_id, image_filename):
               image_212_url=images_dict[212]['url'],
               image_212_height=images_dict[212]['height'],
               )
-    
+
 
 def update_pin_image_urls(db, pin_id, user_id, image_url, image_width, image_height,
                           image_202_url, image_202_height, image_212_url, image_212_height):
@@ -123,14 +123,14 @@ def delete_pin_from_db(db, pin_id, user_id):
     db.update(tables='pins', where='repin=$id', vars={'id': pin_id}, repin=None)
     db.delete(table='pins', where='id=$id', vars={'id': pin_id})
 
-    
+
 def add_pin_to_categories(db, pin_id, category_id_list):
     if category_id_list:
         values_to_insert = []
         for category_id in category_id_list:
             values_to_insert.append({'pin_id': pin_id, 'category_id': category_id})
         db.multiple_insert(tablename='pins_categories', values=values_to_insert)
-    
+
 
 def remove_pin_from__all_categories(db, pin_id):
     db.delete(table='pins_categories', where='pin_id=$pin_id',
@@ -152,8 +152,8 @@ def parse_tags(value):
             if new_v:
                 parsed.append(new_v)
     return parsed
-    
-    
+
+
 def add_hash_symbol_to_tags(value):
     if value:
         separated = value.split(' ')
@@ -187,3 +187,10 @@ def _already_exists(id):
     for _ in results:
         return True
     return False
+
+class dotdict(dict):
+    '''
+    Special dict used for templates compatability
+    '''
+    def __getattr__(self, name):
+        return self[name]

@@ -20,6 +20,7 @@ class redirect:
 urls = (
     "/(.*)/", 'redirect', # Handle urls with slash and without it
     "/query/notification", api.views.notifications.Notification, # API handler for notifications
+    "/notification/add", api.views.notifications.CreateNotification,
 
     # API to user signup: authenticate user
     "/auth", api.views.signup.Auth,
@@ -42,8 +43,9 @@ urls = (
     "/profile/mgl", api.views.profile.ManageGetList,
     "/profile/userinfo/update", api.views.profile.UserInfoUpdate,
     "/profile/userinfo/get", api.views.profile.GetProfileInfo,
-    "/profile/userinfo/info/(?P<profile>\w+)", api.views.profile.ProfileInfo,
+    "/profile/userinfo/info", api.views.profile.ProfileInfo,
     "/profile/userinfo/set_privacy", api.views.profile.SetPrivacy,
+    "/profile/updateviews/(?P<profile>\w+)", api.views.profile.UpdateProfileViews,
     "/profile/userinfo/boards", api.views.profile.QueryBoards,
     "/profile/userinfo/pins", api.views.profile.QueryPins,
 

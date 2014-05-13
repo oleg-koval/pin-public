@@ -150,8 +150,9 @@ urls = (
     '/recover_password_sent/?', 'mypinnings.recover_password.EmailSentPage',
     '/pwreset/(\d*)/(\d*)/(.*)/', 'mypinnings.recover_password.PasswordReset',
     '/recover_password_complete/', 'mypinnings.recover_password.RecoverPasswordComplete',
+    '/(\w*)', 'PageProfile2',
     '/(.*?)/(.*?)', 'PageConnect2',
-    '/(.*?)', 'PageProfile2',
+
 )
 
 app = web.application(urls, globals())
@@ -464,7 +465,7 @@ class PageAddPinUrl:
         fname = generate_salt()
         ext = os.path.splitext(url)[1].lower()
         fname = os.path.join('static', 'tmp', '{}{}'.format(fname, ext))
-        opener = MyOpener() 
+        opener = MyOpener()
         opener.retrieve(url, fname)
         if ext.strip() == '':
             im = Image.open(fname)
@@ -898,45 +899,85 @@ class PageConnect2:
                 return 'Page not found'
         return ltpl('connect2',user, follows, followers, friends, action)
 
+
 class PageProfile2:
     def GET(self, username):
-        user = db.query('''
-            select users.*,
-                count(distinct f1) as follower_count,
-                count(distinct f2) as follow_count
-            from users
-                left join follows f1 on f1.follow = users.id
-                left join follows f2 on f2.follower = users.id
-            where lower(users.username) = $username group by users.id''',
-            vars={'username': username.lower()})
-        if not user:
-            return 'Page not found.'
+        """
+        Returns user profile information by username
+        """
 
-        user = user[0]
+        data = {"csid_from_client": ""}
 
-        boards = list(db.select('boards',
-            where='user_id=$user_id',
-            vars={'user_id': user.id}))
-        categories_to_select = cached_models.get_categories_with_children(db)
+        # Getting followers/follows of a given user
+        follow_url = "/api/social/query/%s/%s"
+        followers = api_request(follow_url % (username, 'follower'),
+                                data=data).get('data')
+        follows = api_request(follow_url % (username, 'follow'),
+                              data=data).get('data')
+
+        # Getting profile of a given user
+        profile_url = "/api/profile/userinfo/info"
+        profile_owner_context = {
+            "csid_from_client": "",
+            "username": username}
+        user = api_request(profile_url, data=profile_owner_context)
+        if user is None:
+            return u"Profile was not found"
+
+        user = pin_utils.dotdict(user['data'])
+        user['follower_count'] = len(followers['user_id_list'])
+        user['follow_count'] = len(follows['user_id_list'])
+
+        # Updating api_request data with user_id
+        data['user_id'] = user.id
+
+        # Getting boards of a given user
+        boards = api_request("/api/profile/userinfo/boards",
+                             data=data).get("data", [])
+        boards = [pin_utils.dotdict(board) for board in boards]
+
+        # Getting categories of a given user (what is that?)
+        categories_to_select = cached_models\
+            .get_categories_with_children(db)
+
+        # Updates views & notify profile owner
         is_logged_in = logged_in(sess)
-
         if is_logged_in and sess.user_id != user.id:
-            db.update('users', where='id = $id', vars={'id': user.id}, views=web.SQLLiteral('views + 1'))
+            # Update views of given user profile
+            url = "/api/profile/updateviews/%s" % (user.username)
+            update_views_context = {
+                "csid_from_client": "",
+                "logintoken": convert_to_logintoken(sess.user_id)}
+            api_request(url, data=data)
 
-            this_user = dbget('users', sess.user_id)
-            make_notif(user.id, '%s has viewed your profile!' % this_user.name, '/%s' % this_user.username)
+            # Notify user about update
+            url = "/api/profile/userinfo/info"
+            this_user_context = {"csid_from_client": "", "id": sess.user_id}
+            this_user = api_request(url, data=this_user_context).get("data")
 
+            notif_context = {
+                "csid_from_client": "",
+                "msg": '%s has viewed your profile!' % this_user["name"],
+                "url": '/%s' % this_user["username"]}
+            api_request("/notifications/add", data=notif_context)
+
+        # Offset for rendering
         offset = int(web.input(offset=0).offset)
 
         show_private = is_logged_in and sess.user_id == user.id
-        pins = get_pins(user.id, offset=offset * PIN_COUNT, limit=PIN_COUNT, show_private=show_private)
 
+        pins = api_request("/api/profile/userinfo/pins", data=data).get("data")
+        pins = [pin_utils.dotdict(pin) for pin in pins]
+
+        # Handle ajax request to pins
         ajax = int(web.input(ajax=0).ajax)
         if ajax:
             return json_pins(pins, template='horzpin2')
 
+        # Building hash to use with images
         hashed = rs()
 
+        # Getting link to edit profile... Looks sooo complex
         if logged_in(sess):
             get_input = web.input(_method='get')
             edit_profile = edit_profile_done = None
@@ -945,22 +986,9 @@ class PageProfile2:
                 if get_input['editprofile']:
                     edit_profile_done = True
 
-            ids = [user.id, sess.user_id]
-            ids.sort()
-            ids = {'id1': ids[0], 'id2': ids[1]}
-
-            friend_status = db.select('friends',
-                                      where='id1 = $id1 and id2 = $id2',
-                                      vars=ids)
-            friend_status = friend_status[0] if friend_status else False
-
-            is_following = bool(
-                db.select('follows',
-                          where='follow = $follow and follower = $follower',
-                          vars={'follow': int(user.id), 'follower': sess.user_id}))
-            photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id}, order="id DESC")
-
-            return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos, edit_profile, edit_profile_done,boards,categories_to_select)
+            return ltpl('profile', user, pins, offset, PIN_COUNT, hashed,
+                        edit_profile, edit_profile_done, boards,
+                        categories_to_select)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
 
@@ -1232,7 +1260,7 @@ class PageNotif:
 
 
 #         # auth.chage_user_password(sess.user_id, form.d.pwd1)
-        
+
 
 
 # class PageChangeSM:
