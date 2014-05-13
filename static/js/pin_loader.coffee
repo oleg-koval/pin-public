@@ -463,6 +463,14 @@ jQuery ->
 				return
 		$('#change_categories_dialog').dialog('close')
 		return false
+	
+	
+	$('#select_all_pins_button').click ->
+		$.pagination_grid.g.selectAll()
+	
+	
+	$('#unselect_all_pins_button').click ->
+		$.pagination_grid.g.unSelectAll()
 
 	
 	return

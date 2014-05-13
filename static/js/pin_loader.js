@@ -500,4 +500,10 @@ jQuery(function() {
     $('#change_categories_dialog').dialog('close');
     return false;
   });
+  $('#select_all_pins_button').click(function() {
+    return $.pagination_grid.g.selectAll();
+  });
+  $('#unselect_all_pins_button').click(function() {
+    return $.pagination_grid.g.unSelectAll();
+  });
 });
