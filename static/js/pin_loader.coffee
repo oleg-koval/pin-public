@@ -231,6 +231,7 @@ jQuery ->
 			$.ajax type: 'DELETE'
 				,url: '/admin/input/pins/' + pinid + '/'
 			$('tr[pinid="' + pinid + '"]').remove()
+		$.pagination_grid.g.unSelectAll()
 		return
 	
 	
@@ -254,6 +255,7 @@ jQuery ->
 				$.loading_more_pins = false
 				console.log("Error:" + textStatus + ', ' + errorThrown)
 				return
+		$.pagination_grid.g.unSelectAll()
 		return
 		
 		

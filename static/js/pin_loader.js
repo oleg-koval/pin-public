@@ -243,6 +243,7 @@ jQuery(function() {
       });
       $('tr[pinid="' + pinid + '"]').remove();
     }
+    $.pagination_grid.g.unSelectAll();
   });
   $('#pin_edit_dialog').dialog({
     autoOpen: false,
@@ -265,6 +266,7 @@ jQuery(function() {
         console.log("Error:" + textStatus + ', ' + errorThrown);
       }
     });
+    $.pagination_grid.g.unSelectAll();
   });
   open_edit_dialog_for = function(pin) {
     var cat, _i, _len, _ref;
