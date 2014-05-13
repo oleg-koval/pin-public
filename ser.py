@@ -150,8 +150,9 @@ urls = (
     '/recover_password_sent/?', 'mypinnings.recover_password.EmailSentPage',
     '/pwreset/(\d*)/(\d*)/(.*)/', 'mypinnings.recover_password.PasswordReset',
     '/recover_password_complete/', 'mypinnings.recover_password.RecoverPasswordComplete',
-    '/(.*?)/(.*?)', 'PageConnect2',
     '/(.*?)', 'PageProfile2',
+    '/(.*?)/(.*?)', 'PageConnect2',
+
 )
 
 app = web.application(urls, globals())
@@ -405,8 +406,6 @@ def make_tag(tag):
 class NewPageAddPinForm:
     def POST(self):
         data = web.input()
-        # transaction = db.transaction()
-        # try:
         if data.board:
             board = int(data.board)
         elif data.board_name:
@@ -439,25 +438,6 @@ class NewPageAddPinForm:
         if data['status'] == 200:
             return '/p/%s' % data['data']['external_id']
 
-            # pin = pin_utils.create_pin(db=db,
-            #                            user_id=sess.user_id,
-            #                            title=data.title,
-            #                            description=data.comments,
-            #                            link=data.weblink,
-            #                            tags=None,
-            #                            price=None,
-            #                            product_url='',
-            #                            price_range=1,
-            #                            image_filename=data.fname,
-            #                            board_id=board,
-            #                            )
-            # transaction.commit()
-            # return '/p/%s' % pin.external_id
-        # except Exception as e:
-        #     logger.error('Failed to create a pin from a file upload', exc_info=True)
-        #     transaction.rollback()
-        #     return '/'
-
 
 class NewPageAddPin:
     def upload_image(self):
@@ -477,19 +457,26 @@ class NewPageAddPin:
         return json.dumps({'fname':fname, 'original_filename':original_filename})
 
 
+class MyOpener(urllib.FancyURLopener):
+    version = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; it; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11'
+
 class PageAddPinUrl:
     def upload_image(self, url):
         fname = generate_salt()
         ext = os.path.splitext(url)[1].lower()
         fname = os.path.join('static', 'tmp', '{}{}'.format(fname, ext))
-        urllib.urlretrieve(url, fname)
+        opener = MyOpener()
+        opener.retrieve(url, fname)
+        if ext.strip() == '':
+            im = Image.open(fname)
+            new_filename = '{}{}'.format(fname, '.png')
+            im.save(new_filename)
+            return new_filename
         return fname
 
     def POST(self):
         force_login(sess)
         data = web.input()
-        # transaction = db.transaction()
-        # try:
         fname = self.upload_image(data.image_url)
 
         link = data.link
@@ -524,25 +511,6 @@ class PageAddPinUrl:
         data = api_request("api/image/upload", "POST", data, files)
         if data['status'] == 200:
             return '/p/%s' % data['data']['external_id']
-
-            # pin = pin_utils.create_pin(db=db,
-            #                      user_id=sess.user_id,
-            #                      title=data.title,
-            #                      description=data.description,
-            #                      link=link,
-            #                      tags=None,
-            #                      price=None,
-            #                      product_url=data.websiteurl,
-            #                      price_range=data.price,
-            #                      image_filename=fname,
-            #                      board_id=board_id)
-            # transaction.commit()
-            # return '/p/%s' % pin.external_id
-        # except Exception as e:
-        #     logger.error('Failed to create a pin from an image URL', exc_info=True)
-        #     transaction.rollback()
-        #     return web.seeother(url='?msg={}'.format('This is embarrassing. We where unable to create the product. Please try again.'),
-        #                  absolute=False)
 
 
 class PageRemoveRepin:
@@ -788,7 +756,7 @@ class PagePin:
 
         if logged and sess.user_id != pin.user_id:
             db.update('pins', where='id = $id', vars={'id': pin.id}, views=web.SQLLiteral('views + 1'))
-            
+
         results = db.where(table='tags', pin_id=pin.id)
         pin.tags = [row.tags for row in results]
 
@@ -869,14 +837,14 @@ def get_pins(user_id, offset=None, limit=None, show_private=False):
         if not current_row or current_row.id != row.id:
             current_row = row
             tag = row.tags
-            current_row.tags = []
+            current_row.tags = ""
             if tag:
-                current_row.tags.append(tag)
+                current_row.tags = tag
             pins.append(current_row)
         else:
             tag = row.tags
             if tag not in current_row.tags:
-                current_row.tags.append(tag)
+                current_row.tags = tag
     return pins
 
 
@@ -931,44 +899,94 @@ class PageConnect2:
                 return 'Page not found'
         return ltpl('connect2',user, follows, followers, friends, action)
 
+
 class PageProfile2:
     def GET(self, username):
-        user = db.query('''
-            select users.*,
-                count(distinct f1) as follower_count,
-                count(distinct f2) as follow_count
-            from users
-                left join follows f1 on f1.follow = users.id
-                left join follows f2 on f2.follower = users.id
-            where users.username = $username group by users.id''', vars={'username': username})
-        if not user:
-            return 'Page not found.'
+        """
+        Returns user profile information by username
+        """
 
-        user = user[0]
+        data = {"csid_from_client": ""}
 
-        boards = list(db.select('boards',
-            where='user_id=$user_id',
-            vars={'user_id': user.id}))
-        categories_to_select = cached_models.get_categories_with_children(db)
+        # Getting profile of a given user
+        profile_url = "/api/profile/userinfo/info"
+        profile_owner_context = {
+            "csid_from_client": "",
+            "username": username}
+        user = api_request(profile_url, data=profile_owner_context)\
+            .get("data", [])
+        if len(user) == 0:
+            return u"Profile was not found"
+        user = pin_utils.dotdict(user)
+
+        # Getting followers/follows of a given user
+        follow_url = "/api/social/query/%s"
+        followers_context = {
+            "csid_from_client": "",
+            "user_id": user.id}
+        followers = api_request(follow_url % ('follower'),
+                                data=followers_context).get('data')
+        follows = api_request(follow_url % ('follow'),
+                              data=followers_context).get('data')
+
+
+        user['follower_count'] = len(followers['user_id_list'])
+        user['follow_count'] = len(follows['user_id_list'])
+
+        # Updating api_request data with user_id
+        data['user_id'] = user.id
+
+        # Getting boards of a given user
+        boards = api_request("/api/profile/userinfo/boards",
+                             data=data).get("data", [])
+        boards = [pin_utils.dotdict(board) for board in boards]
+
+        # Getting categories. Required in case when user
+        # is editing own pins.
+        categories_to_select = cached_models\
+            .get_categories_with_children(db)
+
+        # Updates views & notify profile owner
         is_logged_in = logged_in(sess)
-
         if is_logged_in and sess.user_id != user.id:
-            db.update('users', where='id = $id', vars={'id': user.id}, views=web.SQLLiteral('views + 1'))
+            # Update views of given user profile
+            url = "/api/profile/updateviews/%s" % (user.username)
+            update_views_context = {
+                "csid_from_client": "",
+                "logintoken": convert_to_logintoken(sess.user_id)}
+            api_request(url, data=data)
 
-            this_user = dbget('users', sess.user_id)
-            make_notif(user.id, '%s has viewed your profile!' % this_user.name, '/%s' % this_user.username)
+            # Notify user about update
+            url = "/api/profile/userinfo/info"
+            this_user_context = {"csid_from_client": "", "id": sess.user_id}
+            this_user = api_request(url, data=this_user_context)\
+                .get("data", [])
+            # Sending notification in case, it's possible to detect this_user
+            if len(this_user) > 0:
+                msg = '%s has viewed your profile!' % this_user.get("name", "")
+                notif_context = {
+                    "csid_from_client": "",
+                    "msg": msg,
+                    "url": '/%s' % this_user.get("username", "")}
+                api_request("/notifications/add", data=notif_context)
 
+        # Offset for rendering
         offset = int(web.input(offset=0).offset)
 
         show_private = is_logged_in and sess.user_id == user.id
-        pins = get_pins(user.id, offset=offset * PIN_COUNT, limit=PIN_COUNT, show_private=show_private)
 
+        pins = api_request("/api/profile/userinfo/pins", data=data).get("data")
+        pins = [pin_utils.dotdict(pin) for pin in pins]
+
+        # Handle ajax request to pins
         ajax = int(web.input(ajax=0).ajax)
         if ajax:
             return json_pins(pins, template='horzpin2')
 
+        # Building hash to use with images
         hashed = rs()
 
+        # Getting link to edit profile...
         if logged_in(sess):
             get_input = web.input(_method='get')
             edit_profile = edit_profile_done = None
@@ -977,22 +995,9 @@ class PageProfile2:
                 if get_input['editprofile']:
                     edit_profile_done = True
 
-            ids = [user.id, sess.user_id]
-            ids.sort()
-            ids = {'id1': ids[0], 'id2': ids[1]}
-
-            friend_status = db.select('friends',
-                                      where='id1 = $id1 and id2 = $id2',
-                                      vars=ids)
-            friend_status = friend_status[0] if friend_status else False
-
-            is_following = bool(
-                db.select('follows',
-                          where='follow = $follow and follower = $follower',
-                          vars={'follow': int(user.id), 'follower': sess.user_id}))
-            photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id}, order="id DESC")
-
-            return ltpl('profile', user, pins, offset, PIN_COUNT, hashed, friend_status, is_following, photos, edit_profile, edit_profile_done,boards,categories_to_select)
+            return ltpl('profile', user, pins, offset, PIN_COUNT, hashed,
+                        edit_profile, edit_profile_done, boards,
+                        categories_to_select)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
 
@@ -1264,7 +1269,7 @@ class PageNotif:
 
 
 #         # auth.chage_user_password(sess.user_id, form.d.pwd1)
-        
+
 
 
 # class PageChangeSM:

@@ -35,9 +35,6 @@ class Pin(object):
                 return "Invalid url for the product"
             if not form_data.d.board_id and not form_data.d.board_name:
                 return "Invalid board"
-            # db = database.get_db()
-            # transaction = db.transaction()
-            # try:
             if form_data.d.board_id:
                 board = form_data.d.board_id
             else:
@@ -48,6 +45,17 @@ class Pin(object):
 
             data = {
                 'image_id': pin_id,
+                "csid_from_client": '',
+                "logintoken": logintoken
+            }
+
+            data = api_request("api/image/query/hashtags", "POST", data)
+            hash_tag_remove_list = []
+            if data['status'] == 200:
+                hash_tag_remove_list = data['data']['hashtag_list']
+
+            data = {
+                'image_id': pin_id,
                 'image_title': form_data.d.title,
                 'image_desc': form_data.d.description,
                 'link': form_data.d.link,
@@ -55,6 +63,7 @@ class Pin(object):
                 'product_url': form_data.d.product_url,
                 'price_range': form_data.d.price_range,
                 'board_id': board,
+                'hash_tag_remove_list': hash_tag_remove_list,
                 'hash_tag_add_list': form_data.d.tags.split(),
                 "csid_from_client": '',
                 "logintoken": logintoken
@@ -66,22 +75,6 @@ class Pin(object):
                     url='/p/{}'.format(data['data']['external_id']),
                     absolute=True
                 )
-                # pin = pin_utils.update_base_pin_information(db=db,
-                #                                             pin_id=pin_id,
-                #                                             user_id=sess.user_id,
-                #                                             title=form_data.d.title,
-                #                                             description=form_data.d.description,
-                #                                             link=form_data.d.link,
-                #                                             tags=form_data.d.tags,
-                #                                             price=form_data.d.price or None,
-                #                                             product_url=form_data.d.product_url,
-                #                                             price_range=form_data.d.price_range,
-                #                                             board_id=board)
-                # transaction.commit()
-                # return web.seeother(url='/p/{}'.format(pin.external_id), absolute=True)
-            # except Exception as e:
-            #     logger.error('Error updating pin', exc_info=True)
-            #     transaction.rollback()
         return "Invalid data"
 
 
