@@ -417,6 +417,50 @@ jQuery ->
 			if $(this).prop('checked')
 				$('input[name=category_check][value=' + parent_category + ']').prop('checked', true)
 		return
+	
+	
+	
+	
+	
+	# dialog to change the categories of many pins in bulk
+	$('#change_categories_dialog').dialog autoOpen: false
+								,minWidth: 500
+								
+	
+	$('#change_categories_button').on 'click', (event) ->
+		for row in $.pagination_grid.g.getSelectedRows()
+			console.log(row)
+		$('#change_categories_dialog').dialog('open')
+		return
+
+
+	$('#change_pins_categories_form').on 'submit', (event) ->
+		event.preventDefault()
+		$('#category_change_error_message').hide()
+		if not category_selected('categories_to_change', 'category_change_check', $('#category_change_error_message'))
+			$('#category_change_error_message').show()
+			return false
+		ids = ''
+		for row in $.pagination_grid.g.getSelectedRows()
+			pinid = $(row).attr('pinid')
+			if ids isnt ''
+				ids = ids + ','
+			ids = ids + pinid
+		data = 
+			'ids': ids,
+			'categories': $('#categories_to_change').val()
+		$.ajax
+			type: 'POST',
+			url: '/admin/input/change_pin_categories',
+			data: data,
+			dataType: 'json',
+			success: ->
+				for row in $.pagination_grid.g.getSelectedRows()
+					pinid = $(row).attr('pinid')
+					refresh_pin(pinid)
+				return
+		$('#change_categories_dialog').dialog('close')
+		return false
 
 	
 	return

@@ -288,6 +288,36 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 			<input type="hidden" name="categories11" id="categories11" value="">
 		</form>
 	</div><!-- pin_edit_dialog -->
+	
+	<div><button id="change_categories_button">Change categories for selected pins</button></div>
+	<div id="change_categories_dialog">
+		<form id="change_pins_categories_form" action="/admin/input/change_pin_categories" method="POST" autocomplete="off">
+			<table style="box-shadow:0px 0px 10px gray;font-size:80%;">
+				<tr>
+					<th><label for="category11">Categories</label></th>
+					<td>
+					<div style="width:350px; height: 400px; overflow:auto;">
+					$for category_column in categories:
+						$for category in category_column:
+							<label><input type="checkbox" name='category_change_check' value="$category['id']">$category['name']</label>
+							$if category['subcategories']:
+								$for subcat in category['subcategories']:
+									<div class="subcategory_checkbox"><label><input type="checkbox" name='category_change_check' value="$subcat['id']">$subcat['name']</label></div>
+							$else:
+								<br>
+					</div>
+					<div id="category_change_error_message" class="red hide">You must select a category</div>
+					</td>
+				</tr>
+				<tr>
+					<th></th>
+					<td><button id="btn-save" name="save">Change</button></td>
+				</tr>
+			</table>
+			<input type="hidden" name="categories_to_change" id="categories_to_change" value="">
+		</form>
+	</div><!-- change_categories_dialog -->
+	
 </div><!-- added -->
 </div><!-- tabs -->
 <div id="wait_for_process_to_finish_layer">
@@ -329,7 +359,7 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 <script type="text/javascript">
 $$(document).ready(
 	function() {
-		$$("#pins_container").ingrid({ 
+		$$.pagination_grid = $$("#pins_container").ingrid({ 
 			url: '/admin/input/list',
 			initialLoad: true,
 			height: 600,

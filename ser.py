@@ -127,6 +127,7 @@ urls = (
     '/admin/input/update_pin/?', 'mypinnings.data_loaders.UpdatePin',
     '/admin/input/pins/?', 'mypinnings.data_loaders.LoadersEditAPI',
     '/admin/input/list', 'mypinnings.data_loaders.PaginateLoadedItems',
+    '/admin/input/change_pin_categories/?', 'mypinnings.data_loaders.ChangePinsCategories',
     '/admin', admin.app,
 
     '/fbgm/(.*?)', 'PageHax',

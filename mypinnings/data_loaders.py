@@ -7,6 +7,7 @@ import json
 from gettext import gettext as _
 import math
 import datetime
+import itertools
 
 import web
 
@@ -359,5 +360,31 @@ class PaginateLoadedItems(object):
             if r.tags and r.tags not in current_pin['tags']:
                 current_pin['tags'].append(r.tags)
         list = web.template.frender('t/pin_loader_list.html')(pin_list, datetime.datetime.now())
-        print(list)
         return list
+
+
+class ChangePinsCategories(object):
+    _form = web.form.Form(web.form.Textbox('ids', web.form.notnull),
+                          web.form.Textbox('categories', web.form.notnull))
+    
+    def POST(self):
+        sess = session.get_session()
+        auth.force_login(sess)
+        form = self._form()
+        if form.validates():
+            pin_id_list = (int(id) for id in form.d.ids.split(','))
+            category_id_list = (int(id) for id in form.d.categories.split(','))
+            values_to_insert = [{'pin_id': pin_id, 'category_id': category_id} for pin_id, category_id in itertools.product(pin_id_list, category_id_list)]
+            db = database.get_db()
+            transaction = db.transaction()
+            try:
+                db.delete(table='pins_categories', where='pin_id in ({})'.format(form.d.ids))
+                db.multiple_insert(tablename='pins_categories', values=values_to_insert)
+                transaction.commit()
+                return json.dumps({'status': 'ok'})
+            except Exception as e:
+                logger.error('Failed to update categories', exc_info=True)
+                transaction.rollback()
+                return json.dumps({'status': 'error'})
+        else:
+            return json.dumps({'status': 'error'})

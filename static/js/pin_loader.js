@@ -445,4 +445,57 @@ jQuery(function() {
       }
     }
   });
+  $('#change_categories_dialog').dialog({
+    autoOpen: false,
+    minWidth: 500
+  });
+  $('#change_categories_button').on('click', function(event) {
+    var row, _i, _len, _ref;
+    _ref = $.pagination_grid.g.getSelectedRows();
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      row = _ref[_i];
+      console.log(row);
+    }
+    $('#change_categories_dialog').dialog('open');
+  });
+  $('#change_pins_categories_form').on('submit', function(event) {
+    var data, ids, pinid, row, _i, _len, _ref;
+    event.preventDefault();
+    $('#category_change_error_message').hide();
+    if (!category_selected('categories_to_change', 'category_change_check', $('#category_change_error_message'))) {
+      $('#category_change_error_message').show();
+      return false;
+    }
+    ids = '';
+    _ref = $.pagination_grid.g.getSelectedRows();
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      row = _ref[_i];
+      pinid = $(row).attr('pinid');
+      if (ids !== '') {
+        ids = ids + ',';
+      }
+      ids = ids + pinid;
+    }
+    data = {
+      'ids': ids,
+      'categories': $('#categories_to_change').val()
+    };
+    $.ajax({
+      type: 'POST',
+      url: '/admin/input/change_pin_categories',
+      data: data,
+      dataType: 'json',
+      success: function() {
+        var _j, _len1, _ref1;
+        _ref1 = $.pagination_grid.g.getSelectedRows();
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          row = _ref1[_j];
+          pinid = $(row).attr('pinid');
+          refresh_pin(pinid);
+        }
+      }
+    });
+    $('#change_categories_dialog').dialog('close');
+    return false;
+  });
 });
