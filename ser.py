@@ -215,63 +215,99 @@ def json_pins(pins, template=None):
 
 class PageIndex:
     def GET(self, first_time=None):
-        query1 = '''
-            select
-                pins.*, tags.tags, categories.slug as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
-                count(distinct p1) as repin_count,
-                count(distinct l1) as like_count
-            from pins
-                left join tags on tags.pin_id = pins.id
-                left join pins p1 on p1.repin = pins.id
-                left join likes l1 on l1.pin_id = pins.id
-                left join users on users.id = pins.user_id
-                left join follows on follows.follow = users.id
-                left join categories on categories.id in
-                    (select category_id from pins_categories where pin_id = pins.id limit 1)
-            where users.id = $id
-            group by tags.tags, categories.id, pins.id, users.id offset %d limit %d'''
+        # query1 = '''
+        #     select
+        #         pins.*, tags.tags, categories.slug as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+        #         count(distinct p1) as repin_count,
+        #         count(distinct l1) as like_count
+        #     from pins
+        #         left join tags on tags.pin_id = pins.id
+        #         left join pins p1 on p1.repin = pins.id
+        #         left join likes l1 on l1.pin_id = pins.id
+        #         left join users on users.id = pins.user_id
+        #         left join follows on follows.follow = users.id
+        #         left join categories on categories.id in
+        #             (select category_id from pins_categories where pin_id = pins.id limit 1)
+        #     where users.id = $id
+        #     group by tags.tags, categories.id, pins.id, users.id offset %d limit %d'''
 
-        query2 = '''
-            select
-                tags.tags, pins.*, categories.slug as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
-                count(distinct p1.id) as repin_count,
-                count(distinct l1) as like_count
-            from pins
-                left join tags on tags.pin_id = pins.id
-                left join users on users.id = pins.user_id
-                left join pins p1 on p1.repin = pins.id
-                left join likes l1 on l1.pin_id = pins.id
-                left join categories on categories.id in
-                    (select category_id from pins_categories where pin_id = pins.id limit 1)
-            where not users.private
-            group by tags.tags, categories.id, pins.id, users.id order by timestamp desc offset %d limit %d'''
+        # query2 = '''
+        #     select
+        #         tags.tags, pins.*, categories.slug as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+        #         count(distinct p1.id) as repin_count,
+        #         count(distinct l1) as like_count
+        #     from pins
+        #         left join tags on tags.pin_id = pins.id
+        #         left join users on users.id = pins.user_id
+        #         left join pins p1 on p1.repin = pins.id
+        #         left join likes l1 on l1.pin_id = pins.id
+        #         left join categories on categories.id in
+        #             (select category_id from pins_categories where pin_id = pins.id limit 1)
+        #     where not users.private
+        #     group by tags.tags, categories.id, pins.id, users.id order by timestamp desc offset %d limit %d'''
 
-        offset = int(web.input(offset=0).offset)
+        offset = int(web.input(offset=1).offset)
         ajax = int(web.input(ajax=0).ajax)
-
-        query = (query1 if logged_in(sess) else query2) % (offset * PIN_COUNT, PIN_COUNT)
-        qvars = {}
-        if logged_in(sess):
-            qvars['id'] = sess.user_id
-
         pins = []
-        results = db.query(query, vars=qvars)
-        current_pin = None
-        for row in results:
-            if not current_pin or current_pin.id != row.id:
-                current_pin = row
-                pins.append(current_pin)
-                tag = current_pin.tags
-                current_pin.tags = []
-                if tag:
-                    current_pin.tags.append(tag)
-            else:
-                tag = row.tags
-                if tag and tag not in current_pin.tags:
-                    current_pin.tags.append(tag)
+
+        data_to_send = {
+            'csid_from_client': '',
+            'page': offset,
+            'items_per_page': PIN_COUNT
+        }
+
+        if logged_in(sess):
+            data_to_send['user_id'] = sess.user_id
+            url = "api/profile/userinfo/pins"
+        else:
+            data_to_send['query_type'] = "range"
+            data_to_send['not_private'] = True
+            url = "api/image/query/category"
+
+        data = api_request(url, "POST", data_to_send)
+        if data['status'] == 200:
+            image_id_list = data['data'].get('image_id_list', None)
+            if image_id_list is None:
+                pins_list = data['data'].get('pins_list', [])
+                image_id_list = [pin['id'] for pin in pins_list]
+
+            data_for_image_query = {
+                "csid_from_client": '',
+                "query_params": image_id_list
+            }
+            data_from_image_query = api_request("api/image/query",
+                                                "POST",
+                                                data_for_image_query)
+
+            if data_from_image_query['status'] == 200:
+                pins = data_from_image_query['data']['image_data_list']
+
+        pins = [pin_utils.dotdict(pin) for pin in pins]
+
+        # query = (query1 if logged_in(sess) else query2) % (offset * PIN_COUNT, PIN_COUNT)
+        # qvars = {}
+        # if logged_in(sess):
+        #     qvars['id'] = sess.user_id
+
+        # pins = []
+        # results = db.query(query, vars=qvars)
+        # current_pin = None
+        # for row in results:
+        #     if not current_pin or current_pin.id != row.id:
+        #         current_pin = row
+        #         pins.append(current_pin)
+        #         tag = current_pin.tags
+        #         current_pin.tags = []
+        #         if tag:
+        #             current_pin.tags.append(tag)
+        #     else:
+        #         tag = row.tags
+        #         if tag and tag not in current_pin.tags:
+        #             current_pin.tags.append(tag)
 
         if ajax:
             return json_pins(pins)
+
         return ltpl('index', pins, first_time)
 
 class PageLogin:
@@ -971,11 +1007,13 @@ class PageProfile2:
                 api_request("/notifications/add", data=notif_context)
 
         # Offset for rendering
-        offset = int(web.input(offset=0).offset)
+        offset = int(web.input(offset=1).offset)
+        data['page'] = offset
+        data['items_per_page'] = PIN_COUNT
 
         show_private = is_logged_in and sess.user_id == user.id
 
-        pins = api_request("/api/profile/userinfo/pins", data=data).get("data")
+        pins = api_request("/api/profile/userinfo/pins", data=data).get("data").get("pins_list")
         pins = [pin_utils.dotdict(pin) for pin in pins]
 
         # Handle ajax request to pins
