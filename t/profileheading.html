@@ -1,14 +1,13 @@
 $def with (user, hashed, friend_status=None, is_following=None, photos=None, edit_profile=None,  edit_profile_done = None)
 <div class='clearfix user-heading'
-  
   $if user.bg:
     $if 'logged_in' in sess and sess.user_id == user.id:
       data-bg="true"
       id='header_background'
-      style='background-size:100% auto;background-position: $(user.headerbgx)px $(user.headerbgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);position:relative;'
+      style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);position:relative;'
     $else:
       id='header_background'
-      style='background-size:100% auto;background-position: $(user.headerbgx)px $(user.headerbgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);cursor:default !important;position:relative;'
+      style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);cursor:default !important;position:relative;'
   $else:
     data-nobg='true'
     style='background: #333842;position:relative;'
@@ -27,40 +26,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
 
               <div class="bs-example">
               <div id="carousel-example-captions" class="carousel carousel1" >
-                <div class="carousel-inner">
 
-
-                  $if photos:
-                          $ i = 0
-                          $ p = 0
-                          $for photo in photos:
-                               $ p += 1  
-                               $if p == len(photos):
-                                   $ p = 0 
-                               $if i == 0:
-                                    <div class='item active'>
-                               $else:
-                                    <div class='item'>
-                                      
-                               <a  href="#carousel-example-captions" data-slide-to='$p'>       
-                               <img src='/static/pics/$(photo.id).png' alt='' picid="$photo.id" />
-                               </a>
-
-                               </div>
-                               $ i += 1            
-                  $else:
-                      <p>You don't have any Profile pictures yet. Upload some!</p>
-
-                 
-                </div>
-                  $if len(photos) > 1:
-                      <a class="left carousel-control prev_carousel_btn" href="#carousel-example-captions" data-slide="prev">
-                        <span class="">«</span>
-                      </a>
-                      <a class="right carousel-control next_carousel_btn" href="#carousel-example-captions" data-slide="next">
-                        <span class="">»</span>
-                      </a>
-                      
               </div>
             </div>
 
@@ -76,11 +42,11 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
               </div>
 
               </div><!-- /.modal-content -->
-              
+
             </div><!-- /.modal-dialog -->
            </div>
 
-            
+
   <div class='back clearfix'>
     <a
       $if 'logged_in' in sess and sess.user_id == user.id:
@@ -92,10 +58,8 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
         href='/$user.username'
     id="user_pic_placeholder_wrapper">
       $if user.pic:
-        <div class="user_pic_placeholder" style='height:160px !important;background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'></div>
-        <!--
-        <img class='left avatar' src='/static/pics/userthumb$(user.pic).png' alt=''/>
-        -->
+        <div class="user_pic_placeholder" style="height:160px !important;background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"></div>
+
       $else:
         <img class='left avatar' src='/static/default-avatar.png' alt='' style="height=44px;" />
     </a>
@@ -148,7 +112,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
                   <!--
                   <a href='#' id="edit_thumbnail" data-toggle="modal" data-target="#editModal">Edit Thumbnail</a>
                   -->
-                  
+
                   </div>
                   </div>
   </div>
@@ -196,7 +160,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
 
 <div class="profile-tab-navigation">
     <ul id="myTab" class="nav nav-tabs">
-      $if edit_profile: 
+      $if edit_profile:
         <li class=""><a id="pin-not-added" href="#pin-box-wrapper" data-toggle="tab">My Getlist</a></li>
         <li class="active"><a href="#profile-about-box" data-toggle="tab">About</a></li>
         <li class=""><a id="pin-added" href="#pin-box-wrapper" data-toggle="tab">Added</a></li>
@@ -204,20 +168,18 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
         <li class="active"><a id="pin-not-added" href="#pin-box-wrapper" data-toggle="tab">My Getlist</a></li>
         <li class=""><a href="#profile-about-box" data-toggle="tab">About</a></li>
         <li class=""><a id="pin-added" href="#pin-box-wrapper" data-toggle="tab">Added</a></li>
-      
-      <!--
-      <li class=""><a href="#list-box-wrapper" data-toggle="tab">Lists</a></li>
-      -->
-      
+
+      <li class=""><a id="list-box-wrapper-link" href="#list-box-wrapper" data-toggle="tab">Lists</a></li>
+
     </ul>
     </div>
-    $if edit_profile: 
+    $if edit_profile:
       <div class="tab-pane fade active in" id="profile-about-box">
     $else:
       <div class="tab-pane fade" id="profile-about-box">
 
   $if 'logged_in' in sess and user.id == sess.user_id:
-       $if edit_profile and not edit_profile_done: 
+       $if edit_profile and not edit_profile_done:
               <form method="post" action="/settings/profile?user_profile">
               <table>
               <tr>
@@ -244,7 +206,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
                   <textarea name='about'>$user.about</textarea>
                 </td>
               </tr>
-              
+
               <tr>
                 <th>&nbsp;</th>
                 <td><button>Save</button></td>
@@ -270,7 +232,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
               <tr>
                 <th>Website</th>
                 <td>
-                $if user.website: 
+                $if user.website:
                   $user.website
                 $else:
                   N/A
@@ -307,7 +269,7 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
               <tr>
                 <th>Website</th>
                 <td>
-                $if user.website: 
+                $if user.website:
                   $user.website
                 $else:
                   N/A
@@ -324,7 +286,5 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
                 </td>
               </tr>
             </table>
-      
+
 </div>
-
-

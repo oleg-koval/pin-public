@@ -10,8 +10,8 @@ $if pin.id and pin.category:
       $if pin.link:
         <a class='button small-pad' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i></a>
     </div>
-    <a href='/pin/$pin.id'>
-      <img src='/static/tmp/pinthumb$(pin.id if pin.repin == 0 else pin.repin).png' alt=''/>
+    <a href='/p/$pin.external_id'>
+      <img src='$pin.image_202_url' alt=''/>
     </a>
     <div class='info'>
       $if pin.description:
@@ -38,11 +38,11 @@ $if pin.id and pin.category:
             <img class='left' src='/static/default-avatar.png'/>
         </a>
         <div class='right'>
-          <p class='faded small'><a href='/profile/$pin.user_id'><b>$pin.user_name</b></a><br/>In <a href='/$pin.user_username/buy-list/$pin.category'><b>$pin.cat_name</b></a></p>
+          <p class='faded small'><a href='/profile/$pin.user_id'><b>$pin.user_name</b></a><br/>In <a href='/category/$pin.category'><b>$pin.cat_name</b></a></p>
         </div>
       </div>
       $if pin.tags:
         <hr>
-        <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags.split(' ')]))</p>
+        <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags]))</p>
     </div>
   </div>

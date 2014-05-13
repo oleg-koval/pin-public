@@ -133,7 +133,7 @@ class FacebookOauthReturnMixin(object):
         try:
             db = database.get_db()
             query_result = db.select(tables='users', where="facebook=$username and login_source=$login_source",
-                                       vars={'username': self.profile['username'],
+                                       vars={'username': self.profile['username'].lower(),
                                              'login_source': auth.LOGIN_SOURCE_FACEBOOK})
             for row in query_result:
                 self.user_id = row['id']
@@ -214,7 +214,7 @@ class Username(auth.UniqueUsernameMixin):
         else:
             username = sess.fb_profile['username']
         form = self.username_form()
-        form['username'].set_value(username)
+        form['username'].set_value(username.lower())
         form['email'].set_value(sess.fb_profile['email'])
         return template.ltpl('register/username', form)
 
@@ -236,7 +236,7 @@ class Username(auth.UniqueUsernameMixin):
         sess = session.get_session()
         # basic profile data
         values = {'name': sess.fb_profile['name'],
-                  'username': self.form['username'].value,
+                  'username': self.form['username'].value.lower(),
                   'facebook': sess.fb_profile['username'],
                   'login_source': auth.LOGIN_SOURCE_FACEBOOK,
                   }
@@ -272,7 +272,7 @@ class Username(auth.UniqueUsernameMixin):
                 values['birthday'] = birthday
         except:
             logger.info('could not get birthday', exc_info=True)
-        self.user_id = auth.create_user(self.form['email'].value, self.form['password'].value, **values)
+        self.user_id = auth.create_user(self.form['email'].value.lower(), self.form['password'].value, **values)
         self.grab_and_insert_profile_picture()
         return self.user_id
 

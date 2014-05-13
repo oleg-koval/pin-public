@@ -2,12 +2,14 @@ $def with (pin, comments, rating, embeded=False)
 <div class='pin-display'>
   <div class='display'>
     <h1>$pin.description</h1>
-    <p class='faded'>Posted by <a href='/profile/$pin.user_id'>$pin.user_name</a> in
-    $for cat in pin.categories: 
-    	<a href='/$pin.user_username/buy-list/$cat.id'>$cat.name</a>
-    	$if not loop.last:
-    		,
-    </p>
+    <p class='faded'>Posted by <a href='/profile/$pin.user_id'>$pin.user_name</a>
+    $if pin.categories:
+    	in
+	    $for cat in pin.categories: 
+	    	<a href='/category/$cat.slug'>$cat.name</a>
+	    	$if not loop.last:
+	    		,
+	    </p>
     <p>
       $if 'logged_in' in sess and sess.user_id == pin.user_id:
         <a class='button' href='/setprivacy/$pin.id'>
@@ -16,20 +18,19 @@ $def with (pin, comments, rating, embeded=False)
         </a>
         <a class='button' href='/add-to-your-own-getlist/$pin.id'><i class='fa fa-thumb-tack'></i> Add to Your Getlist</a>
 
+      $if pin.product_url:
+        <a class='button' rel='nofollow' href='$pin.product_url'><i class='fa fa-shopping-cart'></i> Buy It Here</a>
       $if pin.link:
-        <a class='button' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i> Visit Product</a>
+        <a class='button' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i> Source URL</a>
     </p>
-    <a href="/item/$(pin.id)" target="_blank">
-    $if pin.repin == 0:
-		$if embeded:
-			<img src='/static/tmp/$(pin.id).png' alt='' style="max-height:530px;width:auto"/>
-		$else:
-			<img src='/static/tmp/$(pin.id).png' alt='' style="max-width:80%;height:auto"/>
-    $else:
-		$if embeded:
-			<img src='/static/tmp/$(pin.repin).png' alt='' style="max-height:530px;width:auto"/>
-		$else:
-			<img src='/static/tmp/$(pin.repin).png' alt='' style="max-width:80%;height:auto"/>
+   	$if pin.link:
+   		<a href="$pin.link" target="_blank">
+   	$else:
+   		<a href="/profile/$pin.user_id">
+	$if embeded:
+		<img src='$pin.image_url' alt='' style="max-height:530px;width:auto"/>
+	$else:
+		<img src='$pin.image_url' alt='' style="max-width:80%;height:auto"/>
 	</a>
     <div class='comments'>
       $ comments = list(comments)
@@ -43,9 +44,9 @@ $def with (pin, comments, rating, embeded=False)
             <label for='input-comment'>Comment</label> &middot;
           <span class='link' id='share'>Share</span>
           $if pin.tags:
-            &middot; <span class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags.split(' ')]))</span>
+            &middot; <span class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags]))</span>
           <span class='invis' id='sharelinks'>
-            $ url = 'http://mypinnings.com/item/%d' % pin.id
+            $ url = 'http://mypinnings.com/p/%s' % pin.external_id
 
             <i class='fa fa-arrow-circle-right'></i>
             <a href='http://www.facebook.com/sharer/sharer.php?s=100&p[url]=$url&p[title]=$pin.description'>Facebook</a> &middot;
@@ -69,7 +70,7 @@ $def with (pin, comments, rating, embeded=False)
           <div class='pre'>$comment.comment</div>
         </div>
       $if 'logged_in' in sess:
-        <form method='post' action='/item/$pin.id' autocomplete='off'>
+        <form method='post' action='/p/$pin.external_id' autocomplete='off'>
           <p><textarea id='input-comment' name='comment' placeholder='Write a comment...'></textarea></p>
           <p><button>Comment</button></p>
         </form>
@@ -79,3 +80,13 @@ $def with (pin, comments, rating, embeded=False)
 $if 'logged_in' in sess:
   <script type='text/javascript'>window.pinId = $pin.id;</script>
   <script type='text/javascript' src='/static/pin.js'></script>
+$if not embeded:
+	<script>
+	window.onpopstate = function(event) {
+	  var path;
+	  path = document.location.pathname;
+	  if (path.substring(0, 3) !== '/p/') {
+	    window.location.reload();
+	  }
+	};
+  	</script>

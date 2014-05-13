@@ -18,16 +18,26 @@
 }
 .c2
 {
-   width:65%; margin-left:-4px;display:inline-block;
+   width:60%; margin-left:-4px;display:inline-block;
 }
 
 .photo{
-    width:200px;
-    height:200px;
+    width:180px;
+    height:180px;
     vertical-align:middle;
 }
 
-.photo img {
+.img-width {
     width: 100%;
     height: auto;
 }
+
+.img-height {
+    width: auto;
+    height: 100%;
+}
+
+.loadimg{
+    vertical-align:middle;
+}
+

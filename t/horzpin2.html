@@ -15,13 +15,15 @@ $if pin.id:
       $else:
         <a target='_blank' href='/add-to-your-own-getlist/$pin.repin' class='button small-pad'>Add to Getlist</a>
     <a href='/share/$pin.id' class='button small-pad'>Share</i></a>
+    $if pin.product_url:
+      <a class='button small-pad' rel='nofollow' href='$pin.product_url'>Buy It Here</a>
     $if pin.link:
-      <a class='button small-pad' rel='nofollow' href='$pin.link'>Visit Link</a>
+      <a class='button small-pad' rel='nofollow' href='$pin.link'>Source URL</a>
     </div>
     <div class='clearfix'>
       <div class='count left'></div>
-      <a href='/pin/$pin.id' class='avatar left'>
-        <img src='/static/tmp/pinthumb$(pin.id if pin.repin == 0 else pin.repin).png' alt=''/>
+      <a href='/p/$pin.external_id' class='avatar left'>
+        <img src='$pin.image_202_url' alt=''/>
       </a>
       <div class='info left'>
         $if pin.description:
@@ -30,7 +32,7 @@ $if pin.id:
         $if pin.link:
           <p class='faded'>Source: <a href='$pin.link'>$tpllib.condense_link(pin.link)</a></p>
         $if pin.tags:
-          <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags.split(' ')]))</p>
+          <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags]))</p>
       </div>
     </div>
   </div>

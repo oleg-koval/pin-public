@@ -1,21 +1,23 @@
 $def with (pins, template=None, options=None, edit_profile=None,boards=None,categories_to_select=None)
+
 $ options = options or {}
 $ template = template or 'onepin'
 $ pins = list(pins)
-$if edit_profile: 
+
+$if edit_profile:
 	<div id='pin-box-wrapper' class='tab-pane fade'>
 	<div id='pin-box' class='pins'></div>
 $else:
 	<div id='pin-box-wrapper' class='tab-pane fade active in'>
 	<div id='pin-box' class='pins'></div>
-<div class='' id='pin-buf'>
+        <div class='' id='pin-buf'>
 	  $ i = 0
 	  $for pin in pins:
 	    $ i += 1
 	    $if not pin.repin:
 	    	$:tpl('editaddedpinmodal', pin,categories_to_select, boards)
 	    $:tpl(template, pin)
-	</div>
+</div>
 	$if not [x for x in pins if x.id]:
 	  <center>No pins to see here!</center>
 	  <center><br><a class='button' href='/browse'>Browse pins by category</a></center>
@@ -23,14 +25,13 @@ $else:
 	  <div class='backnext'><button id='button-more'>More Items</button></div>
 
 
-	
+
 
 
 	<link rel="stylesheet" href="/static/css/pin_loader.css" />
 <script type='text/javascript' src='/static/addpin.js'></script>
-<script type='text/javascript' src='/static/js/underscore-min.js'></script>  
+<script type='text/javascript' src='/static/js/underscore-min.js'></script>
 	<script type='text/javascript' src='/static/masonry.pkgd.min.js'></script>
 	<script type='text/javascript' src='/static/imagesloaded.pkgd.min.js'></script>
 	<script type='text/javascript' src='/static/infinite.js'></script>
 </div>
-	

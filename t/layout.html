@@ -1,4 +1,4 @@
-$def with (content, categories, boards=[], all_albums=None, user=None, acti_needed=None, notif_count=None, csrf_token=None)
+$def with (content, categories, boards=[], all_albums=None, user=None, acti_needed=None, notif_count=None, csrf_token=None, categories_to_select=None)
 <!doctype html>
 <html>
   <head>
@@ -13,6 +13,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
 	<script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
     <script src="http://malsup.github.com/jquery.form.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js" type="text/javascript"></script>
+    <script src="/static/js/jquery.lazyload.min.js" type="text/javascript"></script>
 	<link rel="stylesheet" href="/static/newgetlist.css">
 	<script type="text/javascript" src="/static/newgetlist.js"></script>
     <script type="text/javascript" src="/static/main.js"></script>
@@ -136,7 +137,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
         $if acti_needed is not None:
             $if acti_needed:
                 <div class='notice'>Notice: You haven't activated your account yet! Please check $user.email. <a href='/resend-activation'>Resend</a></div>
-    <div id="getlist-from-web">
+    <div id="getlist-from-web" style="display:none">
     <form method="get" action="/preview"  id="web_getlist_form">
     Image Link Or website Address
 	<input type="input" name="url" id="url" placeholder="http://"><br/>
@@ -149,7 +150,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
 		<div id="statusweb"></div>
 	</div>
     </div>
-	<div id="dialog-form" >
+	<div id="dialog-form" style="display:none">
 	<form method="post" action="/newaddpin" enctype="multipart/form-data" id="upload_form">
 	<input type="file" name="image" id="image" accept="image/*" placeholder="Please choose a file"><br/>
 	    <input type="button" id="upload_cancel" value="Go Back">
@@ -163,16 +164,13 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
 
 	<div id="status"></div>
 	</div>
-	<div id="addpindialogform">
+	<div id="addpindialogform" style="display:none">
 	<div class="wrapper">
 	<form method="post" action="/newaddpinform" id="ajaxpinform">
 	    <div class="c1" id="imagediv">
-	    <div id="slideshow" class="photo">
-            <img src="" id="slide-image">
+	    <div id="slideshowupload" class="photo">
+
         </div>
-        <div id="controls">
-        <span> <a href="#" id="galleryprev">prev</a> <a id="gallerynext" href="#">next</a></span><span id="status-text"> </span>
-        </div>             
         </div>
 	    <div class="c2">
 
@@ -181,10 +179,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
         <tr><th><label for="title"></label></th><td><div id="imagename"></div></td></tr>
         <tr><th><label for="title">Title</label></th><td><input type="text" id="title"></td></tr>
         <tr><th><label for="weblink">Link</label></th><td><input type="text" id="weblink" placeholder="Where to buy?"></td></tr>
-        <tr><th><label for="category">Category</label></th><td><select id="category" name="category">
-            $for cat in categories:
-                <option value="$cat['id']">$cat['name']</option>
-        </select></td></tr>
+        <tr><th><label for="hashtag">Tags</label></th><td><input type="text" id="hashtag" placeholder="#this is great"></td></tr>
 	    <tr><th><label for="board">Get list</label></th>
 	    	<td>
 	    		<div id="board_selection_layer">
@@ -208,20 +203,22 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
     <textarea id="comments" class="comments" placeholder="Say something about this"></textarea><br>
     <input type="hidden" id="image-url" >
     <input type="button" id="cancelfancy" name="cancelfancy" value="Cancel">&nbsp;&nbsp;
-    <input type="submit" id="addfancy" name="addfancy" value="Add To Fancy">
+    <span><input type="submit" id="addfancy" name="addfancy" value="Add to your GetList"><span id="addtogetlistupload" class="loadimg"></span></span>
     </div>
     </form>
     </div>
-    <div id="addpindialogformweb">
+    <div id="addpindialogformweb" style="display:none">
 	<div class="wrapper">
 	<form method="post" action="/add-from-website" id="ajaxpinformweb">
 	    <div class="c1" id="imagedivweb">
 	    <div id="slideshowweb" class="photo">
             <img src="" id="slide-imageweb">
         </div>
+        <div id="imagesize">
+        </div>
         <div id="controls-web">
         <span> <a href="#" id="galleryprevweb">prev</a> <a id="gallerynextweb" href="#">next</a></span><span id="status-textweb"> </span>
-        </div>             
+        </div>
         </div>
 	    <div class="c2">
 
@@ -229,10 +226,32 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
         <tr><th><label for="title"></label></th><td><div id="imagenameweb"></div></td></tr>
         <tr><th><label for="title">Title</label></th><td><input type="text" id="titleweb"></td></tr>
         <tr><th><label for="weblink">Link</label></th><td><input type="text" id="weblinkweb" placeholder="Where to buy?"></td></tr>
-        <tr><th><label for="category">Category</label></th><td><select type="text" id="categoryweb">
-            $for cat in categories:
-                <option value="$cat['id']">$cat['name']</option>
-        </select></td></tr>
+        <tr><th><label for="weblink">Website Link</label></th><td><input type="text" id="websitelinkweb" ></td></tr>
+        <tr><th><label for="hashtagweb">Tags</label></th><td><input type="text" id="hashtagweb" placeholder="#this is great"></td></tr>
+        <tr><th><label for="lists">Lists</label></th><td>
+                    <div id="board_selection_layerweb">
+                    <select id="boardweb" name="boardweb">
+                        <option value="">Select one</option>
+                        $for board in boards:
+                            <option value="$board.id">$board.name</option>
+                    </select>
+                    <button type="button" id="button_add_boardweb" alt="Add a new list">+</button>
+                    </div>
+                    <div id="board_creation_layerweb" style="display:none">
+                    <input type="text" name="board_name" id="board_name">
+                    <button type="button" id="button_select_boardweb" alt="Select an existing board">-</button>
+                    </div>
+                    </td></tr>
+        <tr><th><label for="price_range">Price range</label></th>
+            <td>
+                <label><input type="radio" name="price_range" value="1" checked> $$</label>
+                <label><input type="radio" name="price_range" value="2"> $$$$</label>
+                <label><input type="radio" name="price_range" value="3"> $$$$$$</label>
+                <label><input type="radio" name="price_range" value="4"> $$$$$$$$</label>
+                <label><input type="radio" name="price_range" value="5"> $$$$$$$$+</label>
+                <div id="price_range"></div>
+            </td>
+        </tr>
         </table>
         </div>
     </div>
@@ -240,7 +259,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
     <textarea id="commentsweb" class="comments" placeholder="Say something about this"></textarea><br>
     <input type="hidden" id="image_urlweb" >
     <input type="button" id="cancelfancyweb" name="cancelfancy" value="Cancel">&nbsp;&nbsp;
-    <input type="submit" id="addfancyweb" name="addfancy" value="Add To Fancy">
+    <span ><input type="submit" id="addfancyweb" name="addfancy" value="Add to your GetList"><span id="addtogetlist" class="loadimg"></span></span>
     </div>
     </form>
     </div>
