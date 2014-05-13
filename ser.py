@@ -908,23 +908,30 @@ class PageProfile2:
 
         data = {"csid_from_client": ""}
 
-        # Getting followers/follows of a given user
-        follow_url = "/api/social/query/%s/%s"
-        followers = api_request(follow_url % (username, 'follower'),
-                                data=data).get('data')
-        follows = api_request(follow_url % (username, 'follow'),
-                              data=data).get('data')
-
         # Getting profile of a given user
         profile_url = "/api/profile/userinfo/info"
         profile_owner_context = {
             "csid_from_client": "",
             "username": username}
         user = api_request(profile_url, data=profile_owner_context)
+
         if user is None:
             return u"Profile was not found"
 
         user = pin_utils.dotdict(user['data'])
+
+
+        # Getting followers/follows of a given user
+        follow_url = "/api/social/query/%s"
+        followers_context = {
+            "csid_from_client": "",
+            "user_id": user.id}
+        followers = api_request(follow_url % ('follower'),
+                                data=followers_context).get('data')
+        follows = api_request(follow_url % ('follow'),
+                              data=followers_context).get('data')
+
+
         user['follower_count'] = len(followers['user_id_list'])
         user['follow_count'] = len(follows['user_id_list'])
 

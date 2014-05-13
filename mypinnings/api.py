@@ -5,7 +5,7 @@ from mypinnings import database
 from mypinnings.conf import settings
 
 
-def api_request(url, method="GET", data=None, files=None):
+def api_request(url, method="POST", data=None, files=None):
     """
     Sends http request to api server and returns server response in json,
     or none, if http status_code of the response is not 200
