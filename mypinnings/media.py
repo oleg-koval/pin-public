@@ -13,8 +13,8 @@ import threadpool
 import concurrent.futures
 
 NAME_CHARACTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._'
-AWS_ACCESS_KEY_ID = 'AKIAIQCQILLJN326OSLA'
-AWS_SECRET_ACCESS_KEY = '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'
+AWS_ACCESS_KEY_ID = ''
+AWS_SECRET_ACCESS_KEY = ''
 NUM_THREADS = 20
 
 def store_image_from_filename(db, filename, widths=[]):
