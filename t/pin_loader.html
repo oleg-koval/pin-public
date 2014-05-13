@@ -357,19 +357,17 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 			</td>
 </script>
 <script type="text/javascript">
-$$(document).ready(
-	function() {
-		$$.pagination_grid = $$("#pins_container").ingrid({ 
-			url: '/admin/input/list',
-			initialLoad: true,
-			height: 600,
-			sorting: false,
-			colWidths: [120, 60, 120, 200, 150, 150, 120, 60, 50, 80],
-		});
-	}
+$$(document).ready( function() {
+	$$.pagination_grid = $$("#pins_container").ingrid({ 
+		url: '/admin/input/list',
+		initialLoad: true,
+		height: 600,
+		sorting: false,
+		colWidths: [120, 60, 120, 200, 150, 150, 120, 60, 50, 80],
+	});
 $if result_info:
 	$for ri in result_info:
 		$if ri['error']:
 			$$.put_failed_pin_to_edit($:ri['json']);
-); 
+}); 
 </script>
