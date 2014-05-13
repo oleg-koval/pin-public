@@ -452,6 +452,17 @@ jQuery(function() {
     minWidth: 500
   });
   $('#change_categories_button').on('click', function(event) {
+    var categories_not_selected, row, _i, _len, _ref;
+    categories_not_selected = true;
+    _ref = $.pagination_grid.g.getSelectedRows();
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      row = _ref[_i];
+      categories_not_selected = false;
+      break;
+    }
+    if (categories_not_selected) {
+      return;
+    }
     $('input[name=category_change_check]').prop('checked', false);
     $('#change_categories_dialog').dialog('open');
   });

@@ -359,8 +359,8 @@ class PaginateLoadedItems(object):
                 categories.append(r.category_id)
             if r.tags and r.tags not in current_pin['tags']:
                 current_pin['tags'].append(r.tags)
-        list = web.template.frender('t/pin_loader_list.html')(pin_list, datetime.datetime.now())
-        return list
+        page = web.template.frender('t/pin_loader_list.html')(pin_list, datetime.datetime.now())
+        return page
 
 
 class ChangePinsCategories(object):
@@ -372,17 +372,18 @@ class ChangePinsCategories(object):
         auth.force_login(sess)
         form = self._form()
         if form.validates():
-            pin_id_list = (int(id) for id in form.d.ids.split(','))
-            category_id_list = (int(id) for id in form.d.categories.split(','))
+            pin_id_list = list(set([int(x) for x in form.d.ids.split(',')]))
+            pins_to_delte = ','.join(str(x) for x in pin_id_list)
+            category_id_list = [int(x) for x in form.d.categories.split(',')]
             values_to_insert = [{'pin_id': pin_id, 'category_id': category_id} for pin_id, category_id in itertools.product(pin_id_list, category_id_list)]
             db = database.get_db()
             transaction = db.transaction()
             try:
-                db.delete(table='pins_categories', where='pin_id in ({})'.format(form.d.ids))
+                db.delete(table='pins_categories', where='pin_id in ({})'.format(pins_to_delte))
                 db.multiple_insert(tablename='pins_categories', values=values_to_insert)
                 transaction.commit()
                 return json.dumps({'status': 'ok'})
-            except Exception as e:
+            except Exception:
                 logger.error('Failed to update categories', exc_info=True)
                 transaction.rollback()
                 return json.dumps({'status': 'error'})
