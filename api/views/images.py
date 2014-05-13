@@ -161,7 +161,7 @@ class ImageQuery(BaseAPI):
         csid_from_server = user['seriesid']
 
         query_type = request_data.get("query_type")
-        query_params = map(int, request_data.get("query_params"))
+        query_params = map(str, request_data.get("query_params"))
         image_data_list = []
         if len(query_params) > 0:
             image_data_list = self.query_image(query_params)
@@ -177,16 +177,62 @@ class ImageQuery(BaseAPI):
 
     def query_image(self, query_params):
         image_data_list = []
-        for image_id in query_params:
-            image = db.select('pins', where='id = %s' % (image_id)).list()
 
-            if len(image) > 0:
-                image_properties = {
-                    "image_id": image_id,
-                    "image_title": image[0]['name'],
-                    "image_desc": image[0]['description'],
-                    "image_url": image[0]['link'], }
-                image_data_list.append(image_properties)
+        where = 'pins.id in (%s)' % (','.join(query_params))
+        query = '''
+            select
+                tags.tags, pins.*, categories.id as category,
+                categories.name as cat_name, users.pic as user_pic,
+                users.username as user_username, users.name as user_name,
+                count(distinct p1) as repin_count,
+                count(distinct l1) as like_count
+            from pins
+                left join tags on tags.pin_id = pins.id
+                left join pins p1 on p1.repin = pins.id
+                left join likes l1 on l1.pin_id = pins.id
+                left join users on users.id = pins.user_id
+                left join follows on follows.follow = users.id
+                left join pins_categories on pins.id=pins_categories.pin_id
+                left join categories
+                on pins_categories.category_id = categories.id
+            where %s
+            group by tags.tags, categories.id, pins.id, users.id
+            order by timestamp desc''' % (where)
+
+        images = db.query(query)
+        for image in images:
+            image_properties = {
+                "id": image.get('id'),
+                "name": image.get('name'),
+                "description": image.get('description'),
+                "link": image.get('link'),
+                "product_url": image.get('product_url'),
+                "price": str(image.get('price')),
+                "price_range": image.get('price_range'),
+                "board_id": image.get('board_id'),
+                "external_id": image.get('external_id'),
+                "image_url": image.get('image_url'),
+                "image_width": image.get('image_width'),
+                "image_height": image.get('image_height'),
+                "image_202_url": image.get('image_202_url'),
+                "image_202_height": image.get('image_202_height'),
+                "image_212_url": image.get('image_212_url'),
+                "image_212_height": image.get('image_212_height'),
+                "like_count": image.get('like_count'),
+                "repin_count": image.get('repin_count'),
+                "category": image.get('category'),
+                "cat_name": image.get('cat_name'),
+                "user_pic": image.get('user_pic'),
+                "user_username": image.get('user_username'),
+                "user_name": image.get('user_name')
+            }
+
+            if image.get('tags'):
+                image_properties['hashtags_list'] = image.get('tags').split()
+            else:
+                image_properties['hashtags_list'] = []
+
+            image_data_list.append(image_properties)
 
         return image_data_list
 
@@ -273,7 +319,7 @@ class ManageProperties(BaseAPI):
 
             pins = db.select('pins', where='id = %s' % (image_id)).list()
             if len(pins) > 0:
-                 data['external_id'] = pins[0]['external_id']
+                data['external_id'] = pins[0]['external_id']
 
         response = api_response(data=data,
                                 status=status,
@@ -350,7 +396,7 @@ class QueryCategory(BaseAPI):
 
         # Get data from request
         query_type = request_data.get("query_type")
-        category_id_list = map(int,
+        category_id_list = map(str,
                                request_data.get("category_id_list"))
         page = request_data.get("page")
         items_per_page = request_data.get("items_per_page")
@@ -384,14 +430,22 @@ class QueryCategory(BaseAPI):
     def get_all(self, category_id_list):
         data = {}
         image_id_list = []
-        for category_id in category_id_list:
-            pins = db.select('pins_categories',
-                             where='category_id = %s' % (category_id))\
-                .list()
 
-            for pin in pins:
-                if pin['pin_id'] not in image_id_list:
-                    image_id_list.append(pin['pin_id'])
+        where = "random() < 0.1"
+        if len(category_id_list) > 0:
+            where = "pins_categories.category_id in (%s)" % \
+                ','.join(category_id_list)
+
+        pins = db.query("SELECT * FROM pins \
+                        JOIN pins_categories \
+                        ON pins_categories.pin_id = pins.id \
+                        WHERE %s \
+                        ORDER BY pins.timestamp desc" % (where))\
+            .list()
+
+        for pin in pins:
+            if pin['pin_id'] not in image_id_list:
+                image_id_list.append(pin['pin_id'])
 
         data['image_id_list'] = image_id_list
 
@@ -407,17 +461,24 @@ class QueryCategory(BaseAPI):
             )
             .strftime("%s")
         )
-        for category_id in category_id_list:
-            pins = db.query("SELECT * FROM pins_categories \
-                            JOIN pins ON pins_categories.pin_id = pins.id \
-                            WHERE pins_categories.category_id = %s and \
-                            pins.timestamp >= %d" % (category_id,
-                                                     timestamp_with_delta))\
-                .list()
 
-            for pin in pins:
-                if pin['pin_id'] not in image_id_list:
-                    image_id_list.append(pin['pin_id'])
+        where = "random() < 0.1"
+        if len(category_id_list) > 0:
+            where = "pins_categories.category_id in (%s)" % \
+                ','.join(category_id_list)
+
+        pins = db.query("SELECT * FROM pins \
+                        JOIN pins_categories \
+                        ON pins_categories.pin_id = pins.id \
+                        WHERE %s and \
+                        pins.timestamp >= %d \
+                        ORDER BY pins.timestamp desc" %
+                        (where, timestamp_with_delta))\
+            .list()
+
+        for pin in pins:
+            if pin['pin_id'] not in image_id_list:
+                image_id_list.append(pin['pin_id'])
 
         data['image_id_list'] = image_id_list
 
@@ -440,14 +501,21 @@ class QueryCategory(BaseAPI):
         else:
             items_per_page = int(items_per_page)
 
-        for category_id in category_id_list:
-            pins = db.select('pins_categories',
-                             where='category_id = %s' % (category_id))\
-                .list()
+        where = "random() < 0.1"
+        if len(category_id_list) > 0:
+            where = "pins_categories.category_id in (%s)" % \
+                ','.join(category_id_list)
 
-            for pin in pins:
-                if pin['pin_id'] not in image_id_list:
-                    image_id_list.append(pin['pin_id'])
+        pins = db.query("SELECT * FROM pins \
+                        JOIN pins_categories \
+                        ON pins_categories.pin_id = pins.id \
+                        WHERE %s \
+                        ORDER BY pins.timestamp desc" % (where))\
+            .list()
+
+        for pin in pins:
+            if pin['pin_id'] not in image_id_list:
+                image_id_list.append(pin['pin_id'])
 
         data['pages_count'] = math.ceil(float(len(image_id_list)) /
                                         float(items_per_page))
