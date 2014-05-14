@@ -198,9 +198,14 @@ jQuery.fn.ingrid = function(o){
 	});
 	h.width($(window).innerWidth() - 80);
 	var b = jQuery('<div />')
-		.html( jQuery('<table cellpadding="0" cellspacing="0"></table>').html( this.find('tbody') ).width( h.width() ).addClass(cfg.gridClass) )
+		.html(
+		  jQuery('<table cellpadding="0" cellspacing="0"></table>')
+		  .html( this.find('tbody') )
+		  .width( h.width() )
+		  .addClass(cfg.gridClass) )
 		.css('overflow', 'auto')
 		.height(cfg.height);
+	$(b.find('tbody')[1]).remove()
 			
 	
 	// resizable cols?
