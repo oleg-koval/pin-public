@@ -361,6 +361,8 @@ class PaginateLoadedItems(object):
         category_filter = sess.get('pin_loaders_category_filter', 0)
         if category_filter > 0:
             where += ' and categories.id=$category'
+        elif category_filter == -1:
+            where += ' and categories.id is null'
         
         db = database.get_db()
         offset = sess['pin_loaders_item_added_page_size'] * page

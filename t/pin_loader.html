@@ -292,12 +292,13 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 	
 	<div>
 		<form id="page_size_form" style="padding:0px;box-shadow:0px;">
-			<input type="text" name="page_size_field" id="page_size_field" placeholder="page size" style="width:50px;" />
+			<input type="text" name="page_size_field" id="page_size_field" placeholder="page size" style="width:70px;" title="# of items to show at a time"/>
 		</form>
 		<form id="category_filter_form" style="padding:0px;box-shadow:0px;">
 			<select name="category_filter_field" id="category_filter_field">
 				<option value="">Filter by category</option>
 				<option value="">All</option>
+				<option value="-1">Uncategorized</option>
 			$for category_column in categories:
 				$for category in category_column:
 					<option value="$category['id']">$category['name']</option>
