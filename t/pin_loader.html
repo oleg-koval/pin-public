@@ -1,4 +1,4 @@
-$def with (form, result_info, categories, number_of_items_added, preselected_categories)
+$def with (form, result_info, categories, number_of_items_added, preselected_categories, tagcloud)
 <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 <link rel="stylesheet" href="/static/css/pin_loader.css" />
 <link rel='stylesheet' type='text/css' href='/static/css/ingrid.css'/>
@@ -10,6 +10,7 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
   <ul>
     <li><a href="#upload"><span>Upload Items</span></a></li>
     <li><a href="#added"><span>Items Added</span></a></li>
+    <li><a href="#tagcloud"><span>Tag Cloud</span></a></li>
   </ul>
 <div id="upload">
 	<form id='form' autocomplete='off' enctype='multipart/form-data' method='post' action=''>
@@ -326,6 +327,10 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 	</div><!-- change_categories_dialog -->
 	
 </div><!-- added -->
+<div id="tagcloud">
+$for tag in tagcloud:
+	<span style="font-size:$tag['size']%" search="$tag['tags']">#$tag['tags']</span>
+</div>
 </div><!-- tabs -->
 <div id="wait_for_process_to_finish_layer">
 	<div><img src="/static/img/loading.gif"></div>

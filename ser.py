@@ -129,6 +129,7 @@ urls = (
     '/admin/input/list', 'mypinnings.data_loaders.PaginateLoadedItems',
     '/admin/input/change_pin_categories/?', 'mypinnings.data_loaders.ChangePinsCategories',
     '/admin/input/change_page_size_for_loaded_items/?', 'mypinnings.data_loaders.ChangePageSizeForLoadedItems',
+    '/admin/input/change_filter_by_tag_for_loaded_items/?', 'mypinnings.data_loaders.ChangeFilterByTagForLoadedItems',
     '/admin', admin.app,
 
     '/fbgm/(.*?)', 'PageHax',

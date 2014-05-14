@@ -145,7 +145,8 @@ class PinLoaderPage(object):
             if count >= categories_x_column and index < 3:
                 count = 0
                 index += 1
-        return template.ltpl('pin_loader', form, result_info, categories_columns, number_of_items_added, sess.get('categories', []))
+        tagcloud = self.get_tag_cloud()
+        return template.ltpl('pin_loader', form, result_info, categories_columns, number_of_items_added, sess.get('categories', []), tagcloud)
 
     def POST(self):
         sess = session.get_session()
@@ -239,6 +240,24 @@ class PinLoaderPage(object):
     def save_image(self, pin_id, imageurl):
         filename, _ = urllib.urlretrieve(imageurl.value)
         return filename
+    
+    
+    def get_tag_cloud(self):
+        db = database.get_db()
+        sess = session.get_session()
+        results = db.select(tables=['tags', 'pins'], what='tags, count(1) as tag_count',
+                            where='tags.pin_id=pins.id and pins.user_id=$user_id',
+                            vars={'user_id': sess.user_id}, group='tags')
+        tagcloud = []
+        for row in results:
+            tagcloud.append(dict(row))
+        number_of_tags = float(sum(tag['tag_count'] for tag in tagcloud))
+        for tag in tagcloud:
+            if tag['tag_count'] == 1:
+                tag['size'] = 100
+            else:
+                tag['size'] = int(100.0 * (1.0 + (float(tag['tag_count']) / number_of_tags))) * 2
+        return tagcloud
 
 
 class LoadersEditAPI(object):
@@ -332,18 +351,24 @@ class PaginateLoadedItems(object):
         page = int(params.page) - 1
         
         sess.setdefault('pin_loaders_item_added_page_size', PIN_LIST_LIMIT)
+        tag_filter = sess.get('pin_loaders_tag_filter', '')
+        where = ''
+        if tag_filter:
+            where += ' and tags.tags=$tag'
         
         db = database.get_db()
         offset = sess['pin_loaders_item_added_page_size'] * page
-        results = db.query('''select pins.*, tags.tags, categories.id as category_id, categories.name as category_name
-                            from pins join pins_categories pc on pins.id = pc.pin_id
-                            join categories on pc.category_id=categories.id
-                            left join tags on pins.id = tags.pin_id
-                            where user_id=$user_id
-                            group by pins.id, categories.id, tags.tags
-                            order by timestamp desc, pins.id, categories.name
-                            offset $offset limit $limit''',
-                            vars={'user_id': sess.user_id, 'offset': offset, 'limit': sess['pin_loaders_item_added_page_size']})
+        query_text = '''select pins.*, tags.tags, categories.id as category_id, categories.name as category_name
+                        from pins left join pins_categories pc on pins.id = pc.pin_id
+                        left join categories on pc.category_id=categories.id
+                        left join tags on pins.id = tags.pin_id
+                        where user_id=$user_id {where}
+                        group by pins.id, categories.id, tags.tags
+                        order by timestamp desc, pins.id, categories.name
+                        offset $offset limit $limit'''.format(where=where)
+        results = db.query(query_text,
+                            vars={'user_id': sess.user_id, 'offset': offset, 'limit': sess['pin_loaders_item_added_page_size'],
+                                  'tag': tag_filter})
         pin_list = []
         current_pin = None
         for r in results:
@@ -400,4 +425,13 @@ class ChangePageSizeForLoadedItems(object):
         params = web.input(size=PIN_LIST_LIMIT)
         size = int(params.size)
         sess['pin_loaders_item_added_page_size'] = size
+        return ''
+
+
+class ChangeFilterByTagForLoadedItems(object):
+    def GET(self):
+        sess = session.get_session()
+        auth.force_login(sess)
+        params = web.input(tag='')
+        sess['pin_loaders_tag_filter'] = params.tag
         return ''

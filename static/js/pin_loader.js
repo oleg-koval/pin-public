@@ -523,4 +523,16 @@ jQuery(function() {
       return $.pagination_grid.g.load();
     });
   });
+  $('#tagcloud span').on('click', function(event) {
+    var tag_to_search;
+    event.stopPropagation();
+    event.preventDefault();
+    tag_to_search = $(this).attr('search');
+    $.get('/admin/input/change_filter_by_tag_for_loaded_items?tag=' + tag_to_search, function() {
+      var index;
+      $.pagination_grid.g.load();
+      index = $('#tabs a[href="#added"]').parent().index();
+      $("#tabs").tabs("option", "active", index);
+    });
+  });
 });
