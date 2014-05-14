@@ -331,8 +331,10 @@ class PaginateLoadedItems(object):
         params = web.input(page=1, sort='users.name', dir='asc', query='')
         page = int(params.page) - 1
         
+        sess.setdefault('pin_loaders_item_added_page_size', PIN_LIST_LIMIT)
+        
         db = database.get_db()
-        offset = PIN_LIST_LIMIT * page
+        offset = sess['pin_loaders_item_added_page_size'] * page
         results = db.query('''select pins.*, tags.tags, categories.id as category_id, categories.name as category_name
                             from pins join pins_categories pc on pins.id = pc.pin_id
                             join categories on pc.category_id=categories.id
@@ -341,7 +343,7 @@ class PaginateLoadedItems(object):
                             group by pins.id, categories.id, tags.tags
                             order by timestamp desc, pins.id, categories.name
                             offset $offset limit $limit''',
-                            vars={'user_id': sess.user_id, 'offset': offset, 'limit': PIN_LIST_LIMIT})
+                            vars={'user_id': sess.user_id, 'offset': offset, 'limit': sess['pin_loaders_item_added_page_size']})
         pin_list = []
         current_pin = None
         for r in results:
@@ -389,3 +391,13 @@ class ChangePinsCategories(object):
                 return json.dumps({'status': 'error'})
         else:
             return json.dumps({'status': 'error'})
+
+
+class ChangePageSizeForLoadedItems(object):
+    def GET(self):
+        sess = session.get_session()
+        auth.force_login(sess)
+        params = web.input(size=PIN_LIST_LIMIT)
+        size = int(params.size)
+        sess['pin_loaders_item_added_page_size'] = size
+        return ''

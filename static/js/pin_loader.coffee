@@ -478,10 +478,21 @@ jQuery ->
 		$.pagination_grid.g.unSelectAll()
 	
 	
+	# to make the pin loaded items wider and moved
+	# to the right
 	previous_position = $('#tabs').offset()
 	margin_to_subtract = previous_position.left
 	$('#pins_container_layer').css('margin-left', (- margin_to_subtract) + 'px')
 	$('#pins_container_layer').css('width', $(window).innerWidth() - 80)
+	
+	
+	# change the page size for loaded item
+	$('#page_size_form').on 'submit', (event) ->
+		event.stopPropagation()
+		event.preventDefault()
+		$.get '/admin/input/change_page_size_for_loaded_items?size=' + $('#page_size_field').val(), ->
+			$.pagination_grid.g.load()
+		return
 
 	
 	return

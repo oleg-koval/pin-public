@@ -289,7 +289,14 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 		</form>
 	</div><!-- pin_edit_dialog -->
 	
-	<div><button id="change_categories_button">Change categories for selected pins</button> <button id="select_all_pins_button">Select All</button> <button id="unselect_all_pins_button">Unselect All</button></div>
+	<div>
+		<form id="page_size_form" style="padding:0px;box-shadow:0px;">
+			<input type="text" name="page_size_field" id="page_size_field" placeholder="page size" style="width:50px;" />
+		</form>
+		<button id="change_categories_button">Change categories for selected pins</button>
+		<button id="select_all_pins_button">Select All</button>
+		<button id="unselect_all_pins_button">Unselect All</button>
+	</div>
 	<div id="change_categories_dialog">
 		<form id="change_pins_categories_form" action="/admin/input/change_pin_categories" method="POST" autocomplete="off">
 			<table style="box-shadow:0px 0px 10px gray;font-size:80%;">
@@ -363,6 +370,7 @@ $$(document).ready( function() {
 		initialLoad: true,
 		height: 600,
 		sorting: false,
+		recordsPerPage: 100,
 		colWidths: [12, 6, 12, 20, 15, 15, 12, 6, 5, 8],
 	});
 $if result_info:
