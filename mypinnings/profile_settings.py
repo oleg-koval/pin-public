@@ -6,6 +6,7 @@ from mypinnings.template import tpl, ltpl, lmsg
 from mypinnings.auth import force_login
 from mypinnings.conf import settings
 from mypinnings.database import connect_db, dbget
+from mypinnings.pin_utils import dotdict
 db = connect_db()
 
 from mypinnings.api import api_request, convert_to_id, convert_to_logintoken
@@ -25,7 +26,10 @@ urls = ('', 'PageEditProfile',
         )
 
 
-class PageEditProfile:
+class PageEditProfile(object):
+    """
+    Responsible for profile editing.
+    """
     _form = form.Form(
         form.Textbox('name'),
         form.Dropdown('country', []),
@@ -40,21 +44,29 @@ class PageEditProfile:
     def GET(self, name=None):
         sess = session.get_session()
         force_login(sess)
-        user = dbget('users', sess.user_id)
-        photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id})
+
+        logintoken = convert_to_logintoken(sess.user_id)
+        profile_url = "/api/profile/userinfo/get"
+        profile_owner_context = {
+            "csid_from_client": "",
+            "logintoken": logintoken
+        }
+        user = api_request(profile_url, data=profile_owner_context).get("data")
+        user = dotdict(user)
         msg = web.input(msg=None)['msg']
-        return ltpl('editprofile', user, settings.COUNTRIES, name, photos, msg)
+        return ltpl('editprofile', user, settings.COUNTRIES, name, msg)
 
     def POST(self, name=None):
+        """
+        Responsible for handing profile editing calls
+        """
         sess = session.get_session()
-        user = dbget('users', sess.user_id)
         force_login(sess)
+        logintoken = convert_to_logintoken(sess.user_id)
 
         form = self._form()
         if not form.validates():
             return 'you need to fill in everything'
-
-        logintoken = convert_to_logintoken(sess.user_id)
 
         if logintoken:
             data = {
@@ -185,4 +197,3 @@ class PageChangePrivacy(PageEditProfile):
                 raise web.seeother('/privacy?msg=%s' % msg)
 
 app = web.application(urls, locals())
-

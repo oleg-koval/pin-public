@@ -22,7 +22,8 @@ class BaseUserProfile(BaseAPI):
         self._fields = ['id', 'name', 'about', 'city', 'country', 'hometown',
                         'about', 'email', 'pic', 'website', 'facebook',
                         'twitter', 'getlist_privacy_level', 'private', 'bg',
-                        'bgx', 'bgy', 'show_views', 'views', 'username']
+                        'bgx', 'bgy', 'show_views', 'views', 'username', 'zip',
+                        'linkedin', 'gplus']
         self._birthday_fields = ['birthday_year', 'birthday_month',
                                  'birthday_day']
         self.required = ['csid_from_client', 'logintoken']
