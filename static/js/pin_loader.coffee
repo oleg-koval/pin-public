@@ -488,34 +488,34 @@ jQuery ->
 	
 	# change the page size for loaded item
 	$('#page_size_form').on 'submit', (event) ->
-		event.stopPropagation()
-		event.preventDefault()
-		$.get '/admin/input/change_page_size_for_loaded_items?size=' + $('#page_size_field').val(), ->
-			$.pagination_grid.g.load()
+		put_filter(event, '/admin/input/change_page_size_for_loaded_items?size=', $('#page_size_field').val())
 		return
 	
 	
 	# perform a search from the tagcloud
 	$('#tagcloud span').on 'click', (event) ->
-		event.stopPropagation()
-		event.preventDefault()
-		tag_to_search = $(this).attr('search')
-		$.get '/admin/input/change_filter_by_tag_for_loaded_items?tag=' + tag_to_search, ->
-			$.pagination_grid.g.load()
-			index = $('#tabs a[href="#added"]').parent().index();
-			$("#tabs").tabs("option", "active", index)
-			return
+		put_filter(event, '/admin/input/change_filter_by_tag_for_loaded_items?tag=', $(this).attr('search'))
 		return
 		
 		
 	$('#clear_tag_filter').on 'click', (event) ->
+		put_filter(event, '/admin/input/change_filter_by_tag_for_loaded_items?tag=', '')
+		return
+		
+		
+	$('#category_filter_field').on 'change', (event) ->
+		put_filter(event, '/admin/input/change_filter_by_category_for_loaded_items?category=', $(this).val())
+		return
+		
+		
+	put_filter = (event, url, filter) ->
 		event.stopPropagation()
 		event.preventDefault()
-		tag_to_search = $(this).attr('search')
-		$.get '/admin/input/change_filter_by_tag_for_loaded_items?tag=', ->
-			$.pagination_grid.g.load()
+		$.get url + filter, ->
+			$.pagination_grid.g.load({pageNumber: 1})
 			index = $('#tabs a[href="#added"]').parent().index();
 			$("#tabs").tabs("option", "active", index)
+			$('.grid-page-info .grid-page-input').val(1)
 			return
 		return
 

@@ -348,13 +348,19 @@ class PaginateLoadedItems(object):
         auth.force_login(sess)
         
         params = web.input(page=1, sort='users.name', dir='asc', query='')
-        page = int(params.page) - 1
+        if params.get('pageNumber', False):
+            page = 0
+        else:
+            page = int(params.page) - 1
         
         sess.setdefault('pin_loaders_item_added_page_size', PIN_LIST_LIMIT)
         tag_filter = sess.get('pin_loaders_tag_filter', '')
         where = ''
         if tag_filter:
             where += ' and tags.tags=$tag'
+        category_filter = sess.get('pin_loaders_category_filter', 0)
+        if category_filter > 0:
+            where += ' and categories.id=$category'
         
         db = database.get_db()
         offset = sess['pin_loaders_item_added_page_size'] * page
@@ -368,7 +374,7 @@ class PaginateLoadedItems(object):
                         offset $offset limit $limit'''.format(where=where)
         results = db.query(query_text,
                             vars={'user_id': sess.user_id, 'offset': offset, 'limit': sess['pin_loaders_item_added_page_size'],
-                                  'tag': tag_filter})
+                                  'tag': tag_filter, 'category': category_filter})
         pin_list = []
         current_pin = None
         for r in results:
@@ -434,4 +440,16 @@ class ChangeFilterByTagForLoadedItems(object):
         auth.force_login(sess)
         params = web.input(tag='')
         sess['pin_loaders_tag_filter'] = params.tag
+        return ''
+
+
+class ChangeFilterByCategoryForLoadedItems(object):
+    def GET(self):
+        sess = session.get_session()
+        auth.force_login(sess)
+        params = web.input(category='0')
+        if params.category:
+            sess['pin_loaders_category_filter'] = int(params.category)
+        else:
+            sess['pin_loaders_category_filter'] = 0
         return ''

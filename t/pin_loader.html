@@ -294,6 +294,18 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 		<form id="page_size_form" style="padding:0px;box-shadow:0px;">
 			<input type="text" name="page_size_field" id="page_size_field" placeholder="page size" style="width:50px;" />
 		</form>
+		<form id="category_filter_form" style="padding:0px;box-shadow:0px;">
+			<select name="category_filter_field" id="category_filter_field">
+				<option value="">Filter by category</option>
+				<option value="">All</option>
+			$for category_column in categories:
+				$for category in category_column:
+					<option value="$category['id']">$category['name']</option>
+					$if category['subcategories']:
+						$for subcat in category['subcategories']:
+							<option value="$subcat['id']">$subcat['name']</option>
+			</select>
+		</form>
 		<button id="change_categories_button">Change categories for selected pins</button>
 		<button id="select_all_pins_button">Select All</button>
 		<button id="unselect_all_pins_button">Unselect All</button>
