@@ -16,11 +16,7 @@ import os
 
 NAME_CHARACTERS = '1234567890' * 10
 DIRECTORY_CHARACTERS = 'qwertyuiopasdfghjklzxcvbnm01234657901234657980123465789'
-<<<<<<< HEAD
 NUM_THREADS = 50
-=======
-
->>>>>>> 74ff091887b3667fd551821608aeb007f2291457
 
 def store_image_from_filename(db, filename, widths=[]):
     '''
@@ -76,7 +72,6 @@ def store_image_from_filename(db, filename, widths=[]):
 
     images_queue = Queue()
     images_by_width = dict()
-<<<<<<< HEAD
     images_by_width_list = dict()
 
     def processstoringimages(queue_element, queue_type):
@@ -88,32 +83,6 @@ def store_image_from_filename(db, filename, widths=[]):
 	    os.rename(queue_element, new_filename)
 	    image_url = _upload_file_to_bucket(server, new_filename)
 	    original_image_width, original_image_height = _get_image_size(new_filename)
-=======
-    path, _, original_extension = _split_path_for(filename)
-    new_filename = _generate_a_new_filename(server, original_extension)
-    new_filename = os.path.join(path, new_filename)
-    os.rename(filename, new_filename)
-    image_url = _upload_file_to_bucket(server, new_filename)
-    original_image_width, original_image_height = _get_image_size(new_filename)
-    images_by_width[original_image_width] = {'url': image_url,
-                                             'width': original_image_width,
-                                             'height': original_image_height}
-    images_by_width[0] = {'url': image_url,
-                         'width': original_image_width,
-                         'height': original_image_height}
-    if widths:
-        for width in widths:
-            scaled_image_filename, width, height = _scale_image(new_filename, width)
-            scaled_image_url = _upload_file_to_bucket(server, scaled_image_filename)
-            images_by_width[width] = {'url': scaled_image_url,
-                                     'width': width,
-                                     'height': height}
-            # once uploaded to the media server, this file is no longer used
-            os.unlink(scaled_image_filename)
-    # once uploaded to the media server and scaled to the widths, this file is no longer used
-    os.unlink(new_filename)
-    return images_by_width
->>>>>>> 74ff091887b3667fd551821608aeb007f2291457
 
 	    if queue_type == 1:
 		images_by_width[original_image_width] = {'url': image_url,
@@ -318,7 +287,6 @@ def _scale_image(filename, width):
     image.thumbnail(scaled_size, Image.ANTIALIAS)
     image.save(scaled_image_filename)
     return (scaled_image_filename, width, height)
-<<<<<<< HEAD
 
 
 def _get_aws_access_key_id():
@@ -333,5 +301,3 @@ def _get_aws_secret_access_key():
     Returns AWS_SECRET_ACCESS_KEY from environment variables
     '''
     return os.environ.get('AWS_SECRET_ACCESS_KEY')
-=======
->>>>>>> 74ff091887b3667fd551821608aeb007f2291457
