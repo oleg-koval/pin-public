@@ -1103,19 +1103,30 @@ class PageConvo:
         force_login(sess)
         convo_id = int(convo_id)
 
-        allowed = bool(
-            db.select('convos', what='1',
-                      where='id = $cid and (id1 = $id or id2 = $id)',
-                      vars={'cid': convo_id, 'id': sess.user_id}))
-        if not allowed:
-            return 'convo not found'
-
         form = self._form()
-        if not form.validates():
+        if not form.validates() or not form.d.content:
             return 'fill everything in'
 
-        db.insert('messages', convo_id=convo_id, sender=sess.user_id,
-                  content=form.d.content)
+        logintoken = convert_to_logintoken(sess.user_id)
+
+        if logintoken:
+            data = {
+                "logintoken": logintoken,
+                "csid_from_client": '',
+                "conversation_id_list": [convo_id],
+                "content": form.d.content
+            }
+
+            data = api_request("api/social/message_to_conversation",
+                               "POST",
+                               data)
+
+            if data['status'] == 200:
+                raise web.seeother('/convo/%d' % convo_id)
+            else:
+                raise web.seeother('/convo/%d?msg=%s' % (convo_id, 
+                                                         data['error_code']))
+
         raise web.seeother('/convo/%d' % convo_id)
 
 
