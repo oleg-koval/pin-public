@@ -10,6 +10,7 @@ from mypinnings import cached_models
 from mypinnings.conf import settings
 from mypinnings import auth
 from mypinnings.api import api_request, convert_to_id, convert_to_logintoken
+from mypinnings import pin_utils
 
 
 logger = logging.getLogger('mypinnings.categories')
@@ -97,9 +98,14 @@ class PageCategory:
             break
         else:
             parent = None
-        boards = self.db.where(table='boards',
-                               order='name',
-                               user_id=self.sess.user_id)
+        data = {
+            'csid_from_client': "",
+            'user_id': self.sess.user_id
+        }
+
+        boards = api_request("/api/profile/userinfo/boards",
+                             data=data).get("data", [])
+        boards = [pin_utils.dotdict(board) for board in boards]
 
         return template.ltpl('category',
                              self.category,

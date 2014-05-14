@@ -407,9 +407,14 @@ class PageDashboard:
 class PageBoards:
     def GET(self, bid = None):
         force_login(sess)
-        boards = db.select('boards',
-            where='user_id=$user_id',
-            vars={'user_id': sess.user_id})
+        data = {
+            'csid_from_client': "",
+            'user_id': sess.user_id
+        }
+
+        boards = api_request("/api/profile/userinfo/boards",
+                             data=data).get("data", [])
+        boards = [pin_utils.dotdict(board) for board in boards]
         user = dbget('users',sess.user_id)
         return ltpl('boards', boards, user)
 
@@ -596,9 +601,14 @@ class PageRepin:
 
         force_login(sess)
 
-        lists = db.select('boards',
-            where='user_id=$user_id',
-            vars={'user_id': sess.user_id})
+        data = {
+            'csid_from_client': "",
+            'user_id': sess.user_id
+        }
+
+        boards = api_request("/api/profile/userinfo/boards",
+                             data=data).get("data", [])
+        lists = [pin_utils.dotdict(board) for board in boards]
 
         pin_id = int(pin_id)
         pin = dbget('pins', pin_id)
@@ -1866,13 +1876,14 @@ class PageCategory:
                     cid = scrow.id
                     break
         pins = db.query(query, vars={'cid': cid})
-        lists = db.select('boards',
-        where='user_id=$user_id',
-        vars={'user_id': sess.user_id})
+        data = {
+            'csid_from_client': "",
+            'user_id': sess.user_id
+        }
 
-        boards = db.where(table='boards', order='name', user_id=sess.user_id)
-
-        print lists
+        boards = api_request("/api/profile/userinfo/boards",
+                             data=data).get("data", [])
+        boards = [pin_utils.dotdict(board) for board in boards]
         if ajax:
             return json_pins(pins, 'horzpin')
         return ltpl('category', pins, category, all_categories, subcategories, boards)
