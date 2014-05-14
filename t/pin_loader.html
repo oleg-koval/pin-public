@@ -196,12 +196,14 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					<th>Tags</th>
 					<th>Price</th>
 					<th>P.R.</th>
+					<th>Date</th>
 					<th>Actions</th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr>
 					<td>Loading...</td>
+					<td></td>
 					<td></td>
 					<td></td>
 					<td></td>
@@ -390,7 +392,7 @@ $$(document).ready( function() {
 		height: 600,
 		sorting: false,
 		recordsPerPage: 100,
-		colWidths: [12, 6, 12, 20, 15, 15, 12, 6, 5, 8],
+		colWidths: [12, 6, 12, 19, 14, 14, 11, 6, 5, 5, 7],
 	});
 $if result_info:
 	$for ri in result_info:

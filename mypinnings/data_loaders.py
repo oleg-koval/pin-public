@@ -387,6 +387,7 @@ class PaginateLoadedItems(object):
                 current_pin['categories'] = []
                 categories = []
                 current_pin['tags'] = []
+                current_pin['iso_date'] = datetime.date.fromtimestamp(current_pin['timestamp']).isoformat()
                 pin_list.append(current_pin)
             if r.category_id not in categories:
                 category = {'id': r.category_id, 'name': r.category_name}
