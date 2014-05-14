@@ -506,6 +506,18 @@ jQuery ->
 			$("#tabs").tabs("option", "active", index)
 			return
 		return
+		
+		
+	$('#clear_tag_filter').on 'click', (event) ->
+		event.stopPropagation()
+		event.preventDefault()
+		tag_to_search = $(this).attr('search')
+		$.get '/admin/input/change_filter_by_tag_for_loaded_items?tag=', ->
+			$.pagination_grid.g.load()
+			index = $('#tabs a[href="#added"]').parent().index();
+			$("#tabs").tabs("option", "active", index)
+			return
+		return
 
 	
 	return
