@@ -122,6 +122,7 @@ class UserInfoUpdate(BaseUserProfile):
         http://localhost:8080/api/profile/userinfo/update
         """
         request_data = web.input()
+
         if not self.is_request_valid(request_data):
             return api_response(data={}, status=405,
                                 error_code="Required args are missing")

@@ -145,6 +145,9 @@ class PageChangePw(PageEditProfile):
 
 
 class PageChangeSM(PageEditProfile):
+    """
+    Class responsible for updating social media accounts
+    """
     _form = form.Form(
         form.Textbox('facebook'),
         form.Textbox('linkedin'),
@@ -153,19 +156,32 @@ class PageChangeSM(PageEditProfile):
     )
 
     def POST(self, name=None):
+        """
+        Updates social media accounts.
+        """
         sess = session.get_session()
         force_login(sess)
+        logintoken = convert_to_logintoken(sess.user_id)
 
         form = self._form()
         if not form.validates():
             return 'bad input'
 
-        user = dbget('users', sess.user_id)
-        if not user:
-            return 'error getting user'
-
-        db.update('users', where='id = $id', vars={'id': sess.user_id}, **form.d)
-        raise web.seeother('/social-media')
+        if logintoken:
+            data = {
+                "logintoken": logintoken,
+                "csid_from_client": "",
+                "facebook": form.d.facebook,
+                "linkedin": form.d.linkedin,
+                "twitter": form.d.twitter,
+                "gplus": form.d.gplus
+                }
+        data = api_request("api/profile/userinfo/update", data=data)
+        if data['status'] == 200:
+            raise web.seeother('/social-media')
+        else:
+            mgs = data['error_code']
+            raise web.seeother('/profile?msg=%s' % msg)
 
 class PageChangePrivacy(PageEditProfile):
     _form = form.Form(
