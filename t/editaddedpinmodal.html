@@ -10,21 +10,21 @@ $def with (pin,categories_to_select, boards)
 <table>
 	<tr>
 		<td valign="top">
-<form  name="editPinModal$pin.id"  enctype='multipart/form-data' method='post' action='/add-from-website'>
+<form  name="editPinModal$pin.id"  enctype='multipart/form-data' method='post' action='/pin/$pin.id/' class="editPinModal">
     <table>
 	    <tr><th><label for="link">Source URL</label></th><td><input type="text" id="link" name="link" value="$pin.link" /></td></tr>
-	    <tr><th><label for="product_url">Product URL</label></th><td><input type="text" id="product_url" name="product_url" value="$pin.product_url" /></td></tr>
+	    <tr><th><label for="product_url">Buy It Here</label></th><td><input type="text" id="product_url" name="product_url" value="$pin.product_url" /></td></tr>
 	    <tr><th><label for="title">Title</label></th><td><input type="text" id="title" name="title" value="$pin.name" /></td></tr>
 	    <tr><th><label for="description">Description</label></th><td><textarea id="description" name="description" value="$pin.description" ></textarea></td></tr>
-	    <tr><th><label for="tags">Tags</label></th><td><input type="text" placeholder="#this #is #awesome" id="tags" name="tags"/></td></tr>
+	    <tr><th><label for="tags">Tags</label></th><td><input type="text" placeholder="#this #is #awesome" id="tags" name="tags" value="$pin.tags"/></td></tr>
 	    <tr><th><label for="price">Price</label></th><td><input type="text" id="price" name="price" value="$pin.price"  /></td></tr>
 	    <tr><th><label for="price_range">Price range</label></th>
 	    	<td>
-	    		<label><input type="radio" name="price_range" value="1"> $$</label>
-				<label><input type="radio" name="price_range" value="2"> $$$$</label>
-				<label><input type="radio" name="price_range" value="3"> $$$$$$</label>
-				<label><input type="radio" name="price_range" value="4"> $$$$$$$$</label>
-				<label><input type="radio" name="price_range" value="5"> $$$$$$$$+</label>
+	    		<label><input type="radio" name="price_range" value="1" $:('checked' if pin.price_range == 1 else '')> $$</label>
+				<label><input type="radio" name="price_range" value="2" $:('checked' if pin.price_range == 2 else '')> $$$$</label>
+				<label><input type="radio" name="price_range" value="3" $:('checked' if pin.price_range == 3 else '')> $$$$$$</label>
+				<label><input type="radio" name="price_range" value="4" $:('checked' if pin.price_range == 4 else '')> $$$$$$$$</label>
+				<label><input type="radio" name="price_range" value="5" $:('checked' if pin.price_range == 5 else '')> $$$$$$$$+</label>
 				<div id="price_range"></div>
 	    	</td>
 	    </tr>
@@ -35,7 +35,7 @@ $def with (pin,categories_to_select, boards)
 		    			<option value="">Select one</option>
 		    		$if boards:
 			    		$for board in boards:
-			    			<option value="$board.id">$board.name</option>
+			    			<option value="$board.id" $:('selected' if pin.board_id == board.id else '')>$board.name</option>
 		    		</select>
 		    		<button type="button" id="button_change_layer_to_add_new_board" alt="Add a new list">+</button>
 	    		</div>
@@ -45,21 +45,6 @@ $def with (pin,categories_to_select, boards)
 	    		</div>
 	    	</td>
 	    </tr>
-	    <tr><th>Categories</th>
-	    $if categories_to_select:
-	    	<td rowspan="2">
-				<div style="width: 100%; height: 200px; overflow:auto;">
-				$for category in categories_to_select:
-					<label><input type="checkbox" name='category_check' value="$category['id']">$category['name']</label>
-					$if category['subcategories']:
-						$for subcat in category['subcategories']:
-							<div class="subcategory_checkbox"><label><input type="checkbox" name='category_check' value="$subcat['id']">$subcat['name']</label></div>
-					$else:
-						<br>
-				</div>
-				<input type="hidden" id="categories" name="categories"/>
-	    		</td>
-	    	</tr>
 	    <tr>
 	    	<td valign="top">
 	    		<div id="layer_preview_of_selected_image" >
@@ -67,8 +52,8 @@ $def with (pin,categories_to_select, boards)
 	    		<img id="preview_of_selected_image" src="$pin.image_202_url" style="width:160px;height:auto;">
 	    		</div>
 	    	</td>
+			<td valign="top"><button id="btn-add" name="add">Save changes</button></td>
 	    </tr>
-	    <tr><th><label for="btn-add"></label></th><td><button id="btn-add" name="add">add</button></td></tr>
 	</table>
 </form>
 

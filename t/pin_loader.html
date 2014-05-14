@@ -1,9 +1,11 @@
 $def with (form, result_info, categories, number_of_items_added, preselected_categories)
 <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 <link rel="stylesheet" href="/static/css/pin_loader.css" />
+<link rel='stylesheet' type='text/css' href='/static/css/ingrid.css'/>
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 <script src="/static/js/underscore-min.js"></script>
 <script src="/static/js/pin_loader.js"></script>
+<script src="/static/js/jquery.ingrid.pinloaders.js" type="text/javascript"></script>
 <div id="tabs">
   <ul>
     <li><a href="#upload"><span>Upload Items</span></a></li>
@@ -16,7 +18,8 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					<p><h2>Review your added item in the 'Items Added' tab</h2></p>
 				$for ri in result_info:
 					$if ri['error']:
-						<p><blockquote><div class="red">There are errors in you upload, please review the 'Items Added' tab</div></blockquote></p>
+						<p><blockquote><div class="red">There are errors in you upload, please review below and the 'Items Added' tab</div></blockquote></p>
+						$ break
 				</div>
 		<p>All the items you upload will belong to the same category, so carefully select the category.</p>
 		<p>You must provide, for each pin you upload: Title, Description, URL from where to buy this item, Link to the original source, Tags (#rolex #coolstuff) and an image via URL or upload.</p>
@@ -25,65 +28,64 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 		<p>You can upload up to 10 images at a time, using the fields below. You can view the results in the 'Items Added' tab.</p>
 		<div style="margin-top: 10px"></div>
 		<h1>Categories for these Pins: </h1>
-		<table>
+		<table style="width:100%">
 			<tr style="font-size:80%">
 			$for category_column in categories:
 				<td width="25%" class="category_selection_td">
 				$for category in category_column:
-					<label><input type="checkbox" name='category_check' value="$category['id']"
+					<label style="font-size: 1.3em"><input type="checkbox" name='category_check' value="$category['id']"
 					$if category['id'] in preselected_categories:
 						checked
 					>$category['name']</label>
 					$if category['subcategories']:
 						$for subcat in category['subcategories']:
-							<div class="subcategory_checkbox"><label><input type="checkbox" name='category_check' value="$subcat['id']"
+							<div class="subcategory_checkbox"><label style="font-size: 1.3em"><input type="checkbox" name='category_check' value="$subcat['id']"
 							$if subcat['id'] in preselected_categories:
 								checked
-							>$subcat['name']</label></div>
+							parent-category="$category['id']">$subcat['name']</label></div>
 					$else:
 						<br/>
 				</td>
 			</tr>
 		</table>
-		$:form['upload'].render()
 		<div id="category_error_message" class="red hide">You must select a category</div>
 		<input type="hidden" value="" name="categories">
+		<div style="height:20px;"></div>
+		$:form['upload'].render()
+		<div style="height:20px;"></div>
 		<table style="font-size:80%">
 		$for i in range(1, 11, 2):
 			<tr>
-				<td style="padding-right:20px">
+				<td style="padding-right:20px;">
 					<table style="box-shadow:0px 0px 10px gray">
+						<tr><th colspan="2" valign="bottom"><span style="font-size: 2em;">Product #$i</span></th></tr>
 						<tr>
 							<th><label for="imageurl$i">Image URL</label></th>
-							<td>$:form['imageurl{}'.format(i)].render()</td>
-						</tr>
-						<tr>
-							<th><label for="image$i">Image File</label></th>
-							<td>$:form['image{}'.format(i)].render()</td>
+							<td><input i="$i" type="text" class="imagelink" name="imageurl$i" id="imageurl$i" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="link$i">Original Source URL</label></th>
-							<td>$:form['link{}'.format(i)].render()</td>
+							<td><input name="link$i" i="$i" placeholder="The original source for this image" id="link$i" type="text" class="urllink" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="title$i">Title</label></th>
-							<td>$:form['title{}'.format(i)].render()</td>
+							<td><input i="$i" type="text" class="titleentry" name="title$i" id="title$i" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="description$i">Description (optional)</label></th>
-							<td>$:form['description{}'.format(i)].render()</td>
+							<td><textarea i="$i" class="descrentry" name="description$i" id="description$i" style="width: 450px;font-size: 1.3em;height:60px"></textarea></td>
 						</tr>
 						<tr>
-							<th><label for="product_url$i">Product URL</label></th>
-							<td>$:form['product_url{}'.format(i)].render()</td>
+							<th><label for="product_url$i">Get It Here</label></th>
+							<td><input name="product_url$i" i="$i" placeholder="Where can you buy this item? www.rolex.com" id="product_url$i" type="text" class="urlproduct_url" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="tags$i">#Tags</label></th>
-							<td>$:form['tags{}'.format(i)].render()</td>
+							<td><input name="tags$i" i="$i" placeholder="#this is awesome #product" id="tags$i" type="text" class="tagwords" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="price$i">Price (optional)</label></th>
-							<td>$:form['price{}'.format(i)].render()</td>
+							<td><input name="price$i" i="$i" placeholder="$888.00" id="price$i" type="text" class="prodprice" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th>Price Category</th>
@@ -101,37 +103,34 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 				$ j = i + 1
 				<td>
 					<table style="box-shadow:0px 0px 10px gray">
+						<tr><th colspan="2" valign="bottom"><span style="font-size: 2em;">Product #$j</span></th></tr>
 						<tr>
 							<th><label for="imageurl$j">Image URL</label></th>
-							<td>$:form['imageurl{}'.format(j)].render()</td>
-						</tr>
-						<tr>
-							<th><label for="image$j">Image File</label></th>
-							<td>$:form['image{}'.format(j)].render()</td>
+							<td><input i="$j" type="text" class="imagelink" name="imageurl$j" id="imageurl$j" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="link$j">Original Source URL</label></th>
-							<td>$:form['link{}'.format(j)].render()</td>
+							<td><input name="link$j" i="$j" placeholder="The original source for this image" id="link$j" type="text" class="urllink" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="title$j">Title</label></th>
-							<td>$:form['title{}'.format(j)].render()</td>
+							<td><input i="$j" type="text" class="titleentry" name="title$j" id="title$j" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="description$j">Description (optional)</label></th>
-							<td>$:form['description{}'.format(j)].render()</td>
+							<td><textarea i="$j" class="descrentry" name="description$j" id="description$j" style="width: 450px;font-size: 1.3em;height:60px;"></textarea></td>
 						</tr>
 						<tr>
-							<th><label for="product_url$j">Product URL</label></th>
-							<td>$:form['product_url{}'.format(j)].render()</td>
+							<th><label for="product_url$j">Get It Here</label></th>
+							<td><input name="product_url$j" i="$j" placeholder="Where can you buy this item? www.rolex.com" id="product_url$j" type="text" class="urlproduct_url" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="tags$j">#Tags</label></th>
-							<td>$:form['tags{}'.format(j)].render()</td>
+							<td><input name="tags$j" i="$j" placeholder="#this is awesome #product" id="tags$j" type="text" class="tagwords" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th><label for="price$j">Price (optional)</label></th>
-							<td>$:form['price{}'.format(j)].render()</td>
+							<td><input name="price$j" i="$j" placeholder="$888.00" id="price$j" type="text" class="prodprice" style="width: 450px;font-size: 1.3em;"/></td>
 						</tr>
 						<tr>
 							<th>Price Category</th>
@@ -147,8 +146,12 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					</table>
 				</td>
 			</tr>
+			$if not loop.last:
+				<tr style="height:40px;"><td colspan="2" valign="bottom"></td></tr>
 		</table>
+		<div style="height:20px;"></div>
 		$:form['upload'].render()
+		<div style="height:20px;"></div>
 	</form>
 </div><!-- upload -->
 <div id="added">
@@ -167,14 +170,9 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 							</tr><tr>
 								<th>Description:</th><td>$ri.get('description', '')</td>
 							</tr><tr>
-								$if ri.get('imageurl', False):
-									<th>Tried this Image URL:</th><td><a href="$ri['imageurl']">$ri['imageurl']</a></td>
-								$elif ri.get('image', False):
-									<th>Tried this Image uploaded by you:</th><td>$ri.get('image', '')</td>
-								$else:
-									<th></th><td><strong>You did not provided an image!</strong></th>
+								<th>Tried this Image URL:</th><td><a href="$ri['imageurl']">$ri['imageurl']</a></td>
 							</tr><tr>
-								<th>Product URL:</th><td><a href="$ri.get('product_url')">$ri.get('product_url', '')</a></td>
+								<th>Get It Here:</th><td><a href="$ri.get('product_url')">$ri.get('product_url', '')</a></td>
 							</tr><tr>
 								<th>Source URL:</th><td><a href="$ri.get('link')">$ri.get('link', '')</a></td>
 							</tr><tr>
@@ -184,13 +182,38 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					</td>
 				</tr>
 		</table>
-	<div class="pins_columns_container">
-		<div class="column1"></div>
-		<div class="column2"></div>
-		<div class="column3"></div>
-		<div class="column4"></div>
+	<div style="width:1200px;background-color:white;margin-left:-80px;">
+		<table id="pins_container">
+			<thead>
+				<tr>
+					<th>Category</th>
+					<th>Img</th>
+					<th>Title</th>
+					<th>Description</th>
+					<th>Source URL</th>
+					<th>Get it Here</th>
+					<th>Tags</th>
+					<th>Price</th>
+					<th>P.R.</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>Loading...</td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+				</tr>
+			<tbody>
+		</table>
 	</div>
-	<div id="scroll_mark"></div>
 	<div id="pin_edit_dialog" title="Edit pin">
 		<form id="pin_edit_form" action="/admin/input/update_pin/" method="POST" enctype="multipart/form-data" autocomplete="off">
 			<table style="box-shadow:0px 0px 10px gray;font-size:80%;">
@@ -222,10 +245,6 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					<td><input i="11" type="text" class="imagelink" name="imageurl11" id="imageurl11"/></td>
 				</tr>
 				<tr>
-					<th><label for="image11">Image File</label></th>
-					<td><input i="11" type="file" class="imagefile" name="image11" id="image11"/></td>
-				</tr>
-				<tr>
 					<th><label for="link11">Source URL</label></th>
 					<td><input i="11" type="text" class="urllink" name="link11" id="link11" placeholder="The original source for this image"/></td>
 				</tr>
@@ -238,12 +257,12 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					<td><textarea i="11" class="descrentry" name="description11" id="description11"></textarea></td>
 				</tr>
 				<tr>
-					<th><label for="product_url11">Product URL</label></th>
+					<th><label for="product_url11">Get It Here</label></th>
 					<td><input i="11" type="text" class="urlproduct_url" name="product_url11" id="product_url11" placeholder="Where can you buy this item? www.rolex.com"/></td>
 				</tr>
 				<tr>
 					<th><label for="tags11">#Tags</label></th>
-					<td><input name="tags11" i="11" placeholder="#this #is #awesome" id="tags11" type="text" class="tagwords"/></td>
+					<td><input name="tags11" i="11" placeholder="#this is awesome #product" id="tags11" type="text" class="tagwords"/></td>
 				</tr>
 				<tr>
 					<th><label for="price11">Price (optional)</label></th>
@@ -269,38 +288,86 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 			<input type="hidden" name="categories11" id="categories11" value="">
 		</form>
 	</div><!-- pin_edit_dialog -->
-	<div><button id="load_more_button">Load more</button></div>
+	
+	<div><button id="change_categories_button">Change categories for selected pins</button> <button id="select_all_pins_button">Select All</button> <button id="unselect_all_pins_button">Unselect All</button></div>
+	<div id="change_categories_dialog">
+		<form id="change_pins_categories_form" action="/admin/input/change_pin_categories" method="POST" autocomplete="off">
+			<table style="box-shadow:0px 0px 10px gray;font-size:80%;">
+				<tr>
+					<th><label for="category11">Categories</label></th>
+					<td>
+					<div style="width:350px; height: 400px; overflow:auto;">
+					$for category_column in categories:
+						$for category in category_column:
+							<label><input type="checkbox" name='category_change_check' value="$category['id']">$category['name']</label>
+							$if category['subcategories']:
+								$for subcat in category['subcategories']:
+									<div class="subcategory_checkbox"><label><input type="checkbox" name='category_change_check' value="$subcat['id']">$subcat['name']</label></div>
+							$else:
+								<br>
+					</div>
+					<div id="category_change_error_message" class="red hide">You must select a category</div>
+					</td>
+				</tr>
+				<tr>
+					<th></th>
+					<td><button id="btn-save" name="save">Change</button></td>
+				</tr>
+			</table>
+			<input type="hidden" name="categories_to_change" id="categories_to_change" value="">
+		</form>
+	</div><!-- change_categories_dialog -->
+	
 </div><!-- added -->
 </div><!-- tabs -->
-<script type="text/html" id="pin_template">
-<div class="pin_image">
-	<a href="/p/<%= external_id %>" target="_blank" title="See full size">
-		<img src="<%= image_202_url %>?_=<%= new Date().getTime() %>">
-	</a>
+<div id="wait_for_process_to_finish_layer">
+	<div><img src="/static/img/loading.gif"></div>
 </div>
-<table>
-	<tr><th>Categories</th><td><%= categories_list %></td></tr>
-	<tr><th>Title</th><td><%= name %></td></tr>
-<% if (description !== null && description !== '') { %>
-	<tr><th>Descr.</th><td><%= description %></td></tr>
-<% } %>
-<% if (product_url !== null && product_url !== '') { %>
-	<tr><th>Product Link</th><td><a href="<%= product_url %>" title="<%= product_url %>">
-			<%= separate_product %>
-		</a></td></tr>
-<% } %>
-<% if (link !== null && link !== '') { %>
-	<tr><th>Source Link</th><td><a href="<%= link %>" title="<%= link %>">
-			<%= separate_link %>
-		</a></td></tr>
-<% } %>
-	<tr><th>Tags</th><td><%= tags %></td></tr>
-		
-<% if (price !== 'None') { %>
-	<tr><th>Price</th><td>$$<%= price %></td></tr>
-<% } %>
-	<tr><th>Price Range</th><td><%= price_range_repr %></td></tr>
-	<tr><td colspan="2"><button class="button_pin_edit" pinid="<%= id %>">Edit</button>
-		<button class="button_pin_delete" pinid="<%= id %>">Delete</button></td></tr>
-</table>
+<script type="text/html" id="pin_template">
+			<td>
+				<%= categories_list %>
+			</td>
+			<td>
+				<a href="/p/<%= external_id %>">
+					<img src="<%= image_202_url %>?_=<%= new Date().getTime() %>" style="width:40px;height:auto;">
+				</a>
+			</td>
+			<td><%= name %></td>
+			<td><%= description %></td>
+			<td>
+				<a href="<%= link %>" title="<%= link %>">
+					<%= separate_link %>
+				</a>
+			</td>
+			<td>
+				<a href="<%= product_url %>" title="<%= product_url %>">
+					<%= separate_product %>
+				</a>
+			</td>
+			<td>
+				<% _.each(tags, function(tag) { %>
+					#<%= tag %><br>
+				<% }); %>
+			</td>
+			<td><%= price %></td>
+			<td><%= price_range_repr %></td>
+			<td>
+				<button class="button_pin_edit" pinid="<%= id %>">e</button>
+				<button class="button_pin_delete" pinid="<%= id %>">x</button>
+			</td>
+</script>
+<script type="text/javascript">
+$$(document).ready( function() {
+	$$.pagination_grid = $$("#pins_container").ingrid({ 
+		url: '/admin/input/list',
+		initialLoad: true,
+		height: 600,
+		sorting: false,
+		colWidths: [120, 60, 120, 200, 150, 150, 120, 60, 50, 80],
+	});
+$if result_info:
+	$for ri in result_info:
+		$if ri['error']:
+			$$.put_failed_pin_to_edit($:ri['json']);
+}); 
 </script>

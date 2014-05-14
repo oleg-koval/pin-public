@@ -1,35 +1,50 @@
-$def with (users)
+$def with (query)
 <h1>Search results</h1>
-$if users:
-    <script type='text/javascript' src='/static/search.js'></script>
-    <table border='1' cellspacing='0' cellpadding='8'>
-        <thead>
-            <tr>
-                <td><a href='javascript:addToUrl("order", "name");'>Name</a></td>
-                <td><a href='javascript:addToUrl("order", "username");'>Username</a></td>
-                <td><a href='javascript:addToUrl("order", "email");'>Email</a></td>
-                <td><a href='javascript:addToUrl("order", "pin_count");'>Added</a></td>
-                <td><a href='javascript:addToUrl("order", "repin_count");'>Added from</a></td>
-                <td><a href='javascript:addToUrl("order", "follower_count");'>Followers</a></td>
-                <td><a href='javascript:addToUrl("order", "follow_count");'>Follows</a></td>
-                <td><a href='javascript:addToUrl("order", "timestamp");'>Date Created</a></td>
-            </tr>
-        </thead>
-        <tbody>
-            $for user in users:
-                <tr>
-                    <td><a href='/admin/user/$user.id'><b>$user.name</b></a></td>
-                    <td>$user.username</td>
-                    <td>$user.email</td>
-                    <td>$user.pin_count</td>
-                    <td>$user.repin_count</td>
-                    <td>$user.follower_count</td>
-                    <td>$user.follow_count</td>
-                    <td>$user.timestamp</td>
-                </tr>
-        </tbody>
-    </table>
-$else:
-    <p>No users found.</p>
+<ul class="nav nav-tabs">
+  <li class="active"><a href="#">Users of any Kind</a></li>
+  <li><a href="/admin/dataloaders-results?query=$query">Data loaders</a></li>
+</ul>
+   <table id="results_table">
+       <thead>
+           <tr>
+               <th>Name</th>
+               <th>Username</th>
+               <th>Email</th>
+               <th>Added</th>
+               <th>Added from</th>
+               <th>Followers</th>
+               <th>Follows</th>
+               <th>Date Created</th>
+           </tr>
+       </thead>
+       <tbody>
+             <tr>
+                 <td>loading...</td>
+                 <td></td>
+                 <td></td>
+                 <td></td>
+                 <td></td>
+                 <td></td>
+                 <td></td>
+                 <td></td>
+             </tr>
+       </tbody>
+   </table>
 <hr/>
-<p><a href='/search'><b>Do another search</b></a></p>
+<p><a href='/admin/search'><b>Do another search</b></a></p>
+<script type="text/javascript">
+$$(document).ready(
+	function() {
+		$$("#results_table").ingrid({ 
+			url: '/admin/search-results',
+			initialLoad: true,
+			height: 600,
+			colWidths: [200, 200, 200, 50, 50, 50, 50, 120],
+			colSortParams: ['users.name', 'users.username', 'users.email', 'pin_count', 'repin_count', 'follower_count', 'follow_count', 'users.timestamp'],
+			extraParams: {'query': '$query'},
+			sortedCol: 'users.name',
+			sortedColDir: 'asc'
+		});
+	}
+); 
+</script>

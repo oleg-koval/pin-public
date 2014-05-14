@@ -27,6 +27,9 @@ urls = (
     # API to user signup: register user
     "/signup/register", api.views.signup.Register,
 
+    # API to user signup: confirmation user email
+    "/signup/confirmuser", api.views.signup.Confirmuser,
+
     # API to upload images
     "/image/upload", api.views.images.ImageUpload,
 
@@ -40,6 +43,7 @@ urls = (
     "/profile/pwd", api.views.profile.ChangePassword,
     # API for social networks: posting on user page
     "/social/poup", api.views.social.PostingOnUserPage,
+    "/social/query/(.*)/(follower|follow)", api.views.social.QueryFollowers
 )
 web.config.debug = True
 api_app = web.application(urls, globals(), autoreload=True)

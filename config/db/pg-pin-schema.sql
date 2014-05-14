@@ -358,6 +358,8 @@ CREATE TABLE follows (
     follow integer NOT NULL
 );
 
+ALTER TABLE follows
+   ADD COLUMN follow_time timestamp without time zone DEFAULT current_timestamp;
 
 ALTER TABLE public.follows OWNER TO postgres;
 
@@ -1103,3 +1105,18 @@ alter table cool_pins add image_url text;
 -- these columns are not used
 alter table photos drop filename;
 alter table photos drop sizes;
+
+
+alter table pins add image_width integer;
+alter table pins add image_height integer;
+alter table pins add image_212_height integer;
+alter table pins add image_202_height integer;
+
+
+ALTER TABLE tags DROP CONSTRAINT tags_pkey;
+create index tags_pin_id_index on tags(pin_id);
+
+alter table categories add slug text not null default '';
+create index categories_slug_index on categories(slug);
+
+alter table categories add position integer not null default 0;

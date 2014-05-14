@@ -38,11 +38,11 @@ $if pin.id and pin.category:
             <img class='left' src='/static/default-avatar.png'/>
         </a>
         <div class='right'>
-          <p class='faded small'><a href='/profile/$pin.user_id'><b>$pin.user_name</b></a><br/>In <a href='/$pin.user_username/buy-list/$pin.category'><b>$pin.cat_name</b></a></p>
+          <p class='faded small'><a href='/profile/$pin.user_id'><b>$pin.user_name</b></a><br/>In <a href='/category/$pin.category'><b>$pin.cat_name</b></a></p>
         </div>
       </div>
       $if pin.tags:
         <hr>
-        <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags.split(' ')]))</p>
+        <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags]))</p>
     </div>
   </div>
