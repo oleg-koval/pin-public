@@ -11,11 +11,12 @@ from threading import Thread
 import multiprocessing
 import threadpool
 import concurrent.futures
+import shutil
+import os
 
-NAME_CHARACTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._'
-AWS_ACCESS_KEY_ID = ''
-AWS_SECRET_ACCESS_KEY = ''
-NUM_THREADS = 20
+NAME_CHARACTERS = '1234567890' * 10
+DIRECTORY_CHARACTERS = 'qwertyuiopasdfghjklzxcvbnm01234657901234657980123465789'
+NUM_THREADS = 50
 
 def store_image_from_filename(db, filename, widths=[]):
     '''
@@ -77,36 +78,39 @@ def store_image_from_filename(db, filename, widths=[]):
 	    new_filename = os.path.join(path, new_filename)
 	    os.rename(queue_element, new_filename)
 	    image_url = _upload_file_to_bucket(server, new_filename)
-	    original_image_width = _get_image_width(new_filename)
+	    original_image_width, original_image_height = _get_image_size(new_filename)
 
 	    if queue_type == 1:
-		images_by_width[original_image_width] = image_url
-		images_by_width[0] = image_url
+		images_by_width[original_image_width] = {'url': image_url,
+                                             'width': original_image_width,
+                                             'height': original_image_height}
+		images_by_width[0] = {'url': image_url,
+                         'width': original_image_width,
+                         'height': original_image_height}
 		if widths:
 		   for width in widths:
-		       scaled_image_filename = _scale_image(new_filename, width)
+		       scaled_image_filename, width, height = _scale_image(new_filename, width)
 		       scaled_image_url = _upload_file_to_bucket(server, scaled_image_filename)
-		       images_by_width[width] = scaled_image_url
+		       images_by_width[width] = {'url': scaled_image_url,
+                                     'width': width,
+                                     'height': height}
 		       os.unlink(scaled_image_filename)
 		os.unlink(new_filename)
 		queue_element.task_done()
 	    elif queue_type == 2:
 		if widths:
 		   smalldict = dict()
-		   originaldict = dict()
-		   originaldict['url'] = image_url
-		   smalldict[0] = originaldict
-
-		   originalwidthdict = dict()
-		   originalwidthdict['width'] = image_url
-		   smalldict[original_image_width] = originalwidthdict
+		   smalldict[0] = {'url': image_url}
+		   smalldict[original_image_width] = {'url': image_url,
+                                     'width': original_image_width,
+                                     'height': original_image_height}
 
 		   for width in widths:
-		       temp = dict()
-		       scaled_image_filename = _scale_image(new_filename, width)
+		       scaled_image_filename, width, height = _scale_image(new_filename, width)
 		       scaled_image_url = _upload_file_to_bucket(server, scaled_image_filename)
-		       temp['width'] = scaled_image_url
-		       smalldict[width] = temp
+		       smalldict[width] = {'url': scaled_image_url,
+                                     'width': width,
+                                     'height': height}
 		       os.unlink(scaled_image_filename)
 		   images_by_width_list[_+original_extension] = smalldict
 		os.unlink(new_filename)
@@ -173,7 +177,6 @@ def _split_path_for(filename):
 def _generate_a_new_filename(server, file_extension):
     '''
     Returns a new unique filename using the existing extension.
-    
     We use the file_extension to be appended to the randomly generated
     name. Also a test is performed in the S3 server to see if the image
     already exists.
@@ -204,8 +207,8 @@ def _file_already_exists_in_server(server, filename):
     bucket_name = server.path
     #connection = boto.s3.connection.S3Connection()
     connection = boto.connect_s3(
-	aws_access_key_id = AWS_ACCESS_KEY_ID,
-	aws_secret_access_key = AWS_SECRET_ACCESS_KEY)
+	aws_access_key_id = _get_aws_access_key_id(),
+	aws_secret_access_key = _get_aws_secret_access_key())
     bucket = connection.get_bucket(bucket_name)
     key = bucket.get_key(pathname)
     connection.close()
@@ -215,25 +218,25 @@ def _file_already_exists_in_server(server, filename):
 def _generate_path_name_for(filename):
     '''
     Returns a path for the URL in the server.
-    
     This is a path to put the image into, consisting of 3
     directories. The 3 directories are the of 3 characters each,
     and corresponds to the first characters of the filename.
-    
     This is made this way to allow for millions of files in
     filesystems where each directory has a limit in the number
     of files it can allow. S3 does not suffer from this, but other
     filesystems like ext4 does. If later we move the files to a
     different storage, this can save us from a large amount of work.
     '''
-    pathname = os.path.join(filename[0:3], filename[3:6], filename[6:9], filename)
+    path1 = ''.join(random.sample(DIRECTORY_CHARACTERS, 3))
+    path2 = ''.join(random.sample(DIRECTORY_CHARACTERS, 3))
+    path3 = ''.join(random.sample(DIRECTORY_CHARACTERS, 3))
+    pathname = os.path.join(path1, path2, path3, filename)
     return pathname
 
 
 def _upload_file_to_bucket(server, filename):
     '''
     Upload the file to the bucket and returns the URL to serve that file.
-    
     Using the server, upload filename to a bucket. The bucket
     is in server.path. After that, user server.url to generate
     the URL that will be used to server the image from now on
@@ -244,8 +247,8 @@ def _upload_file_to_bucket(server, filename):
     bucket_name = server.path
     #connection = boto.s3.connection.S3Connection()
     connection = boto.connect_s3(
-	aws_access_key_id = AWS_ACCESS_KEY_ID,
-	aws_secret_access_key = AWS_SECRET_ACCESS_KEY)
+	aws_access_key_id = _get_aws_access_key_id(),
+	aws_secret_access_key = _get_aws_secret_access_key())
     bucket = connection.get_bucket(bucket_name)
     key = boto.s3.key.Key(bucket)
     key.key = pathname
@@ -255,19 +258,17 @@ def _upload_file_to_bucket(server, filename):
     return '{}/{}'.format(server.url, pathname)
     
     
-def _get_image_width(filename):
+def _get_image_size(filename):
     '''
     Returns the width of the image contained in the file.
     '''
     image = Image.open(filename)
-    width, _ = image.size
-    return width
+    return image.size
     
 
 def _scale_image(filename, width):
     '''
     Scales the image to a width and returns the new filename for the scaled image.
-    
     Using the image in filename as a base, scale to the indicated width,
     then save to a new filename and return the new filename of the sacaled image.
     '''
@@ -281,4 +282,18 @@ def _scale_image(filename, width):
     scaled_size = (width, height)
     image.thumbnail(scaled_size, Image.ANTIALIAS)
     image.save(scaled_image_filename)
-    return scaled_image_filename
+    return (scaled_image_filename, width, height)
+
+
+def _get_aws_access_key_id():
+    '''
+    Returns AWS_ACCESS_KEY_ID from environment variables
+    '''
+    return os.environ.get('AWS_ACCESS_KEY_ID')
+
+
+def _get_aws_secret_access_key():
+    '''
+    Returns AWS_SECRET_ACCESS_KEY from environment variables
+    '''
+    return os.environ.get('AWS_SECRET_ACCESS_KEY')
