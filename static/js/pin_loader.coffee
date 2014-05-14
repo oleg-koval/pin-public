@@ -206,69 +206,6 @@ jQuery ->
 			return false
 			
 	
-	# detect when scrolling to bottom to load more items
-	$(window).scroll ->
-		top = $(window).scrollTop()
-		height = $(window).innerHeight();
-		doc_height = $(document).height()
-		sensitivity = 300
-		if top + height + sensitivity > doc_height
-			load_more_pins()
-		return
-			
-		
-	# load first pins when page loads
-	$.loading_more_pins = true
-	$.ajax type: 'GET'
-		,url: '/admin/input/pins/'
-		,dataType: 'json'
-		,data: {'offset': '0'}
-		,cache: false
-		,success: (d)->
-			put_more_pins_into_the_page(d)
-			return
-		,error: (x, textStatus, errorThrown) ->
-			$.loading_more_pins = false
-			console.log("Error:" + textStatus + ', ' + errorThrown)
-			return
-	
-	
-	# loads more pins with ajax
-	load_more_pins = ->
-		if not $.loading_more_pins
-			$.loading_more_pins = true
-			$.ajax type: 'GET'
-				,url: '/admin/input/pins/'
-				,dataType: 'json'
-				,cache: false
-				,success: (d)->
-					put_more_pins_into_the_page(d)
-					return
-				,error: (x, textStatus, errorThrown) ->
-					$.loading_more_pins = false
-					console.log("Error:" + textStatus + ', ' + errorThrown)
-					return
-			return
-		return
-	
-	
-	$('#load_more_button').on 'click', ->
-		load_more_pins()
-		
-	
-	# dynamically put items in columns, alternating columns
-	$.column_control = 1
-	put_more_pins_into_the_page = (data) ->
-		for pin in data
-			column = $('.column' + $.column_control)
-			column.append('<div class="pinbox" pinid="' + pin['id'] + '">'+ get_pin_html_text(pin) + '</div>')
-			$.column_control += 1
-			if $.column_control > 4
-				$.column_control = 1
-		$.loading_more_pins = false
-		return
-		
-	
 	# creates the HTML to show one pin in the list
 	get_pin_html_text = (pin) ->
 		start = true
@@ -277,7 +214,7 @@ jQuery ->
 			if start
 				start = false
 			else
-				pin['categories_list'] = pin['categories_list'] + ', '
+				pin['categories_list'] = pin['categories_list'] + '<br>'
 			pin['categories_list'] = pin['categories_list'] + cat['name']
 		pin['separate_product'] = separate_link_to_fit_small_space(pin['product_url'])
 		pin['separate_link'] = separate_link_to_fit_small_space(pin['link'])
@@ -293,7 +230,8 @@ jQuery ->
 			pinid = $(this).attr('pinid')
 			$.ajax type: 'DELETE'
 				,url: '/admin/input/pins/' + pinid + '/'
-			$('div.pinbox[pinid="' + pinid + '"]').remove()
+			$('tr[pinid="' + pinid + '"]').remove()
+		$.pagination_grid.g.unSelectAll()
 		return
 	
 	
@@ -303,7 +241,8 @@ jQuery ->
 	
 	
 	# opens the dialog to edit a pin
-	$('body').on 'click', '.button_pin_edit', ->
+	$('body').on 'click', '.button_pin_edit', (event) ->
+		event.stopPropagation()
 		pinid = $(this).attr('pinid')
 		$.ajax type: 'GET'
 			,url: '/admin/input/pins/' + pinid + '/'
@@ -316,6 +255,7 @@ jQuery ->
 				$.loading_more_pins = false
 				console.log("Error:" + textStatus + ', ' + errorThrown)
 				return
+		$.pagination_grid.g.unSelectAll()
 		return
 		
 		
@@ -423,7 +363,7 @@ jQuery ->
 			,dataType: 'json'
 			,cache: false
 			,success: (pin) ->
-				box = $('div.pinbox[pinid="' + pin_id + '"]')
+				box = $('tr[pinid="' + pin_id + '"]')
 				text = get_pin_html_text(pin)
 				box.html(text)
 				return
@@ -447,7 +387,7 @@ jQuery ->
 		result = ''
 		for tag in tags
 			if result isnt ''
-				result = result + ', '
+				result = result + ' '
 			result = result + '#' + tag
 		return result
 
@@ -479,6 +419,63 @@ jQuery ->
 			if $(this).prop('checked')
 				$('input[name=category_check][value=' + parent_category + ']').prop('checked', true)
 		return
+	
+	
+	
+	
+	
+	# dialog to change the categories of many pins in bulk
+	$('#change_categories_dialog').dialog autoOpen: false
+								,minWidth: 500
+								
+	
+	$('#change_categories_button').on 'click', (event) ->
+		categories_not_selected = true
+		for row in $.pagination_grid.g.getSelectedRows()
+			categories_not_selected = false
+			break
+		if categories_not_selected
+			return
+		$('input[name=category_change_check]').prop('checked', false)
+		$('#change_categories_dialog').dialog('open')
+		return
+
+
+	$('#change_pins_categories_form').on 'submit', (event) ->
+		event.preventDefault()
+		$('#category_change_error_message').hide()
+		if not category_selected('categories_to_change', 'category_change_check', $('#category_change_error_message'))
+			$('#category_change_error_message').show()
+			return false
+		ids = ''
+		for row in $.pagination_grid.g.getSelectedRows()
+			pinid = $(row).attr('pinid')
+			if ids isnt ''
+				ids = ids + ','
+			ids = ids + pinid
+		data = 
+			'ids': ids,
+			'categories': $('#categories_to_change').val()
+		$.ajax
+			type: 'POST',
+			url: '/admin/input/change_pin_categories',
+			data: data,
+			dataType: 'json',
+			success: ->
+				for row in $.pagination_grid.g.getSelectedRows()
+					pinid = $(row).attr('pinid')
+					refresh_pin(pinid)
+				return
+		$('#change_categories_dialog').dialog('close')
+		return false
+	
+	
+	$('#select_all_pins_button').click ->
+		$.pagination_grid.g.selectAll()
+	
+	
+	$('#unselect_all_pins_button').click ->
+		$.pagination_grid.g.unSelectAll()
 
 	
 	return

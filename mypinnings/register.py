@@ -79,7 +79,7 @@ class PageRegister:
                 "uname": form.d.username.lower(),
                 "pwd": form.d.password,
                 "email": form.d.email.lower(),
-                "first_name": form.d.name,
+                "complete_name": form.d.name,
                 "language": form.d.language
             }
 
