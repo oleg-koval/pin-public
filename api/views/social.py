@@ -267,7 +267,6 @@ class SocialMessage(BaseAPI):
             user_id_list=[],
         )
 
-        update_data = {}
         data = {}
         status = 200
         csid_from_server = None
@@ -307,6 +306,173 @@ class SocialMessage(BaseAPI):
 
                 db.insert('messages', convo_id=convo_id, sender=from_user_id,
                           content=content)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+
+class SocialMessageToConversation(BaseAPI):
+    """
+    API method that sends message to conversation
+    """
+    def POST(self):
+        request_data = web.input(
+            conversation_id_list=[],
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from request
+        conversation_id_list = map(int,
+                           request_data.get("conversation_id_list"))
+        content = request_data.get("content")
+
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        if not content:
+            status = 400
+            error_code = "Content cannot be empty"
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        from_user_id = user['id']
+
+        if status == 200:
+            for conversation_id in conversation_id_list:
+                convo = db.select('convos',
+                                  where='id = $id',
+                                  vars={'id': conversation_id})\
+                    .list()
+                if len(convo) > 0:
+                    db.insert('messages',
+                              convo_id=conversation_id,
+                              sender=from_user_id,
+                              content=content)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+
+class SocialQueryConversations(BaseAPI):
+    """
+    API method that allows to get conversations
+    """
+    def POST(self):
+        request_data = web.input(
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from 
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        from_user_id = user['id']
+
+        if status == 200:
+            convos = db.query('''
+                select convos.*, users.name from convos
+                    join users on users.id = (case
+                        when convos.id1 = $id then convos.id2
+                        else convos.id1
+                    end)
+                where id1 = $id or id2 = $id''', vars={'id': from_user_id})\
+                .list()
+            if len(convos) > 0:
+                data['conversations'] = convos
+            else:
+                data['conversations'] = []
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+
+class SocialQueryMessages(BaseAPI):
+    """
+    API method that allows to get messages from conversation
+    """
+    def POST(self):
+        request_data = web.input(
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from 
+        conversation_id = request_data.get('conversation_id', False)
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        from_user_id = user['id']
+
+        if not conversation_id:
+            status = 400
+            error_code = "conversation_id cannot be empty"
+
+        if status == 200:
+            convo = db.query('''
+                select convos.id, users.id as user_id, users.name from convos
+                    join users on users.id = (case
+                        when convos.id1 = $id then convos.id2
+                        else convos.id1
+                    end)
+                where (convos.id = $convo_id and
+                       convos.id1 = $id or convos.id2 = $id)''',
+                vars={'convo_id': conversation_id, 'id': from_user_id})\
+                .list()
+            if not convo:
+                status = 400
+                error_code = "conversation not found"
+            else:
+                data['conversation'] = convo[0]
+
+                messages = db.query('''
+                    select messages.*, users.name from messages
+                        join users on users.id = messages.sender
+                    where messages.convo_id = $convo_id''',
+                    vars={'convo_id': conversation_id})\
+                    .list()
+                if len(messages) > 0:
+                    data['messages'] = messages
+                else:
+                    data['messages'] = []
 
         response = api_response(data=data,
                                 status=status,

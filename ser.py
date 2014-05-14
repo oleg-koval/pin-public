@@ -1076,14 +1076,20 @@ class PageAddFriend:
 class PageMessages:
     def GET(self):
         force_login(sess)
-        convos = db.query('''
-            select convos.*, users.name from convos
-                join users on users.id = (case
-                    when convos.id1 = $id then convos.id2
-                    else convos.id1
-                end)
-            where id1 = $id or id2 = $id''', vars={'id': sess.user_id})
-        return ltpl('messages', convos)
+        logintoken = convert_to_logintoken(sess.user_id)
+
+        if logintoken:
+            data = {
+                "logintoken": logintoken,
+                "csid_from_client": '',
+            }
+
+            data = api_request("api/social/query/conversations", "POST", data)
+
+            if data['status'] == 200:
+                conversations = [pin_utils.dotdict(c) for
+                    c in data['data']['conversations']]
+                return ltpl('messages', conversations)
 
 
 class PageNewConvo:
@@ -1111,25 +1117,25 @@ class PageConvo:
         force_login(sess)
         convo_id = int(convo_id)
 
-        convo = db.query('''
-            select convos.id, users.id as user_id, users.name from convos
-                join users on users.id = (case
-                    when convos.id1 = $id then convos.id2
-                    else convos.id1
-                end)
-            where (convos.id = $convo_id and
-                   convos.id1 = $id or convos.id2 = $id)''',
-            vars={'convo_id': convo_id, 'id': sess.user_id})
-        if not convo:
-            return 'convo not found'
+        logintoken = convert_to_logintoken(sess.user_id)
 
-        messages = db.query('''
-            select messages.*, users.name from messages
-                join users on users.id = messages.sender
-            where messages.convo_id = $convo_id''',
-            vars={'convo_id': convo_id})
+        if logintoken:
+            data = {
+                "logintoken": logintoken,
+                "csid_from_client": '',
+                "conversation_id": convo_id,
+            }
 
-        return ltpl('convo', convo[0], messages)
+            data = api_request("api/social/query/messages", "POST", data)
+
+            if data['status'] == 200:
+                convo = pin_utils.dotdict(data['data']['conversation'])
+                messages = [pin_utils.dotdict(m) for
+                    m in data['data']['messages']]
+
+                return ltpl('convo', convo, messages)
+            else:
+                return data['error_code']
 
     def POST(self, convo_id):
         force_login(sess)

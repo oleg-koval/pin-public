@@ -54,7 +54,13 @@ urls = (
     # API for social networks: posting on user page
     "/social/poup", api.views.social.PostingOnUserPage,
     "/social/query/(follower|follow)", api.views.social.QueryFollowers,
-    "/social/message", api.views.social.SocialMessage
+    "/social/message", api.views.social.SocialMessage,
+    "/social/message_to_conversation", \
+        api.views.social.SocialMessageToConversation,
+    "/social/query/messages", \
+        api.views.social.SocialQueryMessages,
+    "/social/query/conversations", \
+        api.views.social.SocialQueryConversations
 )
 web.config.debug = True
 api_app = web.application(urls, globals(), autoreload=True)
