@@ -422,8 +422,6 @@ class NewPageAddPin:
     num_threads = 50
     images_queue = Queue()
     resultqueue = multiprocessing.Queue()
-    #fname_return = None
-    #image_return = None
 
     def upload_image(self):
 	uploaded_image = web.input(image={}).image
