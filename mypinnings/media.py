@@ -52,9 +52,18 @@ def store_image_from_filename(db, filename, widths=[]):
 	Ad.2.
 	    >>> filepath = '/tmp/myfile.jpg'
 	    >>> fileslist = []
-		for a in range(0,10): #10 same files
+		for a in range(0,2): #2 same files
 		    fileslist.append(filepath)
 	    >>> dict_of_dicts_of_images = store_image_from_filename(db, fileslist, widths=(212, 202))
+	    >>> {'tux0.png': {0: {'url': 'http://32.media.mypinnings.com/98u/196/46a/03419071145676531021621434279195.png'}, 
+		202: {'url': 'http://32.media.mypinnings.com/327/v35/4ej/03419071145676531021621434279195_202.png', 'width': 202, 'height': 246}, 
+		212: {'url': 'http://32.media.mypinnings.com/7lr/2o7/ema/03419071145676531021621434279195_212.png', 'width': 212, 'height': 258}, 
+		222: {'url': 'http://32.media.mypinnings.com/98u/196/46a/03419071145676531021621434279195.png', 'width': 222, 'height': 271}}, 
+		'tux1.png': {0: {'url': 'http://32.media.mypinnings.com/c1x/zqt/5ku/08492460583817663485035255370941.png'}, 
+		202: {'url': 'http://32.media.mypinnings.com/96f/3nj/c1m/08492460583817663485035255370941_202.png', 'width': 202, 'height': 246}, 
+		212: {'url': 'http://32.media.mypinnings.com/j2y/p5y/q56/08492460583817663485035255370941_212.png', 'width': 212, 'height': 258}, 
+		222: {'url': 'http://32.media.mypinnings.com/c1x/zqt/5ku/08492460583817663485035255370941.png', 'width': 222, 'height': 271}}}
+
 	    >>> {'myfile.jpg': {0: {'url': 'http://32.media.mypinnings.com/TCi/FBK/J9m/TCiFBKJ9mGkAWnVulv3cz2_4dP5eh6.H.jpg'}, 
 		202: {'width': 'http://32.media.mypinnings.com/TCi/FBK/J9m/TCiFBKJ9mGkAWnVulv3cz2_4dP5eh6.H_202.jpg'}, 
 		212: {'width': 'http://32.media.mypinnings.com/TCi/FBK/J9m/TCiFBKJ9mGkAWnVulv3cz2_4dP5eh6.H_212.jpg'}, 
