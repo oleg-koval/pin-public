@@ -455,3 +455,21 @@ class ChangeFilterByCategoryForLoadedItems(object):
         else:
             sess['pin_loaders_category_filter'] = 0
         return ''
+
+
+class GetCategoriesForItems(object):
+    
+    def POST(self):
+        data = web.input()
+        pins = data.get('pins', False)
+        if pins:
+            pins_to_test = [int(c) for c in pins.split(',')]
+            db = database.get_db()
+            results = db.select(tables='pins_categories', what='distinct category_id',
+                                where='pin_id in ({})'.format(pins))
+            categories = []
+            for row in results:
+                categories.append(dict(row))
+            return json.dumps(categories)
+        else:
+            return json.dumps([])

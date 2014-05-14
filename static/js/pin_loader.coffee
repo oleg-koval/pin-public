@@ -431,13 +431,24 @@ jQuery ->
 	
 	$('#change_categories_button').on 'click', (event) ->
 		categories_not_selected = true
+		pins = ''
 		for row in $.pagination_grid.g.getSelectedRows()
-			categories_not_selected = false
-			break
-		if categories_not_selected
+			pins_not_selected = false
+			if pins isnt ''
+				pins = pins + ','
+			pins = pins + $(row).attr('pinid')
+		if pins_not_selected
 			return
 		$('input[name=category_change_check]').prop('checked', false)
 		$('#change_categories_dialog').dialog('open')
+		data =
+			pins: pins
+		$.post '/admin/input/get_categories_for_items', data, (categories) ->
+				for category_object in categories
+					category = category_object.category_id
+					$('#change_categories_dialog').find('input[value=' + category + ']').prop('checked', true)
+				return
+			, 'json'
 		return
 
 

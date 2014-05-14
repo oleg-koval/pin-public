@@ -452,19 +452,34 @@ jQuery(function() {
     minWidth: 500
   });
   $('#change_categories_button').on('click', function(event) {
-    var categories_not_selected, row, _i, _len, _ref;
+    var categories_not_selected, data, pins, pins_not_selected, row, _i, _len, _ref;
     categories_not_selected = true;
+    pins = '';
     _ref = $.pagination_grid.g.getSelectedRows();
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       row = _ref[_i];
-      categories_not_selected = false;
-      break;
+      pins_not_selected = false;
+      if (pins !== '') {
+        pins = pins + ',';
+      }
+      pins = pins + $(row).attr('pinid');
     }
-    if (categories_not_selected) {
+    if (pins_not_selected) {
       return;
     }
     $('input[name=category_change_check]').prop('checked', false);
     $('#change_categories_dialog').dialog('open');
+    data = {
+      pins: pins
+    };
+    $.post('/admin/input/get_categories_for_items', data, function(categories) {
+      var category, category_object, _j, _len1;
+      for (_j = 0, _len1 = categories.length; _j < _len1; _j++) {
+        category_object = categories[_j];
+        category = category_object.category_id;
+        $('#change_categories_dialog').find('input[value=' + category + ']').prop('checked', true);
+      }
+    }, 'json');
   });
   $('#change_pins_categories_form').on('submit', function(event) {
     var data, ids, pinid, row, _i, _len, _ref;
