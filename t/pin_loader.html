@@ -182,7 +182,7 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					</td>
 				</tr>
 		</table>
-	<div style="width:1200px;background-color:white;margin-left:-80px;">
+	<div id="pins_container_layer" style="background-color:white;">
 		<table id="pins_container">
 			<thead>
 				<tr>
@@ -363,7 +363,7 @@ $$(document).ready( function() {
 		initialLoad: true,
 		height: 600,
 		sorting: false,
-		colWidths: [120, 60, 120, 200, 150, 150, 120, 60, 50, 80],
+		colWidths: [12, 6, 12, 20, 15, 15, 12, 6, 5, 8],
 	});
 $if result_info:
 	$for ri in result_info:

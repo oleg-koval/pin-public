@@ -476,6 +476,12 @@ jQuery ->
 	
 	$('#unselect_all_pins_button').click ->
 		$.pagination_grid.g.unSelectAll()
+	
+	
+	previous_position = $('#tabs').offset()
+	margin_to_subtract = previous_position.left
+	$('#pins_container_layer').css('margin-left', (- margin_to_subtract) + 'px')
+	$('#pins_container_layer').css('width', $(window).innerWidth() - 80)
 
 	
 	return
