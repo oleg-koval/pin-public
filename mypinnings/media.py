@@ -50,10 +50,11 @@ def store_image_from_filename(db, filename, widths=[]):
 	    >>> dict_of_images[212] # returns the URL for the image scaled to a width of 202
 	    'http://http://32.media.mypinnings.com/asd/qwe/zxc/asdqwezxcasdfasdfasdf_202.jpg'
 	Ad.2.
-	    >>> filepath = '/tmp/myfile.jpg'
+	    >>> filepath0 = '/tmp/tux0.png'
+	    >>> filepath1 = '/tmp/tux1.png'
 	    >>> fileslist = []
-		for a in range(0,2): #2 same files
-		    fileslist.append(filepath)
+		fileslist.append(filepath0)
+		fileslist.append(filepath1)
 	    >>> dict_of_dicts_of_images = store_image_from_filename(db, fileslist, widths=(212, 202))
 	    >>> {'tux0.png': {0: {'url': 'http://32.media.mypinnings.com/98u/196/46a/03419071145676531021621434279195.png'}, 
 		202: {'url': 'http://32.media.mypinnings.com/327/v35/4ej/03419071145676531021621434279195_202.png', 'width': 202, 'height': 246}, 
@@ -63,12 +64,6 @@ def store_image_from_filename(db, filename, widths=[]):
 		202: {'url': 'http://32.media.mypinnings.com/96f/3nj/c1m/08492460583817663485035255370941_202.png', 'width': 202, 'height': 246}, 
 		212: {'url': 'http://32.media.mypinnings.com/j2y/p5y/q56/08492460583817663485035255370941_212.png', 'width': 212, 'height': 258}, 
 		222: {'url': 'http://32.media.mypinnings.com/c1x/zqt/5ku/08492460583817663485035255370941.png', 'width': 222, 'height': 271}}}
-
-	    >>> {'myfile.jpg': {0: {'url': 'http://32.media.mypinnings.com/TCi/FBK/J9m/TCiFBKJ9mGkAWnVulv3cz2_4dP5eh6.H.jpg'}, 
-		202: {'width': 'http://32.media.mypinnings.com/TCi/FBK/J9m/TCiFBKJ9mGkAWnVulv3cz2_4dP5eh6.H_202.jpg'}, 
-		212: {'width': 'http://32.media.mypinnings.com/TCi/FBK/J9m/TCiFBKJ9mGkAWnVulv3cz2_4dP5eh6.H_212.jpg'}, 
-		222: {'width': 'http://32.media.mypinnings.com/TCi/FBK/J9m/TCiFBKJ9mGkAWnVulv3cz2_4dP5eh6.H.jpg'}}}
-
 
     The image(s) is(are) saved in its original size, plus the sizes of the widths you
     specify. The aspect ratio is preserved when scaling. The image is renamed,
