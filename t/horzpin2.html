@@ -32,7 +32,7 @@ $if pin.id:
         $if pin.link:
           <p class='faded'>Source: <a href='$pin.link'>$tpllib.condense_link(pin.link)</a></p>
         $if pin.tags:
-          <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags]))</p>
+          <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?h=%s">#%s</a>' % (x, x) for x in pin.tags]))</p>
       </div>
     </div>
   </div>

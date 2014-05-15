@@ -207,6 +207,7 @@ class ImageQuery(BaseAPI):
                     "name": image.get('name'),
                     "description": image.get('description'),
                     "link": image.get('link'),
+                    "timestamp": image.get('timestamp'),
                     "product_url": image.get('product_url'),
                     "price": str(image.get('price')),
                     "price_range": image.get('price_range'),

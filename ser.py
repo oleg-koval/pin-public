@@ -1902,42 +1902,43 @@ class PageSearchItems:
         force_login(sess)
 
         orig = web.input(q='').q
-        q = make_query(orig)
-        offset = int(web.input(offset=0).offset)
+        hashtag = web.input(h='').h
+        offset = int(web.input(offset=1).offset)
         ajax = int(web.input(ajax=0).ajax)
 
-        query = """
-            select
-                tags.tags, pins.*, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
-                ts_rank_cd(to_tsvector(tags.tags), query) as rank1,
-                ts_rank_cd(pins.tsv, query) as rank2
-            from pins
-                left join tags on tags.pin_id = pins.id
-                join to_tsquery('""" + q + """') query on true
-                left join users on users.id = pins.user_id
-                left join follows on follows.follow = users.id
-                left join categories on categories.id in
-                    (select category_id from pins_categories
-                    where pin_id = pins.id limit 1)
-            where query @@ pins.tsv or query @@ to_tsvector(tags.tags)
-            group by tags.tags, categories.id, pins.id, users.id, query.query
-            order by rank1, rank2 desc offset %d limit %d""" % (offset * PIN_COUNT, PIN_COUNT)
+        logintoken = convert_to_logintoken(sess.get('user_id'))
+        data = {
+            "csid_from_client": '',
+            "logintoken": logintoken,
+            "page": offset,
+            "items_per_page": PIN_COUNT
+        }
 
-        results = db.query(query)
+        if hashtag:
+            data['hashtag'] = hashtag
+            url = "api/image/query/get_by_hashtags"
+        else:
+            data['query'] = orig
+            url = "api/search/items"
+
         pins = []
-        current_pin = None
-        for row in results:
-            if not current_pin or current_pin.id != row.id:
-                current_pin = row
-                pins.append(current_pin)
-                tag = current_pin.tags
-                current_pin.tags = []
-                if tag:
-                    current_pin.tags.append(tag)
-            else:
-                tag = row.tags
-                if tag and tag not in current_pin.tags:
-                    current_pin.tags.append(tag)
+
+        data = api_request(url, "POST", data)
+        if data['status'] == 200:
+            data_for_image_query = {
+                "csid_from_client": '',
+                "logintoken": logintoken,
+                "query_params": data['data']['image_id_list']
+            }
+            data_from_image_query = api_request("api/image/query",
+                                                "POST",
+                                                data_for_image_query)
+
+            if data_from_image_query['status'] == 200:
+                pins = data_from_image_query['data']['image_data_list']
+
+        pins = [pin_utils.dotdict(pin) for pin in pins]
+
         if ajax:
             return json_pins(pins, 'horzpin')
         return ltpl('search', pins, orig)
