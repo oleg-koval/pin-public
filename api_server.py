@@ -67,7 +67,8 @@ urls = (
         api.views.social.SocialQueryConversations,
 
     # API for search: items and users
-    "/search/items", api.views.search.SearchItems
+    "/search/items", api.views.search.SearchItems,
+    "/search/people", api.views.search.SearchPeople
 )
 web.config.debug = True
 api_app = web.application(urls, globals(), autoreload=True)

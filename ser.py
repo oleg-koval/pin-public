@@ -1951,17 +1951,19 @@ class PageSearchPeople:
         orig = web.input(q='').q
         q = make_query(orig)
 
-        query = """
-            select
-                users.*, ts_rank_cd(users.tsv, query) as rank,
-                count(distinct f1) <> 0 as is_following
-            from users
-                join to_tsquery('""" + q + """') query on true
-                left join follows f1 on f1.follower = $user_id and f1.follow = users.id
-            where query @@ users.tsv group by users.id, query.query
-            order by rank desc"""
+        logintoken = convert_to_logintoken(sess.get('user_id'))
+        data = {
+            "csid_from_client": '',
+            "logintoken": logintoken,
+            "query": orig
+        }
 
-        users = db.query(query, vars={'user_id': sess.user_id})
+        data = api_request("api/search/people", "POST", data)
+        if data['status'] == 200:
+            users = data['data']['users']
+
+        users = [pin_utils.dotdict(user) for user in users]
+
         return ltpl('searchpeople', users, orig)
 
 
