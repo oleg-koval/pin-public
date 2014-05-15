@@ -597,6 +597,99 @@ class QueryHashtags(BaseAPI):
         return response
 
 
+class QueryGetByHashtags(BaseAPI):
+    """
+    API for receiving pins by hashtag
+    """
+    def POST(self):
+        request_data = web.input(
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from request
+        hashtag = request_data.get("hashtag", None)
+        page = request_data.get("page")
+        items_per_page = request_data.get("items_per_page", 10)
+        not_private = request_data.get("not_private", False)
+
+        csid_from_client = request_data.get('csid_from_client')
+        csid_from_server = ""
+
+        if not hashtag:
+            status = 400
+            error_code = "Invalid input data"
+        else:
+            data = self.get_range(hashtag,
+                                  page,
+                                  items_per_page,
+                                  not_private)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+    def get_range(self, hashtag, page, items_per_page, not_private):
+        data = {}
+        image_id_list = []
+
+        if page:
+            page = int(page)
+            if page < 1:
+                page = 1
+
+        if not items_per_page:
+            items_per_page = 10
+            if items_per_page < 1:
+                items_per_page = 1
+        else:
+            items_per_page = int(items_per_page)
+
+        where = "random() < 0.1"
+        if hashtag:
+            where = "tags.tags LiKE '%%%s%%'" % \
+                hashtag
+
+        if not_private:
+            where = where + " AND not users.private"
+
+        pins = db.query("SELECT * FROM pins \
+                        JOIN tags \
+                        ON tags.pin_id = pins.id \
+                        LEFT JOIN users ON pins.user_id = users.id \
+                        WHERE %s \
+                        ORDER BY pins.timestamp desc" % (where))\
+            .list()
+
+        for pin in pins:
+            if hashtag and hashtag not in pin['tags'].split():
+                continue
+
+            if pin['pin_id'] not in image_id_list:
+                image_id_list.append(pin['pin_id'])
+
+        if page:
+            data['pages_count'] = math.ceil(float(len(image_id_list)) /
+                                            float(items_per_page))
+            data['pages_count'] = int(data['pages_count'])
+            data['page'] = page
+            data['items_per_page'] = items_per_page
+
+            start = (page-1) * items_per_page
+            end = start + items_per_page
+            data['image_id_list'] = image_id_list[start:end]
+        else:
+            data['image_id_list'] = image_id_list
+
+        return data
+
+
 def _generate_external_id():
     id = _new_external_id()
     while _already_exists(id):
