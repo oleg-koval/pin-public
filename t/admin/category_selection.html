@@ -1,7 +1,7 @@
 $def with (categories)
 <div class="category_selection_list">
 $for category in categories:
-	<label><input type="checkbox" value="$category.id" class="category_check">$category.name</label>
+	<label><input type="checkbox" value="$category.id" class="category_check" parent="$category.parent">$category.name</label>
 	$if not loop.last:
 		|
 </div>
