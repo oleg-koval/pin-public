@@ -44,14 +44,11 @@
     text-decorator: none; }
 
 .category_selection_list {
-  width: 150px;
-  height: 500px;
-  float: left;
-  clear: none;
+  width: 80%;
   position: fixed;
-  top: 150;
-  left: 250px;
-  overflow-y: scroll; }
+  display: none;
+  background-color: white;
+  z-index: 10; }
   .category_selection_list label {
     font-weight: normal;
     font-size: 70%;

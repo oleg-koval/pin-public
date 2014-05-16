@@ -63,4 +63,11 @@ jQuery ->
 
 	
 	load_more_items()
+	
+	# position category checkboxes layer fixed at bottom
+	$('div.category_selection_list').show()
+	top = $(window).height() - $('div.category_selection_list').height();
+	left = ($(window).width() - $('div.category_selection_list').width()) / 2;
+	$('div.category_selection_list').offset({'top': top; 'left': left})
+	
 	return
