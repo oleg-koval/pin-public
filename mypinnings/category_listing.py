@@ -10,6 +10,7 @@ from mypinnings import cached_models
 from mypinnings.conf import settings
 from mypinnings import auth
 from mypinnings.api import api_request, convert_to_id, convert_to_logintoken
+from mypinnings import pin_utils
 
 
 logger = logging.getLogger('mypinnings.categories')
@@ -97,9 +98,14 @@ class PageCategory:
             break
         else:
             parent = None
-        boards = self.db.where(table='boards',
-                               order='name',
-                               user_id=self.sess.user_id)
+        data = {
+            'csid_from_client': "",
+            'user_id': self.sess.user_id
+        }
+
+        boards = api_request("/api/profile/userinfo/boards",
+                             data=data).get("data", [])
+        boards = [pin_utils.dotdict(board) for board in boards]
 
         return template.ltpl('category',
                              self.category,
@@ -129,6 +135,13 @@ class PageCategory:
             "items_per_page": settings.PIN_COUNT
         }
 
+        if self.category['id'] != 0:
+            results = self.db.where(table='categories',
+                                    parent=self.category['id'])
+            data['category_id_list'] = [self.category['id']]
+            for row in results:
+                data['category_id_list'].append(str(row.id))
+
         data = api_request("api/image/query/category", "POST", data)
         if data['status'] == 200:
             if offset >= data['data']['pages_count']:
@@ -153,7 +166,6 @@ class PageCategory:
         pins = self.get_items()
         pin_list = []
         for pin in pins:
-            pin['tags'] = pin.get('hashtags_list')
             pin_list.append(pin)
 
         offset = self.sess.get('offset', 1)

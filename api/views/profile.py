@@ -1,5 +1,6 @@
 """ API views responsible for returing and updating the profile info"""
 import web
+import math
 from datetime import datetime
 
 from api.utils import api_response, save_api_request, api_response
@@ -21,7 +22,8 @@ class BaseUserProfile(BaseAPI):
         self._fields = ['id', 'name', 'about', 'city', 'country', 'hometown',
                         'about', 'email', 'pic', 'website', 'facebook',
                         'twitter', 'getlist_privacy_level', 'private', 'bg',
-                        'bgx', 'bgy', 'show_views', 'views', 'username']
+                        'bgx', 'bgy', 'show_views', 'views', 'username', 'zip',
+                        'linkedin', 'gplus']
         self._birthday_fields = ['birthday_year', 'birthday_month',
                                  'birthday_day']
         self.required = ['csid_from_client', 'logintoken']
@@ -120,6 +122,7 @@ class UserInfoUpdate(BaseUserProfile):
         http://localhost:8080/api/profile/userinfo/update
         """
         request_data = web.input()
+
         if not self.is_request_valid(request_data):
             return api_response(data={}, status=405,
                                 error_code="Required args are missing")
@@ -586,6 +589,25 @@ class QueryPins(BaseAPI):
                 if tag not in current_row.tags:
                     current_row.tags.append(tag)
 
-        return api_response(data=pins,
+        data = {}
+        page = int(request_data.get("page", 1))
+        if page is not None:
+            items_per_page = int(request_data.get("items_per_page", 10))
+            if items_per_page < 1:
+                items_per_page = 1
+
+            data['pages_count'] = math.ceil(float(len(pins)) /
+                                            float(items_per_page))
+            data['pages_count'] = int(data['pages_count'])
+            data['page'] = page
+            data['items_per_page'] = items_per_page
+
+            start = (page-1) * items_per_page
+            end = start + items_per_page
+            data['pins_list'] = pins[start:end]
+        else:
+            data['pins_list'] = pins
+
+        return api_response(data=data,
                             csid_from_server=csid_from_server,
                             csid_from_client=csid_from_client)

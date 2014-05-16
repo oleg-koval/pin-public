@@ -8,6 +8,7 @@ import api.views.signup
 import api.views.images
 import api.views.profile
 import api.views.social
+import api.views.search
 
 
 class redirect:
@@ -38,6 +39,8 @@ urls = (
     "/image/categorize", api.views.images.Categorize,
     "/image/query/category", api.views.images.QueryCategory,
     "/image/query/hashtags", api.views.images.QueryHashtags,
+    "/image/query/get_by_hashtags", \
+        api.views.images.QueryGetByHashtags,
 
     # API to user profile: manage user products
     "/profile/mgl", api.views.profile.ManageGetList,
@@ -51,10 +54,21 @@ urls = (
 
     # API to user profile: change user password
     "/profile/pwd", api.views.profile.ChangePassword,
+
     # API for social networks: posting on user page
     "/social/poup", api.views.social.PostingOnUserPage,
     "/social/query/(follower|follow)", api.views.social.QueryFollowers,
-    "/social/message", api.views.social.SocialMessage
+    "/social/message", api.views.social.SocialMessage,
+    "/social/message_to_conversation", \
+        api.views.social.SocialMessageToConversation,
+    "/social/query/messages", \
+        api.views.social.SocialQueryMessages,
+    "/social/query/conversations", \
+        api.views.social.SocialQueryConversations,
+
+    # API for search: items and users
+    "/search/items", api.views.search.SearchItems,
+    "/search/people", api.views.search.SearchPeople
 )
 web.config.debug = True
 api_app = web.application(urls, globals(), autoreload=True)

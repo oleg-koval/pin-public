@@ -1,4 +1,4 @@
-$def with (user, hashed, friend_status=None, is_following=None, photos=None, edit_profile=None,  edit_profile_done = None)
+$def with (user, hashed, edit_profile=None, edit_profile_done=None)
 <div class='clearfix user-heading'
   $if user.bg:
     $if 'logged_in' in sess and sess.user_id == user.id:
@@ -100,18 +100,10 @@ $def with (user, hashed, friend_status=None, is_following=None, photos=None, edi
                   <div id="switch5_wrapper">
                   <a href='#' class='button' id="switch5">Edit Profile Picture</a>
                   <div  class='edit_thumbnail_menu' id="menu5">
-                  <!--
-                  <a href='#' id='lolimage1'>Upload another profile picture</a>
-                   -->
 
                   <a href='#' id="upload_thumbnail" data-toggle="modal" data-target="#uploadImageModal">Upload another profile picture</a>
                         $if user.pic:
                             <a href='/photo/$user.pic/remove' id="remove_photo1">Remove</a>
-                        $if photos:
-                            <a href="/album/$user.id">View Photo Album</a>
-                  <!--
-                  <a href='#' id="edit_thumbnail" data-toggle="modal" data-target="#editModal">Edit Thumbnail</a>
-                  -->
 
                   </div>
                   </div>
