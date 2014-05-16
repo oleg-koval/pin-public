@@ -17,7 +17,7 @@ jQuery(function() {
       var pin, pin_html, _i, _len;
       for (_i = 0, _len = data.length; _i < _len; _i++) {
         pin = data[_i];
-        if ($.current_column > 3) {
+        if ($.current_column > 4) {
           $.current_column = 1;
         }
         pin['simplifiedurl'] = simplify_url(pin['link']);

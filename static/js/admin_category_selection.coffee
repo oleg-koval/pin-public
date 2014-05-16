@@ -11,7 +11,7 @@ jQuery ->
 		url = '/admin/selection/pending_items?page=' + $.current_page
 		$.getJSON url, (data) ->
 			for pin in data
-				if $.current_column > 3
+				if $.current_column > 4
 					$.current_column = 1
 				pin['simplifiedurl'] = simplify_url(pin['link'])
 				if pin['tags'] isnt null
