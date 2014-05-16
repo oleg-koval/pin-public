@@ -6,6 +6,8 @@ import urllib
 import json
 from gettext import gettext as _
 import math
+import datetime
+import itertools
 
 import web
 
@@ -123,7 +125,7 @@ class PinLoaderPage(object):
             select parent.id, parent.name, child.id as child_id, child.name as child_name
             from categories parent left join categories child on parent.id = child.parent
             where parent.parent is null
-            order by parent.name, child.name
+            order by parent.position desc, parent.name, child.position desc, child.name
             ''')
         current_parent = None
         categories_as_list = []
@@ -143,7 +145,8 @@ class PinLoaderPage(object):
             if count >= categories_x_column and index < 3:
                 count = 0
                 index += 1
-        return template.ltpl('pin_loader', form, result_info, categories_columns, number_of_items_added, sess.get('categories', []))
+        tagcloud = self.get_tag_cloud()
+        return template.ltpl('pin_loader', form, result_info, categories_columns, number_of_items_added, sess.get('categories', []), tagcloud)
 
     def POST(self):
         sess = session.get_session()
@@ -237,80 +240,53 @@ class PinLoaderPage(object):
     def save_image(self, pin_id, imageurl):
         filename, _ = urllib.urlretrieve(imageurl.value)
         return filename
+    
+    
+    def get_tag_cloud(self):
+        db = database.get_db()
+        sess = session.get_session()
+        results = db.select(tables=['tags', 'pins'], what='tags, count(1) as tag_count',
+                            where='tags.pin_id=pins.id and pins.user_id=$user_id',
+                            vars={'user_id': sess.user_id}, group='tags')
+        tagcloud = []
+        for row in results:
+            tagcloud.append(dict(row))
+        number_of_tags = float(sum(tag['tag_count'] for tag in tagcloud))
+        for tag in tagcloud:
+            if tag['tag_count'] == 1:
+                tag['size'] = 100
+            else:
+                tag['size'] = int(100.0 * (1.0 + (float(tag['tag_count']) / number_of_tags))) * 2
+        return tagcloud
 
 
-PIN_LIST_LIMIT = 20
-PIN_LIST_FIRST_LIMIT = 50
 class LoadersEditAPI(object):
     def GET(self, pin_id=None):
-        if pin_id:
-            return self.get_by_id(pin_id)
-        else:
-            return self.get_by_list()
-
-    def get_by_id(self, id):
         sess = session.get_session()
+        auth.force_login(sess)
         db = database.get_db()
         results = db.query('''select pins.*
                             from pins
                             where pins.id=$id and user_id=$user_id''',
-                            vars={'id': id, 'user_id': sess.user_id})
+                            vars={'id': pin_id, 'user_id': sess.user_id})
         for row in results:
             web.header('Content-Type', 'application/json')
             row.price = str(row.price)
             row.price_range_repr = '$' * row.price_range if row.price_range < 5 else '$$$$+'
             results = db.select(tables=['categories', 'pins_categories'],
                                         where='categories.id = pins_categories.category_id and pins_categories.pin_id=$id',
-                                        vars={'id': id})
+                                        vars={'id': pin_id})
             row['categories'] = [{'id': catrow.id, 'name': catrow.name} for catrow in results]
-            results = db.where(table='tags', pin_id=id)
+            results = db.where(table='tags', pin_id=pin_id)
             tags = [r.tags for r in results]
             row['tags'] = tags
             return json.dumps(row)
         raise web.notfound()
 
-    def get_by_list(self):
-        sess = session.get_session()
-        sess.offset = int(web.input(offset=None)['offset'] or sess.get('offset', 0))
-        db = database.get_db()
-        if sess.offset == 0:
-            limit = PIN_LIST_FIRST_LIMIT
-        else:
-            limit = PIN_LIST_LIMIT
-        results = db.query('''select pins.*, tags.tags, categories.id as category_id, categories.name as category_name
-                            from pins join pins_categories pc on pins.id = pc.pin_id
-                            join categories on pc.category_id=categories.id
-                            left join tags on pins.id = tags.pin_id
-                            where user_id=$user_id
-                            group by pins.id, categories.id, tags.tags
-                            order by timestamp desc, pins.id, categories.name
-                            offset $offset limit $limit''',
-                            vars={'user_id': sess.user_id, 'offset': sess.offset, 'limit': limit})
-        sess.offset += len(results)
-        pin_list = []
-        current_pin = None
-        for r in results:
-            if not current_pin or current_pin['id'] != r.id:
-                current_pin = dict(r)
-                current_pin['price'] = str(r.price)
-                current_pin['price_range_repr'] = '$' * r.price_range if r.price_range < 5 else '$$$$+'
-                current_pin['categories'] = []
-                categories = []
-                current_pin['tags'] = []
-                pin_list.append(current_pin)
-            if r.category_id not in categories:
-                category = {'id': r.category_id, 'name': r.category_name}
-                current_pin['categories'].append(category)
-                categories.append(r.category_id)
-            if r.tags and r.tags not in current_pin['tags']:
-                current_pin['tags'].append(r.tags)
-        json_pins = json.dumps(pin_list)
-        web.header('Content-Type', 'application/json')
-        return json_pins
-
     def DELETE(self, pin_id):
         try:
             sess = session.get_session()
+            auth.force_login(sess)
             db = database.get_db()
             pin_utils.delete_pin_from_db(db, pin_id, sess.user_id)
             web.header('Content-Type', 'application/json')
@@ -338,6 +314,7 @@ class LoadersEditAPI(object):
         if form.validates():
             web.header('Content-Type', 'application/json')
             sess = session.get_session()
+            auth.force_login(sess)
             db = database.get_db()
             price = form.d.price or None
             pin_utils.update_base_pin_information(db,
@@ -362,3 +339,138 @@ class LoadersEditAPI(object):
             return json.dumps({'status': 'ok'})
         else:
             return web.notfound()
+
+
+PIN_LIST_LIMIT = 100
+class PaginateLoadedItems(object):
+    def GET(self):
+        sess = session.get_session()
+        auth.force_login(sess)
+        
+        params = web.input(page=1, sort='users.name', dir='asc', query='')
+        if params.get('pageNumber', False):
+            page = 0
+        else:
+            page = int(params.page) - 1
+        
+        sess.setdefault('pin_loaders_item_added_page_size', PIN_LIST_LIMIT)
+        tag_filter = sess.get('pin_loaders_tag_filter', '')
+        where = ''
+        if tag_filter:
+            where += ' and tags.tags=$tag'
+        category_filter = sess.get('pin_loaders_category_filter', 0)
+        if category_filter > 0:
+            where += ' and categories.id=$category'
+        elif category_filter == -1:
+            where += ' and categories.id is null'
+        
+        db = database.get_db()
+        offset = sess['pin_loaders_item_added_page_size'] * page
+        query_text = '''select pins.*, tags.tags, categories.id as category_id, categories.name as category_name
+                        from pins left join pins_categories pc on pins.id = pc.pin_id
+                        left join categories on pc.category_id=categories.id
+                        left join tags on pins.id = tags.pin_id
+                        where user_id=$user_id {where}
+                        group by pins.id, categories.id, tags.tags
+                        order by timestamp desc, pins.id, categories.name
+                        offset $offset limit $limit'''.format(where=where)
+        results = db.query(query_text,
+                            vars={'user_id': sess.user_id, 'offset': offset, 'limit': sess['pin_loaders_item_added_page_size'],
+                                  'tag': tag_filter, 'category': category_filter})
+        pin_list = []
+        current_pin = None
+        for r in results:
+            if not current_pin or current_pin['id'] != r.id:
+                current_pin = dict(r)
+                current_pin['price'] = str(r.price)
+                current_pin['price_range_repr'] = '$' * r.price_range if r.price_range < 5 else '$$$$+'
+                current_pin['categories'] = []
+                categories = []
+                current_pin['tags'] = []
+                current_pin['iso_date'] = datetime.date.fromtimestamp(current_pin['timestamp']).isoformat()
+                pin_list.append(current_pin)
+            if r.category_id not in categories:
+                category = {'id': r.category_id, 'name': r.category_name}
+                current_pin['categories'].append(category)
+                categories.append(r.category_id)
+            if r.tags and r.tags not in current_pin['tags']:
+                current_pin['tags'].append(r.tags)
+        page = web.template.frender('t/pin_loader_list.html')(pin_list, datetime.datetime.now())
+        return page
+
+
+class ChangePinsCategories(object):
+    _form = web.form.Form(web.form.Textbox('ids', web.form.notnull),
+                          web.form.Textbox('categories', web.form.notnull))
+    
+    def POST(self):
+        sess = session.get_session()
+        auth.force_login(sess)
+        form = self._form()
+        if form.validates():
+            pin_id_list = list(set([int(x) for x in form.d.ids.split(',')]))
+            pins_to_delte = ','.join(str(x) for x in pin_id_list)
+            category_id_list = [int(x) for x in form.d.categories.split(',')]
+            values_to_insert = [{'pin_id': pin_id, 'category_id': category_id} for pin_id, category_id in itertools.product(pin_id_list, category_id_list)]
+            db = database.get_db()
+            transaction = db.transaction()
+            try:
+                db.delete(table='pins_categories', where='pin_id in ({})'.format(pins_to_delte))
+                db.multiple_insert(tablename='pins_categories', values=values_to_insert)
+                transaction.commit()
+                return json.dumps({'status': 'ok'})
+            except Exception:
+                logger.error('Failed to update categories', exc_info=True)
+                transaction.rollback()
+                return json.dumps({'status': 'error'})
+        else:
+            return json.dumps({'status': 'error'})
+
+
+class ChangePageSizeForLoadedItems(object):
+    def GET(self):
+        sess = session.get_session()
+        auth.force_login(sess)
+        params = web.input(size=PIN_LIST_LIMIT)
+        size = int(params.size)
+        sess['pin_loaders_item_added_page_size'] = size
+        return ''
+
+
+class ChangeFilterByTagForLoadedItems(object):
+    def GET(self):
+        sess = session.get_session()
+        auth.force_login(sess)
+        params = web.input(tag='')
+        sess['pin_loaders_tag_filter'] = params.tag
+        return ''
+
+
+class ChangeFilterByCategoryForLoadedItems(object):
+    def GET(self):
+        sess = session.get_session()
+        auth.force_login(sess)
+        params = web.input(category='0')
+        if params.category:
+            sess['pin_loaders_category_filter'] = int(params.category)
+        else:
+            sess['pin_loaders_category_filter'] = 0
+        return ''
+
+
+class GetCategoriesForItems(object):
+    
+    def POST(self):
+        data = web.input()
+        pins = data.get('pins', False)
+        if pins:
+            pins_to_test = [int(c) for c in pins.split(',')]
+            db = database.get_db()
+            results = db.select(tables='pins_categories', what='distinct category_id',
+                                where='pin_id in ({})'.format(pins))
+            categories = []
+            for row in results:
+                categories.append(dict(row))
+            return json.dumps(categories)
+        else:
+            return json.dumps([])

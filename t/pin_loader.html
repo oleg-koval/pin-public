@@ -1,13 +1,16 @@
-$def with (form, result_info, categories, number_of_items_added, preselected_categories)
+$def with (form, result_info, categories, number_of_items_added, preselected_categories, tagcloud)
 <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 <link rel="stylesheet" href="/static/css/pin_loader.css" />
+<link rel='stylesheet' type='text/css' href='/static/css/ingrid.css'/>
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 <script src="/static/js/underscore-min.js"></script>
 <script src="/static/js/pin_loader.js"></script>
+<script src="/static/js/jquery.ingrid.pinloaders.js" type="text/javascript"></script>
 <div id="tabs">
   <ul>
     <li><a href="#upload"><span>Upload Items</span></a></li>
     <li><a href="#added"><span>Items Added</span></a></li>
+    <li><a href="#tagcloud"><span>Tag Cloud</span></a></li>
   </ul>
 <div id="upload">
 	<form id='form' autocomplete='off' enctype='multipart/form-data' method='post' action=''>
@@ -180,13 +183,40 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					</td>
 				</tr>
 		</table>
-	<div class="pins_columns_container">
-		<div class="column1"></div>
-		<div class="column2"></div>
-		<div class="column3"></div>
-		<div class="column4"></div>
+	<div id="pins_container_layer" style="background-color:white;">
+		<table id="pins_container">
+			<thead>
+				<tr>
+					<th>Category</th>
+					<th>Img</th>
+					<th>Title</th>
+					<th>Description</th>
+					<th>Source URL</th>
+					<th>Get it Here</th>
+					<th>Tags</th>
+					<th>Price</th>
+					<th>P.R.</th>
+					<th>Date</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>Loading...</td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+				</tr>
+			<tbody>
+		</table>
 	</div>
-	<div id="scroll_mark"></div>
 	<div id="pin_edit_dialog" title="Edit pin">
 		<form id="pin_edit_form" action="/admin/input/update_pin/" method="POST" enctype="multipart/form-data" autocomplete="off">
 			<table style="box-shadow:0px 0px 10px gray;font-size:80%;">
@@ -261,49 +291,112 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 			<input type="hidden" name="categories11" id="categories11" value="">
 		</form>
 	</div><!-- pin_edit_dialog -->
-	<div><button id="load_more_button">Load more</button></div>
+	
+	<div>
+		<form id="page_size_form" style="padding:0px;box-shadow:0px;">
+			<input type="text" name="page_size_field" id="page_size_field" placeholder="page size" style="width:70px;" title="# of items to show at a time"/>
+		</form>
+		<form id="category_filter_form" style="padding:0px;box-shadow:0px;">
+			<select name="category_filter_field" id="category_filter_field">
+				<option value="">Filter by category</option>
+				<option value="">All</option>
+				<option value="-1">Uncategorized</option>
+			$for category_column in categories:
+				$for category in category_column:
+					<option value="$category['id']">$category['name']</option>
+					$if category['subcategories']:
+						$for subcat in category['subcategories']:
+							<option value="$subcat['id']">$subcat['name']</option>
+			</select>
+		</form>
+		<button id="change_categories_button">Change categories for selected pins</button>
+		<button id="select_all_pins_button">Select All</button>
+		<button id="unselect_all_pins_button">Unselect All</button>
+		<button id="clear_tag_filter">Clear Tag Filter</button>
+	</div>
+	<div id="change_categories_dialog">
+		<form id="change_pins_categories_form" action="/admin/input/change_pin_categories" method="POST" autocomplete="off">
+			<table style="box-shadow:0px 0px 10px gray;font-size:80%;">
+				<tr>
+					<th><label for="category11">Categories</label></th>
+					<td>
+					<div style="width:350px; height: 400px; overflow:auto;">
+					$for category_column in categories:
+						$for category in category_column:
+							<label><input type="checkbox" name='category_change_check' value="$category['id']">$category['name']</label>
+							$if category['subcategories']:
+								$for subcat in category['subcategories']:
+									<div class="subcategory_checkbox"><label><input type="checkbox" name='category_change_check' value="$subcat['id']">$subcat['name']</label></div>
+							$else:
+								<br>
+					</div>
+					<div id="category_change_error_message" class="red hide">You must select a category</div>
+					</td>
+				</tr>
+				<tr>
+					<th></th>
+					<td><button id="btn-save" name="save">Change</button></td>
+				</tr>
+			</table>
+			<input type="hidden" name="categories_to_change" id="categories_to_change" value="">
+		</form>
+	</div><!-- change_categories_dialog -->
+	
 </div><!-- added -->
+<div id="tagcloud">
+$for tag in tagcloud:
+	<span style="font-size:$tag['size']%" search="$tag['tags']">#$tag['tags']</span>
+</div>
 </div><!-- tabs -->
 <div id="wait_for_process_to_finish_layer">
 	<div><img src="/static/img/loading.gif"></div>
 </div>
 <script type="text/html" id="pin_template">
-<div class="pin_image">
-	<a href="/p/<%= external_id %>" target="_blank" title="See full size">
-		<img src="<%= image_202_url %>?_=<%= new Date().getTime() %>">
-	</a>
-</div>
-<table>
-	<tr><th>Categories</th><td><%= categories_list %></td></tr>
-	<tr><th>Title</th><td><%= name %></td></tr>
-<% if (description !== null && description !== '') { %>
-	<tr><th>Descr.</th><td><%= description %></td></tr>
-<% } %>
-<% if (product_url !== null && product_url !== '') { %>
-	<tr><th>Get It Here</th><td><a href="<%= product_url %>" title="<%= product_url %>">
-			<%= separate_product %>
-		</a></td></tr>
-<% } %>
-<% if (link !== null && link !== '') { %>
-	<tr><th>Source Link</th><td><a href="<%= link %>" title="<%= link %>">
-			<%= separate_link %>
-		</a></td></tr>
-<% } %>
-	<tr><th>Tags</th><td><%= $$.put_hash_symbol(tags) %></td></tr>
-		
-<% if (price !== 'None') { %>
-	<tr><th>Price</th><td>$$<%= price %></td></tr>
-<% } %>
-	<tr><th>Price Range</th><td><%= price_range_repr %></td></tr>
-	<tr><td colspan="2"><button class="button_pin_edit" pinid="<%= id %>">Edit</button>
-		<button class="button_pin_delete" pinid="<%= id %>">Delete</button></td></tr>
-</table>
+			<td>
+				<%= categories_list %>
+			</td>
+			<td>
+				<a href="/p/<%= external_id %>">
+					<img src="<%= image_202_url %>?_=<%= new Date().getTime() %>" style="width:40px;height:auto;">
+				</a>
+			</td>
+			<td><%= name %></td>
+			<td><%= description %></td>
+			<td>
+				<a href="<%= link %>" title="<%= link %>">
+					<%= separate_link %>
+				</a>
+			</td>
+			<td>
+				<a href="<%= product_url %>" title="<%= product_url %>">
+					<%= separate_product %>
+				</a>
+			</td>
+			<td>
+				<% _.each(tags, function(tag) { %>
+					#<%= tag %><br>
+				<% }); %>
+			</td>
+			<td><%= price %></td>
+			<td><%= price_range_repr %></td>
+			<td>
+				<button class="button_pin_edit" pinid="<%= id %>">e</button>
+				<button class="button_pin_delete" pinid="<%= id %>">x</button>
+			</td>
 </script>
+<script type="text/javascript">
+$$(document).ready( function() {
+	$$.pagination_grid = $$("#pins_container").ingrid({ 
+		url: '/admin/input/list',
+		initialLoad: true,
+		height: 600,
+		sorting: false,
+		recordsPerPage: 100,
+		colWidths: [12, 6, 12, 19, 14, 14, 11, 6, 5, 5, 7],
+	});
 $if result_info:
-	<script language="javascript">
-	jQuery(function() {
 	$for ri in result_info:
 		$if ri['error']:
 			$$.put_failed_pin_to_edit($:ri['json']);
-	});
-	</script>
+}); 
+</script>
