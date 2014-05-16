@@ -229,4 +229,43 @@ class Confirmuser(BaseAPI):
         return response
 
 
-        
+class ResendActivation(BaseAPI):
+    """
+    Method that resends activation letter
+    """
+    def POST(self):
+        request_data = web.input()
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        activation = user['activation']
+
+        if activation == 0:
+            status = 400
+            error_code = "Your account is already activated"
+        else:
+            user_id = user['id']
+            email = user['email']
+
+            hashed = hash(str(activation))
+
+            send_activation_email(email, hashed, user_id)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+
+        return response

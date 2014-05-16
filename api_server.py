@@ -31,6 +31,7 @@ urls = (
 
     # API to user signup: confirmation user email
     "/signup/confirmuser", api.views.signup.Confirmuser,
+    "/signup/resend_activation", api.views.signup.ResendActivation,
 
     # API to upload images
     "/image/upload", api.views.images.ImageUpload,
