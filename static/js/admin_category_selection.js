@@ -29,9 +29,6 @@ jQuery(function() {
         $.current_column += 1;
       }
       $.loading_items = false;
-      window.setTimeout($('img.lazy').lazyload({
-        failure_limit: 100
-      }), 100);
     });
   };
   simplify_url = function(url) {
