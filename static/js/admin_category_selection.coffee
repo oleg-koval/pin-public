@@ -60,6 +60,19 @@ jQuery ->
 				success: ->
 					pin.remove()
 		return
+	
+	
+	$('input.category_check').on 'change', ->
+		if not this.checked
+			return
+		parent_id = $(this).attr('parent')
+		if parent_id is null
+			return
+		$('input.category_check').each ->
+			test_id = $(this).val()
+			if parent_id is test_id
+				$(this).prop('checked', true)
+		return
 
 	
 	load_more_items()

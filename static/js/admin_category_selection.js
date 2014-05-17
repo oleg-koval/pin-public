@@ -82,6 +82,23 @@ jQuery(function() {
       });
     }
   });
+  $('input.category_check').on('change', function() {
+    var parent_id;
+    if (!this.checked) {
+      return;
+    }
+    parent_id = $(this).attr('parent');
+    if (parent_id === null) {
+      return;
+    }
+    $('input.category_check').each(function() {
+      var test_id;
+      test_id = $(this).val();
+      if (parent_id === test_id) {
+        return $(this).prop('checked', true);
+      }
+    });
+  });
   load_more_items();
   $('div.category_selection_list').show();
   top = $(window).height() - $('div.category_selection_list').height();
