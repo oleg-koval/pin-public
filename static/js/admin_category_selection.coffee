@@ -11,7 +11,7 @@ jQuery ->
 		url = '/admin/selection/pending_items?page=' + $.current_page
 		$.getJSON url, (data) ->
 			for pin in data
-				if $.current_column > 3
+				if $.current_column > 4
 					$.current_column = 1
 				pin['simplifiedurl'] = simplify_url(pin['link'])
 				if pin['tags'] isnt null
@@ -20,8 +20,6 @@ jQuery ->
 				$('#column' + $.current_column).append(pin_html)
 				$.current_column += 1
 			$.loading_items = false
-			window.setTimeout($('img.lazy').lazyload({
-				failure_limit: 100}), 100)
 			return
 		return
 
@@ -62,7 +60,27 @@ jQuery ->
 				success: ->
 					pin.remove()
 		return
+	
+	
+	$('input.category_check').on 'change', ->
+		if not this.checked
+			return
+		parent_id = $(this).attr('parent')
+		if parent_id is null
+			return
+		$('input.category_check').each ->
+			test_id = $(this).val()
+			if parent_id is test_id
+				$(this).prop('checked', true)
+		return
 
 	
 	load_more_items()
+	
+	# position category checkboxes layer fixed at bottom
+	$('div.category_selection_list').show()
+	top = $(window).height() - $('div.category_selection_list').height();
+	left = ($(window).width() - $('div.category_selection_list').width()) / 2;
+	$('div.category_selection_list').offset({'top': top; 'left': left})
+	
 	return
