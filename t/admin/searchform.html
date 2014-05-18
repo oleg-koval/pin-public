@@ -1,6 +1,4 @@
-$def with (form, params)
+$def with (form)
 <form method='get' action='' autocomplete='off'>
-    $for k, v in params.iteritems():
-        <input type='hidden' name'$k' value='$v'/>
     $:form.render()
 </form>

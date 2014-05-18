@@ -1,5 +1,3 @@
-import os
-import os.path
 import json
 import logging
 import urllib
@@ -10,6 +8,7 @@ from PIL import Image
 from mypinnings import template
 from mypinnings import database
 from mypinnings import session
+from mypinnings import media
 from mypinnings.admin.auth import login_required
 
 
@@ -26,7 +25,7 @@ class ListCategories(object):
         results = db.query('''select root.id, root.name, child.id as child_id, child.name as child_name, child.is_default_sub_category
                                     from categories root left join categories child on root.id=child.parent
                                     where root.parent is NULL
-                                    order by root.name, child.name
+                                    order by root.position desc, root.name, child.name
                                     '''
                                   )
         category_list = []
@@ -65,14 +64,6 @@ class EditCoolProductsForCategory(object):
             category = c
         json_pins = []
         for pin in pins:
-            image_name = 'static/tmp/{}.png'.format(pin.id)
-            thumb_image_name = 'static/tmp/pinthumb{}.png'.format(pin.id)
-            if os.path.exists(thumb_image_name):
-                pin.image_name = '/' + thumb_image_name
-            elif os.path.exists(image_name):
-                pin.image_name = '/' + image_name
-            else:
-                continue
             pin['price'] = str(pin['price'])
             json_pins.append(json.dumps(pin))
         sess.offset = FIRST_PRODUCT_LIST_LIMIT
@@ -87,20 +78,12 @@ class EditMoreCoolProductsForCategory(object):
     def GET(self, category_id):
         db = database.get_db()
         sess = session.get_session()
-        pins = db.select(tables=['pins'], what="pins.*", order='timestamp desc',
+        pins = db.select(tables=['pins', 'pins_categories'], what="pins.*", order='timestamp desc',
                          where='pins.id=pins_categories.pin_id and pins_categories.category_id=$category_id'
                             ' and pins.id not in (select pin_id from cool_pins where cool_pins.category_id=$category_id)',
                          vars={'category_id': category_id}, offset=sess.offset, limit=ADDITIONAL_PRODUCT_LIST_LIMIT)
         json_pins = []
         for pin in pins:
-            image_name = 'static/tmp/{}.png'.format(pin.id)
-            thumb_image_name = 'static/tmp/pinthumb{}.png'.format(pin.id)
-            if os.path.exists(thumb_image_name):
-                pin.image_name = '/' + thumb_image_name
-            elif os.path.exists(image_name):
-                pin.image_name = '/' + image_name
-            else:
-                continue
             json_pins.append(pin)
         sess.offset += ADDITIONAL_PRODUCT_LIST_LIMIT
         web.header('Content-Type', 'application/json')
@@ -119,18 +102,7 @@ class ListCoolProductsForCategory(object):
                          where='pins.id=pins_categories.pin_id and pins_categories.category_id=$category_id'
                             ' and pins.id=cool_pins.pin_id and pins_categories.category_id=cool_pins.category_id',
                          vars={'category_id': category_id})
-        pins_list = []
-        for pin in pins:
-            image_name = 'static/tmp/{}.png'.format(pin.id)
-            thumb_image_name = 'static/tmp/pinthumb{}.png'.format(pin.id)
-            if os.path.exists(thumb_image_name):
-                pin.image_name = '/' + thumb_image_name
-            elif os.path.exists(image_name):
-                pin.image_name = '/' + image_name
-            else:
-                pin.image_name = ''
-            pins_list.append(pin)
-        return web.template.frender('t/admin/category_cool_items_list.html')(pins_list)
+        return web.template.frender('t/admin/category_cool_items_list.html')(pins)
 
 
 class ApiCategoryListPins(object):
@@ -192,14 +164,6 @@ class ApiCategoryPins(object):
         for p in query_results:
             pin = dict(p)
             pin['price'] = str(pin['price'])
-            image_name = 'static/tmp/{}.png'.format(pin_id)
-            thumb_image_name = 'static/tmp/pinthumb{}.png'.format(pin_id)
-            if os.path.exists(thumb_image_name):
-                pin['image_name'] = '/' + thumb_image_name
-            elif os.path.exists(image_name):
-                pin['image_name'] = '/' + image_name
-            else:
-                pin['image_name'] = ''
         if pin:
             web.header('Content-Type', 'application/json')
             return json.dumps(pin)
@@ -217,8 +181,8 @@ class ApiCategoryCoolPins(object):
         db = database.get_db()
         transaction = db.transaction()
         try:
-            db.insert(tablename='cool_pins', category_id=category_id, pin_id=pin_id)
-            image_name = os.path.join('static', 'tmp', str(pin_id)) + '.png'
+            pin = db.where(table='pins', id=pin_id)[0]
+            image_name, _ = urllib.urlretrieve(pin.image_202_url)
             image = Image.open(image_name)
             if image.size[0] <= image.size[1]:
                 ratio = 72.0 / float(image.size[0])
@@ -233,8 +197,9 @@ class ApiCategoryCoolPins(object):
                 margin = (width - 72) / 2
                 crop_box = (margin, 0, 72 + margin, 72)
             image = image.crop(crop_box)
-            new_name = os.path.join('static', 'tmp', str(pin_id)) + '_cool.png'
-            image.save(new_name)
+            image.save(image_name)
+            image_urls_dict = media.store_image_from_filename(db=db, filename=image_name, widths=None)
+            db.insert(tablename='cool_pins', category_id=category_id, pin_id=pin_id, image_url=image_urls_dict[0])
             transaction.commit()
         except:
             transaction.rollback()
@@ -252,8 +217,6 @@ class ApiCategoryCoolPins(object):
         try:
             db.delete(table='cool_pins', where='category_id=$category_id and pin_id=$pin_id',
                       vars={'category_id': category_id, 'pin_id': pin_id})
-            image_name = os.path.join('static', 'tmp', str(pin_id)) + '_cool.png'
-            os.unlink(image_name)
         except OSError:
             # could not delete the image, nothing happens
             pass
@@ -273,26 +236,31 @@ class AddCategory(object):
     def POST(self):
         web_input = web.input(name=None, number_of_sub_categories=None)
         name = web_input['name']
+        slug = web_input['slug']
+        position = int(web_input.get('position', 0))
         number_of_sub_categories = web_input['number_of_sub_categories']
-        if not name or not number_of_sub_categories:
+        if not name or not slug or not number_of_sub_categories:
             return template.admin.category_add('No category added. Review your data')
         db = database.get_db()
         t = db.transaction()
         try:
-            category_id = db.insert(tablename='categories', seqname='categories_id_seq', name=name, is_default_sub_category=False, parent=None)
+            category_id = db.insert(tablename='categories', seqname='categories_id_seq', name=name, slug=slug,
+                                    position=position, is_default_sub_category=False, parent=None)
             number_of_sub_categories = int(number_of_sub_categories)
             default_sub_category = web_input.get('default-sub-category', None)
             default_sub_category_mark_not_found = True
             last_sub_category_id = None
             for i in range(number_of_sub_categories):
                 name = web_input.get('name{}'.format(i), None)
-                if name:
+                slug = web_input.get('slug{}'.format(i), None)
+                position = int(web_input.get('position{}'.format(i), 0))
+                if name and slug:
                     is_default = False
                     if default_sub_category and int(default_sub_category) == i:
                         is_default = True
                         default_sub_category_mark_not_found = False
                     last_sub_category_id = db.insert(tablename='categories', seqname='categories_id_seq', name=name,
-                              is_default_sub_category=is_default, parent=category_id)
+                              slug=slug, position=position, is_default_sub_category=is_default, parent=category_id)
             if default_sub_category_mark_not_found and last_sub_category_id:
                 db.update(tables='categories', where='id=$id', vars={'id': last_sub_category_id}, is_default_sub_category=True)
             t.commit()
@@ -326,12 +294,15 @@ class EditCategory(object):
         self.category_id = category_id
         self.web_input = web.input(name=None, number_of_sub_categories=None)
         name = self.web_input['name']
+        slug = self.web_input['slug']
+        position = int(self.web_input.get('position', 0))
         self.number_of_sub_categories = self.web_input['number_of_sub_categories']
-        if name:
+        if name and slug:
             self.db = database.get_db()
             transaction = self.db.transaction()
             try:
-                self.db.update(tables='categories', where='id=$id', vars={'id': category_id}, name=name)
+                self.db.update(tables='categories', where='id=$id', vars={'id': category_id}, name=name, slug=slug,
+                               position=position)
                 if self.number_of_sub_categories:
                     self.save_sub_categories()
                 transaction.commit()
@@ -356,6 +327,8 @@ class EditCategory(object):
         for i in range(number_of_sub_categories):
             subid = self.web_input.get('subid{}'.format(i), None)
             name = self.web_input.get('name{}'.format(i), None)
+            slug = self.web_input.get('slug{}'.format(i), None)
+            position = int(self.web_input.get('position{}'.format(i), 0))
             if default_sub_category_mark_not_found and default_sub_category == i:
                 is_default = True
                 default_sub_category_mark_not_found = False
@@ -364,12 +337,12 @@ class EditCategory(object):
             if subid:
                 self.db.update(tables='categories', where=('id=$id and parent=$parent'),
                           vars={'id': subid, 'parent': self.category_id},
-                          name=name, is_default_sub_category=is_default)
+                          name=name, slug=slug, position=position, is_default_sub_category=is_default)
                 last_sub_category_id = subid
                 self.ids_found.append(int(subid))
             elif name:
                 last_sub_category_id = self.db.insert(tablename='categories', seqname='categories_id_seq', name=name,
-                      is_default_sub_category=is_default, parent=self.category_id)
+                      slug=slug, position=position, is_default_sub_category=is_default, parent=self.category_id)
                 self.ids_found.append(last_sub_category_id)
         if default_sub_category_mark_not_found and last_sub_category_id:
             self.db.update(tables='categories', where='id=$id', vars={'id': last_sub_category_id}, is_default_sub_category=True)
@@ -395,11 +368,14 @@ class EditCategory(object):
                 pins_to_move.append({'pin_id': row.pin_id, 'category_id': row.category_id})
             self.db.multiple_insert(tablename='pins_categories', values=pins_to_move)
             self.db.delete(table='pins_categories', where='category_id in ({})'.format(ids_to_delete_list))
+            self.db.delete(table='cool_pins', where='category_id in ({})'.format(ids_to_delete_list))
+            self.db.delete(table='user_prefered_categories', where='category_id in ({})'.format(ids_to_delete_list))
             # remove the sub-categories
             self.db.delete('categories', where='id in ({})'.format(ids_to_delete_list))
             
             
 class DeleteCategory(object):
+    @login_required
     def GET(self, category_id):
         db = database.get_db()
         results = db.where(table='categories', id=category_id)
@@ -432,6 +408,7 @@ class DeleteCategory(object):
                           web.form.Button('Delete category'))
         return F()
     
+    @login_required
     def POST(self, category_id):
         self.others = tuple()
         form = self.get_form()

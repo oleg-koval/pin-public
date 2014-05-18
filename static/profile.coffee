@@ -77,6 +77,43 @@ $("#myTab a").click (e) ->
     return
 
 
+
+# ******** edit pin
+$('.editPinModal').on 'submit', (event) ->
+	form = $(this)
+	if validate_edit_pin_form(form)
+		return true
+	return false
+	
+validate_edit_pin_form = (form) ->
+	is_ok = true
+	clear_all_error_messages(form)
+	if form.find('#link').val() is '' and form.find('#product_url').val() is ''
+		add_error_message(form.find('#link'), 'Provide a link')
+		add_error_message(form.find('#product_url'), 'Provide a link')
+		is_ok = false
+	if form.find('#board_id').val() is '' and form.find('#board_name').val() is ''
+		add_error_message(form.find('#layer_add_new_board'), 'Select a board or create a new one')
+		is_ok = false
+	if form.find('#title').val() is ''
+		add_error_message(form.find('#title'), 'Provide a title')
+		is_ok = false
+	if form.find('input[name="price_range"]:checked').val() is undefined
+		add_error_message(form.find('#price_range'), 'Select a price range')
+		is_ok = false
+	return is_ok
+
+
+add_error_message = (item, message) ->
+	item.after('<div class="red">' + message + '</div>');
+	return
+	
+
+clear_all_error_messages = (form) ->
+	form.find('div.red').remove()
+	return
+
+
 # ******** boards (lists) related code
 $('#profile_lists_tabs').tabs()
 $.offsetctrl = Array()
@@ -95,7 +132,7 @@ $('.profile_list_subtab').on 'click', (event) ->
 	return
 	
 
-get_more_items = ->
+get_more_items = (show_images) ->
 	boardid = $.current_board
 	$.loading[boardid] = true
 	offset = $.offsetctrl[boardid]
@@ -113,7 +150,11 @@ get_more_items = ->
 				$.column[boardid] = 1
 			pin['simplifiedurl'] = simplify_url(pin['link'])
 			if pin['tags'] isnt null
-				pin['taglist'] = pin['tags'].split(' ')
+				pin['taglist'] = pin['tags']
+			if show_images isnt null and show_images
+				pin['image_loading'] = pin['image_212_url']
+			else
+				pin['image_loading'] = ''
 			html_text = $.pin_template(pin)
 			selector = '#column_' + boardid + '_' + column
 			$(selector).append(html_text)
@@ -122,6 +163,8 @@ get_more_items = ->
 			else
 				$.column[boardid] += 1
 		$.loading[boardid] = false
+		setTimeout($('img.lazy').lazyload({
+				failure_limit: 100}), 100)
 		return
 	return
 
@@ -147,7 +190,7 @@ $(window).scroll ->
 	top = $(window).scrollTop()
 	height = $(window).innerHeight();
 	doc_height = $(document).height()
-	sensitivity = 600
+	sensitivity = 1000
 	if top + height + sensitivity > doc_height
 		get_more_items()
 	return
@@ -156,8 +199,21 @@ $(window).scroll ->
 $(document).on 'click', '.category_pin_image', (event) ->
 	event.preventDefault()
 	pinid = $(this).attr('pinid')
-	$.get '/item/' + pinid + '?embed=true',
+	open_pin_detail(pinid)
+	return
+
+
+open_pin_detail = (pinid) ->
+	$.get '/p/' + pinid + '?embed=true',
 		(data) ->
+			try
+				if window.history.state is null
+					window.history.pushState(pinid, '', '/p/' + pinid);
+				else
+					window.history.replaceState(pinid, '', '/p/' + pinid);
+			catch error
+				window.location.href = '/p/' + pinid
+				return
 			$('#show_pin_layer_content').html(data)
 			current_position = $('#show_pin_layer_content').position()
 			current_position.top = $(window).scrollTop()
@@ -169,17 +225,39 @@ $(document).on 'click', '.category_pin_image', (event) ->
 			return
 	return
 
-
 $('#show_pin_layer').on 'click', (event) ->
+	if event.target.id is 'input-comment'
+		$('#input-comment').focus()
+		return
 	event.preventDefault()
 	$(this).hide()
 	enable_scroll()
+	try
+		window.history.back();
+	catch error
+		$.noop()
 	return
 	
 	
 $('#show_pin_layer_content').on 'click', (event) ->
 	event.stopPropagation()
-	event.stopInmediatePropagation()
+	try
+		event.stopInmediatePropagation()
+	catch error
+		$.noop()
+	if event.target.id is 'input-comment'
+		$('#input-comment').focus()
+	return
+	
+	
+window.onpopstate = (event)->
+	path = document.location.pathname
+	if path.substring(0, 3) is '/p/'
+		pinid = path.substring(3, path.length)
+		open_pin_detail(pinid)
+	else
+		$('#show_pin_layer').hide()
+		enable_scroll()
 	return
 		
 		
@@ -188,12 +266,14 @@ disable_scroll = () ->
 	$(document).on('mousewheel DOMMouseScroll wheel',disableNormalScroll)
 	$(window).on('scroll',disableNormalScroll)
 	$.oldScrollTop = $(document).scrollTop()
+	return
 
 
 enable_scroll = () ->
 	$(document).off('mousedown',disableMiddleMouseButtonScrolling)
 	$(document).off('mousewheel DOMMouseScroll wheel',disableNormalScroll)
 	$(window).off('scroll',disableNormalScroll)
+	return
 	
 
 disableMiddleMouseButtonScrolling = (e) ->
@@ -214,8 +294,18 @@ disableNormalScroll = (e) ->
 	return false
 
 
-get_more_items()
+$('#list-box-wrapper-link').on 'click', ->
+	get_more_items(true)
+	setTimeout(scrollToShowImages(), 200)
+	return
+	
+
+scrollToShowImages = ->
+	$(window).scroll(10)
+	$(window).scroll(0)
+	return
 
 
 jQuery ->
 	$.ajaxSetup({ cache: false })
+	return

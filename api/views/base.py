@@ -7,11 +7,11 @@ db = connect_db()
 
 class BaseAPI(object):
     """
-        Base class for API handler
+    Base class for API handler
     """
     def GET(self):
         """
-            Wrong HTTP method for API handling
+        Wrong HTTP method for API handling
         """
         status = 405
         error_code = "Method Not Allowed"
@@ -21,31 +21,37 @@ class BaseAPI(object):
 
     def POST(self):
         """
-            Handler for API call. Must be overriden
+        Handler for API call. Must be overriden
         """
         raise NotImplemented
 
-    def authenticate_by_token(self, client_token):
+    def authenticate_by_token(self, logintoken):
+        """Authenticates user by given logintoken
+
+        Returns:
+        status - flag set to True in case if user was successfully logged in
+        user_dict - dictionary with users  profile data (if login success)
+        access_denied - if login failure
         """
-            Get user_id by client token
-        """
+        success = False
         user = db.select(
             'users',
-            {"logintoken": client_token},
+            {"logintoken": logintoken},
             where="logintoken=$logintoken"
         )
         if len(user) > 0:
-            return int(user.list()[0]['id'])
+            success = True
+            return success, user.list()[0]
         else:
-            if client_token is None:
-                error_code = "Not received client token"
+            if logintoken is None:
+                error_code = "Not received login token"
             else:
-                error_code = "Wrong client token"
-            return self.access_denied(error_code)
+                error_code = "Wrong login token"
+            return success, self.access_denied(error_code)
 
     def access_denied(self, error_code="Default error: access_denied"):
         """
-            Access denied errors
+        Access denied errors
         """
         data = {}
         status = 405

@@ -5,8 +5,8 @@ $for m in messages:
     <h2><a href='/profile/$m.sender'>$m.name</a></h2>
     <p class='with-newlines'>$m.content</p>
 <br/>
-<form class='new-message' method='post' action='' autocomplete='off'>
-    <p class='textarea'><textarea name='content' placeholder='Start typing a message...'></textarea></p>
+<form class='new-message'method='post' action='' autocomplete='off' novalidate>
+    <p class='textarea'><textarea name='content' placeholder='Start typing a message...' required="required"></textarea></p>
     <br/>
-    <p><button>Send</button></p>
+    <p><button type="submit"  class="button">Send</button></p>
 </div>

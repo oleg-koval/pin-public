@@ -1,4 +1,4 @@
-$def with (user, countries, name, photos, msg=None)
+$def with (user, countries, name, msg=None)
 
 <div class='settings clearfix'>
   <div class='nav left'>
@@ -6,11 +6,11 @@ $def with (user, countries, name, photos, msg=None)
 
 
      <a href='/settings/profile'>Profile</a>
-     <a href='/settings/account'>Account</a>
+     <!-- <a href='/settings/account'>Account</a> -->
      <a href='/settings/privacy'>Privacy</a>
      <a href='/settings/password'>Password</a>
      <a href='/settings/email-settings'>Email Settings</a>
-     <a href='/settings/social-media'>Social Media</a>  
+     <a href='/settings/social-media'>Social Media</a>
 
 
   </div>
@@ -25,16 +25,16 @@ $def with (user, countries, name, photos, msg=None)
 
 
 <div class='invis' id='box-email'>
-  
+
   <div>
   <h1>Account</h1>
-  <small>Change your basic account settings here</small>  
+  <small>Change your basic account settings here</small>
   </div>
-  
-  <div>    
-  <form method='post' class='inner-form' action='/changeemail' autocomplete='off'>
+
+  <div>
+  <form method='post' class='inner-form' action='/settings/email' autocomplete='off'>
     <table>
-    
+
         <tr>
         <th>Username</th>
         <td>
@@ -65,7 +65,7 @@ $def with (user, countries, name, photos, msg=None)
     <tr>
         <th>Photo</th>
         <td>
-              
+
               <div class="pull-left">
               $if user.pic:
                  <a href='/$user.username' id="user_avatar_placeholder_wrapper">
@@ -85,8 +85,6 @@ $def with (user, countries, name, photos, msg=None)
                <li role="presentation"><a href='#' id="upload_thumbnail" data-toggle="modal" data-target="#uploadImageModal">Upload another profile picture</a></li>
                $if user.pic:
                     <li role="presentation"><a href='/photo/$user.pic/remove' id="remove_photo1">Remove</a></li>
-               $if photos:
-                    <li role="presentation"><a href="/album/$user.id">View Photo Album</a></li>   
   </ul>
 
 </div>
@@ -101,7 +99,7 @@ $def with (user, countries, name, photos, msg=None)
       <tr>
         <th>Header</th>
         <td>
-          
+
              <div class="pull-left">
               $if user.bg:
                  <img class='avatar' src='/static/tmp/bg$(user.id).png' style="width:44px;" />
@@ -192,7 +190,7 @@ $def with (user, countries, name, photos, msg=None)
         </td>
       </tr>
       -->
-      
+
       <tr>
         <th>&nbsp;</th>
         <td><button>Save</button></td>
@@ -203,7 +201,7 @@ $def with (user, countries, name, photos, msg=None)
 
 <div class='invis' id='box-password'>
   <h1>Change Password</h1>
-  <form method='post' class='inner-form' action='/changepw' autocomplete='off' enctype='multipart/form-data' id='change_pwd_form'>
+  <form method='post' class='inner-form' action='/settings/password' autocomplete='off' enctype='multipart/form-data' id='change_pwd_form'>
     <table>
       <tr>
         <th>Old Password</th>
@@ -228,7 +226,7 @@ $def with (user, countries, name, photos, msg=None)
 <div class='invis' id='box-social-media'>
   <h1>Social Media</h1>
   <p>Display your social media links on your MyPinnings profile.</p>
-  <form method='post' class='inner-form' action='/changesm' autocomplete='off' enctype='multipart/form-data'>
+  <form method='post' class='inner-form' action='/settings/social-media' autocomplete='off' enctype='multipart/form-data'>
     <table>
       <tr>
         <th>Facebook</th>
@@ -236,7 +234,7 @@ $def with (user, countries, name, photos, msg=None)
       </tr>
       <tr>
         <th>Twitter</th>
-        <td>twitter.com/ <input type='text' name='twitter' value='$user.facebook'/></td>
+        <td>twitter.com/ <input type='text' name='twitter' value='$user.twitter'/></td>
       </tr>
       <tr>
         <th>LinkedIn</th>
@@ -257,7 +255,7 @@ $def with (user, countries, name, photos, msg=None)
 
 <div class='invis' id='box-privacy'>
   <h1>Privacy</h1>
-  <form method='post' class='inner-form' action='/changeprivacy' autocomplete='off'>
+  <form method='post' class='inner-form' action='/settings/privacy' autocomplete='off'>
     <table>
       <tr>
         <th>Make Getlist Private</th>

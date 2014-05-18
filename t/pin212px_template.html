@@ -5,19 +5,15 @@
 <div class="category_pin">
     <div class='category_pins_buttons'>
       <a id="repinlink" onclick=repin_image_load(this) data-category="<%= category %>" data-description="<%= description %>" href='#' data-toggle="modal" data-target="#addToGetListModal"
-      <% if (repin == 0) { %>
         data-id="<%= id %>"
-      <% } else { %>
-        data-id="<%= repin %>"
-	  <% } %> 
-      class='repinlink button small-pad'>Add to Your Getlist</a>
+      imagesrc="<%= image_212_url %>" class='repinlink button small-pad'>Add to Your Getlist</a>
       <a href='/share/<%= id %>' class='button small-pad'><i class='fa fa-share-square'></i></a>
       <% if (link !== null) { %>
         <a class='button small-pad' rel='nofollow' href='<%= link %>'><i class='fa fa-external-link-square'></i></a>
 	  <% } %>
     </div>
-	<div class="category_pin_image" pinid="<%= id %>">
-		<img src="/static/tmp/pinthumb_212_<%= id %>.png">
+	<div class="category_pin_image" pinid="<%= external_id %>">
+		<img src="<%= image_loading %>" data-original="<%= image_212_url %>" width="212" height="<%= image_212_height %>" class="lazy">
 	</div>
 	<% if (name !== '') { %>
 		<div class="category_pin_title"><%= name %></div>
@@ -28,7 +24,7 @@
 	   if (tags !== null) { %>
 	<div class="category_pin_tags">
 		<% for (i = 0; i < taglist.length ; i++) { %>
-			<a href="/search/items?q=<%= taglist[i] %>">#<%= taglist[i] %></a>
+			<a href="/search/items?h=<%= taglist[i] %>">#<%= taglist[i] %></a>
 		<% } %>
 	</div>
 	<% } %>

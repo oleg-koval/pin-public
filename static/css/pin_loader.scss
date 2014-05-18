@@ -1,22 +1,3 @@
-@import "bourbon/bourbon";
-@import "neat/neat";
-
-div.pins_columns_container {
-	@include outer-container;
-	div.column1 {
-		@include span-columns(3);
-	}
-	div.column2 {
-		@include span-columns(3);
-	}
-	div.column3 {
-		@include span-columns(3);
-	}
-	div.column4 {
-		@include span-columns(3);
-	}
-}
-
 .pinbox {
 	padding: 6px;
 	border-radius: 5px;
@@ -48,4 +29,39 @@ div.pin_image img {
 
 p {
 	font-size: 80%;
+}
+
+#wait_for_process_to_finish_layer {
+	display:none;
+	position:fixed;
+	top:0;
+	left:0;
+	width:100%;
+	height:100%;
+	z-index:10;
+	background-color:rgba(60,60,60,0.3);
+}
+
+#wait_for_process_to_finish_layer div {
+	width:300px;
+	height:300px;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.error_text {
+	font-size: 1.3em;
+}
+
+
+#tagcloud {
+	text-align: center;
+}
+
+#tagcloud span {
+	cursor: pointer;
+}
+
+#tagcloud span:hover {
+	font-color: red;
 }

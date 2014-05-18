@@ -4,33 +4,34 @@ $if pin.id and pin.category:
     <div class='buttons'>
       <a id="repinlink" onclick=rePin(this) data-category="$pin.category" data-description="$pin.description" href='#' data-toggle="modal" data-target="#addToGetListModal"
       $if pin.repin == 0:
-        data-id="$pin.id" 
+        data-id="$pin.id"
       $else:
-        data-id="$pin.repin" 
-      class='repinlink button small-pad'>Add to Your Getlist</a>
+        data-id="$pin.repin"
+      class='repinlink button small-pad' imagesrc="$pin.image_202_url">Add to Your Getlist</a>
       <a href='/share/$pin.id' class='button small-pad'><i class='fa fa-share-square'></i></a>
       $if pin.link:
         <a class='button small-pad' rel='nofollow' href='$pin.link'><i class='fa fa-external-link-square'></i></a>
     </div>
-    <a href='/pin/$pin.id'>
-      <img src='/static/tmp/pinthumb$(pin.id if pin.repin == 0 else pin.repin).png' alt=''/>
+    <a href='/p/$pin.external_id'>
+      <img src='$pin.image_202_url' alt=''/>
     </a>
     <div class='info'>
       $if pin.description:
         <h1>$pin.description</h1>
-      <p class='faded'>Posted by <a href='/$pin.user_username'><b>$pin.user_name</b></a> &middot; <span class='faded'>$tpllib.format_timestamp(pin.timestamp)</span></p> 
+      <p class='faded'>Posted by <a href='/$pin.user_username'><b>$pin.user_name</b></a> &middot; <span class='faded'>$tpllib.format_timestamp(pin.timestamp)</span></p>
       $if pin.link:
         <p class='faded'>Source: <a href='$pin.link'>$tpllib.condense_link(pin.link)</a></p>
       $if pin.tags:
         <hr>
-        <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags.split(' ')]))</p>
+        <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?h=%s">#%s</a>' % (x, x) for x in pin.tags]))</p>
     </div>
   </div>
 <script type="text/javascript">
 function rePin(e) {
     desc = jQuery(e).attr("data-description");
     id = jQuery(e).attr("data-id");
-    jQuery("#repin-image").attr("src", "/static/tmp/pinthumb" + id + ".png");
+    image_src = jQuery(e).attr("imagesrc");
+    jQuery("#repin-image").attr("src", image_src);
     jQuery("#description").html(desc);
     jQuery("#repin-form").attr("action", "/add-to-your-own-getlist/" + id);
     //jQuery(".category-list").val(jQuery(e).attr("data-category"));

@@ -1,0 +1,53 @@
+$def with (query)
+<h1>Data loaders</h1>
+<ul class="nav nav-tabs">
+  $if query:
+    <li><a href="/admin/search?query=$query">Users of any Kind</a></li>
+  $else:
+    <li><a href="/admin/search/all">Users of any Kind</a></li>
+  <li class="active"><a href="#">Data loaders</a></li>
+</ul>
+   <table id="results_table">
+       <thead>
+           <tr>
+               <th>Name</th>
+               <th>Username</th>
+               <th>Email</th>
+               <th>Added</th>
+               <th>Added from</th>
+               <th>Followers</th>
+               <th>Follows</th>
+               <th>Date Created</th>
+           </tr>
+       </thead>
+       <tbody>
+             <tr>
+                 <td>loading...</td>
+                 <td></td>
+                 <td></td>
+                 <td></td>
+                 <td></td>
+                 <td></td>
+                 <td></td>
+                 <td></td>
+             </tr>
+       </tbody>
+   </table>
+<hr/>
+<p><a href='/admin/search'><b>Do another search</b></a></p>
+<script type="text/javascript">
+$$(document).ready(
+	function() {
+		$$("#results_table").ingrid({ 
+			url: '/admin/dataloaders-results/pagination',
+			initialLoad: true,
+			height: 600,
+			colWidths: [200, 200, 200, 50, 50, 50, 50, 120],
+			colSortParams: ['users.name', 'users.username', 'users.email', 'pin_count', 'repin_count', 'follower_count', 'follow_count', 'users.timestamp'],
+			extraParams: {'query': '$query'},
+			sortedCol: 'users.name',
+			sortedColDir: 'asc'
+		});
+	}
+); 
+</script>

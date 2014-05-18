@@ -15,17 +15,6 @@ jQuery ->
 		return
 			
 	
-	# check that the name of the file to upload seems valid
-	$('.imagefile').on 'change', (e) ->
-		i = $(this).attr('i')
-		remove_error_from_field($(this), i)
-		value = $(this).val().toLowerCase()
-		if value.indexOf('.png') == -1 && value.indexOf('.jpg') == -1 && value.indexOf('.jpeg') == -1 && value.indexOf('.gif') == -1 &&
-			 	value.indexOf('.svg') == -1
-			show_error_for_field($(this), 'Image doesn\'t seem to be in a internet friendly format: .png, ,jpg, .gif, .svn', i)
-		return
-			
-			
 	$('.titleentry').on 'change', ->
 		i = $(this).attr('i')
 		if $(this).val() != ''
@@ -53,6 +42,10 @@ jQuery ->
 				can_submit = false
 			if not can_submit
 				window.alert('Errors pending, please check')
+			if can_submit
+				$('#wait_for_process_to_finish_layer').height($(window).innerHeight())
+				$('#wait_for_process_to_finish_layer div').css('margin-top', ($(window).innerHeight() / 2) - 150)
+				$('#wait_for_process_to_finish_layer').show()
 			return can_submit
 		catch error
 			alert(error)
@@ -67,11 +60,10 @@ jQuery ->
 		link = $('#link' + i)
 		product_url = $('#product_url' + i)
 		imageurl = $('#imageurl' + i)
-		image = $('#image' + i)
 		tags = $('#tags' + i)
 		price = $('#price' + i)
 		# if all of the fields are blank, no more test is needed
-		if all_fields_blank(title, description, link, imageurl, image, tags, price, product_url)
+		if all_fields_blank(title, description, link, imageurl, tags, price, product_url)
 			return no_error
 		# should have title
 		if title.val() == ''
@@ -85,7 +77,6 @@ jQuery ->
 			show_error_for_field(tags, 'Empty tags', i)
 		else
 			remove_error_from_field(tags, i)
-			ensure_tags_has_hash_symbol(tags)
 		# should have a valid price
 		if not have_valid_price(price, i)
 			no_error = false
@@ -96,15 +87,15 @@ jQuery ->
 		if not selected_a_price_range(i)
 			no_error = false
 		# should have a valid image
-		if not validate_image(imageurl, image, i)
+		if not validate_image(imageurl, i)
 			no_error = false
 		return no_error
 	
 	
 	# all of the fields are blank
-	all_fields_blank = (title, description, link, imageurl, image, tags, price, product_url) ->
+	all_fields_blank = (title, description, link, imageurl, tags, price, product_url) ->
 		return title.val() == '' && description.val() == '' and link.val() == '' and
-			imageurl.val() == '' && tags.val() == '' && image.val() == '' and
+			imageurl.val() == '' && tags.val() == '' and
 			price.val() == '' and product_url.val() == ''
 			
 	
@@ -150,46 +141,19 @@ jQuery ->
 			
 	
 	# test if a valid image is provided
-	validate_image = (imageurl, image, i) ->
-		if imageurl.val() == '' and image.val() == ''
+	validate_image = (imageurl, i) ->
+		if imageurl.val() == ''
 			show_error_for_field(imageurl, 'Empty image', i)
-			show_error_for_field(image, 'Empty image', i)
 			return false
 		else
 			remove_error_from_field(imageurl, i)
-			remove_error_from_field(image, i)
 			value = imageurl.val().toLowerCase()
-			if value
-				if value.indexOf('http://') != 0 && value.indexOf('https://') != 0
-					if value.indexOf('//') == 0
-						$(this).val('http:' + value)
-					else
-						$(this).val('http://' + value)
-			else
-				value = image.val().toLowerCase()
-				if value.indexOf('.png') == -1 && value.indexOf('.jpg') == -1 && value.indexOf('.jpeg') == -1 && value.indexOf('.gif') == -1 &&
-					 	value.indexOf('.svg') == -1
-					show_error_for_field(image, 'Image doesn\'t seem to be in a internet friendly format: .png, ,jpg, .gif, .svn', i)
+			if value.indexOf('http://') != 0 && value.indexOf('https://') != 0
+				if value.indexOf('//') == 0
+					$(this).val('http:' + value)
+				else
+					$(this).val('http://' + value)
 		return true
-		
-		
-	ensure_tags_has_hash_symbol = (field) ->
-		value = field.val()
-		new_value = ''
-		some_has_no_hash_symbol = false
-		for tag in value.split(" ")
-			if tag.indexOf('#') isnt 0
-				some_has_no_hash_symbol = true
-				new_tag = '#' + tag
-			else
-				new_tag = tag
-			if new_value is ''
-				new_value = new_tag
-			else
-				new_value = new_value + ' ' + new_tag
-		if some_has_no_hash_symbol
-			field.val(new_value)
-		return
 		
 	
 	# test price has format with only digits and decimal point
@@ -213,14 +177,6 @@ jQuery ->
 			else if value.indexOf('.') == value.length - 2
 				price.val(value + '0')
 		return true
-
-	
-	# ensure every tag has # symbol in front
-	$('.tagwords').on 'change', ->
-		i = $(this).attr('i')
-		remove_error_from_field($(this), i)
-		if $(this).val() isnt ''
-			ensure_tags_has_hash_symbol($(this))
 			
 			
 	# ensure a price range is selected
@@ -250,69 +206,6 @@ jQuery ->
 			return false
 			
 	
-	# detect when scrolling to bottom to load more items
-	$(window).scroll ->
-		top = $(window).scrollTop()
-		height = $(window).innerHeight();
-		doc_height = $(document).height()
-		sensitivity = 300
-		if top + height + sensitivity > doc_height
-			load_more_pins()
-		return
-			
-		
-	# load first pins when page loads
-	$.loading_more_pins = true
-	$.ajax type: 'GET'
-		,url: '/admin/input/pins/'
-		,dataType: 'json'
-		,data: {'offset': '0'}
-		,cache: false
-		,success: (d)->
-			put_more_pins_into_the_page(d)
-			return
-		,error: (x, textStatus, errorThrown) ->
-			$.loading_more_pins = false
-			console.log("Error:" + textStatus + ', ' + errorThrown)
-			return
-	
-	
-	# loads more pins with ajax
-	load_more_pins = ->
-		if not $.loading_more_pins
-			$.loading_more_pins = true
-			$.ajax type: 'GET'
-				,url: '/admin/input/pins/'
-				,dataType: 'json'
-				,cache: false
-				,success: (d)->
-					put_more_pins_into_the_page(d)
-					return
-				,error: (x, textStatus, errorThrown) ->
-					$.loading_more_pins = false
-					console.log("Error:" + textStatus + ', ' + errorThrown)
-					return
-			return
-		return
-	
-	
-	$('#load_more_button').on 'click', ->
-		load_more_pins()
-		
-	
-	# dynamically put items in columns, alternating columns
-	$.column_control = 1
-	put_more_pins_into_the_page = (data) ->
-		for pin in data
-			column = $('.column' + $.column_control)
-			column.append('<div class="pinbox" pinid="' + pin['id'] + '">'+ get_pin_html_text(pin) + '</div>')
-			$.column_control += 1
-			if $.column_control > 4
-				$.column_control = 1
-		$.loading_more_pins = false
-		return
-		
-	
 	# creates the HTML to show one pin in the list
 	get_pin_html_text = (pin) ->
 		start = true
@@ -321,7 +214,7 @@ jQuery ->
 			if start
 				start = false
 			else
-				pin['categories_list'] = pin['categories_list'] + ', '
+				pin['categories_list'] = pin['categories_list'] + '<br>'
 			pin['categories_list'] = pin['categories_list'] + cat['name']
 		pin['separate_product'] = separate_link_to_fit_small_space(pin['product_url'])
 		pin['separate_link'] = separate_link_to_fit_small_space(pin['link'])
@@ -337,7 +230,8 @@ jQuery ->
 			pinid = $(this).attr('pinid')
 			$.ajax type: 'DELETE'
 				,url: '/admin/input/pins/' + pinid + '/'
-			$('div.pinbox[pinid="' + pinid + '"]').remove()
+			$('tr[pinid="' + pinid + '"]').remove()
+		$.pagination_grid.g.unSelectAll()
 		return
 	
 	
@@ -347,7 +241,8 @@ jQuery ->
 	
 	
 	# opens the dialog to edit a pin
-	$('body').on 'click', '.button_pin_edit', ->
+	$('body').on 'click', '.button_pin_edit', (event) ->
+		event.stopPropagation()
 		pinid = $(this).attr('pinid')
 		$.ajax type: 'GET'
 			,url: '/admin/input/pins/' + pinid + '/'
@@ -360,6 +255,7 @@ jQuery ->
 				$.loading_more_pins = false
 				console.log("Error:" + textStatus + ', ' + errorThrown)
 				return
+		$.pagination_grid.g.unSelectAll()
 		return
 		
 		
@@ -370,12 +266,11 @@ jQuery ->
 		$("#description11").val(pin['description'])
 		$("#link11").val(pin['link'])
 		$("#product_url11").val(pin['product_url'])
-		$("#tags11").val(pin['tags'])
-		$("#imgtag11").attr('src', '/static/tmp/pinthumb' + pin['id'] + '.png?_=' + new Date().getTime())
-		$("#imgfulllink11").attr('href', '/pin/' + pin['id'])
+		$("#tags11").val($.put_hash_symbol(pin['tags']))
+		$("#imgtag11").attr('src', pin['image_202_url'] + '?_=' + new Date().getTime())
+		$("#imgfulllink11").attr('href', '/p/' + pin['external_id'])
 		$("#category11").val('')
 		$("#imageurl11").val('')
-		$("#image11").val('')
 		if pin['price'] isnt 'None'
 			$("#price11").val(pin['price'])
 		else
@@ -391,11 +286,7 @@ jQuery ->
 		return
 		
 	
-	# edits the pin. If the pin does not have a new image,
-	# or the image comes from an URL, edit in the background
-	# with AJAX.
-	# if the pin has a new image via file upload, submit the
-	# form to be processed in a normal post
+	# edits the pin. Edit in the background with AJAX.
 	$('#pin_edit_form').submit ->
 		no_error = true
 		pinid = $('#id11')
@@ -404,7 +295,6 @@ jQuery ->
 		link = $('#link11')
 		product_url = $('#product_url11')
 		imageurl = $('#imageurl11')
-		image = $('#image11')
 		tags = $('#tags11')
 		category = $('#categories11')
 		price = $('#price11')
@@ -422,7 +312,6 @@ jQuery ->
 			show_error_for_field(tags, 'Empty tags', 11)
 		else
 			remove_error_from_field(tags, 11)
-			ensure_tags_has_hash_symbol(tags)
 		# should have a valid price
 		if not have_valid_price(price, 11)
 			no_error = false
@@ -435,12 +324,8 @@ jQuery ->
 		if not category_selected('categories11', 'category_check11', $('#category_error_message11'))
 			no_error = false
 		if no_error
-			if image.val() != '' and imageurl.val() == ''
-				# submit to upload the image
-				return true
-			else
-				update_pin_in_backgroud(pinid, title, description, link, product_url, imageurl, tags, category, price, price_range)
-				$('#pin_edit_dialog').dialog('close')
+			update_pin_in_backgroud(pinid, title, description, link, product_url, imageurl, tags, category, price, price_range)
+			$('#pin_edit_dialog').dialog('close')
 		return false
 		
 		
@@ -478,7 +363,7 @@ jQuery ->
 			,dataType: 'json'
 			,cache: false
 			,success: (pin) ->
-				box = $('div.pinbox[pinid="' + pin_id + '"]')
+				box = $('tr[pinid="' + pin_id + '"]')
 				text = get_pin_html_text(pin)
 				box.html(text)
 				return
@@ -496,6 +381,154 @@ jQuery ->
 			slice = url.slice(i, i + 16)
 			sep.push(slice)
 		return sep.join(' ')
+
+
+	$.put_hash_symbol = (tags) ->
+		result = ''
+		for tag in tags
+			if result isnt ''
+				result = result + ' '
+			result = result + '#' + tag
+		return result
+
+
+	$.put_failed_pin_to_edit = (pin) ->
+		if pin['imageurl'] isnt ''
+			$('#imageurl' + pin['index']).val(pin['imageurl'])
+		if pin['link'] isnt ''
+			$('#link' + pin['index']).val(pin['link'])
+		if pin['title'] isnt ''
+			$('#title' + pin['index']).val(pin['title'])
+		if pin['description'] isnt ''
+			$('#description' + pin['index']).val(pin['description'])
+		if pin['product_url'] isnt ''
+			$('#product_url' + pin['index']).val(pin['product_url'])
+		if pin['tags'] isnt ''
+			$('#tags' + pin['index']).val(pin['tags'])
+		if pin['price'] isnt ''
+			$('#price' + pin['index']).val(pin['price'])
+		if pin['price_range'] isnt ''
+			$('input[name=price_range' + pin['index'] + '][value=' + pin['price_range'] + ']').attr('checked', 'checked')
+		$('#imageurl' + pin['index']).before('<div class="error_text">' + pin['error'] + '</div>')
+		return
+
+
+	$('input[name=category_check]').change (event) ->
+		parent_category = $(this).attr('parent-category')
+		if parent_category isnt undefined
+			if $(this).prop('checked')
+				$('input[name=category_check][value=' + parent_category + ']').prop('checked', true)
+		return
 	
+	
+	
+	
+	
+	# dialog to change the categories of many pins in bulk
+	$('#change_categories_dialog').dialog autoOpen: false
+								,minWidth: 500
+								
+	
+	$('#change_categories_button').on 'click', (event) ->
+		categories_not_selected = true
+		pins = ''
+		for row in $.pagination_grid.g.getSelectedRows()
+			pins_not_selected = false
+			if pins isnt ''
+				pins = pins + ','
+			pins = pins + $(row).attr('pinid')
+		if pins_not_selected
+			return
+		$('input[name=category_change_check]').prop('checked', false)
+		$('#change_categories_dialog').dialog('open')
+		data =
+			pins: pins
+		$.post '/admin/input/get_categories_for_items', data, (categories) ->
+				for category_object in categories
+					category = category_object.category_id
+					$('#change_categories_dialog').find('input[value=' + category + ']').prop('checked', true)
+				return
+			, 'json'
+		return
+
+
+	$('#change_pins_categories_form').on 'submit', (event) ->
+		event.preventDefault()
+		$('#category_change_error_message').hide()
+		if not category_selected('categories_to_change', 'category_change_check', $('#category_change_error_message'))
+			$('#category_change_error_message').show()
+			return false
+		ids = ''
+		for row in $.pagination_grid.g.getSelectedRows()
+			pinid = $(row).attr('pinid')
+			if ids isnt ''
+				ids = ids + ','
+			ids = ids + pinid
+		data = 
+			'ids': ids,
+			'categories': $('#categories_to_change').val()
+		$.ajax
+			type: 'POST',
+			url: '/admin/input/change_pin_categories',
+			data: data,
+			dataType: 'json',
+			success: ->
+				for row in $.pagination_grid.g.getSelectedRows()
+					pinid = $(row).attr('pinid')
+					refresh_pin(pinid)
+				return
+		$('#change_categories_dialog').dialog('close')
+		return false
+	
+	
+	$('#select_all_pins_button').click ->
+		$.pagination_grid.g.selectAll()
+	
+	
+	$('#unselect_all_pins_button').click ->
+		$.pagination_grid.g.unSelectAll()
+	
+	
+	# to make the pin loaded items wider and moved
+	# to the right
+	previous_position = $('#tabs').offset()
+	margin_to_subtract = previous_position.left
+	$('#pins_container_layer').css('margin-left', (- margin_to_subtract) + 'px')
+	$('#pins_container_layer').css('width', $(window).innerWidth() - 80)
+	
+	
+	# change the page size for loaded item
+	$('#page_size_form').on 'submit', (event) ->
+		put_filter(event, '/admin/input/change_page_size_for_loaded_items?size=', $('#page_size_field').val())
+		return
+	
+	
+	# perform a search from the tagcloud
+	$('#tagcloud span').on 'click', (event) ->
+		put_filter(event, '/admin/input/change_filter_by_tag_for_loaded_items?tag=', $(this).attr('search'))
+		return
+		
+		
+	$('#clear_tag_filter').on 'click', (event) ->
+		put_filter(event, '/admin/input/change_filter_by_tag_for_loaded_items?tag=', '')
+		return
+		
+		
+	$('#category_filter_field').on 'change', (event) ->
+		put_filter(event, '/admin/input/change_filter_by_category_for_loaded_items?category=', $(this).val())
+		return
+		
+		
+	put_filter = (event, url, filter) ->
+		event.stopPropagation()
+		event.preventDefault()
+		$.get url + filter, ->
+			$.pagination_grid.g.load({pageNumber: 1})
+			index = $('#tabs a[href="#added"]').parent().index();
+			$("#tabs").tabs("option", "active", index)
+			$('.grid-page-info .grid-page-input').val(1)
+			return
+		return
+
 	
 	return
