@@ -39,7 +39,11 @@
     height: 240px; /*width: 300px;*/
     padding: 20px;
     text-align: center;
+    display: block;
+   
 }
+/*#mainPage .pinRollItem > a
+{ min-width: 200px; overflow: hidden; display: block; margin-left: 20px; margin-right: 20px;}*/
 
 #mainPage .pinRollItem img
 {

@@ -2,12 +2,16 @@
     $(document).ready(function () {
         if ($("#mainPage").length !== 0) {
 
-            $('#pin-box-wrapper').css({ 'display': 'none' });
+            //$('#pin-box-wrapper').css({ 'display': 'none' });
             setTimeout(function () {
                 var arrPin = [], pinsCount = 0, pinWidth = [], pinPostArr = [];
 
-                $('#pin-box .pin').each(function () {
+                $('#pin-buf .pin').each(function () {
                     arrPin.push($(this));
+                    pinWidth.push($(this).find('img:first-child').width());
+                    if (pinWidth[pinsCount] == 0) {
+                        arrPin[pinsCount].find('> a').css({ 'overflow': 'hidden', 'display': 'block', 'width': '200px' });
+                    };
                     pinsCount++;
                 });
 
@@ -59,14 +63,16 @@
                 $('#fourthRow').animate({ left: ($('#fourthRow').position().left + $('#fourthRow').width()) + 'px' }, 50000);
 
 
-
-                /* $('#firstRow .pinRollItem').each(function () {
-                $(this).animate({ left: ($(this).position().left - $(this).parent().width()) + 'px' }, 25000); 
-                });
-                */
-
-            }, 7000);
+            }, 1000);
         };
+
+        if ($("#inSess").length !== 0) {
+
+            $("#mainPage").css({ 'display': 'none' });
+            $("#mainForm").css({ 'display': 'none' });
+            $('#pin-box-wrapper').css({ 'display': 'block' });
+        };
+
         if ($("#menu1").length !== 0) {
             var menuCat = [], menuCatCount = 0, mcPoint = 0;
             $('#menu1 a').each(function () {
