@@ -431,13 +431,24 @@ jQuery ->
 	
 	$('#change_categories_button').on 'click', (event) ->
 		categories_not_selected = true
+		pins = ''
 		for row in $.pagination_grid.g.getSelectedRows()
-			categories_not_selected = false
-			break
-		if categories_not_selected
+			pins_not_selected = false
+			if pins isnt ''
+				pins = pins + ','
+			pins = pins + $(row).attr('pinid')
+		if pins_not_selected
 			return
 		$('input[name=category_change_check]').prop('checked', false)
 		$('#change_categories_dialog').dialog('open')
+		data =
+			pins: pins
+		$.post '/admin/input/get_categories_for_items', data, (categories) ->
+				for category_object in categories
+					category = category_object.category_id
+					$('#change_categories_dialog').find('input[value=' + category + ']').prop('checked', true)
+				return
+			, 'json'
 		return
 
 
@@ -476,6 +487,48 @@ jQuery ->
 	
 	$('#unselect_all_pins_button').click ->
 		$.pagination_grid.g.unSelectAll()
+	
+	
+	# to make the pin loaded items wider and moved
+	# to the right
+	previous_position = $('#tabs').offset()
+	margin_to_subtract = previous_position.left
+	$('#pins_container_layer').css('margin-left', (- margin_to_subtract) + 'px')
+	$('#pins_container_layer').css('width', $(window).innerWidth() - 80)
+	
+	
+	# change the page size for loaded item
+	$('#page_size_form').on 'submit', (event) ->
+		put_filter(event, '/admin/input/change_page_size_for_loaded_items?size=', $('#page_size_field').val())
+		return
+	
+	
+	# perform a search from the tagcloud
+	$('#tagcloud span').on 'click', (event) ->
+		put_filter(event, '/admin/input/change_filter_by_tag_for_loaded_items?tag=', $(this).attr('search'))
+		return
+		
+		
+	$('#clear_tag_filter').on 'click', (event) ->
+		put_filter(event, '/admin/input/change_filter_by_tag_for_loaded_items?tag=', '')
+		return
+		
+		
+	$('#category_filter_field').on 'change', (event) ->
+		put_filter(event, '/admin/input/change_filter_by_category_for_loaded_items?category=', $(this).val())
+		return
+		
+		
+	put_filter = (event, url, filter) ->
+		event.stopPropagation()
+		event.preventDefault()
+		$.get url + filter, ->
+			$.pagination_grid.g.load({pageNumber: 1})
+			index = $('#tabs a[href="#added"]').parent().index();
+			$("#tabs").tabs("option", "active", index)
+			$('.grid-page-info .grid-page-input').val(1)
+			return
+		return
 
 	
 	return
