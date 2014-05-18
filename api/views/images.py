@@ -152,13 +152,8 @@ class ImageQuery(BaseAPI):
         request_data = web.input(query_params=[],)
         save_api_request(request_data)
 
-        logintoken = request_data.get('logintoken')
-        user_status, user = self.authenticate_by_token(logintoken)
-
-        # User id contains error code
-        if not user_status:
-            return user
-        csid_from_server = user['seriesid']
+        csid_from_client = request_data.get("csid_from_client")
+        csid_from_server = ""
 
         query_type = request_data.get("query_type")
         query_params = map(str, request_data.get("query_params"))
@@ -166,7 +161,6 @@ class ImageQuery(BaseAPI):
         if len(query_params) > 0:
             image_data_list = self.query_image(query_params)
 
-        csid_from_client = request_data.get("csid_from_client")
         data = {
             "image_data_list": image_data_list,
         }
@@ -184,6 +178,7 @@ class ImageQuery(BaseAPI):
                 tags.tags, pins.*, categories.id as category,
                 categories.name as cat_name, users.pic as user_pic,
                 users.username as user_username, users.name as user_name,
+                users.id as user_id,
                 count(distinct p1) as repin_count,
                 count(distinct l1) as like_count
             from pins
@@ -200,39 +195,54 @@ class ImageQuery(BaseAPI):
             order by timestamp desc''' % (where)
 
         images = db.query(query)
+
+        image_properties = None
         for image in images:
-            image_properties = {
-                "id": image.get('id'),
-                "name": image.get('name'),
-                "description": image.get('description'),
-                "link": image.get('link'),
-                "product_url": image.get('product_url'),
-                "price": str(image.get('price')),
-                "price_range": image.get('price_range'),
-                "board_id": image.get('board_id'),
-                "external_id": image.get('external_id'),
-                "image_url": image.get('image_url'),
-                "image_width": image.get('image_width'),
-                "image_height": image.get('image_height'),
-                "image_202_url": image.get('image_202_url'),
-                "image_202_height": image.get('image_202_height'),
-                "image_212_url": image.get('image_212_url'),
-                "image_212_height": image.get('image_212_height'),
-                "like_count": image.get('like_count'),
-                "repin_count": image.get('repin_count'),
-                "category": image.get('category'),
-                "cat_name": image.get('cat_name'),
-                "user_pic": image.get('user_pic'),
-                "user_username": image.get('user_username'),
-                "user_name": image.get('user_name')
-            }
+            if not image['id']:
+                continue
 
-            if image.get('tags'):
-                image_properties['hashtags_list'] = image.get('tags').split()
-            else:
-                image_properties['hashtags_list'] = []
+            if not image_properties or image_properties['id'] != image['id']:
+                image_properties = {
+                    "id": image.get('id'),
+                    "name": image.get('name'),
+                    "description": image.get('description'),
+                    "link": image.get('link'),
+                    "timestamp": image.get('timestamp'),
+                    "product_url": image.get('product_url'),
+                    "price": str(image.get('price')),
+                    "price_range": image.get('price_range'),
+                    "board_id": image.get('board_id'),
+                    "external_id": image.get('external_id'),
+                    "repin": image.get('repin'),
+                    "views": image.get('views'),
+                    "image_url": image.get('image_url'),
+                    "image_width": image.get('image_width'),
+                    "image_height": image.get('image_height'),
+                    "image_202_url": image.get('image_202_url'),
+                    "image_202_height": image.get('image_202_height'),
+                    "image_212_url": image.get('image_212_url'),
+                    "image_212_height": image.get('image_212_height'),
+                    "like_count": image.get('like_count'),
+                    "repin_count": image.get('repin_count'),
+                    "category": image.get('category'),
+                    "cat_name": image.get('cat_name'),
+                    "user_id": image.get('user_id'),
+                    "user_pic": image.get('user_pic'),
+                    "user_username": image.get('user_username'),
+                    "user_name": image.get('user_name')
+                }
 
-            image_data_list.append(image_properties)
+                if image.get('tags'):
+                    image_properties['tags'] = \
+                        image.get('tags').split()
+                else:
+                    image_properties['tags'] = []
+
+                image_data_list.append(image_properties)
+            elif image.get('tags'):
+                image_properties['tags'] = \
+                    image_properties['tags'] + \
+                    image.get('tags').split()
 
         return image_data_list
 
@@ -400,25 +410,22 @@ class QueryCategory(BaseAPI):
                                request_data.get("category_id_list"))
         page = request_data.get("page")
         items_per_page = request_data.get("items_per_page")
+        not_private = request_data.get("not_private", False)
 
         csid_from_client = request_data.get('csid_from_client')
-        logintoken = request_data.get('logintoken')
-        user_status, user = self.authenticate_by_token(logintoken)
-
-        # User id contains error code
-        if not user_status:
-            return user
-
-        csid_from_server = user['seriesid']
+        csid_from_server = ""
 
         if query_type == "all" or not query_type:
-            data = self.get_all(category_id_list)
+            data = self.get_all(category_id_list, not_private)
 
         elif query_type == "new":
-            data = self.get_new(category_id_list)
+            data = self.get_new(category_id_list, not_private)
 
         elif query_type == "range":
-            data = self.get_range(category_id_list, page, items_per_page)
+            data = self.get_range(category_id_list,
+                                  page,
+                                  items_per_page,
+                                  not_private)
 
         response = api_response(data=data,
                                 status=status,
@@ -427,7 +434,7 @@ class QueryCategory(BaseAPI):
                                 csid_from_server=csid_from_server)
         return response
 
-    def get_all(self, category_id_list):
+    def get_all(self, category_id_list, not_private):
         data = {}
         image_id_list = []
 
@@ -436,9 +443,13 @@ class QueryCategory(BaseAPI):
             where = "pins_categories.category_id in (%s)" % \
                 ','.join(category_id_list)
 
+        if not_private:
+            where = where + " AND not users.private"
+
         pins = db.query("SELECT * FROM pins \
                         JOIN pins_categories \
                         ON pins_categories.pin_id = pins.id \
+                        LEFT JOIN users ON pins.user_id = users.id \
                         WHERE %s \
                         ORDER BY pins.timestamp desc" % (where))\
             .list()
@@ -451,7 +462,7 @@ class QueryCategory(BaseAPI):
 
         return data
 
-    def get_new(self, category_id_list):
+    def get_new(self, category_id_list, not_private):
         data = {}
         image_id_list = []
         timestamp_with_delta = int(
@@ -467,9 +478,13 @@ class QueryCategory(BaseAPI):
             where = "pins_categories.category_id in (%s)" % \
                 ','.join(category_id_list)
 
+        if not_private:
+            where = where + " AND not users.private"
+
         pins = db.query("SELECT * FROM pins \
                         JOIN pins_categories \
                         ON pins_categories.pin_id = pins.id \
+                        LEFT JOIN users ON pins.user_id = users.id \
                         WHERE %s and \
                         pins.timestamp >= %d \
                         ORDER BY pins.timestamp desc" %
@@ -484,7 +499,7 @@ class QueryCategory(BaseAPI):
 
         return data
 
-    def get_range(self, category_id_list, page, items_per_page):
+    def get_range(self, category_id_list, page, items_per_page, not_private):
         data = {}
         image_id_list = []
 
@@ -506,9 +521,13 @@ class QueryCategory(BaseAPI):
             where = "pins_categories.category_id in (%s)" % \
                 ','.join(category_id_list)
 
+        if not_private:
+            where = where + " AND not users.private"
+
         pins = db.query("SELECT * FROM pins \
                         JOIN pins_categories \
                         ON pins_categories.pin_id = pins.id \
+                        LEFT JOIN users ON pins.user_id = users.id \
                         WHERE %s \
                         ORDER BY pins.timestamp desc" % (where))\
             .list()
@@ -577,6 +596,99 @@ class QueryHashtags(BaseAPI):
                                 csid_from_client=csid_from_client,
                                 csid_from_server=csid_from_server)
         return response
+
+
+class QueryGetByHashtags(BaseAPI):
+    """
+    API for receiving pins by hashtag
+    """
+    def POST(self):
+        request_data = web.input(
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from request
+        hashtag = request_data.get("hashtag", None)
+        page = request_data.get("page")
+        items_per_page = request_data.get("items_per_page", 10)
+        not_private = request_data.get("not_private", False)
+
+        csid_from_client = request_data.get('csid_from_client')
+        csid_from_server = ""
+
+        if not hashtag:
+            status = 400
+            error_code = "Invalid input data"
+        else:
+            data = self.get_range(hashtag,
+                                  page,
+                                  items_per_page,
+                                  not_private)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+    def get_range(self, hashtag, page, items_per_page, not_private):
+        data = {}
+        image_id_list = []
+
+        if page:
+            page = int(page)
+            if page < 1:
+                page = 1
+
+        if not items_per_page:
+            items_per_page = 10
+            if items_per_page < 1:
+                items_per_page = 1
+        else:
+            items_per_page = int(items_per_page)
+
+        where = "random() < 0.1"
+        if hashtag:
+            where = "tags.tags LiKE '%%%s%%'" % \
+                hashtag
+
+        if not_private:
+            where = where + " AND not users.private"
+
+        pins = db.query("SELECT * FROM pins \
+                        JOIN tags \
+                        ON tags.pin_id = pins.id \
+                        LEFT JOIN users ON pins.user_id = users.id \
+                        WHERE %s \
+                        ORDER BY pins.timestamp desc" % (where))\
+            .list()
+
+        for pin in pins:
+            if hashtag and hashtag not in pin['tags'].split():
+                continue
+
+            if pin['pin_id'] not in image_id_list:
+                image_id_list.append(pin['pin_id'])
+
+        if page:
+            data['pages_count'] = math.ceil(float(len(image_id_list)) /
+                                            float(items_per_page))
+            data['pages_count'] = int(data['pages_count'])
+            data['page'] = page
+            data['items_per_page'] = items_per_page
+
+            start = (page-1) * items_per_page
+            end = start + items_per_page
+            data['image_id_list'] = image_id_list[start:end]
+        else:
+            data['image_id_list'] = image_id_list
+
+        return data
 
 
 def _generate_external_id():

@@ -221,63 +221,99 @@ def json_pins(pins, template=None):
 
 class PageIndex:
     def GET(self, first_time=None):
-        query1 = '''
-            select
-                pins.*, tags.tags, categories.slug as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
-                count(distinct p1) as repin_count,
-                count(distinct l1) as like_count
-            from pins
-                left join tags on tags.pin_id = pins.id
-                left join pins p1 on p1.repin = pins.id
-                left join likes l1 on l1.pin_id = pins.id
-                left join users on users.id = pins.user_id
-                left join follows on follows.follow = users.id
-                left join categories on categories.id in
-                    (select category_id from pins_categories where pin_id = pins.id limit 1)
-            where users.id = $id
-            group by tags.tags, categories.id, pins.id, users.id offset %d limit %d'''
+        # query1 = '''
+        #     select
+        #         pins.*, tags.tags, categories.slug as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+        #         count(distinct p1) as repin_count,
+        #         count(distinct l1) as like_count
+        #     from pins
+        #         left join tags on tags.pin_id = pins.id
+        #         left join pins p1 on p1.repin = pins.id
+        #         left join likes l1 on l1.pin_id = pins.id
+        #         left join users on users.id = pins.user_id
+        #         left join follows on follows.follow = users.id
+        #         left join categories on categories.id in
+        #             (select category_id from pins_categories where pin_id = pins.id limit 1)
+        #     where users.id = $id
+        #     group by tags.tags, categories.id, pins.id, users.id offset %d limit %d'''
 
-        query2 = '''
-            select
-                tags.tags, pins.*, categories.slug as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
-                count(distinct p1.id) as repin_count,
-                count(distinct l1) as like_count
-            from pins
-                left join tags on tags.pin_id = pins.id
-                left join users on users.id = pins.user_id
-                left join pins p1 on p1.repin = pins.id
-                left join likes l1 on l1.pin_id = pins.id
-                left join categories on categories.id in
-                    (select category_id from pins_categories where pin_id = pins.id limit 1)
-            where not users.private
-            group by tags.tags, categories.id, pins.id, users.id order by timestamp desc offset %d limit %d'''
+        # query2 = '''
+        #     select
+        #         tags.tags, pins.*, categories.slug as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+        #         count(distinct p1.id) as repin_count,
+        #         count(distinct l1) as like_count
+        #     from pins
+        #         left join tags on tags.pin_id = pins.id
+        #         left join users on users.id = pins.user_id
+        #         left join pins p1 on p1.repin = pins.id
+        #         left join likes l1 on l1.pin_id = pins.id
+        #         left join categories on categories.id in
+        #             (select category_id from pins_categories where pin_id = pins.id limit 1)
+        #     where not users.private
+        #     group by tags.tags, categories.id, pins.id, users.id order by timestamp desc offset %d limit %d'''
 
-        offset = int(web.input(offset=0).offset)
+        offset = int(web.input(offset=1).offset)
         ajax = int(web.input(ajax=0).ajax)
-
-        query = (query1 if logged_in(sess) else query2) % (offset * PIN_COUNT, PIN_COUNT)
-        qvars = {}
-        if logged_in(sess):
-            qvars['id'] = sess.user_id
-
         pins = []
-        results = db.query(query, vars=qvars)
-        current_pin = None
-        for row in results:
-            if not current_pin or current_pin.id != row.id:
-                current_pin = row
-                pins.append(current_pin)
-                tag = current_pin.tags
-                current_pin.tags = []
-                if tag:
-                    current_pin.tags.append(tag)
-            else:
-                tag = row.tags
-                if tag and tag not in current_pin.tags:
-                    current_pin.tags.append(tag)
+
+        data_to_send = {
+            'csid_from_client': '',
+            'page': offset,
+            'items_per_page': PIN_COUNT
+        }
+
+        if logged_in(sess):
+            data_to_send['user_id'] = sess.user_id
+            url = "api/profile/userinfo/pins"
+        else:
+            data_to_send['query_type'] = "range"
+            data_to_send['not_private'] = True
+            url = "api/image/query/category"
+
+        data = api_request(url, "POST", data_to_send)
+        if data['status'] == 200:
+            image_id_list = data['data'].get('image_id_list', None)
+            if image_id_list is None:
+                pins_list = data['data'].get('pins_list', [])
+                image_id_list = [pin['id'] for pin in pins_list]
+
+            data_for_image_query = {
+                "csid_from_client": '',
+                "query_params": image_id_list
+            }
+            data_from_image_query = api_request("api/image/query",
+                                                "POST",
+                                                data_for_image_query)
+
+            if data_from_image_query['status'] == 200:
+                pins = data_from_image_query['data']['image_data_list']
+
+        pins = [pin_utils.dotdict(pin) for pin in pins]
+
+        # query = (query1 if logged_in(sess) else query2) % (offset * PIN_COUNT, PIN_COUNT)
+        # qvars = {}
+        # if logged_in(sess):
+        #     qvars['id'] = sess.user_id
+
+        # pins = []
+        # results = db.query(query, vars=qvars)
+        # current_pin = None
+        # for row in results:
+        #     if not current_pin or current_pin.id != row.id:
+        #         current_pin = row
+        #         pins.append(current_pin)
+        #         tag = current_pin.tags
+        #         current_pin.tags = []
+        #         if tag:
+        #             current_pin.tags.append(tag)
+        #     else:
+        #         tag = row.tags
+        #         if tag and tag not in current_pin.tags:
+        #             current_pin.tags.append(tag)
 
         if ajax:
             return json_pins(pins)
+
         return ltpl('index', pins, first_time)
 
 class PageLogin:
@@ -375,9 +411,14 @@ class PageDashboard:
 class PageBoards:
     def GET(self, bid = None):
         force_login(sess)
-        boards = db.select('boards',
-            where='user_id=$user_id',
-            vars={'user_id': sess.user_id})
+        data = {
+            'csid_from_client': "",
+            'user_id': sess.user_id
+        }
+
+        boards = api_request("/api/profile/userinfo/boards",
+                             data=data).get("data", [])
+        boards = [pin_utils.dotdict(board) for board in boards]
         user = dbget('users',sess.user_id)
         return ltpl('boards', boards, user)
 
@@ -564,9 +605,14 @@ class PageRepin:
 
         force_login(sess)
 
-        lists = db.select('boards',
-            where='user_id=$user_id',
-            vars={'user_id': sess.user_id})
+        data = {
+            'csid_from_client': "",
+            'user_id': sess.user_id
+        }
+
+        boards = api_request("/api/profile/userinfo/boards",
+                             data=data).get("data", [])
+        lists = [pin_utils.dotdict(board) for board in boards]
 
         pin_id = int(pin_id)
         pin = dbget('pins', pin_id)
@@ -634,45 +680,6 @@ class PageRepin:
             logger.error('Failed to add to get list', exc_info=True)
             transaction.rollback()
             return 'Server error'
-
-
-class PageEditProfile:
-    _form = form.Form(
-        form.Textbox('name'),
-        form.Dropdown('country', []),
-        form.Textbox('hometown'),
-        form.Textbox('city'),
-        form.Textbox('zip'),
-        form.Textbox('username'),
-        form.Textbox('website'),
-        form.Textarea('about'),
-    )
-
-    def GET(self, name=None):
-        force_login(sess)
-        user = dbget('users', sess.user_id)
-        photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id})
-        msg = web.input(msg=None)['msg']
-        return ltpl('editprofile', user, settings.COUNTRIES, name, photos, msg)
-
-    def POST(self, name=None):
-        user = dbget('users', sess.user_id)
-        force_login(sess)
-
-        form = self._form()
-        if not form.validates():
-            return 'you need to fill in everything'
-
-        db.update('users', where='id = $id',
-            name=form.d.name, about=form.d.about, username=form.d.username,
-            zip=(form.d.zip or None), website=form.d.website, country=form.d.country,
-            hometown=form.d.hometown, city=form.d.city,
-            vars={'id': sess.user_id})
-        get_input = web.input(_method='get')
-        if 'user_profile' in get_input:
-            raise web.seeother('/%s?editprofile=1' % user.username)
-        raise web.seeother('/settings/profile')
-
 
 
 # class PageChangeEmail:
@@ -977,11 +984,13 @@ class PageProfile2:
                 api_request("/notifications/add", data=notif_context)
 
         # Offset for rendering
-        offset = int(web.input(offset=0).offset)
+        offset = int(web.input(offset=1).offset)
+        data['page'] = offset
+        data['items_per_page'] = PIN_COUNT
 
         show_private = is_logged_in and sess.user_id == user.id
 
-        pins = api_request("/api/profile/userinfo/pins", data=data).get("data")
+        pins = api_request("/api/profile/userinfo/pins", data=data).get("data").get("pins_list")
         pins = [pin_utils.dotdict(pin) for pin in pins]
 
         # Handle ajax request to pins
@@ -1000,7 +1009,6 @@ class PageProfile2:
                 edit_profile = True
                 if get_input['editprofile']:
                     edit_profile_done = True
-
             return ltpl('profile', user, pins, offset, PIN_COUNT, hashed,
                         edit_profile, edit_profile_done, boards,
                         categories_to_select)
@@ -1044,14 +1052,20 @@ class PageAddFriend:
 class PageMessages:
     def GET(self):
         force_login(sess)
-        convos = db.query('''
-            select convos.*, users.name from convos
-                join users on users.id = (case
-                    when convos.id1 = $id then convos.id2
-                    else convos.id1
-                end)
-            where id1 = $id or id2 = $id''', vars={'id': sess.user_id})
-        return ltpl('messages', convos)
+        logintoken = convert_to_logintoken(sess.user_id)
+
+        if logintoken:
+            data = {
+                "logintoken": logintoken,
+                "csid_from_client": '',
+            }
+
+            data = api_request("api/social/query/conversations", "POST", data)
+
+            if data['status'] == 200:
+                conversations = [pin_utils.dotdict(c) for
+                    c in data['data']['conversations']]
+                return ltpl('messages', conversations)
 
 
 class PageNewConvo:
@@ -1079,43 +1093,54 @@ class PageConvo:
         force_login(sess)
         convo_id = int(convo_id)
 
-        convo = db.query('''
-            select convos.id, users.id as user_id, users.name from convos
-                join users on users.id = (case
-                    when convos.id1 = $id then convos.id2
-                    else convos.id1
-                end)
-            where (convos.id = $convo_id and
-                   convos.id1 = $id or convos.id2 = $id)''',
-            vars={'convo_id': convo_id, 'id': sess.user_id})
-        if not convo:
-            return 'convo not found'
+        logintoken = convert_to_logintoken(sess.user_id)
 
-        messages = db.query('''
-            select messages.*, users.name from messages
-                join users on users.id = messages.sender
-            where messages.convo_id = $convo_id''',
-            vars={'convo_id': convo_id})
+        if logintoken:
+            data = {
+                "logintoken": logintoken,
+                "csid_from_client": '',
+                "conversation_id": convo_id,
+            }
 
-        return ltpl('convo', convo[0], messages)
+            data = api_request("api/social/query/messages", "POST", data)
+
+            if data['status'] == 200:
+                convo = pin_utils.dotdict(data['data']['conversation'])
+                messages = [pin_utils.dotdict(m) for
+                    m in data['data']['messages']]
+
+                return ltpl('convo', convo, messages)
+            else:
+                return data['error_code']
 
     def POST(self, convo_id):
         force_login(sess)
         convo_id = int(convo_id)
 
-        allowed = bool(
-            db.select('convos', what='1',
-                      where='id = $cid and (id1 = $id or id2 = $id)',
-                      vars={'cid': convo_id, 'id': sess.user_id}))
-        if not allowed:
-            return 'convo not found'
-
         form = self._form()
-        if not form.validates():
+        if not form.validates() or not form.d.content:
             return 'fill everything in'
 
-        db.insert('messages', convo_id=convo_id, sender=sess.user_id,
-                  content=form.d.content)
+        logintoken = convert_to_logintoken(sess.user_id)
+
+        if logintoken:
+            data = {
+                "logintoken": logintoken,
+                "csid_from_client": '',
+                "conversation_id_list": [convo_id],
+                "content": form.d.content
+            }
+
+            data = api_request("api/social/message_to_conversation",
+                               "POST",
+                               data)
+
+            if data['status'] == 200:
+                raise web.seeother('/convo/%d' % convo_id)
+            else:
+                raise web.seeother('/convo/%d?msg=%s' % (convo_id, 
+                                                         data['error_code']))
+
         raise web.seeother('/convo/%d' % convo_id)
 
 
@@ -1855,13 +1880,14 @@ class PageCategory:
                     cid = scrow.id
                     break
         pins = db.query(query, vars={'cid': cid})
-        lists = db.select('boards',
-        where='user_id=$user_id',
-        vars={'user_id': sess.user_id})
+        data = {
+            'csid_from_client': "",
+            'user_id': sess.user_id
+        }
 
-        boards = db.where(table='boards', order='name', user_id=sess.user_id)
-
-        print lists
+        boards = api_request("/api/profile/userinfo/boards",
+                             data=data).get("data", [])
+        boards = [pin_utils.dotdict(board) for board in boards]
         if ajax:
             return json_pins(pins, 'horzpin')
         return ltpl('category', pins, category, all_categories, subcategories, boards)
@@ -1880,42 +1906,43 @@ class PageSearchItems:
         force_login(sess)
 
         orig = web.input(q='').q
-        q = make_query(orig)
-        offset = int(web.input(offset=0).offset)
+        hashtag = web.input(h='').h
+        offset = int(web.input(offset=1).offset)
         ajax = int(web.input(ajax=0).ajax)
 
-        query = """
-            select
-                tags.tags, pins.*, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
-                ts_rank_cd(to_tsvector(tags.tags), query) as rank1,
-                ts_rank_cd(pins.tsv, query) as rank2
-            from pins
-                left join tags on tags.pin_id = pins.id
-                join to_tsquery('""" + q + """') query on true
-                left join users on users.id = pins.user_id
-                left join follows on follows.follow = users.id
-                left join categories on categories.id in
-                    (select category_id from pins_categories
-                    where pin_id = pins.id limit 1)
-            where query @@ pins.tsv or query @@ to_tsvector(tags.tags)
-            group by tags.tags, categories.id, pins.id, users.id, query.query
-            order by rank1, rank2 desc offset %d limit %d""" % (offset * PIN_COUNT, PIN_COUNT)
+        logintoken = convert_to_logintoken(sess.get('user_id'))
+        data = {
+            "csid_from_client": '',
+            "logintoken": logintoken,
+            "page": offset,
+            "items_per_page": PIN_COUNT
+        }
 
-        results = db.query(query)
+        if hashtag:
+            data['hashtag'] = hashtag
+            url = "api/image/query/get_by_hashtags"
+        else:
+            data['query'] = orig
+            url = "api/search/items"
+
         pins = []
-        current_pin = None
-        for row in results:
-            if not current_pin or current_pin.id != row.id:
-                current_pin = row
-                pins.append(current_pin)
-                tag = current_pin.tags
-                current_pin.tags = []
-                if tag:
-                    current_pin.tags.append(tag)
-            else:
-                tag = row.tags
-                if tag and tag not in current_pin.tags:
-                    current_pin.tags.append(tag)
+
+        data = api_request(url, "POST", data)
+        if data['status'] == 200:
+            data_for_image_query = {
+                "csid_from_client": '',
+                "logintoken": logintoken,
+                "query_params": data['data']['image_id_list']
+            }
+            data_from_image_query = api_request("api/image/query",
+                                                "POST",
+                                                data_for_image_query)
+
+            if data_from_image_query['status'] == 200:
+                pins = data_from_image_query['data']['image_data_list']
+
+        pins = [pin_utils.dotdict(pin) for pin in pins]
+
         if ajax:
             return json_pins(pins, 'horzpin')
         return ltpl('search', pins, orig)
@@ -1928,17 +1955,19 @@ class PageSearchPeople:
         orig = web.input(q='').q
         q = make_query(orig)
 
-        query = """
-            select
-                users.*, ts_rank_cd(users.tsv, query) as rank,
-                count(distinct f1) <> 0 as is_following
-            from users
-                join to_tsquery('""" + q + """') query on true
-                left join follows f1 on f1.follower = $user_id and f1.follow = users.id
-            where query @@ users.tsv group by users.id, query.query
-            order by rank desc"""
+        logintoken = convert_to_logintoken(sess.get('user_id'))
+        data = {
+            "csid_from_client": '',
+            "logintoken": logintoken,
+            "query": orig
+        }
 
-        users = db.query(query, vars={'user_id': sess.user_id})
+        data = api_request("api/search/people", "POST", data)
+        if data['status'] == 200:
+            users = data['data']['users']
+
+        users = [pin_utils.dotdict(user) for user in users]
+
         return ltpl('searchpeople', users, orig)
 
 

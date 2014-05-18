@@ -1,6 +1,6 @@
 $def with (user, pins, offset, pin_count, hashed, edit_profile=None, edit_profile_done=None, boards={}, categories_to_select={})
 
-$:tpl('profileheading', user, hashed, edit_profile,edit_profile_done)
+$:tpl('profileheading', user, hashed, edit_profile, edit_profile_done)
 <hr/>
 
 $:tpl('pins', pins, 'horzpin2', None, edit_profile, boards, categories_to_select)
