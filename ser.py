@@ -34,6 +34,7 @@ import mypinnings.register
 import mypinnings.facebook
 import mypinnings.google
 import mypinnings.register_twitter
+from mypinnings.register import valid_email
 import mypinnings.pin
 import mypinnings.profile_settings
 import admin
@@ -220,6 +221,20 @@ def json_pins(pins, template=None):
 
 
 class PageIndex:
+    if not hasattr(settings, 'LANGUAGES') or not settings.LANGUAGES:
+        languages = (('en', 'English'),)
+    else:
+        languages = settings.LANGUAGES
+    _form = web.form.Form(
+        web.form.Textbox('username', web.form.notnull, id='username', autocomplete='off'),
+        web.form.Textbox('name', web.form.notnull, autocomplete='off',
+                         description="Complete name"),
+        web.form.Textbox('email', valid_email, web.form.notnull, autocomplete='off', id='email'),
+        web.form.Password('password', web.form.notnull, id='password', autocomplete='off'),
+        web.form.Dropdown('language', languages, web.form.notnull),
+        web.form.Button('Let\'s get started!')
+    )
+
     def GET(self, first_time=None):
         # query1 = '''
         #     select
@@ -314,7 +329,8 @@ class PageIndex:
         if ajax:
             return json_pins(pins)
 
-        return ltpl('index', pins, first_time)
+        form = self._form()
+        return ltpl('index', pins, first_time, form)
 
 class PageLogin:
     _form = form.Form(
