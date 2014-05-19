@@ -99,4 +99,20 @@
         };
 
     });
+
+    
+    $("#signShow").click(function () {
+        $("#mainForm .signForm form").slideToggle("slow", function () {
+            // Animation complete.
+        });
+        $("#signFb").slideToggle("slow", function () {
+            // Animation complete.
+        });
+        if ($("#signShow p").html() == "Signup") {
+            $("#signShow p").html("Social signup");
+        } else {
+            $("#signShow p").html("Signup"); 
+        };
+
+    });
 });

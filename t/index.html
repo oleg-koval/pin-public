@@ -22,14 +22,15 @@ $:tpl('pins', pins)
             <div id="fourthRow">
                 <!--Roll Pins On Main Page-->
             </div>
-        </div>
+        </div>        
 </div>
 <div id="mainForm">
 
     <div class="signForm">
-        <p style="color: #f8a41a; font-size: 36px;">MyPinnings</p>
-        <br />
-	    <form class='width-auto' method='post' action=''>
+        <p class="sfTitle"><b>"Things you're getting!"</b></p>
+        
+        <p class="sfSubTitle"><b>#getlist is social website that help you discover new things to get and to experience.</b></p>
+	    <form  method='post' action=''>
 			<table>
 			    <tr><th><label for="username">username</label></th><td>$:form['username'].render()</td></tr>
 			    <tr><th><label for="name">Complete name</label></th><td>$:form['name'].render()</td></tr>
@@ -38,13 +39,17 @@ $:tpl('pins', pins)
 			    <tr><th><label for="language">language</label></th><td>$:form['language'].render()</td></tr>
 			    <tr><th><label for="Let's get started!"></label></th><td><button id="Let&#39;s get started!" name="Let&#39;s get started!">Let&#39;s get started!</button></td></tr>
 			</table>
-	    </form>              
-        <div>
-            <a class="signupfb" href="/facebook/register/">Signup with Facebook</a>
+	    </form>   
+        <div id="signShow"><p>Signup</p></div>   
+        <div id="signFb">        
+            <div>
+                <a class="signupfb" href="/facebook/register/">Signup with Facebook</a>
+            </div>
+            <div>
+                <a class="signupgg" href="/google/register/">Signup with Google+</a>
+            </div>
         </div>
-        <div>
-            <a class="signupgg" href="/google/register/">Signup with Google+</a>
-        </div>
+        <p class="redimg"><a href='/login'>Already have an account?</a></p>
     </div>
 
 </div>
