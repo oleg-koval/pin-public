@@ -558,7 +558,7 @@ class PageAddPinUrl:
 
 class PageRemoveRepin:
     def GET(self):
-        global all_categories
+        all_categories = cached_models.get_categories()
 
         force_login(sess)
         info = {'error':True}
@@ -597,7 +597,7 @@ class PageRepin:
         )()
 
     def GET(self, pin_id):
-        global all_categories
+        all_categories = cached_models.get_categories()
 
         force_login(sess)
 
@@ -1533,7 +1533,7 @@ class PageSetProfilePic:
 
 class PageSort:
     def GET(self, pin_id=None, action='next'):
-        global all_categories
+        all_categories = cached_models.get_categories()
 
         if pin_id is None:
             pin = db.select('temp_pins', where='category is null', limit=1)
@@ -1823,7 +1823,7 @@ class PageFollowedBy:
 
 class PageBrowse:
     def GET(self):
-        global all_categories
+        all_categories = cached_models.get_categories()
 
         categories = list(all_categories)
         categories.append({'name': 'Random', 'id': 0, 'slug': ''})

@@ -109,7 +109,7 @@ class PageCategory:
 
         return template.ltpl('category',
                              self.category,
-                             cached_models.all_categories,
+                             cached_models.get_categories(),
                              subcategories,
                              boards,
                              siblings_categories,
