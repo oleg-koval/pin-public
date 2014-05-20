@@ -11,3 +11,5 @@ facebook-sdk==0.4.0
 BeautifulSoup==3.2.1
 argparse
 boto==2.27.0
+futures==2.1.6
+threadpool==1.2.7

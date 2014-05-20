@@ -6,10 +6,41 @@ $ pins = list(pins)
 
 $if edit_profile:
 	<div id='pin-box-wrapper' class='tab-pane fade'>
-	<div id='pin-box' class='pins'></div>
+		<div class="greyLine">
+            <img src="/static/img/redCr.png" />
+            <input type="text" value="Things you're getting, food you're trying, places you're visiting."
+                onfocus="this.value=''" onblur="this.value='Things you are getting, food you are trying, places you are visiting.'" />
+            <a class="button" href="#">Post</a>
+            <div class="dropdown profDrop">
+                <a data-toggle="dropdown" href="#"><span class="flaticon-lock27"></span>Only me <i
+                    class="flaticon-arrow486"></i></a>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                    <li><span class="flaticon-lock27"></span>Only me</li>
+                    <li>All</li>
+                </ul>
+            </div>
+        </div>
+		<div id='pin-box' class='pins'></div>
+        <div class="inContentiySmoktunovskiy">
 $else:
 	<div id='pin-box-wrapper' class='tab-pane fade active in'>
-	<div id='pin-box' class='pins'></div>
+		<div class="greyLine">
+            <img src="/static/img/redCr.png" />
+            <input type="text" value="Things you're getting, food you're trying, places you're visiting."
+                onfocus="this.value=''" onblur="this.value='Things you are getting, food you are trying, places you are visiting.'" />
+            <a class="button" href="#">Post</a>
+            <div class="dropdown profDrop">
+                <a data-toggle="dropdown" href="#"><span class="flaticon-lock27"></span>Only me <i
+                    class="flaticon-arrow486"></i></a>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                    <li><span class="flaticon-lock27"></span>Only me</li>
+                    <li>All</li>
+                </ul>
+            </div>
+        </div>
+		<div id='pin-box' class='pins'></div>
+
+        <div class="inContentiySmoktunovskiy">
         <div class='' id='pin-buf'>
 	  $ i = 0
 	  $for pin in pins:
@@ -34,4 +65,5 @@ $else:
 	<script type='text/javascript' src='/static/masonry.pkgd.min.js'></script>
 	<script type='text/javascript' src='/static/imagesloaded.pkgd.min.js'></script>
 	<!--<script type='text/javascript' src='/static/infinite.js'></script>-->
+	</div>
 </div>

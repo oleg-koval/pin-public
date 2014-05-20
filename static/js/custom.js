@@ -67,10 +67,9 @@
         };
 
         if ($("#inSess").length !== 0) {
-
-            $("#mainPage").css({ 'display': 'none' });
-            $("#mainForm").css({ 'display': 'none' });
-            $('#pin-box-wrapper').css({ 'display': 'block' });
+            // $("#mainPage").css({ 'display': 'none' });
+            // $("#mainForm").css({ 'display': 'none' });
+            // $('#pin-box-wrapper').css({ 'display': 'block' });
         };
 
         if ($("#menu1").length !== 0) {
