@@ -59,7 +59,7 @@ urls = (
 
     # API for social networks: posting on user page
     "/social/poup", api.views.social.PostingOnUserPage,
-    "/social/query/(follower|follow)", api.views.social.QueryFollowers,
+    "/social/query/(followed-by|following)", api.views.social.QueryFollows,
     "/social/message", api.views.social.SocialMessage,
     "/social/message_to_conversation", \
         api.views.social.SocialMessageToConversation,
@@ -74,7 +74,7 @@ urls = (
 
     # API for categories: get categories list
     "/categories/get", api.views.categories.GetCategories
-)
+    )
 web.config.debug = True
 api_app = web.application(urls, globals(), autoreload=True)
 

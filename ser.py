@@ -914,33 +914,21 @@ class PageProfile2:
         """
         Returns user profile information by username
         """
-
+        logintoken = convert_to_logintoken(sess.user_id)
         data = {"csid_from_client": ""}
 
         # Getting profile of a given user
         profile_url = "/api/profile/userinfo/info"
         profile_owner_context = {
             "csid_from_client": "",
-            "username": username}
+            "username": username,
+            "logintoken": logintoken}
         user = api_request(profile_url, data=profile_owner_context)\
             .get("data", [])
+
         if len(user) == 0:
             return u"Profile was not found"
         user = pin_utils.dotdict(user)
-
-        # Getting followers/follows of a given user
-        follow_url = "/api/social/query/%s"
-        followers_context = {
-            "csid_from_client": "",
-            "user_id": user.id}
-        followers = api_request(follow_url % ('follower'),
-                                data=followers_context).get('data')
-        follows = api_request(follow_url % ('follow'),
-                              data=followers_context).get('data')
-
-
-        user['follower_count'] = len(followers['user_id_list'])
-        user['follow_count'] = len(follows['user_id_list'])
 
         # Updating api_request data with user_id
         data['user_id'] = user.id
@@ -1760,32 +1748,35 @@ class PageDavid:
 
 
 class PageFollowing:
+    """
+    Renders the page with a list of users followed by profile owner
+    """
     def GET(self, uid):
         force_login(sess)
-
         uid = int(uid)
-        user = db.query('''
-            select users.*,
-                count(distinct f1) as follower_count,
-                count(distinct f2) as follow_count
-            from users
-                left join follows f1 on f1.follow = users.id
-                left join follows f2 on f2.follower = users.id
-            where users.id = $id group by users.id''', vars={'id': uid})
-        if not user:
-            return 'User not found.'
-
-        user = user[0]
+        logintoken = convert_to_logintoken(sess.user_id)
+        # Getting profile of a given user
+        profile_url = "/api/profile/userinfo/info"
+        profile_owner_context = {
+            "csid_from_client": "",
+            "id": uid,
+            "logintoken": logintoken}
+        user = api_request(profile_url, data=profile_owner_context)\
+            .get("data", [])
+        if len(user) == 0:
+            return u"Profile was not found"
+        user = pin_utils.dotdict(user)
 
         hashed = rs()
-        results = db.query('''
-            select
-                users.*,
-                count(distinct f1) <> 0 as is_following
-            from follows
-                join users on users.id = follows.follow
-                join follows f1 on f1.follower = $user_id and f1.follow = users.id
-            where follows.follower = $id group by users.id''', vars={'id': uid, 'user_id': sess.user_id})
+
+        # Getting followers of a given user
+        follow_url = "/api/social/query/following"
+        followers_context = {
+            "csid_from_client": "",
+            "user_id": user.id,
+            "logintoken": logintoken}
+        followers = api_request(follow_url, data=followers_context).get("data")
+        results = [pin_utils.dotdict(follower) for follower in followers]
         return ltpl('following', user, results, hashed)
 
 
@@ -1794,30 +1785,31 @@ class PageFollowedBy:
         force_login(sess)
 
         uid = int(uid)
+        logintoken = convert_to_logintoken(sess.user_id)
+        # Getting profile of a given user
+        profile_url = "/api/profile/userinfo/info"
+        profile_owner_context = {
+            "csid_from_client": "",
+            "id": uid,
+            "logintoken": logintoken}
+        user = api_request(profile_url, data=profile_owner_context)\
+            .get("data", [])
+        if len(user) == 0:
+            return u"Profile was not found"
 
-        user = db.query('''
-            select users.*,
-                count(distinct f1) as follower_count,
-                count(distinct f2) as follow_count
-            from users
-                left join follows f1 on f1.follow = users.id
-                left join follows f2 on f2.follower = users.id
-            where users.id = $id group by users.id''', vars={'id': uid})
-        if not user:
-            return 'User not found.'
-
-        user = user[0]
+        user = pin_utils.dotdict(user)
 
         hashed = rs()
-        results = db.query('''
-            select
-                users.*,
-                count(distinct f1) <> 0 as is_following
-            from follows
-                join users on users.id = follows.follow
-                left join follows f1 on f1.follower = $user_id and f1.follow = users.id
-            where follows.follower = $id group by users.id''', vars={'id': uid, 'user_id': sess.user_id})
 
+                # Getting followers of a given user
+        follow_url = "/api/social/query/followed-by"
+        followers_context = {
+            "csid_from_client": "",
+            "user_id": user.id,
+            "logintoken": logintoken}
+
+        follows = api_request(follow_url, data=followers_context).get("data")
+        results = [pin_utils.dotdict(follow) for follow in follows]
         return ltpl('followedby', user, results, hashed)
 
 

@@ -1,6 +1,9 @@
 import web
 import os
+
 from api.utils import api_response, save_api_request
+from api.entities import UserProfile
+
 from api.views.base import BaseAPI
 from mypinnings.database import connect_db
 import facebook
@@ -213,7 +216,7 @@ def share_via_linkedin(access_token, message, link, image_url):
         return False
 
 
-class QueryFollowers(BaseAPI):
+class QueryFollows(BaseAPI):
     """
     Class responsible for providing access to followers of a given user
     """
@@ -223,38 +226,29 @@ class QueryFollowers(BaseAPI):
 
         Can be tested this way:
 
-        curl --data "csid_from_client=1&user_id=78" \
-        http://localhost:8080/api/social/query/follow
+        curl --data "csid_from_client=1&user_id=78&logintoken=RxPu7fLYgv" \
+        http://localhost:8080/api/social/query/following
         returns all users who followed by user oleg
 
-        curl --data "csid_from_client=1&user_id=78" \
-        http://localhost:8080/api/social/query/follower
+        curl --data "csid_from_client=1&user_id=78&logintoken=RxPu7fLYgv" \
+        http://localhost:8080/api/social/query/followed-by
         returns all users who follow user oleg
         """
 
         data = web.input()
-        user_id = data.get("user_id")
-        save_api_request(data)
-        kwparams = {}
+        uid = data.get("user_id")
+        logintoken = data.get("logintoken", "")
+        status, response_or_user = self.authenticate_by_token(logintoken)
 
-        if data.get('new'):
-            kwparams['order'] = 'follow_time'
-
-        # Selecting followers or followed
-        if query_type == 'follower':
-            kwparams['where'] = 'follower=%s' % (user_id)
-            kwparams['what'] = 'follow'
+        # Login was not successful
+        if not status:
+            return response_or_user
+        if query_type == "followed-by":
+            follows = UserProfile.query_followed_by(uid, response_or_user.id)
         else:
-            kwparams['where'] = 'follow=%s' % (user_id)
-            kwparams['what'] = 'follower'
-
-        followers = db.select('follows', **kwparams).list()
-
-        # Composing user ids
-        user_id_list = [follower[kwparams['what']] for follower in followers]
+            follows = UserProfile.query_following(uid, response_or_user.id)
         csid_from_client = data.pop('csid_from_client')
-        return api_response(data={'user_id_list': user_id_list},
-                            csid_from_client=csid_from_client,
+        return api_response(data=follows, csid_from_client=csid_from_client,
                             csid_from_server="")
 
 
