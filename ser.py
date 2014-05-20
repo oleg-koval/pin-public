@@ -1006,7 +1006,22 @@ class PageProfile2:
 
         show_private = is_logged_in and sess.user_id == user.id
 
-        pins = api_request("/api/profile/userinfo/pins", data=data).get("data").get("pins_list")
+        pins = api_request("/api/profile/userinfo/pins", data=data)\
+            .get("data").get("pins_list")
+
+        logintoken = convert_to_logintoken(sess.user_id)
+        data_for_image_query = {
+            "csid_from_client": '',
+            "logintoken": logintoken,
+            "query_params": [pin['id'] for pin in pins]
+        }
+        data_from_image_query = api_request("api/image/query",
+                                            "POST",
+                                            data_for_image_query)
+
+        if data_from_image_query['status'] == 200:
+            pins = data_from_image_query['data']['image_data_list']
+
         pins = [pin_utils.dotdict(pin) for pin in pins]
 
         # Handle ajax request to pins

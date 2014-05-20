@@ -583,6 +583,9 @@ class QueryPins(BaseAPI):
                 current_row.tags = []
                 if tag:
                     current_row.tags.append(tag)
+
+                current_row_dt = datetime.fromtimestamp(current_row.timestamp)
+                
                 pins.append(current_row)
             else:
                 tag = row.tags

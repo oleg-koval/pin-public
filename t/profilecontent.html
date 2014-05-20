@@ -11,13 +11,13 @@ $def with (user, pins, hashed, edit_profile=None, edit_profile_done=None, boards
         <li class=""><a href="#profile-about-box" data-toggle="tab">About</a></li>
         <li class=""><a id="pin-added" href="#pin-box-wrapper" data-toggle="tab">Added</a></li>
 
-      <li class=""><a id="list-box-wrapper-link" href="#list-box-wrapper" data-toggle="tab">Lists</a></li>
+        <li class=""><a id="list-box-wrapper-link" href="#list-box-wrapper" data-toggle="tab">Lists</a></li>
 
     </ul>
 
     <div class="tab-content">
         $:tpl('profileinfo', user, hashed, edit_profile, edit_profile_done)
-        $:tpl('pins', pins, 'horzpin2', None, edit_profile, boards, categories_to_select)
+        $:tpl('pins', pins, 'horzpin3', None, edit_profile, boards, categories_to_select)
         $:tpl('my_lists', boards, user)
     </div>
 
