@@ -1688,7 +1688,8 @@ class PageChangeBG:
             img = Image.open('static/tmp/bg%d%s' % (sess.user_id, ext))
             img.save('static/tmp/bg%d.png' % sess.user_id)
 
-        fname = 'static/tmp/bg%d.png' % sess.user_id
+        fname = os.path.realpath(os.path.dirname(__file__))+'/'+\
+            'static/tmp/bg%d.png' % sess.user_id
         subprocess.call(['convert', fname, '-resize', '1100', fname])
 
 
