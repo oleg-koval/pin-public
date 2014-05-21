@@ -10,9 +10,15 @@ $else:
     <div id='pin-box-wrapper' class='tab-pane fade active in'>
 <div class="greyLine">
     <img src="/static/img/redCr.png" />
-    <input type="text" value="Things you're getting, food you're trying, places you're visiting."
+    <!-- <form method="get" action="/preview"  id="web_getlist_form">
+    <input name="url" type="text" value="Things you're getting, food you're trying, places you're visiting."
         onfocus="this.value=''" onblur="this.value='Things you are getting, food you are trying, places you are visiting.'" />
-    <a class="button" href="#">Post</a>
+    <a class="button" id="fetch-images" href="#">Post</a>
+    </form> -->
+    <form method="get" action="/preview"  id="web_getlist_form">
+        <input type="input" name="url" id="url" placeholder="http://"><br/>
+        <input type="button" id="fetch-images" value="Post">
+    </form>
     <div class="dropdown profDrop">
         <a data-toggle="dropdown" href="#"><span class="flaticon-lock27"></span>Only me <i
             class="flaticon-arrow486"></i></a>

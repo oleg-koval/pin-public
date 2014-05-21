@@ -35,23 +35,26 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
             $if user.website:
             <a href="$user.website"><i class="flaticon-earth9"></i> Blog: $user.website</a>
         </p>
-        <p class="userButtons">
-            $if 'logged_in' in sess and user.id != sess.user_id:
-                $if friend_status is not None:
-                    $if friend_status:
-                        $if friend_status.id1 + friend_status.id2 == friend_status.accepted:
-                            <a class='button' href='/unfriend/$user.id'>Unfriend</a>
-                        $elif friend_status.accepted == sess.user_id:
-                            <a class='button' href='/cancelfr/$user.id'>Cancel friend request</a>
-                        $else:
-                            <a class='button' href='/acceptfr/$user.id'>Accept friend request</a>
-                    $else:
-                        <a class='button' href='/addfriend/$user.id'>Add friend</a>
-                    $if is_following:
-                        <a class='button' href='/unfollow/$user.id'>Unfollow</a>
-                    $else:
-                        <a class='button' href='/follow/$user.id'>Follow</a>
-                    <a class='button buttonWhite' href='/newconvo/$user.id'><i class="flaticon-email21"></i> Message</a>
-        </p>
+$#
+$#        <p class="userButtons">
+$#            $if 'logged_in' in sess and user.id != sess.user_id:
+$#                $if friend_status is not None:
+$#                    $if friend_status:
+$#                        $if friend_status.id1 + friend_status.id2 == friend_status.accepted:
+$#                            <a class='button' href='/unfriend/$user.id'>Unfriend</a>
+$#                        $elif friend_status.accepted == sess.user_id:
+$#                            <a class='button' href='/cancelfr/$user.id'>Cancel friend request</a>
+$#                        $else:
+$#                            <a class='button' href='/acceptfr/$user.id'>Accept friend request</a>
+$#                    $else:
+$#                        <a class='button' href='/addfriend/$user.id'>Add friend</a>
+$#                    $if is_following:
+$#                        <a class='button' href='/unfollow/$user.id'>Unfollow</a>
+$#                    $else:
+$#                        <a class='button' href='/follow/$user.id'>Follow</a>
+$#                    <a class='button buttonWhite' href='/newconvo/$user.id'>
+$#                        <i class="flaticon-email21"></i> Message
+$#                    </a>
+$#        </p>
     </div>
 </div>
