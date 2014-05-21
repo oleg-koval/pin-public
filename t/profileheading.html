@@ -1,6 +1,5 @@
 $def with (user, hashed, edit_profile=None, edit_profile_done=None)
-<div class="profBack">
-    <div class="userBackImg"
+<div class="profBack"
       $if user.bg:
         $if 'logged_in' in sess and sess.user_id == user.id:
           data-bg="true"
@@ -13,7 +12,6 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
         data-nobg='true'
         style='background: #333842;position:relative;'
     >
-    </div>
     <div class="userHolder">
         <div class="userPic">
             $if user.pic:
