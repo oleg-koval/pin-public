@@ -1,8 +1,56 @@
-$def with (pins, first_time)
+$def with (pins, first_time, form)
 $if first_time is not None:
   <div class='first-time'>
     <p class='notice'></p>
     <p class='pad-top'><button id='next'>Next</button> <button id='skip'>Skip</button></p>
-  </div>
+  </div>  
   <script type='text/javascript' src='/static/firsttime.js'></script>
 $:tpl('pins', pins)
+
+
+<div id="mainPage">
+        <div class="pinRoll">
+            <div id="firstRow">
+                <!--Roll Pins On Main Page-->
+            </div>
+            <div id="secondRow">
+                <!--Roll Pins On Main Page-->
+            </div>
+            <div id="thirdRow">
+                <!--Roll Pins On Main Page-->
+            </div>
+            <div id="fourthRow">
+                <!--Roll Pins On Main Page-->
+            </div>
+        </div>        
+</div>
+$if not sess or 'user_id' not in sess:
+    <div id="mainForm">
+
+        <div class="signForm">
+            <p class="sfTitle"><b>"Things you're getting!"</b></p>
+            
+            <p class="sfSubTitle"><b>#getlist is social website that help you discover new things to get and to experience.</b></p>
+    	    <form  method='post' action=''>
+    			<table>
+    			    <tr><th><label for="username">username</label></th><td>$:form['username'].render()</td></tr>
+    			    <tr><th><label for="name">Complete name</label></th><td>$:form['name'].render()</td></tr>
+    			    <tr><th><label for="email">email</label></th><td>$:form['email'].render()</td></tr>
+    			    <tr><th><label for="password">password</label></th><td>$:form['password'].render()</td></tr>
+    			    <tr><th><label for="language">language</label></th><td>$:form['language'].render()</td></tr>
+    			    <tr><th><label for="Let's get started!"></label></th><td><button id="Let&#39;s get started!" name="Let&#39;s get started!">Let&#39;s get started!</button></td></tr>
+    			</table>
+    	    </form>   
+            <div id="signShow"><p>Signup</p></div>   
+            <div id="signFb">        
+                <div>
+                    <a class="signupfb" href="/facebook/register/">Signup with Facebook</a>
+                </div>
+                <div>
+                    <a class="signupgg" href="/google/register/">Signup with Google+</a>
+                </div>
+            </div>
+            <p class="redimg"><a href='/login'>Already have an account?</a></p>
+        </div>
+
+    </div>

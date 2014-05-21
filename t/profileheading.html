@@ -1,262 +1,57 @@
 $def with (user, hashed, edit_profile=None, edit_profile_done=None)
-<div class='clearfix user-heading'
-  $if user.bg:
-    $if 'logged_in' in sess and sess.user_id == user.id:
-      data-bg="true"
-      id='header_background'
-      style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);position:relative;'
-    $else:
-      id='header_background'
-      style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);cursor:default !important;position:relative;'
-  $else:
-    data-nobg='true'
-    style='background: #333842;position:relative;'
-  >
-
-
+<div class="profBack">
+    <div class="userBackImg"
+      $if user.bg:
         $if 'logged_in' in sess and sess.user_id == user.id:
-          <div class="modal fade" id="myModal">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                </div>
-                <div class="modal-body">
-
-
-              <div class="bs-example">
-              <div id="carousel-example-captions" class="carousel carousel1" >
-
-              </div>
-            </div>
-
-
-
-
-                </div>
-
-
-                <div class="modal-footer">
-                <a href="#" id="set_as_profile_pic">Set as Profile Picture</a>
-                <a href="/album/$user.id">View Photo Album</a>
-              </div>
-
-              </div><!-- /.modal-content -->
-
-            </div><!-- /.modal-dialog -->
-           </div>
-
-
-  <div class='back clearfix'>
-    <a
-      $if 'logged_in' in sess and sess.user_id == user.id:
-          $if user.pic:
-            data-toggle="modal" data-target="#myModal"
-          $else:
-            id='lolimage1'
-      $else:
-        href='/$user.username'
-    id="user_pic_placeholder_wrapper">
-      $if user.pic:
-        <div class="user_pic_placeholder" style="height:160px !important;background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"></div>
-
-      $else:
-        <img class='left avatar' src='/static/default-avatar.png' alt='' style="height=44px;" />
-    </a>
-    <div class='left'>
-      <h1>$user.name</h1>
-      <p class='faded'>
-        <b><a href='/followed-by/$user.id'>Followers ($user.follower_count)</a></b>
-        <b><a href='/following/$user.id'>Following ($user.follow_count)</a></b>
-        $if user.website:
-          <b>Website: <a href='$user.website'>$user.website</a></b>
-        $if user.country:
-          <b>$user.country</a></b>
-        $if user.show_views:
-          $if user.views == 0:
-            <b>No views</b>
-          $elif user.views == 1:
-            <b>1 view</b>
-          $else:
-            <b>$user.views views</b>
-        $if user.facebook:
-          <b><a href='http://facebook.com/$user.facebook'>Facebook</a></b>
-        $if user.twitter:
-
-          <b><a href='http://twitter.com/$user.twitter'>Twitter</a></b>
-        $if user.linkedin:
-          <b><a href='http://linkedin.com/in/$user.linkedin'>LinkedIn</a></b>
-        $if user.gplus:
-          <b><a href='https://plus.google.com/$user.gplus'>Google+</a></b>
-      </p>
-      <p>$user.about</p>
-      <p class='pad-top'>
-        <iframe src="//www.facebook.com/plugins/like.php?href=http%3A%2F%2Fmypinnings.com%2F$user.username&amp;width&amp;layout=button_count&amp;action=like&amp;show_faces=false&amp;share=false&amp;height=21" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width: 100px; height:21px;" allowTransparency="true"></iframe>
-        <a href="https://twitter.com/share" class="twitter-share-button">Tweet</a>
-        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
-      </p>
-    </div>
-          $if 'logged_in' in sess and user.id == sess.user_id:
-                  <div id="switch5_wrapper">
-                  <a href='#' class='button' id="switch5">Edit Profile Picture</a>
-                  <div  class='edit_thumbnail_menu' id="menu5">
-
-                  <a href='#' id="upload_thumbnail" data-toggle="modal" data-target="#uploadImageModal">Upload another profile picture</a>
-                        $if user.pic:
-                            <a href='/photo/$user.pic/remove' id="remove_photo1">Remove</a>
-
-                  </div>
-                  </div>
-  </div>
-  <div class='right'>
-    $if 'logged_in' in sess and user.id == sess.user_id:
-       <div class="dropdown">
-        <a id="dropdownMenu2" data-toggle="dropdown" class="button">Edit Header</a>
-        <span class="caret"></span>
-        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu2">
-        <li role="presentation"><a href='#' data-toggle="modal" data-target="#uploadBackgroundImageModal">Upload background photo</a></li>
-               $if user.bg:
-                    <li role="presentation"><a href='/bg/remove' id="remove_bg_photo">Remove</a></li>
-        </ul>
-        </div>
-
-  <div style=" position: absolute;
-    bottom: 0;
-    right: 0;margin-right: 15px;">
-    <b><a class="button" href='/$user.username/followers'>$user.follower_count Followers </a></b>
-    <b><a class="button" href='/$user.username/following'>$user.follow_count Following </a></b>
-  </div>
-
-  </div>
-</div>
-
-<div class="profile-tab-navigation">
-    <ul id="myTab" class="nav nav-tabs">
-      $if edit_profile:
-        <li class=""><a id="pin-not-added" href="#pin-box-wrapper" data-toggle="tab">My Getlist</a></li>
-        <li class="active"><a href="#profile-about-box" data-toggle="tab">About</a></li>
-        <li class=""><a id="pin-added" href="#pin-box-wrapper" data-toggle="tab">Added</a></li>
-      $else:
-        <li class="active"><a id="pin-not-added" href="#pin-box-wrapper" data-toggle="tab">My Getlist</a></li>
-        <li class=""><a href="#profile-about-box" data-toggle="tab">About</a></li>
-        <li class=""><a id="pin-added" href="#pin-box-wrapper" data-toggle="tab">Added</a></li>
-
-      <li class=""><a id="list-box-wrapper-link" href="#list-box-wrapper" data-toggle="tab">Lists</a></li>
-
-    </ul>
-    </div>
-    $if edit_profile:
-      <div class="tab-pane fade active in" id="profile-about-box">
-    $else:
-      <div class="tab-pane fade" id="profile-about-box">
-
-  $if 'logged_in' in sess and user.id == sess.user_id:
-       $if edit_profile and not edit_profile_done:
-              <form method="post" action="/settings/profile?user_profile">
-              <table>
-              <tr>
-                <th>Name</th>
-                <td><input type='text' name='name' value='$user.name' /></td>
-              </tr>
-              <input type='hidden' name='username'  value='$user.username'/>
-              <tr>
-                <th>Location</th>
-                <td>
-                  <input type='text' name='hometown' value='$user.hometown'/>
-                </td>
-              </tr>
-              <tr>
-                <th>Website</th>
-                <td>
-                  <input type='url' class="input" name='website' value='$user.website'/>
-                </td>
-              </tr>
-
-              <tr>
-                <th>Bio</th>
-                <td>
-                  <textarea name='about'>$user.about</textarea>
-                </td>
-              </tr>
-
-              <tr>
-                <th>&nbsp;</th>
-                <td><button>Save</button></td>
-              </tr>
-            </table>
-            </form>
+          data-bg="true"
+          id='header_background'
+          style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);position:relative;'
         $else:
-             <table>
-
-              <tr>
-                <th>Name</th>
-                <td>$user.name</td>
-              </tr>
-              <tr>
-                <th>Location</th>
-                <td>
-                $if user.hometown:
-                  $user.hometown
-                $else:
-                  N/A
-                </td>
-              </tr>
-              <tr>
-                <th>Website</th>
-                <td>
-                $if user.website:
-                  $user.website
-                $else:
-                  N/A
-                </td>
-              </tr>
-
-              <tr>
-                <th>Bio</th>
-                <td>
-                $if user.about:
-                  $user.about
-                $else:
-                  N/A
-                </td>
-              </tr>
-            </table>
-            <a href='/$user.username?editprofile#profile-about-box' class='button small-pad'>Edit Profile</a>
-  $else:
-     <table>
-
-              <tr>
-                <th>Name</th>
-                <td>$user.name</td>
-              </tr>
-              <tr>
-                <th>Location</th>
-                <td>
-                $if user.hometown:
-                  $user.hometown
-                $else:
-                  N/A
-                </td>
-              </tr>
-              <tr>
-                <th>Website</th>
-                <td>
-                $if user.website:
-                  $user.website
-                $else:
-                  N/A
-                </td>
-              </tr>
-
-              <tr>
-                <th>Bio</th>
-                <td>
-                $if user.about:
-                  $user.about
-                $else:
-                  N/A
-                </td>
-              </tr>
-            </table>
-
+          id='header_background'
+          style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);cursor:default !important;position:relative;'
+      $else:
+        data-nobg='true'
+        style='background: #333842;position:relative;'
+    >
+    </div>
+    <div class="userHolder">
+        <div class="userPic">
+            $if user.pic:
+                <img src="/static/pics/userthumb$(user.pic).png" />
+            $else:
+                <img src='/static/default-avatar.png' alt='' />
+            <div class="otherPics">
+                <!-- <img src="/static/default-avatar.png" />
+                <img src="/static/default-avatar.png" />
+                <img src="/static/default-avatar.png" /> -->
+            </div>
+        </div>
+        <p class="userName">
+            $user.name
+        </p>
+        <p class="userDetail">
+            $if user.hometown:
+                <a href="#"><span class="flaticon-locator1"></span>$user.hometown</a>
+            $if user.website:
+            <a href="$user.website"><i class="flaticon-earth9"></i> Blog: $user.website</a>
+        </p>
+        <p class="userButtons">
+            $if 'logged_in' in sess and user.id != sess.user_id:
+                $if friend_status is not None:
+                    $if friend_status:
+                        $if friend_status.id1 + friend_status.id2 == friend_status.accepted:
+                            <a class='button' href='/unfriend/$user.id'>Unfriend</a>
+                        $elif friend_status.accepted == sess.user_id:
+                            <a class='button' href='/cancelfr/$user.id'>Cancel friend request</a>
+                        $else:
+                            <a class='button' href='/acceptfr/$user.id'>Accept friend request</a>
+                    $else:
+                        <a class='button' href='/addfriend/$user.id'>Add friend</a>
+                    $if is_following:
+                        <a class='button' href='/unfollow/$user.id'>Unfollow</a>
+                    $else:
+                        <a class='button' href='/follow/$user.id'>Follow</a>
+                    <a class='button buttonWhite' href='/newconvo/$user.id'><i class="flaticon-email21"></i> Message</a>
+        </p>
+    </div>
 </div>

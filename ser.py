@@ -34,6 +34,7 @@ import mypinnings.register
 import mypinnings.facebook
 import mypinnings.google
 import mypinnings.register_twitter
+from mypinnings.register import valid_email
 import mypinnings.pin
 import mypinnings.profile_settings
 import admin
@@ -220,6 +221,20 @@ def json_pins(pins, template=None):
 
 
 class PageIndex:
+    if not hasattr(settings, 'LANGUAGES') or not settings.LANGUAGES:
+        languages = (('en', 'English'),)
+    else:
+        languages = settings.LANGUAGES
+    _form = web.form.Form(
+        web.form.Textbox('username', web.form.notnull, id='username', autocomplete='off'),
+        web.form.Textbox('name', web.form.notnull, autocomplete='off',
+                         description="Complete name"),
+        web.form.Textbox('email', valid_email, web.form.notnull, autocomplete='off', id='email'),
+        web.form.Password('password', web.form.notnull, id='password', autocomplete='off'),
+        web.form.Dropdown('language', languages, web.form.notnull),
+        web.form.Button('Let\'s get started!')
+    )
+
     def GET(self, first_time=None):
         # query1 = '''
         #     select
@@ -314,7 +329,8 @@ class PageIndex:
         if ajax:
             return json_pins(pins)
 
-        return ltpl('index', pins, first_time)
+        form = self._form()
+        return ltpl('index', pins, first_time, form)
 
 class PageLogin:
     _form = form.Form(
@@ -939,6 +955,27 @@ class PageProfile2:
         # Getting boards of a given user
         boards = api_request("/api/profile/userinfo/boards",
                              data=data).get("data", [])
+
+        pins_ids = []
+        for board in boards:
+            if len(board['pins_ids']) > 0:
+                pins_ids.append(board['pins_ids'][0])
+
+        logintoken = convert_to_logintoken(sess.user_id)
+        data_for_image_query = {
+            "csid_from_client": '',
+            "logintoken": logintoken,
+            "query_params": pins_ids
+        }
+        data_from_image_query = api_request("api/image/query",
+                                            "POST",
+                                            data_for_image_query)
+
+        boards_first_pins = {}
+        if data_from_image_query['status'] == 200:
+            for pin in data_from_image_query['data']['image_data_list']:
+                boards_first_pins[pin['board_id']] = pin
+
         boards = [pin_utils.dotdict(board) for board in boards]
 
         # Getting categories. Required in case when user
@@ -977,7 +1014,22 @@ class PageProfile2:
 
         show_private = is_logged_in and sess.user_id == user.id
 
-        pins = api_request("/api/profile/userinfo/pins", data=data).get("data").get("pins_list")
+        pins = api_request("/api/profile/userinfo/pins", data=data)\
+            .get("data").get("pins_list")
+
+        logintoken = convert_to_logintoken(sess.user_id)
+        data_for_image_query = {
+            "csid_from_client": '',
+            "logintoken": logintoken,
+            "query_params": [pin['id'] for pin in pins]
+        }
+        data_from_image_query = api_request("api/image/query",
+                                            "POST",
+                                            data_for_image_query)
+
+        if data_from_image_query['status'] == 200:
+            pins = data_from_image_query['data']['image_data_list']
+
         pins = [pin_utils.dotdict(pin) for pin in pins]
 
         # Handle ajax request to pins
@@ -998,7 +1050,7 @@ class PageProfile2:
                     edit_profile_done = True
             return ltpl('profile', user, pins, offset, PIN_COUNT, hashed,
                         edit_profile, edit_profile_done, boards,
-                        categories_to_select)
+                        categories_to_select, boards_first_pins)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
 
