@@ -119,26 +119,6 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
                     <li role="presentation"><a href='/bg/remove' id="remove_bg_photo">Remove</a></li>
         </ul>
         </div>
-  <b>
-    $if 'logged_in' in sess and user.id != sess.user_id:
-      $if friend_status is not None:
-        $if friend_status:
-          $if friend_status.id1 + friend_status.id2 == friend_status.accepted:
-            <a class='button' href='/unfriend/$user.id'>Unfriend</a>
-          $elif friend_status.accepted == sess.user_id:
-            <a class='button' href='/cancelfr/$user.id'>Cancel friend request</a>
-          $else:
-            <a class='button' href='/acceptfr/$user.id'>Accept friend request</a>
-        $else:
-          <a class='button' href='/addfriend/$user.id'>Add friend</a>
-        <br/>
-        $if is_following:
-          <a class='button' href='/unfollow/$user.id'>Unfollow</a>
-        $else:
-          <a class='button' href='/follow/$user.id'>Follow</a>
-        <br/>
-        <a class='button' href='/newconvo/$user.id'>Message</a>
-  </b>
 
   <div style=" position: absolute;
     bottom: 0;

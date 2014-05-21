@@ -243,13 +243,15 @@ class ProfileInfo(BaseUserProfile):
             return api_response(data={}, status=405,
                                 error_code="User was not found")
 
-        user['follower_count'] = len(
-            UserProfile.query_followed_by(profile_owner=user["id"],
-                                        current_user=response_or_user["id"]))
+        followers = UserProfile\
+            .query_followed_by(profile_owner=user["id"],
+                               current_user=response_or_user["id"])
+        user['follower_count'] = len(followers)
 
-        user['follow_count'] = len(
-            UserProfile.query_following(profile_owner=user["id"],
-                                          current_user=response_or_user["id"]))
+        follow = UserProfile\
+            .query_following(profile_owner=user["id"],
+                             current_user=response_or_user["id"])
+        user['follow_count'] = len(follow)
 
         csid_from_client = request_data.pop('csid_from_client')
         csid_from_server = ""
@@ -259,9 +261,10 @@ class ProfileInfo(BaseUserProfile):
                             csid_from_server=csid_from_server)
 
     def get_user_info(self, profile="", user_id=0):
-        query = db.select('users', vars={'username': profile,
-                              'id': user_id},
-                              where="username=$username or id=$id")
+        query = db.select('users',
+                          vars={'username': profile, 'id': user_id},
+                          where="username=$username or id=$id")
+
         if len(query) > 0:
             user = query.list()[0]
         else:
