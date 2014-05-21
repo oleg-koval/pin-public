@@ -1,20 +1,23 @@
 $def with (categories)
 <div class="category_selection_list">
 $for category in categories:
-	<label><input type="checkbox" value="$category.id" class="category_check">$category.name</label><br/>	
+	<label><input type="checkbox" value="$category.id" class="category_check" parent="$category.parent">$category.name</label>
+	$if not loop.last:
+		|
 </div>
-<div style="margin-left:150px;" class="container-fluid">
+<div class="container-fluid">
 	<div class="row">
-		<div id="column1" class="col-xs-4"></div>
-		<div id="column2" class="col-xs-4"></div>
-		<div id="column3" class="col-xs-4"></div>
+		<div id="column1" class="col-xs-3"></div>
+		<div id="column2" class="col-xs-3"></div>
+		<div id="column3" class="col-xs-3"></div>
+		<div id="column4" class="col-xs-3"></div>
 	</div>
 </div>
 <script src="/static/js/admin_category_selection.js"></script>
 <script type="text/html" id="pin_template">
 <div class="category_pin" pin_id="<%= id %>">
 	<div class="category_pin_image" pinid="<%= external_id %>">
-		<img data-original="<%= image_212_url %>" width="212" height="<%= image_212_height %>" class="lazy">
+		<img src="<%= image_212_url %>" width="212" height="<%= image_212_height %>" class="lazy">
 	</div>
 	<% if (name !== '') { %>
 		<div class="category_pin_title"><%= name %></div>

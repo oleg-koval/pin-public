@@ -1,4 +1,4 @@
-$def with (form, result_info, categories, number_of_items_added, preselected_categories)
+$def with (form, result_info, categories, number_of_items_added, preselected_categories, tagcloud)
 <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 <link rel="stylesheet" href="/static/css/pin_loader.css" />
 <link rel='stylesheet' type='text/css' href='/static/css/ingrid.css'/>
@@ -10,6 +10,7 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
   <ul>
     <li><a href="#upload"><span>Upload Items</span></a></li>
     <li><a href="#added"><span>Items Added</span></a></li>
+    <li><a href="#tagcloud"><span>Tag Cloud</span></a></li>
   </ul>
 <div id="upload">
 	<form id='form' autocomplete='off' enctype='multipart/form-data' method='post' action=''>
@@ -182,7 +183,7 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					</td>
 				</tr>
 		</table>
-	<div style="width:1200px;background-color:white;margin-left:-80px;">
+	<div id="pins_container_layer" style="background-color:white;">
 		<table id="pins_container">
 			<thead>
 				<tr>
@@ -195,12 +196,14 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 					<th>Tags</th>
 					<th>Price</th>
 					<th>P.R.</th>
+					<th>Date</th>
 					<th>Actions</th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr>
 					<td>Loading...</td>
+					<td></td>
 					<td></td>
 					<td></td>
 					<td></td>
@@ -289,7 +292,28 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 		</form>
 	</div><!-- pin_edit_dialog -->
 	
-	<div><button id="change_categories_button">Change categories for selected pins</button> <button id="select_all_pins_button">Select All</button> <button id="unselect_all_pins_button">Unselect All</button></div>
+	<div>
+		<form id="page_size_form" style="padding:0px;box-shadow:0px;">
+			<input type="text" name="page_size_field" id="page_size_field" placeholder="page size" style="width:70px;" title="# of items to show at a time"/>
+		</form>
+		<form id="category_filter_form" style="padding:0px;box-shadow:0px;">
+			<select name="category_filter_field" id="category_filter_field">
+				<option value="">Filter by category</option>
+				<option value="">All</option>
+				<option value="-1">Uncategorized</option>
+			$for category_column in categories:
+				$for category in category_column:
+					<option value="$category['id']">$category['name']</option>
+					$if category['subcategories']:
+						$for subcat in category['subcategories']:
+							<option value="$subcat['id']">$subcat['name']</option>
+			</select>
+		</form>
+		<button id="change_categories_button">Change categories for selected pins</button>
+		<button id="select_all_pins_button">Select All</button>
+		<button id="unselect_all_pins_button">Unselect All</button>
+		<button id="clear_tag_filter">Clear Tag Filter</button>
+	</div>
 	<div id="change_categories_dialog">
 		<form id="change_pins_categories_form" action="/admin/input/change_pin_categories" method="POST" autocomplete="off">
 			<table style="box-shadow:0px 0px 10px gray;font-size:80%;">
@@ -319,6 +343,10 @@ $def with (form, result_info, categories, number_of_items_added, preselected_cat
 	</div><!-- change_categories_dialog -->
 	
 </div><!-- added -->
+<div id="tagcloud">
+$for tag in tagcloud:
+	<span style="font-size:$tag['size']%" search="$tag['tags']">#$tag['tags']</span>
+</div>
 </div><!-- tabs -->
 <div id="wait_for_process_to_finish_layer">
 	<div><img src="/static/img/loading.gif"></div>
@@ -363,7 +391,8 @@ $$(document).ready( function() {
 		initialLoad: true,
 		height: 600,
 		sorting: false,
-		colWidths: [120, 60, 120, 200, 150, 150, 120, 60, 50, 80],
+		recordsPerPage: 100,
+		colWidths: [12, 6, 12, 19, 14, 14, 11, 6, 5, 5, 7],
 	});
 $if result_info:
 	$for ri in result_info:

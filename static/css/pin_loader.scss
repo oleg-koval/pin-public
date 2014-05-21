@@ -52,3 +52,16 @@ p {
 .error_text {
 	font-size: 1.3em;
 }
+
+
+#tagcloud {
+	text-align: center;
+}
+
+#tagcloud span {
+	cursor: pointer;
+}
+
+#tagcloud span:hover {
+	font-color: red;
+}

@@ -111,7 +111,7 @@ jQuery.fn.ingrid = function(o){
 	h.find('th').each(function(i){
 
 		// init width
-		jQuery(this).width(cfg.colWidths[i]);
+		jQuery(this).css('width', cfg.colWidths[i] + '%');
 		
 		// put column text in a div, make unselectable
 		var col_label = jQuery('<div />')
@@ -194,13 +194,18 @@ jQuery.fn.ingrid = function(o){
 	// setting width on first row keeps it from "blinking"
 	var row = this.find('tr:first')
 	jQuery(row).find('td').each(function(i){
-		jQuery(this).width( cfg.colWidths[i] )								
+		jQuery(this).css('width', cfg.colWidths[i] + '%')
 	});
-	h.width(1200);
+	h.width($(window).innerWidth() - 80);
 	var b = jQuery('<div />')
-		.html( jQuery('<table cellpadding="0" cellspacing="0"></table>').html( this.find('tbody') ).width( h.width() ).addClass(cfg.gridClass) )
+		.html(
+		  jQuery('<table cellpadding="0" cellspacing="0"></table>')
+		  .html( this.find('tbody') )
+		  .width( h.width() )
+		  .addClass(cfg.gridClass) )
 		.css('overflow', 'auto')
 		.height(cfg.height);
+	$(b.find('tbody')[1]).remove()
 			
 	
 	// resizable cols?
@@ -437,7 +442,7 @@ jQuery.fn.ingrid = function(o){
 							jQuery(row).find('td').each(function(i){
 								// don't use width(), makes column headers jitter
 								// g.getHeader(i).width()
-								jQuery(this).width( g.getHeader(i).css('width') )								
+								jQuery(this).css('width', g.getHeader(i).css('width') )								
 							});
 							// now swap the tbody's
 							b.find('tbody').html($tbl.find('tbody').html());
@@ -630,7 +635,7 @@ jQuery.fn.ingrid = function(o){
 					// wrap the cell text in a div with overflow hidden, so cells aren't stretched wider by long text
 					var txt = jQuery(this).html();
 					jQuery(this).attr(cfg.columnIDAttr, i)
-						.width(colWidths[i])
+						.css('width', colWidths[i] + '%')
 						.html( jQuery('<div />').html(txt).css('overflow', 'hidden') );
 					// column colors
 					if (cfg.colClasses.length > 0) {

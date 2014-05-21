@@ -1,0 +1,117 @@
+$def with (user, hashed, edit_profile=None, edit_profile_done=None)
+
+$if edit_profile:
+    <div class="tab-pane fade active in" id="profile-about-box">
+$else:
+    <div class="tab-pane fade" id="profile-about-box">
+
+$if 'logged_in' in sess and user.id == sess.user_id:
+    $if edit_profile and not edit_profile_done:
+        <form method="post" action="/settings/profile?user_profile">
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <td><input type='text' name='name' value='$user.name' /></td>
+                </tr>
+                <input type='hidden' name='username'  value='$user.username'/>
+                <tr>
+                    <th>Location</th>
+                    <td>
+                    <input type='text' name='hometown' value='$user.hometown'/>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Website</th>
+                    <td>
+                    <input type='url' class="input" name='website' value='$user.website'/>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Bio</th>
+                    <td>
+                    <textarea name='about'>$user.about</textarea>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>&nbsp;</th>
+                    <td><button>Save</button></td>
+                </tr>
+            </table>
+        </form>
+    $else:
+        <table>
+
+            <tr>
+                <th>Name</th>
+                <td>$user.name</td>
+            </tr>
+            <tr>
+                <th>Location</th>
+                <td>
+                    $if user.hometown:
+                        $user.hometown
+                    $else:
+                        N/A
+                </td>
+            </tr>
+            <tr>
+                <th>Website</th>
+                <td>
+                    $if user.website:
+                        $user.website
+                    $else:
+                        N/A
+                </td>
+            </tr>
+
+            <tr>
+                <th>Bio</th>
+                <td>
+                    $if user.about:
+                        $user.about
+                    $else:
+                        N/A
+                </td>
+            </tr>
+        </table>
+        <a href='/$user.username?editprofile#profile-about-box' class='button small-pad'>Edit Profile</a>
+$else:
+    <table>
+
+        <tr>
+            <th>Name</th>
+            <td>$user.name</td>
+        </tr>
+        <tr>
+            <th>Location</th>
+            <td>
+                $if user.hometown:
+                    $user.hometown
+                $else:
+                    N/A
+            </td>
+        </tr>
+        <tr>
+            <th>Website</th>
+            <td>
+                $if user.website:
+                    $user.website
+                $else:
+                    N/A
+            </td>
+        </tr>
+
+        <tr>
+            <th>Bio</th>
+            <td>
+                $if user.about:
+                    $user.about
+                $else:
+                    N/A
+            </td>
+        </tr>
+    </table>
+
+</div>
