@@ -92,6 +92,9 @@ class PageEditProfile(object):
             raise web.seeother('/%s?editprofile=1' % user.username)
 
 class PageChangeEmail(PageEditProfile):
+    """
+    Edit username & email
+    """
     _form = form.Form(
         form.Textbox('email'),
         form.Textbox('username'))
