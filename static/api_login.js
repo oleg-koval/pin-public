@@ -2,7 +2,7 @@ var ajax_login = function(auth_data){
     $.cookie("seriesid", auth_data.seriesid);
     $.cookie("logintoken", auth_data.logintoken);
     $.cookie("user_id", auth_data.user_id);
-    window.location = '/';
+    window.location = '/' + auth_data.username;
 };
 
 $(document).ready(function(){
@@ -22,7 +22,8 @@ $(document).ready(function(){
                 var auth_data = {
                     "seriesid": seriesid,
                     "logintoken": logintoken,
-                    "user_id": user_id
+                    "user_id": user_id,
+                    "username": response_data.username
                 }
                 ajax_login(auth_data);
             }
