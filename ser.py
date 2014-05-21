@@ -274,16 +274,17 @@ class PageIndex:
         data_to_send = {
             'csid_from_client': '',
             'page': offset,
-            'items_per_page': PIN_COUNT
+            # 'items_per_page': PIN_COUNT
+            'items_per_page': 100
         }
 
-        if logged_in(sess):
-            data_to_send['user_id'] = sess.user_id
-            url = "api/profile/userinfo/pins"
-        else:
-            data_to_send['query_type'] = "range"
-            data_to_send['not_private'] = True
-            url = "api/image/query/category"
+        # if logged_in(sess):
+        #     data_to_send['user_id'] = sess.user_id
+        #     url = "api/profile/userinfo/pins"
+        # else:
+        data_to_send['query_type'] = "range"
+        data_to_send['not_private'] = True
+        url = "api/image/query/category"
 
         data = api_request(url, "POST", data_to_send)
         if data['status'] == 200:
