@@ -30,9 +30,11 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
             $user.name
         </p>
         <p class="userDetail">
-            <a href="http://beachcomber26.blogspot.com"><span class="flaticon-locator1"></span>Australlia</a><a
-                href="http://beachcomber26.blogspot.com"><i class="flaticon-earth9"></i> Blog:
-                http://beachcomber26.blogspot.com</a></p>
+            $if user.country:
+                <a href="#"><span class="flaticon-locator1"></span>$user.country</a>
+            $if user.website:
+            <a href="$user.website"><i class="flaticon-earth9"></i> Blog: $user.website</a>
+        </p>
         <p class="userButtons">
             $if 'logged_in' in sess and user.id != sess.user_id:
                 $if friend_status is not None:
