@@ -382,6 +382,11 @@
     min-height: 268px;
 }
 
+.dwItem.small
+{
+    min-height: 215px;
+}
+
 .dwImg
 {
     width: 100%;

@@ -1,4 +1,4 @@
-$def with (user, pins, hashed, edit_profile=None, edit_profile_done=None, boards={}, categories_to_select={})
+$def with (user, pins, hashed, edit_profile=None, edit_profile_done=None, boards={}, categories_to_select={}, boards_first_pins={})
 
 <div class="profile-tab-navigation">
     <ul id="myTab" class="nav nav-tabs">
@@ -20,7 +20,7 @@ $def with (user, pins, hashed, edit_profile=None, edit_profile_done=None, boards
     <div class="tab-content">
         $:tpl('profileinfo', user, hashed, edit_profile, edit_profile_done)
         $:tpl('pins', pins, 'horzpin3', None, edit_profile, boards, categories_to_select)
-        $:tpl('my_lists', boards, user)
+        $:tpl('my_lists', boards, user, boards_first_pins)
     </div>
 
 </div>

@@ -524,10 +524,23 @@ class QueryBoards(BaseAPI):
         if not user_id:
             return api_response(data={}, status=405,
                                 error_code="Missing user_id")
-        boards = db.select('boards',
+        boards_tmp = db.select('boards',
                            where='user_id=$user_id',
                            vars={'user_id': user_id})
-        return api_response(data=boards.list(),
+
+        boards = []
+        for board in boards_tmp:
+            pins_from_board = db.select('pins',
+                               where='board_id=$board_id',
+                               vars={'board_id': board['id']})
+            board['pins_ids'] = []
+            for pin_from_board in pins_from_board:
+                if pin_from_board['id'] not in board['pins_ids']:
+                    board['pins_ids'].append(pin_from_board['id'])
+
+            boards.append(board)
+
+        return api_response(data=boards,
                             csid_from_server=csid_from_server,
                             csid_from_client=csid_from_client)
 

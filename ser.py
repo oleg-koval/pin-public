@@ -968,6 +968,27 @@ class PageProfile2:
         # Getting boards of a given user
         boards = api_request("/api/profile/userinfo/boards",
                              data=data).get("data", [])
+
+        pins_ids = []
+        for board in boards:
+            if len(board['pins_ids']) > 0:
+                pins_ids.append(board['pins_ids'][0])
+
+        logintoken = convert_to_logintoken(sess.user_id)
+        data_for_image_query = {
+            "csid_from_client": '',
+            "logintoken": logintoken,
+            "query_params": pins_ids
+        }
+        data_from_image_query = api_request("api/image/query",
+                                            "POST",
+                                            data_for_image_query)
+
+        boards_first_pins = {}
+        if data_from_image_query['status'] == 200:
+            for pin in data_from_image_query['data']['image_data_list']:
+                boards_first_pins[pin['board_id']] = pin
+
         boards = [pin_utils.dotdict(board) for board in boards]
 
         # Getting categories. Required in case when user
@@ -1042,7 +1063,7 @@ class PageProfile2:
                     edit_profile_done = True
             return ltpl('profile', user, pins, offset, PIN_COUNT, hashed,
                         edit_profile, edit_profile_done, boards,
-                        categories_to_select)
+                        categories_to_select, boards_first_pins)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
 
