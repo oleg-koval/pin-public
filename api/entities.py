@@ -46,7 +46,7 @@ class UserProfile(object):
             user = query.list()[0]
         else:
             return False
-        response = {field: user[field] for field in UserProfile.fields}
+        response = {field: user.get(field) for field in UserProfile.fields}
         response = UserProfile.format_birthday(user, response)
         return response
 
