@@ -700,31 +700,30 @@ class PageRepin:
 
 class PageConnect:
     def GET(self):
+        """
+        Renders the /connect page
+        """
         force_login(sess)
+        uid = int(sess.user_id)
+        logintoken = convert_to_logintoken(sess.user_id)
 
-        follows = db.query('''
-            select *, users.* from follows
-                join users on users.id = follows.follow
-            where follows.follower = $id''',
-            vars={'id': sess.user_id})
+        follow_url = "/api/social/query/following"
+        followers_context = {
+            "csid_from_client": "",
+            "user_id": uid,
+            "logintoken": logintoken}
+        followers = api_request(follow_url, data=followers_context).get("data")
+        followers = [pin_utils.dotdict(follow) for follow in followers]
 
-        followers = db.query('''
-            select *, users.* from follows
-                join users on users.id = follows.follower
-            where follows.follow = $id''',
-            vars={'id': sess.user_id})
-
-        friends = db.query('''
-            select u1.name as u1name, u2.name as u2name,
-                u1.pic as u1pic, u2.pic as u2pic,
-                friends.*
-            from friends
-                join users u1 on u1.id = friends.id1
-                join users u2 on u2.id = friends.id2
-            where friends.id1 = $id or friends.id2 = $id
-            ''', vars={'id': sess.user_id})
-
-        return ltpl('connect', follows, followers, friends)
+        # Getting followers of a given user
+        follow_url = "/api/social/query/followed-by"
+        followers_context = {
+            "csid_from_client": "",
+            "user_id": uid,
+            "logintoken": logintoken}
+        follows = api_request(follow_url, data=followers_context).get("data")
+        follows = [pin_utils.dotdict(follow) for follow in follows]
+        return ltpl('connect', follows, followers)
 
 
 class PagePin:
@@ -1122,7 +1121,7 @@ class PageConvo:
             if data['status'] == 200:
                 raise web.seeother('/convo/%d' % convo_id)
             else:
-                raise web.seeother('/convo/%d?msg=%s' % (convo_id, 
+                raise web.seeother('/convo/%d?msg=%s' % (convo_id,
                                                          data['error_code']))
 
         raise web.seeother('/convo/%d' % convo_id)
@@ -1801,7 +1800,7 @@ class PageFollowedBy:
 
         hashed = rs()
 
-                # Getting followers of a given user
+        # Getting followers of a given user
         follow_url = "/api/social/query/followed-by"
         followers_context = {
             "csid_from_client": "",
