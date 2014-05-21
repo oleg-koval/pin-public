@@ -9,6 +9,7 @@ import api.views.images
 import api.views.profile
 import api.views.social
 import api.views.search
+import api.views.categories
 
 
 class redirect:
@@ -58,7 +59,7 @@ urls = (
 
     # API for social networks: posting on user page
     "/social/poup", api.views.social.PostingOnUserPage,
-    "/social/query/(follower|follow)", api.views.social.QueryFollowers,
+    "/social/query/(followed-by|following)", api.views.social.QueryFollows,
     "/social/message", api.views.social.SocialMessage,
     "/social/message_to_conversation", \
         api.views.social.SocialMessageToConversation,
@@ -69,8 +70,11 @@ urls = (
 
     # API for search: items and users
     "/search/items", api.views.search.SearchItems,
-    "/search/people", api.views.search.SearchPeople
-)
+    "/search/people", api.views.search.SearchPeople,
+
+    # API for categories: get categories list
+    "/categories/get", api.views.categories.GetCategories
+    )
 web.config.debug = True
 api_app = web.application(urls, globals(), autoreload=True)
 

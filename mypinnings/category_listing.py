@@ -38,45 +38,45 @@ class PageCategory:
         else:
             return self.template_for_showing_categories()
 
-    def get_items_query(self):
-        if self.category['id'] == 0:
-            self.where = 'random() < 0.1'
-        else:
-            results = self.db.where(table='categories',
-                                    parent=self.category['id'])
-            subcategories_ids = [str(self.category['id'])]
-            for row in results:
-                subcategories_ids.append(str(row.id))
-            subcategories_string = ','.join(subcategories_ids)
-            self.where = 'categories.id in ({})'.format(subcategories_string)
-        start = web.input(start=False).start
-        if start:
-            offset = 0
-            self.sess['offset'] = 0
-        else:
-            offset = self.sess.get('offset', 0)
-        self.query = '''
-            select
-                tags.tags, pins.*, categories.id as category,
-                categories.name as cat_name, users.pic as user_pic,
-                users.username as user_username, users.name as user_name,
-                count(distinct p1) as repin_count,
-                count(distinct l1) as like_count
-            from pins
-                left join tags on tags.pin_id = pins.id
-                left join pins p1 on p1.repin = pins.id
-                left join likes l1 on l1.pin_id = pins.id
-                left join users on users.id = pins.user_id
-                left join follows on follows.follow = users.id
-                join pins_categories on pins.id=pins_categories.pin_id
-                join categories
-                on pins_categories.category_id = categories.id
-            where ''' + self.where + '''
-            group by tags.tags, categories.id, pins.id, users.id
-            order by timestamp desc
-            offset %d limit %d''' % \
-            (offset * settings.PIN_COUNT, settings.PIN_COUNT)
-        return self.query
+    # def get_items_query(self):
+    #     if self.category['id'] == 0:
+    #         self.where = 'random() < 0.1'
+    #     else:
+    #         results = self.db.where(table='categories',
+    #                                 parent=self.category['id'])
+    #         subcategories_ids = [str(self.category['id'])]
+    #         for row in results:
+    #             subcategories_ids.append(str(row.id))
+    #         subcategories_string = ','.join(subcategories_ids)
+    #         self.where = 'categories.id in ({})'.format(subcategories_string)
+    #     start = web.input(start=False).start
+    #     if start:
+    #         offset = 0
+    #         self.sess['offset'] = 0
+    #     else:
+    #         offset = self.sess.get('offset', 0)
+    #     self.query = '''
+    #         select
+    #             tags.tags, pins.*, categories.id as category,
+    #             categories.name as cat_name, users.pic as user_pic,
+    #             users.username as user_username, users.name as user_name,
+    #             count(distinct p1) as repin_count,
+    #             count(distinct l1) as like_count
+    #         from pins
+    #             left join tags on tags.pin_id = pins.id
+    #             left join pins p1 on p1.repin = pins.id
+    #             left join likes l1 on l1.pin_id = pins.id
+    #             left join users on users.id = pins.user_id
+    #             left join follows on follows.follow = users.id
+    #             join pins_categories on pins.id=pins_categories.pin_id
+    #             join categories
+    #             on pins_categories.category_id = categories.id
+    #         where ''' + self.where + '''
+    #         group by tags.tags, categories.id, pins.id, users.id
+    #         order by timestamp desc
+    #         offset %d limit %d''' % \
+    #         (offset * settings.PIN_COUNT, settings.PIN_COUNT)
+    #     return self.query
 
     def template_for_showing_categories(self):
         subcategories = self.db.where(
@@ -109,7 +109,7 @@ class PageCategory:
 
         return template.ltpl('category',
                              self.category,
-                             cached_models.all_categories,
+                             cached_models.get_categories(),
                              subcategories,
                              boards,
                              siblings_categories,

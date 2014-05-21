@@ -6,10 +6,12 @@ from datetime import datetime
 from api.utils import api_response, save_api_request, api_response
 from api.views.base import BaseAPI
 from api.views.social import share
+from api.entities import UserProfile
 
 from mypinnings import auth
 from mypinnings import session
 from mypinnings.database import connect_db
+
 
 db = connect_db()
 
@@ -181,9 +183,6 @@ class GetProfileInfo(BaseUserProfile):
                                 error_code="Required args are missing")
         status, response_or_user = self.authenticate_by_token(
             request_data.pop('logintoken'))
-        # Login was not successful
-        if not status:
-            return response_or_user
 
         # User id contains error code
         if not status:
@@ -213,17 +212,17 @@ class ProfileInfo(BaseUserProfile):
         - csid_from_client
 
         Example usage:
-        curl --data "csid_from_client=11&id=78"\
+        curl --data "csid_from_client=11&id=78&logintoken=RxPu7fLYgv"\
         http://localhost:8080/api/profile/userinfo/info
 
-        curl --data "csid_from_client=11&username=Oleg"\
+        curl --data "csid_from_client=11&username=Oleg&logintoken=RxPu7fLYgv"\
         http://localhost:8080/api/profile/userinfo/info
         """
         request_data = web.input()
-        profile = request_data.get("username", False)
-        user_id = request_data.get("id", False)
+        profile = request_data.get("username", "")
+        user_id = request_data.get("id", 0)
+        logintoken = request_data.get("logintoken", "")
 
-        self.required.remove('logintoken')
         if not self.is_request_valid(request_data):
             return api_response(data={}, status=405,
                                 error_code="Required args are missing")
@@ -232,26 +231,47 @@ class ProfileInfo(BaseUserProfile):
             error_code = "This function requires either profile or user_id"
             return api_response(data={}, status=405,
                                 error_code=error_code)
-        elif profile:
-            query = db.select('users', vars={'username': profile},
-                              where='username=$username')
-        elif user_id:
-            query = db.select('users', vars={'id': user_id},
-                              where='id=$id')
-        if len(query) > 0:
-            user = query.list()[0]
-        else:
+
+        status, response_or_user = self.authenticate_by_token(logintoken)
+        if not status:
+            return api_response(data={}, status=405,
+                                error_code="You need to log in first")
+
+        user = UserProfile.query_user(profile=profile, user_id=user_id)
+
+        if not user:
             return api_response(data={}, status=405,
                                 error_code="User was not found")
 
-        response = {field: user[field] for field in self._fields}
+        followers = UserProfile\
+            .query_followed_by(profile_owner=user["id"],
+                               current_user=response_or_user["id"])
+        user['follower_count'] = len(followers)
+
+        follow = UserProfile\
+            .query_following(profile_owner=user["id"],
+                             current_user=response_or_user["id"])
+        user['follow_count'] = len(follow)
+
         csid_from_client = request_data.pop('csid_from_client')
-        csid_from_server = user['seriesid']
-        self.format_birthday(user, response)
-        return api_response(data=response,
+        csid_from_server = ""
+
+        return api_response(data=user,
                             csid_from_client=csid_from_client,
                             csid_from_server=csid_from_server)
 
+    def get_user_info(self, profile="", user_id=0):
+        query = db.select('users',
+                          vars={'username': profile, 'id': user_id},
+                          where="username=$username or id=$id")
+
+        if len(query) > 0:
+            user = query.list()[0]
+        else:
+            return False
+        response = {field: user[field] for field in self._fields}
+        response = self.format_birthday(user, response)
+        return response
 
 class UpdateProfileViews(BaseUserProfile):
     """

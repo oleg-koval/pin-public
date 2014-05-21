@@ -10,8 +10,8 @@ $ options = options or {}
       <div class='left bold'>
         <p><a href='/profile/$user.id'>$user.name</a></p>
         $if 'show_follow' in options and options['show_follow']:
-          $if not user.is_following:
-            <p><a class='button follow' href='/follow/$user.id'>Follow</a></p>
+            $if not user.is_following:
+                <p><a class='button follow' href='/follow/$user.id'>Follow</a></p>
       </div>
     </div>
 </div>
