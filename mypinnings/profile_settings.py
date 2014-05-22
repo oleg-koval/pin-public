@@ -99,20 +99,20 @@ class PageChangeEmail(PageEditProfile):
         form.Textbox('email'),
         form.Textbox('username'))
 
-    # @csrf_protected # Verify this is not CSRF, or fail
-    # def old_POST(self, name=None):
-    #     sess = session.get_session()
-    #     force_login(sess)
+    def _is_available(self, uid, value, field="email"):
+        """
+        This function checks if given email/username is not yet occupied
 
-    #     form = self._form()
-    #     if not form.validates():
-    #         return 'you need to fill in everything'
-    #     if db.select('users', where='email = $email', vars={'email' : form.d.email}):
-    #         return 'Pick another email address'
-    #     if db.select('users', where='username = $username', vars={'username':form.d.username}):
-    #         return 'Pick another username'
-    #     db.update('users', where='id = $id', vars={'id': sess.user_id}, email=form.d.email, username=form.d.username)
-    #     raise web.seeother('/email')
+        uid: user id is used to exclude current user from check
+        """
+        vars={'id': uid, 'value': value}
+        query = db.select('users', vars=vars,
+                          where='id<>$id and %s=$value' % (field))
+
+        if len(query.list()) > 0:
+            return False
+        return True
+
 
     def POST(self, name=None):
         """
@@ -124,7 +124,19 @@ class PageChangeEmail(PageEditProfile):
 
         form = self._form()
         if not form.validates():
-            return 'you need to fill in everything'
+            return form.note
+
+        email_available = self._is_available(uid=sess.user_id,
+                                             field="email",
+                                             value=form.d.email)
+        if not email_available:
+            return "Please try another email, this one is already occupied"
+
+        username_available = self._is_available(uid=sess.user_id,
+                                             field="username",
+                                             value=form.d.username)
+        if not username_available:
+            return "Please try another username, this one is already occupied"
 
         if logintoken:
             data = {
@@ -141,9 +153,6 @@ class PageChangeEmail(PageEditProfile):
                 msg = data['error_code']
                 raise web.seeother('?msg=%s' % msg)
 
-        # get_input = web.input(_method='get')
-        # if 'user_profile' in get_input:
-        #     raise web.seeother('/%s?editprofile=1' % user.username)
 
 class PageChangePw(PageEditProfile):
     _form = form.Form(
