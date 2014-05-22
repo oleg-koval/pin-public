@@ -35,7 +35,8 @@ class Auth(BaseAPI):
         login_user(sess, user_id)
         data = {
             "user_id": user.get("id"),
-            "email": user.get("email")
+            "email": user.get("email"),
+            "username": user.get("username")
         }
         response = api_response(
             data,

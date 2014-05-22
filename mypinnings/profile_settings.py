@@ -100,19 +100,50 @@ class PageChangeEmail(PageEditProfile):
         form.Textbox('username'))
 
     # @csrf_protected # Verify this is not CSRF, or fail
+    # def old_POST(self, name=None):
+    #     sess = session.get_session()
+    #     force_login(sess)
+
+    #     form = self._form()
+    #     if not form.validates():
+    #         return 'you need to fill in everything'
+    #     if db.select('users', where='email = $email', vars={'email' : form.d.email}):
+    #         return 'Pick another email address'
+    #     if db.select('users', where='username = $username', vars={'username':form.d.username}):
+    #         return 'Pick another username'
+    #     db.update('users', where='id = $id', vars={'id': sess.user_id}, email=form.d.email, username=form.d.username)
+    #     raise web.seeother('/email')
+
     def POST(self, name=None):
+        """
+        Handler for changing email or username
+        """
         sess = session.get_session()
         force_login(sess)
+        logintoken = convert_to_logintoken(sess.user_id)
 
         form = self._form()
         if not form.validates():
             return 'you need to fill in everything'
-        if db.select('users', where='email = $email', vars={'email' : form.d.email}):
-            return 'Pick another email address'
-        if db.select('users', where='username = $username', vars={'username':form.d.username}):
-            return 'Pick another username'
-        db.update('users', where='id = $id', vars={'id': sess.user_id}, email=form.d.email, username=form.d.username)
-        raise web.seeother('/email')
+
+        if logintoken:
+            data = {
+                "username":form.d.username,
+                "email":form.d.email,
+                "csid_from_client": 'None',
+                "logintoken": logintoken
+            }
+
+            data = api_request("api/profile/userinfo/update", "POST", data)
+            if data['status'] == 200:
+                raise web.seeother('')
+            else:
+                msg = data['error_code']
+                raise web.seeother('?msg=%s' % msg)
+
+        # get_input = web.input(_method='get')
+        # if 'user_profile' in get_input:
+        #     raise web.seeother('/%s?editprofile=1' % user.username)
 
 class PageChangePw(PageEditProfile):
     _form = form.Form(
