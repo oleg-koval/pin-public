@@ -977,7 +977,10 @@ class PageProfile2:
             for pin in data_from_image_query['data']['image_data_list']:
                 boards_first_pins[pin['board_id']] = pin
 
-        boards = [pin_utils.dotdict(board) for board in boards]
+        boards_list = [pin_utils.dotdict(board) for board in boards]
+        # Takes only boards with pins
+        boards = [board for board in boards_list if len(board.get("pins_ids")) > 0]
+
 
         # Getting categories. Required in case when user
         # is editing own pins.
@@ -1015,8 +1018,12 @@ class PageProfile2:
 
         show_private = is_logged_in and sess.user_id == user.id
 
-        pins = api_request("/api/profile/userinfo/pins", data=data)\
-            .get("data").get("pins_list")
+        # pins = api_request("/api/profile/userinfo/pins", data=data)\
+        #     .get("data").get("pins_list")
+        pins_api_response = api_request("/api/profile/userinfo/pins", data=data)
+        pins = pins_api_response.get('data').get('pins_list')
+        total = pins_api_response.get('data').get("total")
+        total_owned = pins_api_response.get('data').get("total_owned")
 
         logintoken = convert_to_logintoken(sess.user_id)
         data_for_image_query = {
@@ -1051,7 +1058,7 @@ class PageProfile2:
                     edit_profile_done = True
             return ltpl('profile', user, pins, offset, PIN_COUNT, hashed,
                         edit_profile, edit_profile_done, boards,
-                        categories_to_select, boards_first_pins)
+                        categories_to_select, boards_first_pins, total, total_owned)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
 

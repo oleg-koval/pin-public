@@ -557,7 +557,6 @@ class QueryBoards(BaseAPI):
             for pin_from_board in pins_from_board:
                 if pin_from_board['id'] not in board['pins_ids']:
                     board['pins_ids'].append(pin_from_board['id'])
-
             boards.append(board)
 
         return api_response(data=boards,
@@ -607,6 +606,8 @@ class QueryPins(BaseAPI):
 
         pins = []
         current_row = None
+        pins_counter = len(results)
+        owned_pins_counter = 0
         for row in results:
             if not row.id:
                 continue
@@ -620,12 +621,17 @@ class QueryPins(BaseAPI):
                 current_row_dt = datetime.fromtimestamp(current_row.timestamp)
                 
                 pins.append(current_row)
+                if not current_row.get("repin"):
+                    owned_pins_counter += 1
             else:
                 tag = row.tags
                 if tag not in current_row.tags:
                     current_row.tags.append(tag)
 
-        data = {}
+        data = {
+            "total": pins_counter,
+            "total_owned": owned_pins_counter
+        }
         page = int(request_data.get("page", 1))
         if page is not None:
             items_per_page = int(request_data.get("items_per_page", 10))
