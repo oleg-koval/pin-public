@@ -1686,19 +1686,34 @@ class PageShare:
 
 class PageChangeBG:
     def upload_image(self):
-        image = web.input(file={}).file
-        ext = os.path.splitext(image.filename)[1].lower()
+        file_data = web.input(file={}).file
 
-        with open('static/tmp/bg%d%s' % (sess.user_id, ext), 'w') as f:
-            f.write(image.file.read())
 
-        if ext != '.png':
-            img = Image.open('static/tmp/bg%d%s' % (sess.user_id, ext))
-            img.save('static/tmp/bg%d.png' % sess.user_id)
 
-        fname = os.path.realpath(os.path.dirname(__file__))+'/'+\
-            'static/tmp/bg%d.png' % sess.user_id
-        subprocess.call(['convert', fname, '-resize', '1100', fname])
+        new_filename = os.path.join('static',
+                                    'tmp',
+                                    '{}'.format(file_data.filename))
+
+        with open(new_filename, 'w') as f:
+            f.write(file_data.file.read())
+        
+        files = {'file': open(new_filename)}
+
+        logintoken = convert_to_logintoken(sess.user_id)
+
+        data_to_send = {
+            "csid_from_client": '',
+            "logintoken": logintoken
+        }
+
+        data = api_request("api/profile/userinfo/upload_bg",
+                           "POST",
+                           data_to_send,
+                           files)
+
+        if data['status'] == 200:
+            return True
+        return False
 
 
     def POST(self):

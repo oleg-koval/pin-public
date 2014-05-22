@@ -102,7 +102,7 @@ $def with (user, countries, name, msg=None)
 
              <div class="pull-left">
               $if user.bg:
-                 <img class='avatar' src='/static/tmp/bg$(user.id).png' style="width:44px;" />
+                 <img class='avatar' src='$(user.bg_resized_url)' style="width:44px;" />
                 $else:
                   <span style="width:44px;margin-right:10px;" />No Photo</span>
               </a>

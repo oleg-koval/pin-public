@@ -12,7 +12,7 @@ class UserProfile(object):
               'about', 'email', 'pic', 'website', 'facebook',
               'twitter', 'getlist_privacy_level', 'private', 'bg',
               'bgx', 'bgy', 'show_views', 'views', 'username', 'zip',
-              'linkedin', 'gplus', 'activation', 'is_pin_loader']
+              'linkedin', 'gplus', 'activation', 'is_pin_loader', 'bg_resized_url']
 
     @staticmethod
     def prepare_fields():

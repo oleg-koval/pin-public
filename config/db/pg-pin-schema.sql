@@ -1124,3 +1124,6 @@ alter table categories add slug text not null default '';
 create index categories_slug_index on categories(slug);
 
 alter table categories add position integer not null default 0;
+
+ALTER TABLE users ADD COLUMN bg_original_url text;
+ALTER TABLE users ADD COLUMN bg_resized_url text;

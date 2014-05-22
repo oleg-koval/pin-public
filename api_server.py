@@ -54,6 +54,7 @@ urls = (
     "/profile/userinfo/boards", api.views.profile.QueryBoards,
     "/profile/userinfo/pins", api.views.profile.QueryPins,
     "/profile/userinfo/upload_pic", api.views.profile.PicUpload,
+    "/profile/userinfo/upload_bg", api.views.profile.BgUpload,
 
     # API to user profile: change user password
     "/profile/pwd", api.views.profile.ChangePassword,
