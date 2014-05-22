@@ -5,12 +5,12 @@ $if pin.id:
     $else:
         <div class="dwItem inlineB" id="horz-pin$pin.id">
 
-    <div class="dwImg">
+    <div class="dwImg category_pin_image" pinid="$pin.external_id">
         <img src="$pin.image_202_url" />
     </div>
     <div class="dwName">
         <p>
-            <a href='/p/$pin.external_id'>
+            <a href='#' class="category_pin_image" pinid="$pin.external_id">
                 $pin.name
             </a>
         </p>
