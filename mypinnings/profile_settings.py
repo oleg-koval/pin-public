@@ -130,13 +130,15 @@ class PageChangeEmail(PageEditProfile):
                                              field="email",
                                              value=form.d.email)
         if not email_available:
-            return "Please try another email, this one is already occupied"
+            msg = "Please try another email, this one is already occupied"
+            return web.seeother('?msg=%s' % msg)
 
         username_available = self._is_available(uid=sess.user_id,
                                              field="username",
                                              value=form.d.username)
         if not username_available:
-            return "Please try another username, this one is already occupied"
+            msg = "Please try another username, this one is already occupied"
+            return web.seeother('?msg=%s' % msg)
 
         if logintoken:
             data = {
