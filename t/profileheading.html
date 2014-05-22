@@ -15,7 +15,7 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
     <div class="userHolder">
         <div class="userPic">
             $if user.pic:
-                <img src="/static/pics/userthumb$(user.pic).png" />
+                <img src="$(user.pic)" />
             $else:
                 <img src='/static/default-avatar.png' alt='' />
             <div class="otherPics">

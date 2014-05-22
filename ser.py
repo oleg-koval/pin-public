@@ -1727,26 +1727,31 @@ class PageChangeBGPos:
 
 
 class PageChangeProfile:
-    def upload_image(self, pid):
-        image = web.input(file={}).file
-        if image.value:
-            ext = os.path.splitext(image.filename)[1].lower()
+    def upload_image(self):
+        file_data = web.input(file={}).file
 
-            with open('static/pics/%d%s' % (pid, ext), 'w') as f:
-                f.write(image.file.read())
+        logintoken = convert_to_logintoken(sess.user_id)
 
-            if ext != '.png':
-                img = Image.open('static/pics/%d%s' % (pid, ext))
-                img.save('static/pics/%d.png' % pid)
+        data_to_send = {
+            "csid_from_client": '',
+            "logintoken": logintoken
+        }
 
-            img = Image.open('static/pics/%d.png' % pid)
-            width, height = img.size
-            ratio = 80 / width
-            width = 80
-            height *= ratio
-            img.thumbnail((width, height), Image.ANTIALIAS)
-            img.save('static/pics/userthumb%d.png' % pid)
+        new_filename = os.path.join('static',
+                                    'tmp',
+                                    '{}'.format(file_data.filename))
 
+        with open(new_filename, 'w') as f:
+            f.write(file_data.file.read())
+        
+        files = {'file': open(new_filename)}
+
+        data = api_request("api/profile/userinfo/upload_pic",
+                           "POST",
+                           data_to_send,
+                           files)
+
+        if data['status'] == 200:
             return True
         return False
 
@@ -1760,10 +1765,10 @@ class PageChangeProfile:
         # else:
         #    aid = db.insert('albums', name='Profile Pictures', user_id=sess.user_id)
 
-        pid = db.insert('photos', album_id=sess.user_id)
-        self.upload_image(pid)
+        # pid = db.insert('photos', album_id=sess.user_id)
+        self.upload_image()
         # reset the image and background positioning
-        db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=pid, bgx=0, bgy=0)
+        # db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=pid, bgx=0, bgy=0)
         raise web.seeother('/profile/%d' % sess.user_id)
 
 

@@ -1106,6 +1106,10 @@ alter table cool_pins add image_url text;
 alter table photos drop filename;
 alter table photos drop sizes;
 
+-- new columns added for photos
+ALTER TABLE photos ADD COLUMN original_url text;
+ALTER TABLE photos ADD COLUMN resized_url text;
+
 
 alter table pins add image_width integer;
 alter table pins add image_height integer;

@@ -1,9 +1,12 @@
 """ API views responsible for returing and updating the profile info"""
+import os
+import uuid
 import web
 import math
 from datetime import datetime
 
-from api.utils import api_response, save_api_request, api_response
+from api.utils import api_response, save_api_request, api_response, \
+    photo_id_to_url
 from api.views.base import BaseAPI
 from api.views.social import share
 from api.entities import UserProfile
@@ -11,6 +14,8 @@ from api.entities import UserProfile
 from mypinnings import auth
 from mypinnings import session
 from mypinnings.database import connect_db
+from mypinnings.conf import settings
+from mypinnings.media import store_image_from_filename
 
 
 db = connect_db()
@@ -267,6 +272,7 @@ class ProfileInfo(BaseUserProfile):
 
         if len(query) > 0:
             user = query.list()[0]
+            user['pic'] = photo_id_to_url(user['pic'])
         else:
             return False
         response = {field: user[field] for field in self._fields}
@@ -647,3 +653,99 @@ class QueryPins(BaseAPI):
         return api_response(data=data,
                             csid_from_server=csid_from_server,
                             csid_from_client=csid_from_client)
+
+
+class PicUpload(BaseAPI):
+    """ Upload profile picture and save it in database """
+    def POST(self):
+        """
+        Picture upload main handler
+        """
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        request_data = web.input(file={})
+        logintoken = request_data.get('logintoken')
+
+        user_status, user = self.authenticate_by_token(logintoken)
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        csid_from_client = request_data.get("csid_from_client")
+
+        file_obj = request_data.get('file')
+
+        # For some reason, FileStorage object treats itself as False
+        if type(file_obj) == dict:
+            return api_response(data={}, status=405,
+                                error_code="Required args are missing")
+
+        file_path = self.save_file(file_obj)
+        images_dict = store_image_from_filename(db,
+                                                file_path,
+                                                widths=[80])
+
+        photo_kwargs = {
+            'original_url': images_dict[0]['url'],
+            'resized_url': images_dict.get(80, images_dict[0]).get('url', None),
+            'album_id': user['id']
+        }
+
+        pid = db.insert('photos', **photo_kwargs)
+
+        db.update('users',
+                  where='id = $id',
+                  vars={'id': user['id']},
+                  pic=pid,
+                  bgx=0,
+                  bgy=0)
+
+        data['pid'] = pid
+        data['original_url'] = photo_kwargs['original_url']
+        data['resized_url'] = photo_kwargs['resized_url']
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+
+        return response
+
+    def save_file(self, file_obj, upload_dir=None):
+        """
+        Saves uploaded file to a given upload dir.
+        """
+        if not upload_dir:
+            upload_dir = self.get_media_path()
+        filename = file_obj.filename
+        filename = self.get_file_name(filename, upload_dir)
+        filepath = os.path.join(upload_dir, filename)
+        upload_file = open(filepath, 'w')
+        upload_file.write(file_obj.file.read())
+        upload_file.close()
+        return filepath
+
+    def get_media_path(self):
+        """
+        Returns or creates media directory.
+        """
+        media_path = settings.MEDIA_PATH
+        if not os.path.exists(media_path):
+            os.makedirs(media_path)
+        return media_path
+
+    def get_file_name(self, filename, upload_dir):
+        """
+        Method responsible for avoiding duplicated filenames.
+        """
+        filepath = os.path.join(upload_dir, filename)
+        exists = os.path.isfile(filepath)
+        # Suggest uuid hex as a filename to avoid duplicates
+        if exists:
+            filename = "%s.%s" % (uuid.uuid4().hex[:10], filename)
+        return filename

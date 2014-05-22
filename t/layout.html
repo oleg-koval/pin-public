@@ -69,7 +69,7 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
 
                 $if user.pic:
                  <a href='/$user.username' id="user_avatar_placeholder_wrapper">
-                 <div class="user_pic_placeholder avatar" style='background-image: url(/static/pics/userthumb$(user.pic).png); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'></div>
+                 <div class="user_pic_placeholder avatar" style='background-image: url($(user.pic)); background-position: $(user.bgx)px $(user.bgy)px; $('' if 'logged_in' in sess and sess.user_id == user.id else 'cursor: default')"'></div>
                 $else:
                 <!--
                   <a href='#' id="lolimage1">

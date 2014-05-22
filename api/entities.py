@@ -1,4 +1,5 @@
 from mypinnings.database import connect_db
+from api.utils import photo_id_to_url
 
 db = connect_db()
 
@@ -11,7 +12,7 @@ class UserProfile(object):
               'about', 'email', 'pic', 'website', 'facebook',
               'twitter', 'getlist_privacy_level', 'private', 'bg',
               'bgx', 'bgy', 'show_views', 'views', 'username', 'zip',
-              'linkedin', 'gplus']
+              'linkedin', 'gplus', 'activation', 'is_pin_loader']
 
     @staticmethod
     def prepare_fields():
@@ -44,6 +45,7 @@ class UserProfile(object):
                               where="username=$username or id=$id")
         if len(query) > 0:
             user = query.list()[0]
+            user['pic'] = photo_id_to_url(user['pic'])
         else:
             return False
         response = {field: user.get(field) for field in UserProfile.fields}
