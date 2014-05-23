@@ -1,4 +1,6 @@
 from datetime import date
+import urllib
+import os.path
 
 import web
 
@@ -6,6 +8,7 @@ from mypinnings import template
 from mypinnings import database
 from mypinnings import session
 from mypinnings.admin.auth import login_required
+from mypinnings import pin_utils
 
 
 class Search(object):
@@ -99,3 +102,40 @@ class Pin(object):
         categories2 = categories[size:2*size]
         categories3 = categories[2*size:]
         return template.admin.pin_edit_form(pin, selected_categories, tags, categories1, categories2, categories3)
+
+    @login_required
+    def POST(self, pin_id):
+        db = database.get_db()
+        pin = db.where(table='pins', id=pin_id)[0]
+        data = web.input(image_file={})
+        pin_utils.update_base_pin_information(db,
+                                              pin_id=pin_id,
+                                              user_id=pin.user_id,
+                                              title=data.title,
+                                              description=data.description,
+                                              link=data.link,
+                                              tags=data.tags,
+                                              price=data.price,
+                                              product_url=data.product_url,
+                                              price_range=data.price_range,
+                                              board_id=pin.board_id)
+        categories = [int(v) for k, v in data.items() if k.startswith('category')]
+        pin_utils.update_pin_into_categories(db=db,
+                                             pin_id=pin_id,
+                                             category_id_list=categories)
+        if data.image_url:
+            filename, _ = urllib.urlretrieve(data.image_url)
+            pin_utils.update_pin_images(db=db,
+                                        pin_id=pin_id,
+                                        user_id=pin.user_id,
+                                        image_filename=filename)
+        elif data['image_file'].filename:
+            filename = os.path.split(data['image_file'].filename)[-1]
+            filename = os.path.join('static', 'tmp', filename)
+            with open(filename, 'w') as f:
+                f.write(data['image_file'].file.read())
+            pin_utils.update_pin_images(db=db,
+                                        pin_id=pin_id,
+                                        user_id=pin.user_id,
+                                        image_filename=filename)
+        return web.seeother('{}'.format(pin_id))

@@ -1,6 +1,6 @@
 $def with(pin, pin_categories, pin_tags, categories1, categories2, categories3)
 <h1>Edit pin</h1>
-<form method="post" encoding="multipart/form-data" role="form">
+<form method="post" enctype="multipart/form-data" role="form">
 	<div class="form-group">
 		<a href="$pin.image_url" target="_blank"><img src="$pin.image_202_url" width="202" height="$pin.image_202_height"></a>
 	</div>
@@ -48,19 +48,19 @@ $def with(pin, pin_categories, pin_tags, categories1, categories2, categories3)
 			<div class="col-xs-4">
 			$for category in categories1:
 				<div class="checkbox">
-					<label><input type="checkbox" name="category" value="$category.id"$:('checked' if category.id in pin_categories else '')/> $category.name</label>
+					<label><input type="checkbox" name="category$category.id" value="$category.id"$:('checked' if category.id in pin_categories else '')/> $category.name</label>
 				</div>
 			</div>
 			<div class="col-xs-4">
 			$for category in categories2:
 				<div class="checkbox">
-					<label><input type="checkbox" name="category" value="$category.id"$:('checked' if category.id in pin_categories else '')/> $category.name</label>
+					<label><input type="checkbox" name="category$category.id" value="$category.id"$:('checked' if category.id in pin_categories else '')/> $category.name</label>
 				</div>
 			</div>
 			<div class="col-xs-4">
 			$for category in categories3:
 				<div class="checkbox">
-					<label><input type="checkbox" name="category" value="$category.id"$:('checked' if category.id in pin_categories else '')/> $category.name</label>
+					<label><input type="checkbox" name="category$category.id" value="$category.id"$:('checked' if category.id in pin_categories else '')/> $category.name</label>
 				</div>
 			</div>
 		</div>
