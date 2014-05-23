@@ -1,4 +1,4 @@
-from api.utils import api_response
+from api.utils import api_response, photo_id_to_url
 
 from mypinnings.database import connect_db
 
@@ -41,7 +41,9 @@ class BaseAPI(object):
         )
         if len(user) > 0:
             success = True
-            return success, user.list()[0]
+            user = user.list()[0]
+            user['pic'] = photo_id_to_url(user['pic'])
+            return success, user
         else:
             if logintoken is None:
                 error_code = "Not received login token"
