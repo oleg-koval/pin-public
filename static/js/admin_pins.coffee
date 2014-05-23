@@ -20,5 +20,17 @@ jQuery ->
 		pinid = $(this).attr('pinid')
 		window.location.href = '/admin/pin/' + pinid
 		return
+		
+		
+	$('#delete_pin_button').on 'click', (event) ->
+		event.preventDefault()
+		event.stopPropagation()
+		pinid = $(this).attr('pinid')
+		$.ajax
+			method: 'delete',
+			success: ->
+				window.location.href = '/admin/pins/search'
+				return
+		return
 	
 	return

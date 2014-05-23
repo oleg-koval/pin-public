@@ -164,3 +164,12 @@ class Pin(object):
                                         user_id=pin.user_id,
                                         image_filename=filename)
         return web.seeother('{}'.format(pin_id))
+    
+    @login_required
+    def DELETE(self, pin_id):
+        db = database.get_db()
+        pin = db.where(table='pins', id=pin_id)[0]
+        pin_utils.delete_pin_from_db(db=db,
+                                     pin_id=pin_id,
+                                     user_id=pin.user_id)
+        return 'ok'
