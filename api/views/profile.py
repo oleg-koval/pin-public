@@ -625,7 +625,7 @@ class QueryPins(BaseAPI):
                     current_row.tags.append(tag)
 
                 current_row_dt = datetime.fromtimestamp(current_row.timestamp)
-                
+
                 pins.append(current_row)
                 if not current_row.get("repin"):
                     owned_pins_counter += 1
@@ -660,6 +660,38 @@ class QueryPins(BaseAPI):
                             csid_from_server=csid_from_server,
                             csid_from_client=csid_from_client)
 
+class TestUsernameOrEmail(BaseAPI):
+    """
+    Checks if given username or email is already added to database.
+    in case if a username
+    """
+    def POST(self):
+        """
+        curl --data "csid_from_client=1&username_or_email=oleg"\
+        http://localhost:8080/api/profile/test-username
+        """
+        request_data = web.input()
+        username_or_email = request_data.get('username_or_email')
+
+        vars={'username_or_email': username_or_email}
+        # Trying to find a user with same username
+        result = db.select('users', vars=vars,
+                           where='username=$username_or_email')
+        # Fallback, trying to find user with same email
+        if len(result.list()) == 0:
+            result = db.select('users', vars=vars,
+                               where='email=$username_or_email')
+
+        if len(result.list()) == 0:
+            status = 'notfound'
+        else:
+            status = 'ok'
+
+        csid_from_client = request_data.get('csid_from_client')
+        csid_from_server = ""
+        return api_response(data=status,
+                            csid_from_server=csid_from_server,
+                            csid_from_client=csid_from_client)
 
 class PicUpload(BaseAPI):
     """ Upload profile picture and save it in database """
