@@ -686,9 +686,9 @@ class TestUsernameOrEmail(BaseAPI):
                                where='email=$username_or_email')
 
         if len(result.list()) == 0:
-            status = 'ok'
-        else:
             status = 'notfound'
+        else:
+            status = 'ok'
 
         csid_from_client = request_data.get('csid_from_client')
         csid_from_server = ""
