@@ -25,4 +25,16 @@ jQuery(function() {
     pinid = $(this).attr('pinid');
     window.location.href = '/admin/pin/' + pinid;
   });
+  $('#delete_pin_button').on('click', function(event) {
+    var pinid;
+    event.preventDefault();
+    event.stopPropagation();
+    pinid = $(this).attr('pinid');
+    $.ajax({
+      method: 'delete',
+      success: function() {
+        window.location.href = '/admin/pins/search';
+      }
+    });
+  });
 });

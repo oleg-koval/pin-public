@@ -5,6 +5,9 @@ $def with(pin, pin_categories, pin_tags, categories1, categories2, categories3)
 		<a href="$pin.image_url" target="_blank"><img src="$pin.image_202_url" width="202" height="$pin.image_202_height"></a>
 	</div>
 	<div class="form-group">
+	  	<button class="btn btn-danger" id="delete_pin_button" pinpid="$pin.id">Delete this item</button>
+	</div>
+	<div class="form-group">
 		<label for="image_url">Change image URL</label>
 		<input type="text" name="image_url" id="image_url" class="form-control"/>
 	</div>
@@ -69,3 +72,4 @@ $def with(pin, pin_categories, pin_tags, categories1, categories2, categories3)
 </form>
 <br>
 <br>
+<script src="/static/js/admin_pins.js"></script>
