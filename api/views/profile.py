@@ -668,10 +668,7 @@ class TestUsernameOrEmail(BaseAPI):
     def POST(self):
         """
         curl --data "csid_from_client=1&username_or_email=oleg"\
-        http://localhost:8080/api/profile/get-user-by
-
-
-        check email or username....
+        http://localhost:8080/api/profile/test-username
         """
         request_data = web.input()
         username_or_email = request_data.get('username_or_email')
