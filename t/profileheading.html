@@ -15,13 +15,18 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
     <div class="userHolder">
         <div class="userPic">
             $if user.pic:
-                <img src="$(user.pic)" />
+              $for photo in user.photos:
+                $if photo.id == photo.user_pic and photo.resized_url:
+                  <a href="#" data-toggle="modal" data-target="#showPhotoModal$photo.id"><img src="$(photo.resized_url)" /></a>
+                  $ break
             $else:
                 <img src='/static/default-avatar.png' alt='' />
             <div class="otherPics">
-                <!-- <img src="/static/default-avatar.png" />
-                <img src="/static/default-avatar.png" />
-                <img src="/static/default-avatar.png" /> -->
+              $ photos_qty = 1
+              $for photo in user.photos:
+                $if photo.id != photo.user_pic and photo.resized_url and photos_qty <=5:
+                  <a href="#" data-toggle="modal" data-target="#showPhotoModal$photo.id"><img src="$(photo.resized_url)" /></a>
+                  $ photos_qty = photos_qty + 1
             </div>
         </div>
         <p class="userName">
@@ -56,3 +61,13 @@ $#                    </a>
 $#        </p>
     </div>
 </div>
+
+$for i, photo in enumerate(user.photos):
+  $ next_photo = None
+  $if (len(user.photos)-1) == i:
+    $ next_photo = user.photos[0]
+  $else:
+    $ next_photo = user.photos[i+1]
+
+  $if photo.resized_url:
+    $:tpl('profile_photo_modal', photo, next_photo)

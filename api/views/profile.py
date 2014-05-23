@@ -848,3 +848,45 @@ class BgUpload(BaseAPI):
         if exists:
             filename = "%s.%s" % (uuid.uuid4().hex[:10], filename)
         return filename
+
+
+class GetProfilePictures(BaseAPI):
+    """
+    API method for get photos of user
+    """
+    def POST(self):
+        request_data = web.input()
+
+        update_data = {}
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from request
+        user_id = request_data.get("user_id")
+
+        csid_from_client = request_data.get('csid_from_client')
+
+        if not user_id:
+            status = 400
+            error_code = "Invalid input data"
+
+        data['user_id'] = user_id
+
+        if status == 200:
+            photos = db.query("SELECT photos.*, users.id as user_id, \
+                        users.pic as user_pic FROM photos \
+                        LEFT JOIN users ON photos.album_id = users.id \
+                        WHERE photos.album_id=%s \
+                        ORDER BY photos.id desc" % (user_id))\
+            .list()
+
+            data['photos'] = photos
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response

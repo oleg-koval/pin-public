@@ -120,6 +120,7 @@ urls = (
     '/newpic/(\d*)', 'PageNewPicture',
     '/photo/(\d*)', 'PagePhoto',
     '/photo/(\d*)/remove', 'PageRemovePhoto',
+    '/photo/(\d*)/default', 'PageDefaultPhoto',
     '/setprofilepic/(\d*)', 'PageSetProfilePic',
     '/setprivacy/(\d*)', 'PageSetPrivacy',
 
@@ -948,6 +949,17 @@ class PageProfile2:
 
         if len(user) == 0:
             return u"Profile was not found"
+
+        photos_context = {
+            "csid_from_client": "",
+            "user_id": user['id']}
+
+        photos = api_request("/api/profile/userinfo/get_photos",
+                             data=photos_context)\
+            .get("data", []).get("photos", [])
+
+        photos = [pin_utils.dotdict(photo) for photo in photos]
+        user['photos'] = photos
         user = pin_utils.dotdict(user)
 
         # Updating api_request data with user_id
@@ -1560,6 +1572,45 @@ class PageRemovePhoto:
             if user.pic == pid:
                 db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=None, bgx=0, bgy=0)
         return web.redirect('/%s' % (user.username))
+
+
+class PageDefaultPhoto:
+    def GET(self, pid):
+        force_login(sess)
+        pid = int(pid)
+        logintoken = convert_to_logintoken(sess.user_id)
+
+        photos_context = {
+            "csid_from_client": "",
+            "user_id": sess.user_id}
+
+        photos = api_request("/api/profile/userinfo/get_photos",
+                             data=photos_context)\
+            .get("data", []).get("photos", [])
+
+        for photo in photos:
+            if photo['id'] == pid:
+                pass
+
+                break
+
+        profile_update_url = "/api/profile/userinfo/update"
+        profile_update_owner_context = {
+            "csid_from_client": "",
+            "pic": pid,
+            "logintoken": logintoken}
+        api_request(profile_update_url,
+                    data=profile_update_owner_context)
+
+        profile_url = "/api/profile/userinfo/info"
+        profile_owner_context = {
+            "csid_from_client": "",
+            "id": sess.user_id,
+            "logintoken": logintoken}
+        user = api_request(profile_url, data=profile_owner_context)\
+            .get("data", [])
+
+        return web.redirect('/%s' % (user['username']))
 
 
 class PageSetProfilePic:
