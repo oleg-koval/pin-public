@@ -45,7 +45,7 @@ $$(document).ready(
 	function() {
 		$$.pagination_grid = $$("#results_table").ingrid({ 
 			url: '/admin/pins/search/pagination',
-			initialLoad: false,
+			initialLoad: true,
 			height: 600,
 			colWidths: [60, 200, 600, 200],
 			colSortParams: ['pins.image_url', 'pins.name', 'pins.description', 'pins.timestamp'],

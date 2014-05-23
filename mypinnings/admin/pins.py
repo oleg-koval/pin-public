@@ -65,7 +65,13 @@ class SearchPagination(object):
             external_id = self.pin_url
         db = database.get_db()
         results = db.where(table='pins', external_id=external_id)
-        return web.template.frender('t/admin/pin_search_list.html')(results, date)
+        pins = []
+        for row in results:
+            pins.append(row)
+        if pins:
+            return web.template.frender('t/admin/pin_search_list.html')(pins, date)
+        else:
+            return web.template.frender('t/admin/pin_search_list.html')(self.empty_results(), date)
     
     def find_by_user_id(self):
         db = database.get_db()
@@ -80,13 +86,32 @@ class SearchPagination(object):
             results = db.select(tables='users', where='email=$email',
                                 vars={'email': self.emails})
         else:
-            return template.admin.pin_error('No user to search')
+            return web.template.frender('t/admin/pin_search_list.html')(self.empty_results(), date)
         user_id_list = [str(row.id) for row in results]
+        if not user_id_list:
+            return web.template.frender('t/admin/pin_search_list.html')(self.empty_results(), date)
         user_ids = ','.join(user_id_list)
         results = db.select(tables='pins', where='user_id in ({})'.format(user_ids),
                             limit=PAGE_SIZE, offset=(PAGE_SIZE * self.page),
                             order='{} {}'.format(self.sort, self.sort_direction))
-        return web.template.frender('t/admin/pin_search_list.html')(results, date)
+        pins = []
+        for row in results:
+            pins.append(row)
+        if pins:
+            return web.template.frender('t/admin/pin_search_list.html')(pins, date)
+        else:
+            return web.template.frender('t/admin/pin_search_list.html')(self.empty_results(), date)
+    
+    def empty_results(self):
+        class O(object):
+            def __getattr__(self, name):
+                if name == 'name':
+                    return 'no items'
+                elif name == 'timestamp':
+                    return 0
+                else:
+                    return ''
+        return [O(),]
 
 
 class Pin(object):
