@@ -424,3 +424,10 @@ $(document).ready(function() {
     });
 
 }).call(this);
+
+function add_image(url) {
+    //console.log(url);
+    $('#url').val(url);
+    $('#web_getlist_link').click();
+    $('#fetch-images').click();
+}

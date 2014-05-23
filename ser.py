@@ -1878,7 +1878,12 @@ class PageSearchItems:
                     current_pin.tags.append(tag)
         if ajax:
             return json_pins(pins, 'horzpin')
-        return ltpl('search', pins, orig)
+        #google search
+        google_images = urllib.urlopen(
+            'http://ajax.googleapis.com/ajax/services/search/images?v=1.0&rsz=8&q=%s' % q).read()
+        google_images = json.loads(google_images)
+        google_images = google_images['responseData']['results']
+        return ltpl('search', pins, orig, google_images)
 
 
 class PageSearchPeople:
