@@ -473,3 +473,17 @@
 #button-more{
     margin-bottom: 20px;
 }
+
+.modal-image-container {
+    text-align: center;
+    width: 100%;
+}
+
+.modal-buttons {
+    text-align: center;
+    width: 100%;
+}
+
+.modal-image-container img {
+    max-width: 500px;
+}

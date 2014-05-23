@@ -56,6 +56,7 @@ urls = (
     "/profile/test-username", api.views.profile.TestUsernameOrEmail,
     "/profile/userinfo/upload_pic", api.views.profile.PicUpload,
     "/profile/userinfo/upload_bg", api.views.profile.BgUpload,
+    "/profile/userinfo/get_photos", api.views.profile.GetProfilePictures,
 
     # API to user profile: change user password
     "/profile/pwd", api.views.profile.ChangePassword,
