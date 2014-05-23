@@ -36,7 +36,7 @@ $def with (form, user)
 		</div>
 		<div class="col-xs-4">
 			<div class="shadow-box">
-				<img src="/static/pics/$(user.pic).png" class="img-responsive center-block"/>
+				<img src="$(user.pic)" class="img-responsive center-block"/>
 				<form method="POST" action="/admin/user/$user.id/change_pic/" role="form" enctype="multipart/form-data">
 					<div class="form-group">
 						<input type="file" class="form-control" id="newpic" name="newpic" value="Change Image">

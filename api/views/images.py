@@ -8,7 +8,7 @@ import random
 
 from mypinnings import database
 from api.views.base import BaseAPI
-from api.utils import api_response, save_api_request
+from api.utils import api_response, save_api_request, photo_id_to_url
 from mypinnings.database import connect_db
 from mypinnings.conf import settings
 from mypinnings.media import store_image_from_filename
@@ -227,7 +227,7 @@ class ImageQuery(BaseAPI):
                     "category": image.get('category'),
                     "cat_name": image.get('cat_name'),
                     "user_id": image.get('user_id'),
-                    "user_pic": image.get('user_pic'),
+                    "user_pic": photo_id_to_url(image.get('user_pic')),
                     "user_username": image.get('user_username'),
                     "user_name": image.get('user_name')
                 }

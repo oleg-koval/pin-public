@@ -32,6 +32,7 @@ $(document).ready(function() {
     });
     $(".add_getlist_link").click(function(){
         $( "#dialog-form" ).dialog( "open" );
+        return false;
     });
 
     $("#upload_cancel").click(function(){

@@ -60,12 +60,45 @@ $else:
 
 
 
-
+$:tpl('pin212px_template')
 
 <link rel="stylesheet" href="/static/css/pin_loader.css" />
 <script type='text/javascript' src='/static/addpin.js'></script>
-<script type='text/javascript' src='/static/js/underscore-min.js'></script>
+<!-- <script type='text/javascript' src='/static/js/underscore-min.js'></script> -->
 <script type='text/javascript' src='/static/masonry.pkgd.min.js'></script>
 <script type='text/javascript' src='/static/imagesloaded.pkgd.min.js'></script>
 <!--<script type='text/javascript' src='/static/infinite.js'></script>-->
+<script type="text/html" id="pin_template">
+            <td>
+                <%= categories_list %>
+            </td>
+            <td>
+                <a href="/p/<%= external_id %>">
+                    <img src="<%= image_202_url %>?_=<%= new Date().getTime() %>" style="width:40px;height:auto;">
+                </a>
+            </td>
+            <td><%= name %></td>
+            <td><%= description %></td>
+            <td>
+                <a href="<%= link %>" title="<%= link %>">
+                    <%= separate_link %>
+                </a>
+            </td>
+            <td>
+                <a href="<%= product_url %>" title="<%= product_url %>">
+                    <%= separate_product %>
+                </a>
+            </td>
+            <td>
+                <% _.each(tags, function(tag) { %>
+                    #<%= tag %><br>
+                <% }); %>
+            </td>
+            <td><%= price %></td>
+            <td><%= price_range_repr %></td>
+            <td>
+                <button class="button_pin_edit" pinid="<%= id %>">e</button>
+                <button class="button_pin_delete" pinid="<%= id %>">x</button>
+            </td>
+</script>
 </div>

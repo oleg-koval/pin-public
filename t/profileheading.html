@@ -4,10 +4,10 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
         $if 'logged_in' in sess and sess.user_id == user.id:
           data-bg="true"
           id='header_background'
-          style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);position:relative;'
+          style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url($(user.bg_resized_url));position:relative;'
         $else:
           id='header_background'
-          style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);cursor:default !important;position:relative;'
+          style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url($(user.bg_resized_url));cursor:default !important;position:relative;'
       $else:
         data-nobg='true'
         style='background: #333842;position:relative;'
@@ -15,7 +15,7 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
     <div class="userHolder">
         <div class="userPic">
             $if user.pic:
-                <img src="/static/pics/userthumb$(user.pic).png" />
+                <img src="$(user.pic)" />
             $else:
                 <img src='/static/default-avatar.png' alt='' />
             <div class="otherPics">

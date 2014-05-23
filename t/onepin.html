@@ -33,7 +33,7 @@ $if pin.id and pin.category:
 
         <a href='$link'>
           $if pin.user_pic:
-            <img class='left' src='/static/pics/userthumb$(pin.user_pic).png'/>
+            <img class='left' src='$(pin.user_pic)'/>
           $else:
             <img class='left' src='/static/default-avatar.png'/>
         </a>
