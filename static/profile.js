@@ -229,16 +229,16 @@ simplify_url = function(url) {
   return simplified;
 };
 
-$(window).scroll(function() {
-  var doc_height, height, sensitivity, top;
-  top = $(window).scrollTop();
-  height = $(window).innerHeight();
-  doc_height = $(document).height();
-  sensitivity = 1000;
-  if (top + height + sensitivity > doc_height) {
-    get_more_items();
-  }
-});
+// $(window).scroll(function() {
+//   var doc_height, height, sensitivity, top;
+//   top = $(window).scrollTop();
+//   height = $(window).innerHeight();
+//   doc_height = $(document).height();
+//   sensitivity = 1000;
+//   if (top + height + sensitivity > doc_height) {
+//     get_more_items();
+//   }
+// });
 
 $(document).on('click', '.category_pin_image', function(event) {
   var pinid;
