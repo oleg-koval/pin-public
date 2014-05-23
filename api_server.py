@@ -53,6 +53,7 @@ urls = (
     "/profile/updateviews/(?P<profile>\w+)", api.views.profile.UpdateProfileViews,
     "/profile/userinfo/boards", api.views.profile.QueryBoards,
     "/profile/userinfo/pins", api.views.profile.QueryPins,
+    "/profile/test-username", api.views.profile.TestUsernameOrEmail,
     "/profile/userinfo/upload_pic", api.views.profile.PicUpload,
     "/profile/userinfo/upload_bg", api.views.profile.BgUpload,
 
