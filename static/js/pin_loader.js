@@ -548,9 +548,7 @@ jQuery(function() {
     event.preventDefault();
     $.get(url + filter, function() {
       var index;
-      $.pagination_grid.g.load({
-        pageNumber: 1
-      });
+      $.pagination_grid.g.load();
       index = $('#tabs a[href="#added"]').parent().index();
       $("#tabs").tabs("option", "active", index);
       $('.grid-page-info .grid-page-input').val(1);

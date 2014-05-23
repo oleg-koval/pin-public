@@ -58,6 +58,10 @@ urls = ('', 'admin.PageIndex',
         '/selection/pending_items', 'mypinnings.admin.category_selection.PendingItems',
         '/selection/add_to_categories', 'mypinnings.admin.category_selection.AddPinToCategories',
         '/selection','mypinnings.admin.category_selection.CategorySelection',
+        '/pins/search', 'mypinnings.admin.pins.Search',
+        '/pins/search/pagination', 'mypinnings.admin.pins.SearchPagination',
+        '/pins/search/set_search_criteria', 'mypinnings.admin.pins.SearchCriteria',
+        '/pin/(\d+)', 'mypinnings.admin.pins.Pin',
         )
 
 
