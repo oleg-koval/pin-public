@@ -53,4 +53,4 @@ COUNTRIES = [
 
 PIN_COUNT = 100
 
-API_URL = "http://192.168.0.22:8080/"
+API_URL = "http://mypinnings.com/"
