@@ -1,4 +1,4 @@
-$def with (user, pins, template=None, options=None, edit_profile=None,boards=None,categories_to_select=None)
+$def with (pins, template=None, options=None, edit_profile=None,boards=None,categories_to_select=None, user=None)
 
 $ options = options or {}
 $ template = template or 'onepin'
@@ -25,7 +25,8 @@ $else:
         </ul>
     </div> -->
 </div>
-<span style="display:none" id="hidden_username">$user.username</span>
+$if user:
+    <span style="display:none" id="hidden_username">$user.username</span>
 <div id='pin-box' class='pins'></div>
 <div class="inContentiySmoktunovskiy">
     <div class='' id='pin-buf'>
