@@ -6,7 +6,8 @@ from api.views.base import BaseAPI
 
 import mypinnings
 from mypinnings.database import connect_db
-from mypinnings.auth import authenticate_user_email, authenticate_user_username, login_user
+from mypinnings.auth import authenticate_user_email, \
+    authenticate_user_username, login_user
 from mypinnings.register import add_default_lists, send_activation_email
 from mypinnings import auth
 from mypinnings import session
@@ -34,10 +35,15 @@ class Auth(BaseAPI):
         login_user(sess, user_id)
         data = {
             "user_id": user.get("id"),
-            "email": user.get("email")
+            "email": user.get("email"),
+            "username": user.get("username")
         }
-        response = api_response(data, csid_from_client=request_data.get("csid_from_client"),
-            csid_from_server=user.get('seriesid'), client_token=user.get('logintoken'))
+        response = api_response(
+            data,
+            csid_from_client=request_data.get("csid_from_client"),
+            csid_from_server=user.get('seriesid'),
+            client_token=user.get('logintoken')
+        )
         return response
 
     def get_user(self, user_id):
@@ -90,7 +96,7 @@ class Register(BaseAPI):
             uname - user name
             pwd - user password
             email - user email
-            first_name - user first name
+            complete_name - user first name
             language - user language
 
             output response also included:
@@ -107,21 +113,24 @@ class Register(BaseAPI):
         uname = request_data.get("uname")
         pwd = request_data.get("pwd")
         email = request_data.get("email")
-        first_name = request_data.get("first_name")
+        complete_name = request_data.get("complete_name")
         # last_name = request_data.get("last_name")
-        language = request_data.get("language", "en")
+        language = str(request_data.get("language", "en"))
 
         status_error = 200
         error_code = ""
 
-        status, error_code = self.register_validation(uname, pwd, 
-                                                      email, first_name)
+        status, error_code = self.register_validation(uname, pwd,
+                                                      email, complete_name)
         if status:
             activation = random.randint(1, 10000)
             hashed = hash(str(activation))
 
-            user_id = auth.create_user(email, pwd, name=first_name, username=uname,
-                                       activation=activation, locale=language)
+            user_id = auth.create_user(email, pwd,
+                                       name=complete_name,
+                                       username=uname,
+                                       activation=activation,
+                                       locale=language)
 
             add_default_lists(user_id)
             send_activation_email(email, hashed, user_id)
@@ -144,17 +153,17 @@ class Register(BaseAPI):
 
         return response
 
-    def register_validation(self, uname, pwd, email, first_name):
+    def register_validation(self, uname, pwd, email, complete_name):
         """
             Validation entered user's request parameters:
             name, password,
-            email, first_name
+            email, complete_name
         """
         request_params = {
             "uname": uname,
             "pwd": pwd,
             "email": email,
-            "first_name": first_name,
+            "complete_name": complete_name,
         }
         error_code = ""
         for field, value in request_params.items():
@@ -177,6 +186,7 @@ class Register(BaseAPI):
 
         return True, error_code
 
+
 class Confirmuser(BaseAPI):
     """Confirmation of user email
 
@@ -185,7 +195,7 @@ class Confirmuser(BaseAPI):
     """
     def POST(self):
         """
-        Compare given activation code with existed. 
+        Compare given activation code with existed.
         If they are identical - activate new user
         """
         status_error = 200
@@ -202,14 +212,20 @@ class Confirmuser(BaseAPI):
         if not status:
             return response_or_user
 
-        user = db.select('users', {'id': response_or_user['id']}, where='id=$id')[0]
+        user = db.select('users',
+                         {'id': response_or_user['id']},
+                         where='id=$id')[0]
         csid_from_server = user.get('seriesid')
         activation = user.get('activation')
         hashed = hash(str(activation))
- 
-        if hashed != int(hashed_activation):
+
+        if hashed_activation:
+            if hashed != int(hashed_activation):
+                status_error = 405
+                error_code = "wrong activation code given from user"
+        else:
             status_error = 405
-            error_code = "wrong activation code given from user"
+            error_code = "Not found hashed_activation field in request"
 
         if status_error == 200:
             db.update('users', activation=0,
@@ -225,4 +241,43 @@ class Confirmuser(BaseAPI):
         return response
 
 
-        
+class ResendActivation(BaseAPI):
+    """
+    Method that resends activation letter
+    """
+    def POST(self):
+        request_data = web.input()
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        activation = user['activation']
+
+        if activation == 0:
+            status = 400
+            error_code = "Your account is already activated"
+        else:
+            user_id = user['id']
+            email = user['email']
+
+            hashed = hash(str(activation))
+
+            send_activation_email(email, hashed, user_id)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+
+        return response

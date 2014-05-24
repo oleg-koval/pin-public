@@ -216,20 +216,24 @@ textarea, .input {
         position: relative;
         top: -5px; }
     .header .nav .search {
-      padding: 4px;
+      padding: 2px;
       margin-left: 10px;
       width: 295px;
-      background-color: white;
+      background-color: #069;
       border-radius: 4px;
       text-decoration: none; }
       .header .nav .search input {
-        background: none;
+        background-color: #0088c1;
+		-webkit-border-radius: 2px;
+		-moz-border-radius: 2px;
+		border-radius: 2px;
+		color: #fff;
         text-decoration: none;
         border-style: none;
         outline: none;
         resize: none;
         width: 100%;
-        padding: 0;
+        padding: 1px 4px;
         box-shadow: none;
         margin: 0; }
     .header .nav .item {

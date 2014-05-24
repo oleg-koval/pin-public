@@ -4,6 +4,6 @@ $def with (user)
 $for user in user:
     <hr/>
     $if user.pic:
-        <img src='/static/pics/$(user.id).png' style='width: 50px; height: 50px'/>
+        <img src='$(user.pic)' style='width: 50px; height: 50px'/>
         <br/>
     <a href='/$user.username'><b>$user.name</b></a>

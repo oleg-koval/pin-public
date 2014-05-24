@@ -4,14 +4,14 @@ $ options = options or {}
   $for user in users:
     <div class='user left clearfix'>
       $if user.pic:
-        <img class='left' src='/static/pics/userthumb$(user.pic).png' alt=''/>
+        <img class='left' src='$(user.pic)' alt=''/>
       $else:
         <img class='left' src='/static/default-avatar.png' alt=''/>
       <div class='left bold'>
         <p><a href='/profile/$user.id'>$user.name</a></p>
         $if 'show_follow' in options and options['show_follow']:
-          $if not user.is_following:
-            <p><a class='button follow' href='/follow/$user.id'>Follow</a></p>
+            $if not user.is_following:
+                <p><a class='button follow' href='/follow/$user.id'>Follow</a></p>
       </div>
     </div>
 </div>

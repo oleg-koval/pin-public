@@ -1,0 +1,37 @@
+$def with (pin)
+$if pin.id:
+    $if pin.repin:
+        <div class="dwItem inlineB pin-not-added" id="horz-pin$pin.id">
+    $else:
+        <div class="dwItem inlineB" id="horz-pin$pin.id">
+
+    <div class="dwImg category_pin_image" pinid="$pin.external_id">
+        <img src="$pin.image_202_url" />
+    </div>
+    <div class="dwName">
+        <p>
+            <a href='#' class="category_pin_image" pinid="$pin.external_id">
+                $pin.name
+            </a>
+        </p>
+    </div>
+    <div class="dwBy">
+        <p>
+            <span>by</span> <a href='/$pin.user_username'><b>$pin.user_name</b></a>
+        </p>
+    </div>
+    <div class="dwType">
+        <p>
+            $if pin.tags:
+                $:(', '.join(['<a href="/search/items?h=%s">#%s</a>' % (x, x) for x in pin.tags]))
+            $else:
+                &nbsp;
+        </p>
+    </div>
+    <div class="dwLike">
+        <p>
+            <span class="flaticon-like21 dwIcoLike"></span> $pin.like_count
+            <span class="flaticon-eye46 dwIcoEye"></span> $pin.views
+        </p>
+    </div>
+</div>

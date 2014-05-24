@@ -1,14 +1,14 @@
+import web
 import json
 import datetime
 from gettext import gettext as _
-
-import web
 
 from mypinnings import session
 from mypinnings import template
 from mypinnings import database
 from mypinnings import auth
 
+from mypinnings.api import api_request
 
 class PasswordRecoveryStart(object):
     UsernameForm = web.form.Form(web.form.Textbox('username', web.form.notnull, description=_("Enter your username or email address"), autocomplete='off'),
@@ -60,25 +60,20 @@ class EmailSentPage(object):
 
 
 class UsernameOrEmailValidator(object):
+    """
+    View responsible for checking username or email while composing password
+    recovery request
+    """
     def GET(self):
-        result = {'status': 'nothing'}
-        username_or_email = web.input(username=None)['username']
-        if username_or_email:
-            db = database.get_db()
-            results = db.where(table='users', username=username_or_email)
-            for row in results:
-                result['status'] = 'ok'
-                break
-            else:
-                results = db.where(table='users', email=username_or_email)
-                for row in results:
-                    result['status'] = 'ok'
-                    break
-                else:
-                    result['status'] = 'notfound'
-        result = json.dumps(result)
+        username_or_email = web.input().get("username")
+        result = {"status": "nothing"}
+        api_url = "/api/profile/test-username"
+        context = {"csid_from_client": "1",
+                   "username_or_email": username_or_email}
+        status = api_request(api_url, data=context).get("data")
+        result['status'] = status
         web.header('Content-Type', 'application/json')
-        return result
+        return json.dumps(result)
 
 
 class PasswordReset(object):

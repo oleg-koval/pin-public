@@ -2,7 +2,7 @@
 (function() {
   var $box, $buffer, $button, addItem, appendPin, count, getMorePosts, loading, numPins, offset;
 
-  offset = 0;
+  offset = 1;
 
   loading = false;
 

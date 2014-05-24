@@ -30,8 +30,9 @@ $(document).ready(function() {
     $("#web_getlist_link").click(function(){
         $( "#getlist-from-web" ).dialog( "open" );
     });
-    $("#add_getlist_link").click(function(){
+    $(".add_getlist_link").click(function(){
         $( "#dialog-form" ).dialog( "open" );
+        return false;
     });
 
     $("#upload_cancel").click(function(){
@@ -156,7 +157,8 @@ $(document).ready(function() {
            if(data.status !== "error"){
 	            $(".progress").hide();
 	            $("#websitelinkweb").val($("#url").val());
-	            $( "#web_getlist_form" ).clearForm();
+	            // $( "#web_getlist_form" ).clearForm();
+                $("#url").attr("value", "");
 	            $( "#getlist-from-web" ).dialog("close");
 	            var percentVal = '100%';
                 barweb.width(percentVal)

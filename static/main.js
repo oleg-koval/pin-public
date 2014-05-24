@@ -33,6 +33,7 @@ $(document).ready(function() {
     e.event.stopPropagation();
   });
   $("#pin-not-added").click(function() {
+    show_pins_date();
     $(".pin-not-added").each(function() {
       $(this).show();
     });
@@ -41,6 +42,7 @@ $(document).ready(function() {
     $(".pin-not-added").each(function() {
       $(this).hide();
     });
+    hide_pins_date();
   });
   id = $(".carousel2").find(".active").attr("photoid");
   $("#remove_photo").attr("href", "/photo/" + id + "/remove");
@@ -60,3 +62,17 @@ $(document).ready(function() {
     $("#remove_photo").attr("href", "/photo/" + id + "/remove");
   });
 });
+
+function hide_pins_date() {
+  $(".dateWrap").each(function() {
+    if($('.dwContent .dwItem:not(.pin-not-added)', this).length == 0) {
+      $(this).hide();
+    }
+  });
+}
+
+function show_pins_date() {
+  $(".dateWrap").each(function() {
+    $(this).show();
+  });
+}

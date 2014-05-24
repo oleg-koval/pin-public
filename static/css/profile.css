@@ -1,0 +1,489 @@
+﻿.userPic img
+{
+    width: 160px;
+    border: 3px solid white;
+}
+
+.userPic
+{
+    position: relative;
+}
+
+.otherPics
+{
+    position: absolute;
+    left: 160px;
+    bottom: 0;
+    padding-left: 3px;
+    display: none;
+}
+
+.otherPics img
+{
+    width: 60px;
+}
+
+.otherPics img:hover
+{
+    cursor: pointer;
+    border-color: #7bc2f4;
+}
+
+.profBack
+{
+    padding: 0;
+    border: 1px solid #f2f2f2;
+    position: relative;
+}
+
+.userHolder
+{
+    position: relative;
+    z-index: 1;
+    padding: 14px 22px;
+    background: rgba(0,0,0, 0.3);
+}
+
+.userBackImg
+{
+    position: absolute;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.userBackImg img
+{
+    width: 100%;
+}
+
+.userName
+{
+    font-size: 24px;
+    font-weight: bold;
+    color: White;
+    margin-bottom: 0;
+}
+
+.userDetail, .userDetail a
+{
+    text-decoration: none;
+    color: White;
+}
+
+.userDetail a:hover
+{
+    text-shadow: 1px 1px 3px #0088c1;
+}
+
+.userDetail a:first-child
+{
+    margin-right: 5px;
+}
+
+.userDetail span
+{
+    font-size: 16px;
+    position: relative;
+    top: 1px;
+}
+
+.userDetail i
+{
+    font-size: 20px;
+    position: relative;
+    top: 2px;
+}
+
+.buttonWhite i
+{
+    font-size: 22px;
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    color: #666666;
+    font-weight: normal;
+}
+
+.buttonWhite
+{
+    padding-left: 33px;
+    position: relative;
+    background: #f3f2f2 !important;
+    color: #666666;
+    font-weight: normal;
+    text-shadow: none;
+}
+
+.button:not(:disabled), button:not(:disabled)
+{
+    box-shadow: none;
+}
+
+.userButtons
+{
+    margin-top: 20px;
+}
+
+.clearB
+{
+    clear: both;
+}
+
+.profLeft
+{
+    width: 72%;
+    margin-right: 2%;
+}
+
+.profRight
+{
+    float: right;
+    width: 25%;
+}
+
+.userMenuItem
+{
+    width: 100%;
+}
+
+.userMenuItem a
+{
+    display: block;
+    width: 100%;
+    background: white;
+    border-bottom: 2px solid #f5f6f6;
+    padding: 5px;
+    color: #6a7278;
+    position: relative;
+}
+
+.userMenuItem a:hover
+{
+    text-decoration: none;
+    color: Black;
+}
+
+.userMenuItem i
+{
+    font-size: 20px;
+    position: absolute;
+    top: 0;
+    right: 3px;
+}
+
+.userMenuItem:last-child a
+{
+    border-bottom: none;
+}
+
+.userMenuBlock
+{
+    border: 2px solid #f5f6f6;
+    border-radius: 3px;
+    margin-bottom: 20px;
+}
+
+.wtfLink
+{
+    color: #7bc2f4;
+    cursor: pointer;
+}
+
+.wtfItem
+{
+    margin-top: 10px;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.wtfCross
+{
+    position: absolute;
+    width: 5px;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+}
+
+.wtfImg
+{
+    width: 21%;
+    margin-right: 2%;
+    float: left;
+}
+
+.wtfImg img
+{
+    width: 100%;
+}
+
+.wtfContent
+{
+    width: 76%;
+    float: right;
+    padding-right: 5px;
+}
+
+.wtfContent p
+{
+    margin-bottom: 0;
+}
+
+.skyColor
+{
+    color: #1dcaff;
+}
+
+.wtfIcon
+{
+    font-size: 20px;
+    position: relative;
+    top: 3px;
+    margin-right: 3px;
+}
+
+.wtfSmIcon
+{
+    font-size: 16px;
+    position: relative;
+    top: 1px;
+    margin-right: 3px;
+}
+
+.wtfItem p
+{
+    color: #999999;
+}
+
+.wtfItem b
+{
+    color: black;
+}
+
+.goldColor
+{
+    color: #f9ad19;
+}
+
+.profLeft #myTab
+{
+    min-height: 42px;
+    margin-top: 0;
+}
+
+.profLeft #myTab.nav:before, .profLeft #myTab.nav:after
+{
+    display: inline;
+    content: inherit;
+}
+
+.profLeft .profile-tab-navigation
+{
+    border: 1px solid #d0d1d1;
+    border-radius: 6px 6px 0 0;
+    margin-top: 20px;
+}
+
+.profLeft .tab-content
+{
+    background: white;
+    padding: 5px 0 0 0;
+}
+
+.greyLine
+{
+    background: #f2f2f2;
+    padding: 10px 20px 10px 50px;
+    position: relative;
+}
+
+.greyLine img
+{
+    width: 26px;
+    position: absolute;
+    left: 10px;
+    top: 12px;
+}
+
+.inContentiySmoktunovskiy
+{
+    padding: 20px 15px;
+}
+
+.greyLine input
+{
+    border: none;
+    border-radius: 3px;
+    box-shadow: none;
+    width: 70%;
+    margin-right: 10px;
+}
+
+.profDrop
+{
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.profDrop a:hover
+{
+    text-decoration: none;
+}
+
+.profDrop .dropdown-menu li
+{
+    padding: 5px 10px;
+}
+.profDrop .dropdown-menu li:hover
+{
+    background: #009fe4;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.dwDate p
+{
+    font-size: 48px;
+    font-weight: bold;
+    position: relative;
+    top: -20px;
+}
+
+.dwDate span
+{
+    font-size: 28px;
+    font-weight: normal;
+    position: relative;
+    left: -10px;
+    bottom: 5px;
+}
+
+.dateWrap
+{
+    margin-top: 20px;
+}
+
+.dwContent
+{
+    padding-left: 120px;
+}
+
+.dwItem
+{
+    width: 200px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #e2e2e2;
+    min-height: 268px;
+}
+
+.dwItem.small
+{
+    min-height: 215px;
+}
+
+.dwImg
+{
+    width: 100%;
+    height: 150px;
+    overflow: hidden;
+}
+
+.dwImg img
+{
+    width: 100%;
+}
+
+.dwDate
+{
+    float: left;
+    width: 120px;
+    text-align: right;
+}
+
+.dwName
+{
+    height: 40px;
+    padding: 5px;
+}
+
+.dwName p
+{
+    font-weight: bold;
+}
+
+.dwBy
+{
+    padding: 5px 5px 0 5px;
+}
+
+.dwBy p
+{
+    border-bottom: 1px solid #e2e2e2;
+    padding-bottom: 5px;
+}
+
+.dwBy span, .dwType p
+{
+    color: #696969;
+}
+
+.dwType p
+{
+    font-size: 11px;
+    padding: 5px;
+}
+
+.dwLike
+{
+    background: #f6f6f6;
+    padding: 5px;
+    border-top: 1px solid #e7e7e7;
+}
+
+.dwLike span
+{
+    color: #999999;
+    font-size: 13px;
+}
+
+.dwLike p
+{
+    color: #555555;
+    /*height: 30px; display: block;  */ 
+}
+
+.dwIcoEye
+{
+    bottom: 1px;
+    margin-left: 10px;
+}
+
+.dwIcoLike
+{
+    position: relative;
+    bottom: 2px;
+}
+
+#button-more{
+    margin-bottom: 20px;
+}
+
+.modal-image-container {
+    text-align: center;
+    width: 100%;
+}
+
+.modal-buttons {
+    text-align: center;
+    width: 100%;
+}
+
+.modal-image-container img {
+    max-width: 500px;
+}

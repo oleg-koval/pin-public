@@ -1,6 +1,9 @@
 import web
 import os
+
 from api.utils import api_response, save_api_request
+from api.entities import UserProfile
+
 from api.views.base import BaseAPI
 from mypinnings.database import connect_db
 import facebook
@@ -87,7 +90,7 @@ def share(access_token, share_list, social_network="facebook"):
         access_token_status = check_linkedin_access_token(access_token)
 
     if not access_token_status:
-        return [], 400, "Bad access token"
+        return [], 400, "Bad access token for social network"
 
     # Initialize shared pins list
     shared_pins = []
@@ -213,55 +216,261 @@ def share_via_linkedin(access_token, message, link, image_url):
         return False
 
 
-class QueryFollowers(BaseAPI):
+class QueryFollows(BaseAPI):
     """
     Class responsible for providing access to followers of a given user
     """
-    def GET(self, username, query_type):
+    def POST(self, query_type):
         """ Depending on query_type (which can be follow or followers) returns
         a list of users (ids), following or followed by current user
 
-        Can be testing samples:
+        Can be tested this way:
 
-        curl http://localhost:8080/api/social/query/oleg/follow\
-        ?csid_from_client=1 - returns all users who followed by user oleg
+        curl --data "csid_from_client=1&user_id=78&logintoken=RxPu7fLYgv" \
+        http://localhost:8080/api/social/query/following
+        returns all users who followed by user oleg
 
-        curl http://localhost:8080/api/social/query/oleg/follower\
-        ?csid_from_client=1 - returns all users who follow user oleg
+        curl --data "csid_from_client=1&user_id=78&logintoken=RxPu7fLYgv" \
+        http://localhost:8080/api/social/query/followed-by
+        returns all users who follow user oleg
         """
 
         data = web.input()
-        save_api_request(data)
-        kwparams = {}
+        uid = data.get("user_id")
+        logintoken = data.get("logintoken", "")
+        status, response_or_user = self.authenticate_by_token(logintoken)
 
-        if data.get('new'):
-            kwparams['order'] = 'follow_time'
+        # Login was not successful
+        if not status:
+            return response_or_user
+        if query_type == "followed-by":
+            follows = UserProfile.query_followed_by(uid, response_or_user.id)
+        else:
+            follows = UserProfile.query_following(uid, response_or_user.id)
+        csid_from_client = data.pop('csid_from_client')
+        return api_response(data=follows, csid_from_client=csid_from_client,
+                            csid_from_server="")
 
-        # Get user from the database
-        user = db.select(
-            'users',
-            {"username": username},
-            where="username=$username"
+
+class SocialMessage(BaseAPI):
+    """
+    API method that sends message to user
+    """
+    def POST(self):
+        request_data = web.input(
+            user_id_list=[],
         )
 
-        if not user:
-            return api_response(data={}, status=405,
-                                error_code="Object does not exist")
-        user = user.list()[0]
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
 
-        # Selecting followers or followed
-        if query_type == 'follower':
-            kwparams['where'] = 'follower=%s' % (user.id)
-            kwparams['what'] = 'follow'
-        else:
-            kwparams['where'] = 'follow=%s' % (user.id)
-            kwparams['what'] = 'follower'
+        # Get data from request
+        user_id_list = map(int,
+                           request_data.get("user_id_list"))
+        content = request_data.get("content")
 
-        followers = db.select('follows', **kwparams).list()
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
 
-        # Composing user ids
-        user_id_list = [follower[kwparams['what']] for follower in followers]
-        csid_from_client = data.pop('csid_from_client')
-        return api_response(data={'user_id_list': user_id_list},
-                            csid_from_client=csid_from_client,
-                            csid_from_server="")
+        if not content:
+            status = 400
+            error_code = "Content cannot be empty"
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        from_user_id = user['id']
+
+        if status == 200:
+            for to_user_id in user_id_list:
+                ids = sorted([to_user_id, from_user_id])
+                convo = db.select('convos',
+                                  where='id1 = $id1 and id2 = $id2',
+                                  vars={'id1': ids[0], 'id2': ids[1]})\
+                    .list()
+                if convo:
+                    convo_id = convo[0].id
+                else:
+                    convo_id = db.insert('convos', id1=ids[0], id2=ids[1])
+
+                db.insert('messages', convo_id=convo_id, sender=from_user_id,
+                          content=content)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+
+class SocialMessageToConversation(BaseAPI):
+    """
+    API method that sends message to conversation
+    """
+    def POST(self):
+        request_data = web.input(
+            conversation_id_list=[],
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from request
+        conversation_id_list = map(int,
+                           request_data.get("conversation_id_list"))
+        content = request_data.get("content")
+
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        if not content:
+            status = 400
+            error_code = "Content cannot be empty"
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        from_user_id = user['id']
+
+        if status == 200:
+            for conversation_id in conversation_id_list:
+                convo = db.select('convos',
+                                  where='id = $id',
+                                  vars={'id': conversation_id})\
+                    .list()
+                if len(convo) > 0:
+                    db.insert('messages',
+                              convo_id=conversation_id,
+                              sender=from_user_id,
+                              content=content)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+
+class SocialQueryConversations(BaseAPI):
+    """
+    API method that allows to get conversations
+    """
+    def POST(self):
+        request_data = web.input(
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from 
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        from_user_id = user['id']
+
+        if status == 200:
+            convos = db.query('''
+                select convos.*, users.name from convos
+                    join users on users.id = (case
+                        when convos.id1 = $id then convos.id2
+                        else convos.id1
+                    end)
+                where id1 = $id or id2 = $id''', vars={'id': from_user_id})\
+                .list()
+            if len(convos) > 0:
+                data['conversations'] = convos
+            else:
+                data['conversations'] = []
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+
+class SocialQueryMessages(BaseAPI):
+    """
+    API method that allows to get messages from conversation
+    """
+    def POST(self):
+        request_data = web.input(
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from 
+        conversation_id = request_data.get('conversation_id', False)
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        from_user_id = user['id']
+
+        if not conversation_id:
+            status = 400
+            error_code = "conversation_id cannot be empty"
+
+        if status == 200:
+            convo = db.query('''
+                select convos.id, users.id as user_id, users.name from convos
+                    join users on users.id = (case
+                        when convos.id1 = $id then convos.id2
+                        else convos.id1
+                    end)
+                where (convos.id = $convo_id and
+                       convos.id1 = $id or convos.id2 = $id)''',
+                vars={'convo_id': conversation_id, 'id': from_user_id})\
+                .list()
+            if not convo:
+                status = 400
+                error_code = "conversation not found"
+            else:
+                data['conversation'] = convo[0]
+
+                messages = db.query('''
+                    select messages.*, users.name from messages
+                        join users on users.id = messages.sender
+                    where messages.convo_id = $convo_id''',
+                    vars={'convo_id': conversation_id})\
+                    .list()
+                if len(messages) > 0:
+                    data['messages'] = messages
+                else:
+                    data['messages'] = []
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response

@@ -14,7 +14,7 @@ from mypinnings import database
 from mypinnings import cached_models
 from mypinnings import pin_utils
 from mypinnings.conf import settings
-from mypinnings.api import api_request, convert_to_id
+from mypinnings.api import api_request, convert_to_id, convert_to_logintoken
 
 
 urls = ('/after-signup/(\d*)', 'PageAfterSignup',
@@ -42,6 +42,10 @@ class PageRegister:
         web.form.Dropdown('language', languages, web.form.notnull),
         web.form.Button('Let\'s get started!')
     )
+
+    def get_form(self):
+        form = self._form()
+        return form
 
     def msg(self, s):
         raise web.seeother('?msg=%s' % s, absolute=False)
@@ -79,7 +83,7 @@ class PageRegister:
                 "uname": form.d.username.lower(),
                 "pwd": form.d.password,
                 "email": form.d.email.lower(),
-                "first_name": form.d.name,
+                "complete_name": form.d.name,
                 "language": form.d.language
             }
 
@@ -97,23 +101,26 @@ class PageRegister:
             return template.tpl('register/reg', form, message)
 
 
-
 class PageResendActivation:
     def GET(self):
         sess = session.get_session()
         auth.force_login(sess)
 
+        logintoken = convert_to_logintoken(sess.user_id)
+        data = {
+            "csid_from_client": '',
+            "logintoken": logintoken
+        }
+        
+        data = api_request("api/signup/resend_activation", "POST", data)
+        
         user = database.dbget('users', sess.user_id)
-        if not user:
+        
+        if data['status'] == 200:
+            return template.lmsg('An email has been resent. <a href="/"><b>Back</b></a>\
+                |  <a href=""><b>Send another one</b></a>', user)
+        else:
             raise web.seeother('/')
-
-        if user.activation == 0:
-            raise web.seeother('/')
-
-        hashed = hash(str(user.activation))
-        send_activation_email(user.email, hashed, user.id)
-        return template.lmsg('An email has been resent. <a href="/"><b>Back</b></a>\
-             |  <a href=""><b>Send another one</b></a>', user)
 
 
 class PageAfterSignup:

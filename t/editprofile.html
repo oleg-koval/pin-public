@@ -1,4 +1,4 @@
-$def with (user, countries, name, photos, msg=None)
+$def with (user, countries, name, msg=None)
 
 <div class='settings clearfix'>
   <div class='nav left'>
@@ -9,8 +9,8 @@ $def with (user, countries, name, photos, msg=None)
      <!-- <a href='/settings/account'>Account</a> -->
      <a href='/settings/privacy'>Privacy</a>
      <a href='/settings/password'>Password</a>
-     <a href='/settings/email-settings'>Email Settings</a>
-     <a href='/settings/social-media'>Social Media</a>  
+     <a href='/settings'>Email Settings</a>
+     <a href='/settings/social-media'>Social Media</a>
 
 
   </div>
@@ -25,16 +25,16 @@ $def with (user, countries, name, photos, msg=None)
 
 
 <div class='invis' id='box-email'>
-  
+
   <div>
   <h1>Account</h1>
-  <small>Change your basic account settings here</small>  
+  <small>Change your basic account settings here</small>
   </div>
-  
-  <div>    
+
+  <div>
   <form method='post' class='inner-form' action='/settings/email' autocomplete='off'>
     <table>
-    
+
         <tr>
         <th>Username</th>
         <td>
@@ -65,11 +65,11 @@ $def with (user, countries, name, photos, msg=None)
     <tr>
         <th>Photo</th>
         <td>
-              
+
               <div class="pull-left">
               $if user.pic:
                  <a href='/$user.username' id="user_avatar_placeholder_wrapper">
-                 <img  src='/static/pics/userthumb$(user.pic).png' style="width:44px;" />
+                 <img  src='$(user.pic)' style="width:44px;" />
                 $else:
                   <a href='/$user.username' >
                   <img  src='/static/default-avatar.png' style="width:44px;" />
@@ -85,8 +85,6 @@ $def with (user, countries, name, photos, msg=None)
                <li role="presentation"><a href='#' id="upload_thumbnail" data-toggle="modal" data-target="#uploadImageModal">Upload another profile picture</a></li>
                $if user.pic:
                     <li role="presentation"><a href='/photo/$user.pic/remove' id="remove_photo1">Remove</a></li>
-               $if photos:
-                    <li role="presentation"><a href="/album/$user.id">View Photo Album</a></li>   
   </ul>
 
 </div>
@@ -101,10 +99,10 @@ $def with (user, countries, name, photos, msg=None)
       <tr>
         <th>Header</th>
         <td>
-          
+
              <div class="pull-left">
               $if user.bg:
-                 <img class='avatar' src='/static/tmp/bg$(user.id).png' style="width:44px;" />
+                 <img class='avatar' src='$(user.bg_resized_url)' style="width:44px;" />
                 $else:
                   <span style="width:44px;margin-right:10px;" />No Photo</span>
               </a>
@@ -192,7 +190,7 @@ $def with (user, countries, name, photos, msg=None)
         </td>
       </tr>
       -->
-      
+
       <tr>
         <th>&nbsp;</th>
         <td><button>Save</button></td>
@@ -236,7 +234,7 @@ $def with (user, countries, name, photos, msg=None)
       </tr>
       <tr>
         <th>Twitter</th>
-        <td>twitter.com/ <input type='text' name='twitter' value='$user.facebook'/></td>
+        <td>twitter.com/ <input type='text' name='twitter' value='$user.twitter'/></td>
       </tr>
       <tr>
         <th>LinkedIn</th>

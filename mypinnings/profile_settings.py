@@ -6,6 +6,7 @@ from mypinnings.template import tpl, ltpl, lmsg
 from mypinnings.auth import force_login
 from mypinnings.conf import settings
 from mypinnings.database import connect_db, dbget
+from mypinnings.pin_utils import dotdict
 db = connect_db()
 
 from mypinnings.api import api_request, convert_to_id, convert_to_logintoken
@@ -25,7 +26,10 @@ urls = ('', 'PageEditProfile',
         )
 
 
-class PageEditProfile:
+class PageEditProfile(object):
+    """
+    Responsible for profile editing.
+    """
     _form = form.Form(
         form.Textbox('name'),
         form.Dropdown('country', []),
@@ -40,21 +44,29 @@ class PageEditProfile:
     def GET(self, name=None):
         sess = session.get_session()
         force_login(sess)
-        user = dbget('users', sess.user_id)
-        photos = db.select('photos', where='album_id = $id', vars={'id': sess.user_id})
+
+        logintoken = convert_to_logintoken(sess.user_id)
+        profile_url = "/api/profile/userinfo/get"
+        profile_owner_context = {
+            "csid_from_client": "",
+            "logintoken": logintoken
+        }
+        user = api_request(profile_url, data=profile_owner_context).get("data")
+        user = dotdict(user)
         msg = web.input(msg=None)['msg']
-        return ltpl('editprofile', user, settings.COUNTRIES, name, photos, msg)
+        return ltpl('editprofile', user, settings.COUNTRIES, name, msg)
 
     def POST(self, name=None):
+        """
+        Responsible for handing profile editing calls
+        """
         sess = session.get_session()
-        user = dbget('users', sess.user_id)
         force_login(sess)
+        logintoken = convert_to_logintoken(sess.user_id)
 
         form = self._form()
         if not form.validates():
             return 'you need to fill in everything'
-
-        logintoken = convert_to_logintoken(sess.user_id)
 
         if logintoken:
             data = {
@@ -80,24 +92,69 @@ class PageEditProfile:
             raise web.seeother('/%s?editprofile=1' % user.username)
 
 class PageChangeEmail(PageEditProfile):
+    """
+    Edit username & email
+    """
     _form = form.Form(
         form.Textbox('email'),
         form.Textbox('username'))
 
-    # @csrf_protected # Verify this is not CSRF, or fail
+    def _is_available(self, uid, value, field="email"):
+        """
+        This function checks if given email/username is not yet occupied
+
+        uid: user id is used to exclude current user from check
+        """
+        vars={'id': uid, 'value': value}
+        query = db.select('users', vars=vars,
+                          where='id<>$id and %s=$value' % (field))
+
+        if len(query.list()) > 0:
+            return False
+        return True
+
+
     def POST(self, name=None):
+        """
+        Handler for changing email or username
+        """
         sess = session.get_session()
         force_login(sess)
+        logintoken = convert_to_logintoken(sess.user_id)
 
         form = self._form()
         if not form.validates():
-            return 'you need to fill in everything'
-        if db.select('users', where='email = $email', vars={'email' : form.d.email}):
-            return 'Pick another email address'
-        if db.select('users', where='username = $username', vars={'username':form.d.username}):
-            return 'Pick another username'
-        db.update('users', where='id = $id', vars={'id': sess.user_id}, email=form.d.email, username=form.d.username)
-        raise web.seeother('/email')
+            return form.note
+
+        email_available = self._is_available(uid=sess.user_id,
+                                             field="email",
+                                             value=form.d.email)
+        if not email_available:
+            msg = "Please try another email, this one is already occupied"
+            return web.seeother('?msg=%s' % msg)
+
+        username_available = self._is_available(uid=sess.user_id,
+                                             field="username",
+                                             value=form.d.username)
+        if not username_available:
+            msg = "Please try another username, this one is already occupied"
+            return web.seeother('?msg=%s' % msg)
+
+        if logintoken:
+            data = {
+                "username":form.d.username,
+                "email":form.d.email,
+                "csid_from_client": 'None',
+                "logintoken": logintoken
+            }
+
+            data = api_request("api/profile/userinfo/update", "POST", data)
+            if data['status'] == 200:
+                raise web.seeother('')
+            else:
+                msg = data['error_code']
+                raise web.seeother('?msg=%s' % msg)
+
 
 class PageChangePw(PageEditProfile):
     _form = form.Form(
@@ -133,6 +190,9 @@ class PageChangePw(PageEditProfile):
 
 
 class PageChangeSM(PageEditProfile):
+    """
+    Class responsible for updating social media accounts
+    """
     _form = form.Form(
         form.Textbox('facebook'),
         form.Textbox('linkedin'),
@@ -141,19 +201,32 @@ class PageChangeSM(PageEditProfile):
     )
 
     def POST(self, name=None):
+        """
+        Updates social media accounts.
+        """
         sess = session.get_session()
         force_login(sess)
+        logintoken = convert_to_logintoken(sess.user_id)
 
         form = self._form()
         if not form.validates():
             return 'bad input'
 
-        user = dbget('users', sess.user_id)
-        if not user:
-            return 'error getting user'
-
-        db.update('users', where='id = $id', vars={'id': sess.user_id}, **form.d)
-        raise web.seeother('/social-media')
+        if logintoken:
+            data = {
+                "logintoken": logintoken,
+                "csid_from_client": "",
+                "facebook": form.d.facebook,
+                "linkedin": form.d.linkedin,
+                "twitter": form.d.twitter,
+                "gplus": form.d.gplus
+                }
+        data = api_request("api/profile/userinfo/update", data=data)
+        if data['status'] == 200:
+            raise web.seeother('/social-media')
+        else:
+            mgs = data['error_code']
+            raise web.seeother('/profile?msg=%s' % msg)
 
 class PageChangePrivacy(PageEditProfile):
     _form = form.Form(
@@ -185,4 +258,3 @@ class PageChangePrivacy(PageEditProfile):
                 raise web.seeother('/privacy?msg=%s' % msg)
 
 app = web.application(urls, locals())
-

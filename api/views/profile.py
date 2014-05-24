@@ -1,14 +1,21 @@
 """ API views responsible for returing and updating the profile info"""
+import os
+import uuid
 import web
+import math
 from datetime import datetime
 
-from api.utils import api_response, save_api_request, api_response
+from api.utils import api_response, save_api_request, api_response, \
+    photo_id_to_url
 from api.views.base import BaseAPI
 from api.views.social import share
+from api.entities import UserProfile
 
 from mypinnings import auth
 from mypinnings import session
 from mypinnings.database import connect_db
+from mypinnings.conf import settings
+from mypinnings.media import store_image_from_filename
 
 
 db = connect_db()
@@ -19,12 +26,27 @@ class BaseUserProfile(BaseAPI):
     General class which holds list of fields used by user profile methods
     """
     def __init__(self):
-        self._fields = ['name', 'about', 'city', 'hometown', 'about',
-                        'email', 'pic', 'website', 'facebook', 'twitter',
-                        'getlist_privacy_level', 'private']
+        self._fields = ['id', 'name', 'about', 'city', 'country', 'hometown',
+                        'about', 'email', 'pic', 'website', 'facebook',
+                        'twitter', 'getlist_privacy_level', 'private', 'bg',
+                        'bgx', 'bgy', 'show_views', 'views', 'username', 'zip',
+                        'linkedin', 'gplus', 'bg_resized_url']
         self._birthday_fields = ['birthday_year', 'birthday_month',
                                  'birthday_day']
         self.required = ['csid_from_client', 'logintoken']
+        self.default_fields = ['project_id', 'os_type', 'version_id','format_type']
+
+    @staticmethod
+    def format_birthday(user, response):
+        """
+        Composes birthday response, returning year, day and month
+        as separate response fields
+        """
+        if user['birthday']:
+            response['birthday_year'] = user['birthday'].year
+            response['birthday_day'] = user['birthday'].day
+            response['birthday_month'] = user['birthday'].month
+        return response
 
     def is_request_valid(self, request_data):
         """
@@ -39,7 +61,8 @@ class BaseUserProfile(BaseAPI):
             # Checking if current field is among the fields we have in the db
             if (field not in self._fields and
                     field not in self._birthday_fields and
-                    field not in self.required):
+                    field not in self.required and
+                    field not in self.default_fields):
                 return False
         return True
 
@@ -106,6 +129,7 @@ class UserInfoUpdate(BaseUserProfile):
         http://localhost:8080/api/profile/userinfo/update
         """
         request_data = web.input()
+
         if not self.is_request_valid(request_data):
             return api_response(data={}, status=405,
                                 error_code="Required args are missing")
@@ -164,23 +188,133 @@ class GetProfileInfo(BaseUserProfile):
                                 error_code="Required args are missing")
         status, response_or_user = self.authenticate_by_token(
             request_data.pop('logintoken'))
-        # Login was not successful
-        if not status:
-            return response_or_user
 
-        csid_from_client = request_data.pop('csid_from_client')
         # User id contains error code
         if not status:
             return response_or_user
 
         response = {field: response_or_user[field] for field in self._fields}
+        csid_from_client = request_data.pop('csid_from_client')
         csid_from_server = response_or_user['seriesid']
-        # Formatting response of birthday_ year, day, month from 'birthday'
-        if response_or_user['birthday']:
-            response['birthday_year'] = response_or_user['birthday'].year
-            response['birthday_day'] = response_or_user['birthday'].day
-            response['birthday_month'] = response_or_user['birthday'].month
+        self.format_birthday(response_or_user, response)
         return api_response(data=response,
+                            csid_from_client=csid_from_client,
+                            csid_from_server=csid_from_server)
+
+
+class ProfileInfo(BaseUserProfile):
+    """
+    Returns publically available profile information
+    """
+
+    def POST(self):
+        """ Returns profile information. This function requires either
+        profile or id in order to work
+
+        Required fields:
+        - username
+        - id
+        - csid_from_client
+
+        Example usage:
+        curl --data "csid_from_client=11&id=78&logintoken=RxPu7fLYgv"\
+        http://localhost:8080/api/profile/userinfo/info
+
+        curl --data "csid_from_client=11&username=Oleg&logintoken=RxPu7fLYgv"\
+        http://localhost:8080/api/profile/userinfo/info
+        """
+        request_data = web.input()
+        profile = request_data.get("username", "")
+        user_id = request_data.get("id", 0)
+        logintoken = request_data.get("logintoken", "")
+
+        if not self.is_request_valid(request_data):
+            return api_response(data={}, status=405,
+                                error_code="Required args are missing")
+
+        if not profile and not user_id:
+            error_code = "This function requires either profile or user_id"
+            return api_response(data={}, status=405,
+                                error_code=error_code)
+
+        status, response_or_user = self.authenticate_by_token(logintoken)
+        if not status:
+            return api_response(data={}, status=405,
+                                error_code="You need to log in first")
+
+        user = UserProfile.query_user(profile=profile, user_id=user_id)
+
+        if not user:
+            return api_response(data={}, status=405,
+                                error_code="User was not found")
+
+        followers = UserProfile\
+            .query_followed_by(profile_owner=user["id"],
+                               current_user=response_or_user["id"])
+        user['follower_count'] = len(followers)
+
+        follow = UserProfile\
+            .query_following(profile_owner=user["id"],
+                             current_user=response_or_user["id"])
+        user['follow_count'] = len(follow)
+
+        csid_from_client = request_data.pop('csid_from_client')
+        csid_from_server = ""
+
+        return api_response(data=user,
+                            csid_from_client=csid_from_client,
+                            csid_from_server=csid_from_server)
+
+    def get_user_info(self, profile="", user_id=0):
+        query = db.select('users',
+                          vars={'username': profile, 'id': user_id},
+                          where="username=$username or id=$id")
+
+        if len(query) > 0:
+            user = query.list()[0]
+            user['pic'] = photo_id_to_url(user['pic'])
+        else:
+            return False
+        response = {field: user[field] for field in self._fields}
+        response = self.format_birthday(user, response)
+        return response
+
+class UpdateProfileViews(BaseUserProfile):
+    """
+    Responsible for updating count of pofile views
+    """
+    def POST(self, profile):
+        """ Returns profile information
+
+        Required fields:
+        - profile (sent via url)
+        - csid_from_client
+
+        Example usage:
+        curl --data "csid_from_client=11&logintoken=RxPu7fLYgv" \
+        http://localhost:8080/api/profile/updateviews/oleg
+        """
+        request_data = web.input()
+
+        if not self.is_request_valid(request_data):
+            return api_response(data={}, status=405,
+                                error_code="Required args are missing")
+
+        # Checking if user has a valid logintoken
+        status, response_or_user = self.authenticate_by_token(
+            request_data.pop('logintoken'))
+        # Login was not successful
+        if not status:
+            return response_or_user
+
+        db.update('users', where='user = $username',
+                  vars={'username': profile},
+                  views=web.SQLLiteral('views + 1'))
+
+        csid_from_client = request_data.pop('csid_from_client')
+        csid_from_server = ""
+
+        return api_response(data={"status": "success"},
                             csid_from_client=csid_from_client,
                             csid_from_server=csid_from_server)
 
@@ -188,7 +322,7 @@ class GetProfileInfo(BaseUserProfile):
 class ManageGetList(BaseAPI):
     def POST(self):
         """
-        Manage list of user products: share, add, remove
+        Manage list of user products: sharing, add, remove
 
         Method for image_id_share_list must additional receive next
         required params:
@@ -201,22 +335,22 @@ class ManageGetList(BaseAPI):
             image_id_add_list=[],
         )
 
+        # Setting default status code as 200
+        status = 200
+        # Setting empty error
+        error_code = ""
+
         save_api_request(request_data)
         login_token = request_data.get("logintoken")
 
-        status, response_or_user = self.authenticate_by_token(login_token)
-        if not status:
+        status_success, response_or_user = self.authenticate_by_token(login_token)
+        if not status_success:
             return response_or_user
 
         csid_from_client = request_data.get('csid_from_client')
 
         access_token = request_data.get("access_token")
         social_network = request_data.get("social_network")
-
-        # Check input social data for posting
-        if not access_token or not social_network:
-            status_error = 400
-            error_code = "Invalid input data"
 
         image_id_add_list = map(int, request_data.get("image_id_add_list"))
         add_list_result = []
@@ -234,8 +368,13 @@ class ManageGetList(BaseAPI):
         image_id_share_list = map(int, request_data.get("image_id_share_list"))
         share_list_result = []
         if len(image_id_share_list) > 0:
-            share_list_result = self.share(access_token, social_network,
-                                           image_id_share_list)
+            # Check input social data for posting
+            if not access_token or not social_network:
+                status = 400
+                error_code = "Invalid input data"
+            else:
+                share_list_result, status, error_code = self.sharing(access_token, social_network,
+                                                                 image_id_share_list)
 
         csid_from_server = response_or_user.get('seriesid')
 
@@ -244,7 +383,10 @@ class ManageGetList(BaseAPI):
             "removed": remove_list_result,
             "shared": share_list_result,
         }
-        response = api_response(data, csid_from_client,
+        response = api_response(data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
                                 csid_from_server=csid_from_server)
         return response
 
@@ -283,21 +425,16 @@ class ManageGetList(BaseAPI):
                 )
         return remove_list_result
 
-    def share(self, access_token, social_network, share_list):
+    def sharing(self, access_token, social_network, share_list):
         """
         Share products from user profile
         """
-        # for testing only
-        # access_token = 'CAACEdEose0cBABun8SJm4YuGGlT8vTKp51BJZCNPwjd\
-        # X0sWHVrhitlZBm7JagMMDjFj2cZAtadWodSZA0PLitbKubDTFI1ZB6scvaIB9\
-        # c6PkwuhzsiFd9SXoms9zIkVthr7OE2aWpHXhEqGrhD1HBLyNaCXZBz4eq5MovP\
-        # lPZAape19eL9mrxOROsYWrYEbnKsZD'
-        social_network = "facebook"
+
         share_list_result, status, error_code = share(access_token,
                                                       share_list,
                                                       social_network)
 
-        return share_list_result
+        return share_list_result, status, error_code
 
 
 class ChangePassword(BaseAPI):
@@ -388,3 +525,400 @@ class ChangePassword(BaseAPI):
         new_pwd_hash = str(hash(new_pwd))
         new_pwd_hash = str(hash(new_pwd_hash + pw_salt))
         return new_pwd_hash
+
+
+class QueryBoards(BaseAPI):
+    """
+    Class responsible for getting boards of a given user
+    """
+    def POST(self):
+        """ Returns all boards associated with a given user
+
+        Required parameters:
+        user_id: required parameter, sent via request data
+        csid_from_client
+
+        Can be tested using the following command:
+        curl --data "user_id=2&csid_from_client=1" \
+        http://localhost:8080/api/profile/userinfo/boards
+        """
+        request_data = web.input()
+        csid_from_client = request_data.get('csid_from_client')
+        csid_from_server = ""
+        user_id = request_data.get('user_id')
+
+        if not user_id:
+            return api_response(data={}, status=405,
+                                error_code="Missing user_id")
+        boards_tmp = db.select('boards',
+                           where='user_id=$user_id',
+                           vars={'user_id': user_id})
+
+        boards = []
+        for board in boards_tmp:
+            pins_from_board = db.select('pins',
+                               where='board_id=$board_id',
+                               vars={'board_id': board['id']})
+            board['pins_ids'] = []
+            for pin_from_board in pins_from_board:
+                if pin_from_board['id'] not in board['pins_ids']:
+                    board['pins_ids'].append(pin_from_board['id'])
+            boards.append(board)
+
+        return api_response(data=boards,
+                            csid_from_server=csid_from_server,
+                            csid_from_client=csid_from_client)
+
+
+class QueryPins(BaseAPI):
+    """
+    Responsible for getting pins of a given user
+    """
+    def POST(self):
+        """ Returns all pins associated with a given user
+
+        Required parameters:
+        user_id: required parameter, sent via request data
+        csid_from_client
+
+        Can be tested using the following command:
+        curl --data "user_id=78&csid_from_client=1" \
+        http://localhost:8080/api/profile/userinfo/pins
+        """
+
+        query = '''
+        select tags.tags, pins.*, users.pic as user_pic,
+        users.username as user_username, users.name as user_name,
+        count(distinct p1) as repin_count,
+        count(distinct l1) as like_count
+        from users
+        left join pins on pins.user_id = users.id
+        left join tags on tags.pin_id = pins.id
+        left join pins p1 on p1.repin = pins.id
+        left join likes l1 on l1.pin_id = pins.id
+        where users.id = $id
+        group by tags.tags, pins.id, users.id
+        order by timestamp desc'''
+
+        request_data = web.input()
+        csid_from_client = request_data.get('csid_from_client')
+        csid_from_server = ""
+        user_id = request_data.get('user_id')
+
+        if not user_id:
+            return api_response(data={}, status=405,
+                                error_code="Missing user_id")
+        results = db.query(query, vars={'id': user_id})
+
+        pins = []
+        current_row = None
+        pins_counter = len(results)
+        owned_pins_counter = 0
+        for row in results:
+            if not row.id:
+                continue
+            if not current_row or current_row.id != row.id:
+                current_row = row
+                tag = row.tags
+                current_row.tags = []
+                if tag:
+                    current_row.tags.append(tag)
+
+                current_row_dt = datetime.fromtimestamp(current_row.timestamp)
+
+                pins.append(current_row)
+                if not current_row.get("repin"):
+                    owned_pins_counter += 1
+            else:
+                tag = row.tags
+                if tag not in current_row.tags:
+                    current_row.tags.append(tag)
+
+        data = {
+            "total": pins_counter,
+            "total_owned": owned_pins_counter
+        }
+        page = int(request_data.get("page", 1))
+        if page is not None:
+            items_per_page = int(request_data.get("items_per_page", 10))
+            if items_per_page < 1:
+                items_per_page = 1
+
+            data['pages_count'] = math.ceil(float(len(pins)) /
+                                            float(items_per_page))
+            data['pages_count'] = int(data['pages_count'])
+            data['page'] = page
+            data['items_per_page'] = items_per_page
+
+            start = (page-1) * items_per_page
+            end = start + items_per_page
+            data['pins_list'] = pins[start:end]
+        else:
+            data['pins_list'] = pins
+
+        return api_response(data=data,
+                            csid_from_server=csid_from_server,
+                            csid_from_client=csid_from_client)
+
+class TestUsernameOrEmail(BaseAPI):
+    """
+    Checks if given username or email is already added to database.
+    in case if a username
+    """
+    def POST(self):
+        """
+        curl --data "csid_from_client=1&username_or_email=oleg"\
+        http://localhost:8080/api/profile/test-username
+        """
+        request_data = web.input()
+        username_or_email = request_data.get('username_or_email')
+
+        vars={'username_or_email': username_or_email}
+        # Trying to find a user with same username
+        result = db.select('users', vars=vars,
+                           where='username=$username_or_email')
+        # Fallback, trying to find user with same email
+        if len(result.list()) == 0:
+            result = db.select('users', vars=vars,
+                               where='email=$username_or_email')
+
+        if len(result.list()) == 0:
+            status = 'notfound'
+        else:
+            status = 'ok'
+
+        csid_from_client = request_data.get('csid_from_client')
+        csid_from_server = ""
+        return api_response(data=status,
+                            csid_from_server=csid_from_server,
+                            csid_from_client=csid_from_client)
+
+class PicUpload(BaseAPI):
+    """ Upload profile picture and save it in database """
+    def POST(self):
+        """
+        Picture upload main handler
+        """
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        request_data = web.input(file={})
+        logintoken = request_data.get('logintoken')
+
+        user_status, user = self.authenticate_by_token(logintoken)
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        csid_from_client = request_data.get("csid_from_client")
+
+        file_obj = request_data.get('file')
+
+        # For some reason, FileStorage object treats itself as False
+        if type(file_obj) == dict:
+            return api_response(data={}, status=405,
+                                error_code="Required args are missing")
+
+        file_path = self.save_file(file_obj)
+        images_dict = store_image_from_filename(db,
+                                                file_path,
+                                                widths=[80])
+
+        photo_kwargs = {
+            'original_url': images_dict[0]['url'],
+            'resized_url': images_dict.get(80, images_dict[0]).get('url', None),
+            'album_id': user['id']
+        }
+
+        pid = db.insert('photos', **photo_kwargs)
+
+        db.update('users',
+                  where='id = $id',
+                  vars={'id': user['id']},
+                  pic=pid,
+                  bgx=0,
+                  bgy=0)
+
+        data['pid'] = pid
+        data['original_url'] = photo_kwargs['original_url']
+        data['resized_url'] = photo_kwargs['resized_url']
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+
+        return response
+
+    def save_file(self, file_obj, upload_dir=None):
+        """
+        Saves uploaded file to a given upload dir.
+        """
+        if not upload_dir:
+            upload_dir = self.get_media_path()
+        filename = file_obj.filename
+        filename = self.get_file_name(filename, upload_dir)
+        filepath = os.path.join(upload_dir, filename)
+        upload_file = open(filepath, 'w')
+        upload_file.write(file_obj.file.read())
+        upload_file.close()
+        return filepath
+
+    def get_media_path(self):
+        """
+        Returns or creates media directory.
+        """
+        media_path = settings.MEDIA_PATH
+        if not os.path.exists(media_path):
+            os.makedirs(media_path)
+        return media_path
+
+    def get_file_name(self, filename, upload_dir):
+        """
+        Method responsible for avoiding duplicated filenames.
+        """
+        filepath = os.path.join(upload_dir, filename)
+        exists = os.path.isfile(filepath)
+        # Suggest uuid hex as a filename to avoid duplicates
+        if exists:
+            filename = "%s.%s" % (uuid.uuid4().hex[:10], filename)
+        return filename
+
+
+class BgUpload(BaseAPI):
+    """ Upload profile background and save it in database """
+    def POST(self):
+        """
+        Background upload main handler
+        """
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        request_data = web.input(file={})
+        logintoken = request_data.get('logintoken')
+
+        user_status, user = self.authenticate_by_token(logintoken)
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        csid_from_client = request_data.get("csid_from_client")
+
+        file_obj = request_data.get('file')
+
+        # For some reason, FileStorage object treats itself as False
+        if type(file_obj) == dict:
+            return api_response(data={}, status=405,
+                                error_code="Required args are missing")
+
+        file_path = self.save_file(file_obj)
+        images_dict = store_image_from_filename(db,
+                                                file_path,
+                                                widths=[1100])
+
+        bg_kwargs = {
+            'bg_original_url': images_dict[0]['url'],
+            'bg_resized_url': images_dict.get(1100, images_dict[0]).get('url', None),
+            'bg': True,
+            'bgx': 0,
+            'bgy': 0
+        }
+
+        db.update('users',
+                  where='id = $id',
+                  vars={'id': user['id']},
+                  **bg_kwargs)
+
+        data['bg_original_url'] = bg_kwargs['bg_original_url']
+        data['bg_resized_url'] = bg_kwargs['bg_resized_url']
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+
+        return response
+
+    def save_file(self, file_obj, upload_dir=None):
+        """
+        Saves uploaded file to a given upload dir.
+        """
+        if not upload_dir:
+            upload_dir = self.get_media_path()
+        filename = file_obj.filename
+        filename = self.get_file_name(filename, upload_dir)
+        filepath = os.path.join(upload_dir, filename)
+        upload_file = open(filepath, 'w')
+        upload_file.write(file_obj.file.read())
+        upload_file.close()
+        return filepath
+
+    def get_media_path(self):
+        """
+        Returns or creates media directory.
+        """
+        media_path = settings.MEDIA_PATH
+        if not os.path.exists(media_path):
+            os.makedirs(media_path)
+        return media_path
+
+    def get_file_name(self, filename, upload_dir):
+        """
+        Method responsible for avoiding duplicated filenames.
+        """
+        filepath = os.path.join(upload_dir, filename)
+        exists = os.path.isfile(filepath)
+        # Suggest uuid hex as a filename to avoid duplicates
+        if exists:
+            filename = "%s.%s" % (uuid.uuid4().hex[:10], filename)
+        return filename
+
+
+class GetProfilePictures(BaseAPI):
+    """
+    API method for get photos of user
+    """
+    def POST(self):
+        request_data = web.input()
+
+        update_data = {}
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from request
+        user_id = request_data.get("user_id")
+
+        csid_from_client = request_data.get('csid_from_client')
+
+        if not user_id:
+            status = 400
+            error_code = "Invalid input data"
+
+        data['user_id'] = user_id
+
+        if status == 200:
+            photos = db.query("SELECT photos.*, users.id as user_id, \
+                        users.pic as user_pic FROM photos \
+                        LEFT JOIN users ON photos.album_id = users.id \
+                        WHERE photos.album_id=%s \
+                        ORDER BY photos.id desc" % (user_id))\
+            .list()
+
+            data['photos'] = photos
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response

@@ -33,7 +33,7 @@ $if pin.id and pin.category:
 
         <a href='$link'>
           $if pin.user_pic:
-            <img class='left' src='/static/pics/userthumb$(pin.user_pic).png'/>
+            <img class='left' src='$(pin.user_pic)'/>
           $else:
             <img class='left' src='/static/default-avatar.png'/>
         </a>
@@ -43,6 +43,6 @@ $if pin.id and pin.category:
       </div>
       $if pin.tags:
         <hr>
-        <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?q=%s">#%s</a>' % (x, x) for x in pin.tags]))</p>
+        <p class='faded'><i class='fa fa-tag'></i> $:(' '.join(['<a href="/search/items?h=%s">#%s</a>' % (x, x) for x in pin.tags]))</p>
     </div>
   </div>

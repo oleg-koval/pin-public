@@ -1,38 +1,32 @@
-$def with (boards, user)
+$def with (boards, user, boards_first_pins={})
 <div class="tab-pane fade" id="list-box-wrapper">
+    <div class="greyLine">
+        <a href='/new-list' class="button"><b>Add A List</b></a>
+    </div>
+    <div class="inContentiySmoktunovskiy">
+    $if boards:
+        $for board in boards:
+            <div class="dwItem inlineB small" id="horz-pin$board.id">
 
-$if boards:
-	<p><a href='/new-list' class="button"><b>Add A List</b></a></p>
-	<div id="profile_lists_tabs">
-		<ul id="lists_tabs">
-		$for board in boards:
-			<li><a href="#list_tab_$board.id" class="profile_list_subtab" boardid="$board.id">$board.name</a></li>
-		</ul>
-	$for board in boards:
-		<div id="list_tab_$board.id">
-		$if board.description:
-			<div>$board.description</div>
-			<div id="profile_list_subtab_content$board.id" class="profile_list_tab_content">
-				<table class="category_table">
-					<tr>
-						<td class="category_column" id="column_$(board.id)_1"></td>
-						<td class="column_separator"></td>
-						<td class="category_column" id="column_$(board.id)_2"></td>
-						<td class="column_separator"></td>
-						<td class="category_column" id="column_$(board.id)_3"></td>
-						<td class="column_separator"></td>
-						<td class="category_column" id="column_$(board.id)_4"></td>
-						<td class="column_separator"></td>
-						<td class="category_column" id="column_$(board.id)_5"></td>
-					</tr>
-				</table>
-			</div>
-		</div>$#list_tab_XX
-	</div>$#profile-tab-navigation
-$else:
-    <p>You don't have any lists.</p>
-    <p><a href='/new-list' class="button"><b>Add A List</b></a></p>
+                <div class="dwImg">
+                    <img src="$boards_first_pins[board.id]['image_202_url']" />
+                </div>
+                <div class="dwName">
+                    <p>
+                        $board.name
+                    </p>
+                </div>
+                <div class="dwLike">
+                    <p>
+                        Items in list: <strong>$len(board.pins_ids)</strong>
+                    </p>
+                </div>
+            </div>
+    $else:
+        <p>You don't have any lists.</p>
+        <p><a href='/new-list' class="button"><b>Add A List</b></a></p>
 
+    </div>
 </div>
-$:tpl('pin212px_template')
+
 <script type="text/javascript" src="/static/js/underscore-min.js"></script>
