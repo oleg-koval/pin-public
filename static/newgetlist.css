@@ -41,3 +41,26 @@
     vertical-align:middle;
 }
 
+#google_results {
+    display: table-row;
+    text-align: justify;
+}
+
+#google_results > div {
+    display: table-cell;
+    border: 1px solid lightgray;
+    cursor: pointer;
+    /*vertical-align: middle;*/
+    padding: 1mm;
+    margin: 1mm;
+    max-width: 200px;
+    text-align: center;
+}
+
+#google_results > div:hover {
+    border-color: #000000;
+}
+
+#google_results > div > div:last-child {
+    font-style: italic;
+}

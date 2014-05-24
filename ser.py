@@ -158,6 +158,7 @@ urls = (
     '/recover_password_sent/?', 'mypinnings.recover_password.EmailSentPage',
     '/pwreset/(\d*)/(\d*)/(.*)/', 'mypinnings.recover_password.PasswordReset',
     '/recover_password_complete/', 'mypinnings.recover_password.RecoverPasswordComplete',
+    '/getuserpins/(.*?)', 'GetUserPins', 
     '/(.*?)', 'PageProfile2',
     '/(.*?)/(.*?)', 'PageConnect2',
 
@@ -928,6 +929,38 @@ class PageConnect2:
             else:
                 return 'Page not found'
         return ltpl('connect2',user, follows, followers, friends, action)
+
+
+class GetUserPins:
+    def GET(self, username):
+        force_login(sess)
+        # logintoken = convert_to_logintoken(sess.user_id)
+        # data = {"csid_from_client": ""}
+
+        # # Getting profile of a given user
+        # profile_url = "/api/profile/userinfo/info"
+        # profile_owner_context = {
+        #     "csid_from_client": "",
+        #     "username": username,
+        #     "logintoken": logintoken}
+        # user = api_request(profile_url, data=profile_owner_context)\
+        #     .get("data", [])
+        # # import ipdb; ipdb.set_trace()
+        # if len(user) == 0:
+        #     return u"Profile was not found"
+
+        # user = pin_utils.dotdict(user)
+        # offset = int(web.input(offset=1).offset)
+
+        # # Updating api_request data with user_id
+        # data['user_id'] = user.id
+        # data['page'] = offset
+        # data['items_per_page'] = PIN_COUNT
+        # pins_api_response = api_request("/api/profile/userinfo/pins", data=data)
+        # pins = pins_api_response.get('data').get('pins_list')
+
+        # return ltpl('getmorepins.html')
+        return ltpl('index.html')
 
 
 class PageProfile2:
@@ -2068,7 +2101,12 @@ class PageSearchItems:
 
         if ajax:
             return json_pins(pins, 'horzpin')
-        return ltpl('search', pins, orig)
+        #google search
+        google_images = urllib.urlopen(
+            'http://ajax.googleapis.com/ajax/services/search/images?v=1.0&rsz=8&q=%s' % q).read()
+        google_images = json.loads(google_images)
+        google_images = google_images['responseData']['results']
+        return ltpl('search', pins, orig, google_images)
 
 
 class PageSearchPeople:

@@ -1,0 +1,19 @@
+$#$def with (pins)
+
+
+$#    $for pin in pins:
+$#        $ i += 1
+$#        $ current_date = tpllib.get_dict_timestamp(pin.timestamp)
+$#        $if last_date is None or current_date['day'] != last_date['day'] or current_date['month'] != last_date['month'] or current_date['year'] != last_date['year']:
+$#            $if last_date is not None:
+$#                </div>
+$#                </div>
+$#            $ last_date = current_date
+$#            <div class="dateWrap">
+$#                <div class="dwDate">
+$#                    <p>$last_date['day'] <span>$last_date['month']</span></p>
+$#                </div>
+$#                <div class="dwContent">
+$#        $if not pin.repin:
+$#            $:tpl('editaddedpinmodal', pin,categories_to_select, boards)
+$#        $:tpl(template, pin)
