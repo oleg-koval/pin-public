@@ -20,7 +20,9 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
                   <a href="#" data-toggle="modal" data-target="#showPhotoModal$photo.id"><img src="$(photo.resized_url)" /></a>
                   $ break
             $else:
+              <a href='#' data-toggle="modal" data-target="#uploadImageModal">
                 <img src='/static/default-avatar.png' alt='' />
+              </a>
             <div class="otherPics">
               $ photos_qty = 1
               $for photo in user.photos:
