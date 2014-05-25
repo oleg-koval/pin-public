@@ -4,7 +4,7 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
         $if 'logged_in' in sess and sess.user_id == user.id:
           data-bg="true"
           id='header_background'
-          style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url($(user.bg_resized_url));position:relative;'
+          style='background-size:100% auto;background-position: $(user.headerbgx)px $(user.headerbgy)px;background-image: url($(user.bg_resized_url));position:relative;'
         $else:
           id='header_background'
           style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url($(user.bg_resized_url));cursor:default !important;position:relative;'
@@ -40,8 +40,11 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
             $if user.website:
             <a href="$user.website"><i class="flaticon-earth9"></i> Blog: $user.website</a>
         </p>
-$#
-$#        <p class="userButtons">
+
+        <p class="userButtons">
+            <a class="button" data-target="#uploadBackgroundImageModal" data-toggle="modal" href="#">
+              Upload background photo
+            </a>
 $#            $if 'logged_in' in sess and user.id != sess.user_id:
 $#                $if friend_status is not None:
 $#                    $if friend_status:
@@ -60,7 +63,7 @@ $#                        <a class='button' href='/follow/$user.id'>Follow</a>
 $#                    <a class='button buttonWhite' href='/newconvo/$user.id'>
 $#                        <i class="flaticon-email21"></i> Message
 $#                    </a>
-$#        </p>
+        </p>
     </div>
 </div>
 
