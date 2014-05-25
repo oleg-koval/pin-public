@@ -30,7 +30,7 @@ class BaseUserProfile(BaseAPI):
                         'about', 'email', 'pic', 'website', 'facebook',
                         'twitter', 'getlist_privacy_level', 'private', 'bg',
                         'bgx', 'bgy', 'show_views', 'views', 'username', 'zip',
-                        'linkedin', 'gplus', 'bg_resized_url']
+                        'linkedin', 'gplus', 'bg_resized_url', 'headerbgy', 'headerbgx']
         self._birthday_fields = ['birthday_year', 'birthday_month',
                                  'birthday_day']
         self.required = ['csid_from_client', 'logintoken']
@@ -243,7 +243,6 @@ class ProfileInfo(BaseUserProfile):
                                 error_code="You need to log in first")
 
         user = UserProfile.query_user(profile=profile, user_id=user_id)
-
         if not user:
             return api_response(data={}, status=405,
                                 error_code="User was not found")
