@@ -44,11 +44,19 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
         </p>
 
         <p class="userButtons">
+
           $if user_pic:
             <a class='button' href='#' data-toggle="modal" data-target="#showPhotoModal$user_pic.id">View album</a>
           <a class="button" data-target="#uploadBackgroundImageModal" data-toggle="modal" href="#">
             Upload background photo
           </a>
+
+          $if 'logged_in' in sess and user.id == sess.user_id:
+              <a class="button" data-target="#uploadBackgroundImageModal" data-toggle="modal" href="#">
+                  Upload background photo
+              </a>
+
+
 $#            $if 'logged_in' in sess and user.id != sess.user_id:
 $#                $if friend_status is not None:
 $#                    $if friend_status:

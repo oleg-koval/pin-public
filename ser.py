@@ -1095,7 +1095,7 @@ class PageProfile2:
         hashed = rs()
 
         # Getting link to edit profile...
-        if logged_in(sess):
+        if show_private:
             get_input = web.input(_method='get')
             edit_profile = edit_profile_done = None
             if 'editprofile' in get_input:
