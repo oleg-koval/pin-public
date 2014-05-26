@@ -438,6 +438,11 @@
     font-size: 11px;
     padding: 5px;
 }
+.dwType p a
+{display: inline-block; margin-bottom: 15px;}
+
+.dwType
+{height: 24px; overflow: hidden;}
 
 .dwLike
 {
