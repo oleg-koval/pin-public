@@ -8,23 +8,16 @@ $if edit_profile:
     <div id='pin-box-wrapper' class='tab-pane fade'>
 $else:
     <div id='pin-box-wrapper' class='tab-pane fade active in'>
-<div class="greyLine">
-    <a class="add_getlist_link" href="#">
-        <img src="/static/img/redCr.png" />
-    </a>
-    
-    <input type="text" name="url" id="url" placeholder="http://">
-    <a class="button" id="fetch-images" href="javascript:void(0);">Post</a>
 
-<!--     <div class="dropdown profDrop">
-        <a data-toggle="dropdown" href="#"><span class="flaticon-lock27"></span>Only me <i
-            class="flaticon-arrow486"></i></a>
-        <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-            <li><span class="flaticon-lock27"></span>Only me</li>
-            <li>All</li>
-        </ul>
-    </div> -->
-</div>
+$if 'logged_in' in sess and user.id == sess.user_id:
+   <div class="greyLine">
+       <a class="add_getlist_link" href="#">
+           <img src="/static/img/redCr.png" />
+       </a>
+       <input type="text" name="url" id="url" placeholder="http://">
+       <a class="button" id="fetch-images" href="javascript:void(0);">Post</a>
+   </div>
+
 $if user:
     <span style="display:none" id="hidden_username">$user.username</span>
 <div id='pin-box' class='pins'></div>
