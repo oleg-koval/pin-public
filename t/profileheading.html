@@ -14,10 +14,12 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
     >
     <div class="userHolder">
         <div class="userPic">
+            $ user_pic = None
             $if user.pic:
               $for photo in user.photos:
                 $if photo.id == photo.user_pic and photo.resized_url:
                   <a href="#" data-toggle="modal" data-target="#showPhotoModal$photo.id"><img src="$(photo.resized_url)" /></a>
+                  $ user_pic = photo
                   $ break
             $else:
                 <img src='/static/default-avatar.png' alt='' />
@@ -38,8 +40,11 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
             $if user.website:
             <a href="$user.website"><i class="flaticon-earth9"></i> Blog: $user.website</a>
         </p>
-$#
-$#        <p class="userButtons">
+
+        <p class="userButtons">
+        $if user_pic:
+           <a class='button' href='#' data-toggle="modal" data-target="#showPhotoModal$user_pic.id">View album</a>
+
 $#            $if 'logged_in' in sess and user.id != sess.user_id:
 $#                $if friend_status is not None:
 $#                    $if friend_status:
@@ -58,16 +63,21 @@ $#                        <a class='button' href='/follow/$user.id'>Follow</a>
 $#                    <a class='button buttonWhite' href='/newconvo/$user.id'>
 $#                        <i class="flaticon-email21"></i> Message
 $#                    </a>
-$#        </p>
+        </p>
     </div>
 </div>
 
 $for i, photo in enumerate(user.photos):
   $ next_photo = None
-  $if (len(user.photos)-1) == i:
-    $ next_photo = user.photos[0]
-  $else:
-    $ next_photo = user.photos[i+1]
+  $ next_index = i + 1
 
+  $if len(user.photos) == next_index:
+    $ next_index = 0
+  $else:
+    $while not user.photos[next_index].resized_url:
+      $ next_index += 1
+      $if len(user.photos) == next_index:
+        $ next_index = 0
+  $ next_photo = user.photos[next_index]
   $if photo.resized_url:
     $:tpl('profile_photo_modal', photo, next_photo)
