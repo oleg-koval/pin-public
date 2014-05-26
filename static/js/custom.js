@@ -69,16 +69,19 @@
             $('#secondRow').animate({ left: ($('#secondRow').position().left + $('#secondRow').width()) + 'px' }, 80000);
             $('#thirdRow').animate({ left: ($('#thirdRow').position().left - $('#thirdRow').width()) + 'px' }, 60000);
             $('#fourthRow').animate({ left: ($('#fourthRow').position().left + $('#fourthRow').width()) + 'px' }, 50000);
+
+
+            if ($("#inSess").length !== 0) {
+                //$("#mainPage").css({ 'display': 'none' });
+                $("#mainForm").css({ 'display': 'none' });
+                // $('#pin-box-wrapper').css({ 'display': 'block' });
+                $('#pin-box-wrapper').css({ 'display': 'none' });
+            } else {
+                $('#pin-box-wrapper').css({ 'display': 'none' });
+            }
         };
 
-        if ($("#inSess").length !== 0) {
-            //$("#mainPage").css({ 'display': 'none' });
-            $("#mainForm").css({ 'display': 'none' });
-            // $('#pin-box-wrapper').css({ 'display': 'block' });
-            $('#pin-box-wrapper').css({ 'display': 'none' });
-        } else {
-            $('#pin-box-wrapper').css({ 'display': 'none' });
-        }
+
 
         if ($("#menu1").length !== 0) {
             var menuCat = [], menuCatCount = 0, mcPoint = 0;
@@ -124,12 +127,13 @@
     });
 
 
+    if ($("#myTab").length !== 0) {
+        var $body = $("body");
 
-    var $body = $("body");
-
-    $(document).on({
-        ajaxStart: function () { $body.addClass("loading"); },
-        ajaxStop: function () { $body.removeClass("loading"); }
-    });
+        $(document).on({
+            ajaxStart: function () { $body.addClass("loading"); },
+            ajaxStop: function () { $body.removeClass("loading"); }
+        });
+    };
 
 });
