@@ -158,7 +158,7 @@ urls = (
     '/recover_password_sent/?', 'mypinnings.recover_password.EmailSentPage',
     '/pwreset/(\d*)/(\d*)/(.*)/', 'mypinnings.recover_password.PasswordReset',
     '/recover_password_complete/', 'mypinnings.recover_password.RecoverPasswordComplete',
-    '/getuserpins/(.*?)', 'GetUserPins', 
+    '/getuserpins/(.*?)', 'GetUserPins',
     '/(.*?)', 'PageProfile2',
     '/(.*?)/(.*?)', 'PageConnect2',
 
@@ -968,6 +968,7 @@ class PageProfile2:
         """
         Returns user profile information by username
         """
+        force_login(sess)
         logintoken = convert_to_logintoken(sess.user_id)
         data = {"csid_from_client": ""}
 
@@ -1780,7 +1781,7 @@ class PageChangeBG:
 
         with open(new_filename, 'w') as f:
             f.write(file_data.file.read())
-        
+
         files = {'file': open(new_filename)}
 
         logintoken = convert_to_logintoken(sess.user_id)
@@ -1849,7 +1850,7 @@ class PageChangeProfile:
 
         with open(new_filename, 'w') as f:
             f.write(file_data.file.read())
-        
+
         files = {'file': open(new_filename)}
 
         data = api_request("api/profile/userinfo/upload_pic",
@@ -2147,4 +2148,3 @@ def csrf_protected(f):
 if __name__ == '__main__':
 
     app.run()
-
