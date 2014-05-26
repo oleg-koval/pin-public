@@ -5,7 +5,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 0;
+    /*z-index: 0;*/
     background: white;
     overflow: hidden; /*display: none;*/ /*tmp*/
 }
@@ -167,7 +167,8 @@
     position: absolute;
     background: rgba(255,255,255, 0.9);
     top: 50%;
-    left: 52%; /*border: 3px solid #0088C1;*/
+    left: 52%; /*border: 3px solid #0088c1;*/
+    box-shadow: 0 0 3px #7799bb;
     border-radius: 8px;
     padding: 20px 40px;
     text-align: center;
@@ -208,9 +209,9 @@
 {
     position: relative;
     z-index: 5;
-    background-color: #00aaef;
+    background-color: #02a4ef;
     padding: 0;
-    border-top: 9px solid #009fe4;
+    border-top: 9px solid #02a4ef;
     border-bottom: 2px solid #67828d;
 }
 
@@ -253,7 +254,8 @@
     border: 1px solid #0077b5;
     box-shadow: 0 0 1px 1px #0092d7;
     padding: 2px 8px;
-    position: relative; top: 1px;
+    position: relative;
+    top: 1px;
 }
 
 
@@ -282,7 +284,6 @@
 #switch1, #switch2
 {
     padding-bottom: 12px;
-    
 }
 #switch1 > i, #switch2 > i
 {
@@ -368,4 +369,120 @@ a.signupgg:hover
 }
 
 
+.settings > .left
+{
+    display: inline-block;
+    display: -moz-inline-box;
+    -moz-box-orient: vertical;
+    vertical-align: top;
+    width: 20%;
+}
 
+.settings > .right
+{
+    display: inline-block;
+    display: -moz-inline-box;
+    -moz-box-orient: vertical;
+    vertical-align: top;
+    width: 79%;
+}
+
+.profLeft center
+{
+    margin-top: 10px;
+}
+
+.profLeft .profile-tab-navigation
+{
+    padding-bottom: 10px;
+}
+
+
+
+.modalPie
+{
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: rgba( 255, 255, 255, .8 ) url('http://i.stack.imgur.com/FhHRx.gif') 50% 50% no-repeat;
+}
+
+/* When the body has the loading class, we turn
+   the scrollbar off with overflow:hidden */
+body.loading
+{
+    overflow: hidden;
+}
+
+/* Anytime the body has the loading class, our
+   modal element will be visible */
+body.loading .modalPie
+{
+    display: block;
+}
+
+
+/*Footer*/
+#mainFooter
+{
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    background: #f4f2f1;
+    box-shadow: inset 0 5px 15px rgba(0,0,0,0.2);
+    -webkit-box-shadow: inset 0 5px 15px rgba(0,0,0,0.2);
+    -moz-box-shadow: inset 0 5px 15px rgba(0,0,0,0.2);
+    padding-top: 50px;
+    padding-bottom: 30px;
+    text-align: center;
+    z-index: 5;
+}
+
+#mainFooter a:first-child
+{
+    background: #ff555d;
+    line-height: 20px;
+    display: inline-block;
+    font-size: 10px;
+    color: White;
+    font-weight: bold;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-right: 20px;
+}
+
+#mainFooter a:not(:first-child)
+{
+    text-decoration: underline;
+    display: inline-block;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+#mainFooter a:hover:not(:first-child)
+{
+    text-decoration: none;
+}
+
+#mainFooter .fooIcon
+{
+    position: relative;
+    top: 5px;
+}
+
+#mainFooter .fooML
+{
+    margin-left: 20px;
+}
+
+#mainFooter .fooGrey
+{
+    color: #c7c7c7;
+}
+
+#mainFooter p
+{font-size: 12px;}

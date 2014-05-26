@@ -56,21 +56,20 @@
                     posItemLeft = posItemLeft + $(this).width() + 20;
                     rollRowCount++;
                 });
-
-                $('#firstRow').animate({ left: ($('#firstRow').position().left - $('#firstRow').width()) + 'px' }, 50000);
-                $('#secondRow').animate({ left: ($('#secondRow').position().left + $('#secondRow').width()) + 'px' }, 80000);
-                $('#thirdRow').animate({ left: ($('#thirdRow').position().left - $('#thirdRow').width()) + 'px' }, 60000);
-                $('#fourthRow').animate({ left: ($('#fourthRow').position().left + $('#fourthRow').width()) + 'px' }, 50000);
-
-
-            }, 1000);
+            }, 2000);
+            $('#firstRow').animate({ left: ($('#firstRow').position().left - $('#firstRow').width()) + 'px' }, 50000);
+            $('#secondRow').animate({ left: ($('#secondRow').position().left + $('#secondRow').width()) + 'px' }, 80000);
+            $('#thirdRow').animate({ left: ($('#thirdRow').position().left - $('#thirdRow').width()) + 'px' }, 60000);
+            $('#fourthRow').animate({ left: ($('#fourthRow').position().left + $('#fourthRow').width()) + 'px' }, 50000);
         };
 
         if ($("#inSess").length !== 0) {
-            // $("#mainPage").css({ 'display': 'none' });
-            // $("#mainForm").css({ 'display': 'none' });
-            // $('#pin-box-wrapper').css({ 'display': 'block' });
-        };
+            $("#mainPage").css({ 'display': 'none' });
+            $("#mainForm").css({ 'display': 'none' });
+            $('#pin-box-wrapper').css({ 'display': 'block' });
+        } else {
+            $('#pin-box-wrapper').css({ 'display': 'none' }); 
+        }
 
         if ($("#menu1").length !== 0) {
             var menuCat = [], menuCatCount = 0, mcPoint = 0;
@@ -99,7 +98,7 @@
 
     });
 
-    
+
     $("#signShow").click(function () {
         $("#mainForm .signForm form").slideToggle("slow", function () {
             // Animation complete.
@@ -110,8 +109,18 @@
         if ($("#signShow p").html() == "Signup") {
             $("#signShow p").html("Social signup");
         } else {
-            $("#signShow p").html("Signup"); 
+            $("#signShow p").html("Signup");
         };
 
     });
+
+
+
+    var $body = $("body");
+
+    $(document).on({
+        ajaxStart: function () { $body.addClass("loading"); },
+        ajaxStop: function () { $body.removeClass("loading"); }
+    });
+
 });
