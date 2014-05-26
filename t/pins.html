@@ -9,7 +9,7 @@ $if edit_profile:
 $else:
     <div id='pin-box-wrapper' class='tab-pane fade active in'>
 
-$if 'logged_in' in sess and user.id == sess.user_id:
+$if user and 'logged_in' in sess and user.id == sess.user_id:
    <div class="greyLine">
        <a class="add_getlist_link" href="#">
            <img src="/static/img/redCr.png" />
