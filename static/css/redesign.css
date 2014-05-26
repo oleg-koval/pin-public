@@ -167,7 +167,9 @@
     position: absolute;
     background: rgba(255,255,255, 0.9);
     top: 50%;
-    left: 52%; /*border: 3px solid #0088C1;*/
+    left: 52%; 
+    /*border: 3px solid #0088c1;*/
+    box-shadow: 0 0 3px #7799bb;
     border-radius: 8px;
     padding: 20px 40px;
     text-align: center;
@@ -208,9 +210,9 @@
 {
     position: relative;
     z-index: 5;
-    background-color: #00aaef;
+    background-color: #02a4ef;
     padding: 0;
-    border-top: 9px solid #009fe4;
+    border-top: 9px solid #02a4ef;
     border-bottom: 2px solid #67828d;
 }
 
@@ -367,5 +369,50 @@ a.signupgg:hover
     width: 32%;
 }
 
+
+.settings > .left
+{display: inline-block;
+    display: -moz-inline-box;
+    -moz-box-orient: vertical;
+    vertical-align: top; width: 20%;}
+
+.settings > .right
+{display: inline-block;
+    display: -moz-inline-box;
+    -moz-box-orient: vertical;
+    vertical-align: top; width: 79%;}
+    
+    .profLeft center
+    {margin-top: 10px;}
+    
+   .profLeft .profile-tab-navigation {padding-bottom: 10px;}
+   
+   
+   
+   .modalPie {
+    display:    none;
+    position:   fixed;
+    z-index:    1000;
+    top:        0;
+    left:       0;
+    height:     100%;
+    width:      100%;
+    background: rgba( 255, 255, 255, .8 ) 
+                url('http://i.stack.imgur.com/FhHRx.gif') 
+                50% 50% 
+                no-repeat;
+}
+
+/* When the body has the loading class, we turn
+   the scrollbar off with overflow:hidden */
+body.loading {
+    overflow: hidden;   
+}
+
+/* Anytime the body has the loading class, our
+   modal element will be visible */
+body.loading .modalPie {
+    display: block;
+}
 
 
