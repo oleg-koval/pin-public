@@ -2,6 +2,9 @@ import web
 import json
 import decimal
 
+from mypinnings.database import connect_db
+db = connect_db()
+
 def decimal_default(obj):
     """
     Used in order to allow encoding decimal numbers into json
@@ -35,3 +38,13 @@ def save_api_request(request_data):
     Save data from API request
     """
     pass
+
+
+def photo_id_to_url(photo_id):
+    results = db.select('photos',
+                        where='id = $id',
+                        vars={'id': photo_id})
+
+    if len(results) > 0:
+        return results[0]['resized_url']
+    return None

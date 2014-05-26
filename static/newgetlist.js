@@ -32,6 +32,7 @@ $(document).ready(function() {
     });
     $(".add_getlist_link").click(function(){
         $( "#dialog-form" ).dialog( "open" );
+        return false;
     });
 
     $("#upload_cancel").click(function(){
@@ -425,3 +426,10 @@ $(document).ready(function() {
     });
 
 }).call(this);
+
+function add_image(url) {
+    //console.log(url);
+    $('#url').val(url);
+    $('#web_getlist_link').click();
+    $('#fetch-images').click();
+}

@@ -1,4 +1,4 @@
-$def with (pins, template=None, options=None, edit_profile=None,boards=None,categories_to_select=None)
+$def with (pins, template=None, options=None, edit_profile=None,boards=None,categories_to_select=None, user=None)
 
 $ options = options or {}
 $ template = template or 'onepin'
@@ -25,6 +25,8 @@ $else:
         </ul>
     </div> -->
 </div>
+$if user:
+    <span style="display:none" id="hidden_username">$user.username</span>
 <div id='pin-box' class='pins'></div>
 <div class="inContentiySmoktunovskiy">
     <div class='' id='pin-buf'>
@@ -56,7 +58,7 @@ $else:
       <center>No pins to see here!</center>
       <center><br><a class='button' href='/browse'>Browse pins by category</a></center>
     $else:
-      <div class='backnext'><button id='button-more'>More Items</button></div>
+      <!-- <div class='backnext'><button id='button-more'>More Items</button></div> -->
 
 
 
@@ -102,3 +104,4 @@ $:tpl('pin212px_template')
             </td>
 </script>
 </div>
+<script type="text/javascript" src="/static/js/getmore_button.js"></script>

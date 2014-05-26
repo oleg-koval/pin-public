@@ -1,0 +1,75 @@
+$def with(pin, pin_categories, pin_tags, categories1, categories2, categories3)
+<h1>Edit pin</h1>
+<form method="post" enctype="multipart/form-data" role="form">
+	<div class="form-group">
+		<a href="$pin.image_url" target="_blank"><img src="$pin.image_202_url" width="202" height="$pin.image_202_height"></a>
+	</div>
+	<div class="form-group">
+	  	<button class="btn btn-danger" id="delete_pin_button" pinpid="$pin.id">Delete this item</button>
+	</div>
+	<div class="form-group">
+		<label for="image_url">Change image URL</label>
+		<input type="text" name="image_url" id="image_url" class="form-control"/>
+	</div>
+	<div class="form-group">
+		<label for="image_file">Change image from File</label>
+		<input type="file" name="image_file" id="image_file"/>
+	</div>
+	<div class="form-group">
+		<label for="title">Title</label>
+		<input type="text" name="title" id="title" value="$pin.name" class="form-control"/>
+	</div>
+	<div class="form-group">
+		<label for="description">Description</label>
+		<textarea rows="6" cols="40" name="description" id="description" class="form-control">$pin.description</textarea>
+	</div>
+	<div class="form-group">
+		<label for="link">Source URL</label>
+		<input type="text" name="link" id="link" value="$pin.link" class="form-control"/>
+	</div>
+	<div class="form-group">
+		<label for="product_url">Get it Here</label>
+		<input type="text" name="product_url" id="product_url" value="$pin.product_url" class="form-control"/>
+	</div>
+	<div class="form-group">
+		<label for="tags">Tags</label>
+		<input type="text" name="tags" id="tags" class="form-control" value="$(' '.join(['#{}'.format(t.tags) for t in pin_tags]))"/>
+	</div>
+	<div class="form-group">
+		<label for="price">Price</label>
+		<input type="text" name="price" id="price" value="$pin.price" class="form-control"/>
+	</div>
+	<div class="checkbox">
+		<label><input type="radio" name="price_range" value="1"$:('checked' if pin.price_range == 1 else '')/> $$</label>
+		<label><input type="radio" name="price_range" value="2"$:('checked' if pin.price_range == 2 else '')/> $$$$</label>
+		<label><input type="radio" name="price_range" value="3"$:('checked' if pin.price_range == 3 else '')/> $$$$$$</label>
+		<label><input type="radio" name="price_range" value="4"$:('checked' if pin.price_range == 4 else '')/> $$$$$$$$</label>
+		<label><input type="radio" name="price_range" value="5"$:('checked' if pin.price_range == 5 else '')/> $$$$$$$$$$</label>
+	</div>
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-xs-4">
+			$for category in categories1:
+				<div class="checkbox">
+					<label><input type="checkbox" name="category$category.id" value="$category.id"$:('checked' if category.id in pin_categories else '')/> $category.name</label>
+				</div>
+			</div>
+			<div class="col-xs-4">
+			$for category in categories2:
+				<div class="checkbox">
+					<label><input type="checkbox" name="category$category.id" value="$category.id"$:('checked' if category.id in pin_categories else '')/> $category.name</label>
+				</div>
+			</div>
+			<div class="col-xs-4">
+			$for category in categories3:
+				<div class="checkbox">
+					<label><input type="checkbox" name="category$category.id" value="$category.id"$:('checked' if category.id in pin_categories else '')/> $category.name</label>
+				</div>
+			</div>
+		</div>
+	</div>
+	<input type="submit" value="Save changes" class="btn btn-default"/>
+</form>
+<br>
+<br>
+<script src="/static/js/admin_pins.js"></script>

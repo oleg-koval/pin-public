@@ -69,7 +69,7 @@ $def with (user, countries, name, msg=None)
               <div class="pull-left">
               $if user.pic:
                  <a href='/$user.username' id="user_avatar_placeholder_wrapper">
-                 <img  src='/static/pics/userthumb$(user.pic).png' style="width:44px;" />
+                 <img  src='$(user.pic)' style="width:44px;" />
                 $else:
                   <a href='/$user.username' >
                   <img  src='/static/default-avatar.png' style="width:44px;" />
@@ -102,7 +102,7 @@ $def with (user, countries, name, msg=None)
 
              <div class="pull-left">
               $if user.bg:
-                 <img class='avatar' src='/static/tmp/bg$(user.id).png' style="width:44px;" />
+                 <img class='avatar' src='$(user.bg_resized_url)' style="width:44px;" />
                 $else:
                   <span style="width:44px;margin-right:10px;" />No Photo</span>
               </a>

@@ -5,6 +5,8 @@ from mypinnings import auth
 from mypinnings import session
 from mypinnings import tpllib
 from mypinnings import cached_models
+from mypinnings.api import api_request, convert_to_id, convert_to_logintoken
+from mypinnings import pin_utils
 
 
 admin = None
@@ -32,8 +34,22 @@ def csrf_token():
 def ltpl(*params):
     sess = session.get_session()
     if auth.logged_in(sess):
+        logintoken = convert_to_logintoken(sess.user_id)
+        # Getting profile of a given user
+        profile_url = "/api/profile/userinfo/info"
+        profile_owner_context = {
+            "csid_from_client": "1",
+            "id": sess.user_id,
+            "logintoken": logintoken}
+        user = api_request(profile_url, data=profile_owner_context)\
+            .get("data", [])
+
+        if len(user) == 0:
+            return u"Profile was not found"
+        user = pin_utils.dotdict(user)
+
         db = database.get_db()
-        user = database.dbget('users', sess.user_id)
+
         acti_needed = user.activation
         notif_count = db.select('notifs', what='count(*)', where='user_id = $id', vars={'id': sess.user_id})
         all_albums = list(db.select('albums', where="user_id=%s" % (sess.user_id), order='id'))

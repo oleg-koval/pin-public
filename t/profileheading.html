@@ -4,10 +4,10 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
         $if 'logged_in' in sess and sess.user_id == user.id:
           data-bg="true"
           id='header_background'
-          style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);position:relative;'
+          style='background-size:100% auto;background-position: $(user.headerbgx)px $(user.headerbgy)px;background-image: url($(user.bg_resized_url));position:relative;'
         $else:
           id='header_background'
-          style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url(/static/tmp/bg$(user.id).png?v=$hashed);cursor:default !important;position:relative;'
+          style='background-size:100% auto;background-position: $(user.bgx)px $(user.bgy)px;background-image: url($(user.bg_resized_url));cursor:default !important;position:relative;'
       $else:
         data-nobg='true'
         style='background: #333842;position:relative;'
@@ -15,13 +15,20 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
     <div class="userHolder">
         <div class="userPic">
             $if user.pic:
-                <img src="/static/pics/userthumb$(user.pic).png" />
+              $for photo in user.photos:
+                $if photo.id == photo.user_pic and photo.resized_url:
+                  <a href="#" data-toggle="modal" data-target="#showPhotoModal$photo.id"><img src="$(photo.resized_url)" /></a>
+                  $ break
             $else:
+              <a href='#' data-toggle="modal" data-target="#uploadImageModal">
                 <img src='/static/default-avatar.png' alt='' />
+              </a>
             <div class="otherPics">
-                <!-- <img src="/static/default-avatar.png" />
-                <img src="/static/default-avatar.png" />
-                <img src="/static/default-avatar.png" /> -->
+              $ photos_qty = 1
+              $for photo in user.photos:
+                $if photo.id != photo.user_pic and photo.resized_url and photos_qty <=5:
+                  <a href="#" data-toggle="modal" data-target="#showPhotoModal$photo.id"><img src="$(photo.resized_url)" /></a>
+                  $ photos_qty = photos_qty + 1
             </div>
         </div>
         <p class="userName">
@@ -33,8 +40,11 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
             $if user.website:
             <a href="$user.website"><i class="flaticon-earth9"></i> Blog: $user.website</a>
         </p>
-$#
-$#        <p class="userButtons">
+
+        <p class="userButtons">
+            <a class="button" data-target="#uploadBackgroundImageModal" data-toggle="modal" href="#">
+              Upload background photo
+            </a>
 $#            $if 'logged_in' in sess and user.id != sess.user_id:
 $#                $if friend_status is not None:
 $#                    $if friend_status:
@@ -53,6 +63,16 @@ $#                        <a class='button' href='/follow/$user.id'>Follow</a>
 $#                    <a class='button buttonWhite' href='/newconvo/$user.id'>
 $#                        <i class="flaticon-email21"></i> Message
 $#                    </a>
-$#        </p>
+        </p>
     </div>
 </div>
+
+$for i, photo in enumerate(user.photos):
+  $ next_photo = None
+  $if (len(user.photos)-1) == i:
+    $ next_photo = user.photos[0]
+  $else:
+    $ next_photo = user.photos[i+1]
+
+  $if photo.resized_url:
+    $:tpl('profile_photo_modal', photo, next_photo)

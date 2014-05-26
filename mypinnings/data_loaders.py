@@ -347,11 +347,14 @@ class PaginateLoadedItems(object):
         sess = session.get_session()
         auth.force_login(sess)
         
-        params = web.input(page=1, sort='users.name', dir='asc', query='')
-        if params.get('pageNumber', False):
+        params = web.input(page=False, sort='users.name', dir='asc', query='')
+        if sess.get('reset_page_offset', False):
             page = 0
-        else:
+            sess['reset_page_offset'] = False
+        elif params.get('page', False):
             page = int(params.page) - 1
+        else:
+            page = 0
         
         sess.setdefault('pin_loaders_item_added_page_size', PIN_LIST_LIMIT)
         tag_filter = sess.get('pin_loaders_tag_filter', '')
@@ -434,6 +437,7 @@ class ChangePageSizeForLoadedItems(object):
         params = web.input(size=PIN_LIST_LIMIT)
         size = int(params.size)
         sess['pin_loaders_item_added_page_size'] = size
+        sess['reset_page_offset'] = True
         return ''
 
 
@@ -443,6 +447,7 @@ class ChangeFilterByTagForLoadedItems(object):
         auth.force_login(sess)
         params = web.input(tag='')
         sess['pin_loaders_tag_filter'] = params.tag
+        sess['reset_page_offset'] = True
         return ''
 
 
@@ -455,6 +460,7 @@ class ChangeFilterByCategoryForLoadedItems(object):
             sess['pin_loaders_category_filter'] = int(params.category)
         else:
             sess['pin_loaders_category_filter'] = 0
+        sess['reset_page_offset'] = True
         return ''
 
 

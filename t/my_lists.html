@@ -6,23 +6,22 @@ $def with (boards, user, boards_first_pins={})
     <div class="inContentiySmoktunovskiy">
     $if boards:
         $for board in boards:
-            $if len(board.pins_ids) > 0:
-                <div class="dwItem inlineB small" id="horz-pin$board.id">
+            <div class="dwItem inlineB small" id="horz-pin$board.id">
 
-                    <div class="dwImg">
-                        <img src="$boards_first_pins[board.id]['image_202_url']" />
-                    </div>
-                    <div class="dwName">
-                        <p>
-                            $board.name
-                        </p>
-                    </div>
-                    <div class="dwLike">
-                        <p>
-                            Items in list: <strong>$len(board.pins_ids)</strong>
-                        </p>
-                    </div>
+                <div class="dwImg">
+                    <img src="$boards_first_pins[board.id]['image_202_url']" />
                 </div>
+                <div class="dwName">
+                    <p>
+                        $board.name
+                    </p>
+                </div>
+                <div class="dwLike">
+                    <p>
+                        Items in list: <strong>$len(board.pins_ids)</strong>
+                    </p>
+                </div>
+            </div>
     $else:
         <p>You don't have any lists.</p>
         <p><a href='/new-list' class="button"><b>Add A List</b></a></p>

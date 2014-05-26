@@ -120,6 +120,7 @@ urls = (
     '/newpic/(\d*)', 'PageNewPicture',
     '/photo/(\d*)', 'PagePhoto',
     '/photo/(\d*)/remove', 'PageRemovePhoto',
+    '/photo/(\d*)/default', 'PageDefaultPhoto',
     '/setprofilepic/(\d*)', 'PageSetProfilePic',
     '/setprivacy/(\d*)', 'PageSetPrivacy',
 
@@ -157,6 +158,7 @@ urls = (
     '/recover_password_sent/?', 'mypinnings.recover_password.EmailSentPage',
     '/pwreset/(\d*)/(\d*)/(.*)/', 'mypinnings.recover_password.PasswordReset',
     '/recover_password_complete/', 'mypinnings.recover_password.RecoverPasswordComplete',
+    '/getuserpins/(.*?)', 'GetUserPins', 
     '/(.*?)', 'PageProfile2',
     '/(.*?)/(.*?)', 'PageConnect2',
 
@@ -929,6 +931,38 @@ class PageConnect2:
         return ltpl('connect2',user, follows, followers, friends, action)
 
 
+class GetUserPins:
+    def GET(self, username):
+        force_login(sess)
+        # logintoken = convert_to_logintoken(sess.user_id)
+        # data = {"csid_from_client": ""}
+
+        # # Getting profile of a given user
+        # profile_url = "/api/profile/userinfo/info"
+        # profile_owner_context = {
+        #     "csid_from_client": "",
+        #     "username": username,
+        #     "logintoken": logintoken}
+        # user = api_request(profile_url, data=profile_owner_context)\
+        #     .get("data", [])
+        # # import ipdb; ipdb.set_trace()
+        # if len(user) == 0:
+        #     return u"Profile was not found"
+
+        # user = pin_utils.dotdict(user)
+        # offset = int(web.input(offset=1).offset)
+
+        # # Updating api_request data with user_id
+        # data['user_id'] = user.id
+        # data['page'] = offset
+        # data['items_per_page'] = PIN_COUNT
+        # pins_api_response = api_request("/api/profile/userinfo/pins", data=data)
+        # pins = pins_api_response.get('data').get('pins_list')
+
+        # return ltpl('getmorepins.html')
+        return ltpl('index.html')
+
+
 class PageProfile2:
     def GET(self, username):
         """
@@ -948,6 +982,17 @@ class PageProfile2:
 
         if len(user) == 0:
             return u"Profile was not found"
+
+        photos_context = {
+            "csid_from_client": "",
+            "user_id": user['id']}
+
+        photos = api_request("/api/profile/userinfo/get_photos",
+                             data=photos_context)\
+            .get("data", []).get("photos", [])
+
+        photos = [pin_utils.dotdict(photo) for photo in photos]
+        user['photos'] = photos
         user = pin_utils.dotdict(user)
 
         # Updating api_request data with user_id
@@ -977,7 +1022,10 @@ class PageProfile2:
             for pin in data_from_image_query['data']['image_data_list']:
                 boards_first_pins[pin['board_id']] = pin
 
-        boards = [pin_utils.dotdict(board) for board in boards]
+        boards_list = [pin_utils.dotdict(board) for board in boards]
+        # Takes only boards with pins
+        boards = [board for board in boards_list if len(board.get("pins_ids")) > 0]
+
 
         # Getting categories. Required in case when user
         # is editing own pins.
@@ -1015,8 +1063,12 @@ class PageProfile2:
 
         show_private = is_logged_in and sess.user_id == user.id
 
-        pins = api_request("/api/profile/userinfo/pins", data=data)\
-            .get("data").get("pins_list")
+        # pins = api_request("/api/profile/userinfo/pins", data=data)\
+        #     .get("data").get("pins_list")
+        pins_api_response = api_request("/api/profile/userinfo/pins", data=data)
+        pins = pins_api_response.get('data').get('pins_list')
+        total = pins_api_response.get('data').get("total")
+        total_owned = pins_api_response.get('data').get("total_owned")
 
         logintoken = convert_to_logintoken(sess.user_id)
         data_for_image_query = {
@@ -1051,7 +1103,7 @@ class PageProfile2:
                     edit_profile_done = True
             return ltpl('profile', user, pins, offset, PIN_COUNT, hashed,
                         edit_profile, edit_profile_done, boards,
-                        categories_to_select, boards_first_pins)
+                        categories_to_select, boards_first_pins, total, total_owned)
         return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
 
 
@@ -1555,6 +1607,45 @@ class PageRemovePhoto:
         return web.redirect('/%s' % (user.username))
 
 
+class PageDefaultPhoto:
+    def GET(self, pid):
+        force_login(sess)
+        pid = int(pid)
+        logintoken = convert_to_logintoken(sess.user_id)
+
+        photos_context = {
+            "csid_from_client": "",
+            "user_id": sess.user_id}
+
+        photos = api_request("/api/profile/userinfo/get_photos",
+                             data=photos_context)\
+            .get("data", []).get("photos", [])
+
+        for photo in photos:
+            if photo['id'] == pid:
+                pass
+
+                break
+
+        profile_update_url = "/api/profile/userinfo/update"
+        profile_update_owner_context = {
+            "csid_from_client": "",
+            "pic": pid,
+            "logintoken": logintoken}
+        api_request(profile_update_url,
+                    data=profile_update_owner_context)
+
+        profile_url = "/api/profile/userinfo/info"
+        profile_owner_context = {
+            "csid_from_client": "",
+            "id": sess.user_id,
+            "logintoken": logintoken}
+        user = api_request(profile_url, data=profile_owner_context)\
+            .get("data", [])
+
+        return web.redirect('/%s' % (user['username']))
+
+
 class PageSetProfilePic:
     def GET(self, pid):
         force_login(sess)
@@ -1679,19 +1770,34 @@ class PageShare:
 
 class PageChangeBG:
     def upload_image(self):
-        image = web.input(file={}).file
-        ext = os.path.splitext(image.filename)[1].lower()
+        file_data = web.input(file={}).file
 
-        with open('static/tmp/bg%d%s' % (sess.user_id, ext), 'w') as f:
-            f.write(image.file.read())
 
-        if ext != '.png':
-            img = Image.open('static/tmp/bg%d%s' % (sess.user_id, ext))
-            img.save('static/tmp/bg%d.png' % sess.user_id)
 
-        fname = os.path.realpath(os.path.dirname(__file__))+'/'+\
-            'static/tmp/bg%d.png' % sess.user_id
-        subprocess.call(['convert', fname, '-resize', '1100', fname])
+        new_filename = os.path.join('static',
+                                    'tmp',
+                                    '{}'.format(file_data.filename))
+
+        with open(new_filename, 'w') as f:
+            f.write(file_data.file.read())
+        
+        files = {'file': open(new_filename)}
+
+        logintoken = convert_to_logintoken(sess.user_id)
+
+        data_to_send = {
+            "csid_from_client": '',
+            "logintoken": logintoken
+        }
+
+        data = api_request("api/profile/userinfo/upload_bg",
+                           "POST",
+                           data_to_send,
+                           files)
+
+        if data['status'] == 200:
+            return True
+        return False
 
 
     def POST(self):
@@ -1727,26 +1833,31 @@ class PageChangeBGPos:
 
 
 class PageChangeProfile:
-    def upload_image(self, pid):
-        image = web.input(file={}).file
-        if image.value:
-            ext = os.path.splitext(image.filename)[1].lower()
+    def upload_image(self):
+        file_data = web.input(file={}).file
 
-            with open('static/pics/%d%s' % (pid, ext), 'w') as f:
-                f.write(image.file.read())
+        logintoken = convert_to_logintoken(sess.user_id)
 
-            if ext != '.png':
-                img = Image.open('static/pics/%d%s' % (pid, ext))
-                img.save('static/pics/%d.png' % pid)
+        data_to_send = {
+            "csid_from_client": '',
+            "logintoken": logintoken
+        }
 
-            img = Image.open('static/pics/%d.png' % pid)
-            width, height = img.size
-            ratio = 80 / width
-            width = 80
-            height *= ratio
-            img.thumbnail((width, height), Image.ANTIALIAS)
-            img.save('static/pics/userthumb%d.png' % pid)
+        new_filename = os.path.join('static',
+                                    'tmp',
+                                    '{}'.format(file_data.filename))
 
+        with open(new_filename, 'w') as f:
+            f.write(file_data.file.read())
+        
+        files = {'file': open(new_filename)}
+
+        data = api_request("api/profile/userinfo/upload_pic",
+                           "POST",
+                           data_to_send,
+                           files)
+
+        if data['status'] == 200:
             return True
         return False
 
@@ -1760,10 +1871,10 @@ class PageChangeProfile:
         # else:
         #    aid = db.insert('albums', name='Profile Pictures', user_id=sess.user_id)
 
-        pid = db.insert('photos', album_id=sess.user_id)
-        self.upload_image(pid)
+        # pid = db.insert('photos', album_id=sess.user_id)
+        self.upload_image()
         # reset the image and background positioning
-        db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=pid, bgx=0, bgy=0)
+        # db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=pid, bgx=0, bgy=0)
         raise web.seeother('/profile/%d' % sess.user_id)
 
 
@@ -1990,7 +2101,12 @@ class PageSearchItems:
 
         if ajax:
             return json_pins(pins, 'horzpin')
-        return ltpl('search', pins, orig)
+        #google search
+        google_images = urllib.urlopen(
+            'http://ajax.googleapis.com/ajax/services/search/images?v=1.0&rsz=8&q=%s' % orig).read()
+        google_images = json.loads(google_images)
+        google_images = google_images['responseData']['results']
+        return ltpl('search', pins, orig, google_images)
 
 
 class PageSearchPeople:
