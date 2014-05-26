@@ -73,7 +73,9 @@ $#                    </a>
 
 $for i, photo in enumerate(user.photos):
   $ next_photo = None
+  $ prev_photo = None
   $ next_index = i + 1
+  $ prev_index = i - 1
 
   $if len(user.photos) == next_index:
     $ next_index = 0
@@ -83,5 +85,16 @@ $for i, photo in enumerate(user.photos):
       $if len(user.photos) == next_index:
         $ next_index = 0
   $ next_photo = user.photos[next_index]
+
+  $if prev_index < 0:
+    $ prev_index = len(user.photos) - 1
+  $else:
+    $while not user.photos[prev_index].resized_url:
+      $ prev_index -= 1
+      $if prev_index < 0:
+        $ prev_index = len(user.photos) - 1
+  $ prev_photo = user.photos[prev_index]
+
+
   $if photo.resized_url:
-    $:tpl('profile_photo_modal', photo, next_photo)
+    $:tpl('profile_photo_modal', photo, prev_photo, next_photo)

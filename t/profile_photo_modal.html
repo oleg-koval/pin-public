@@ -1,4 +1,4 @@
-$def with (photo, next_photo=None)
+$def with (photo, prev_photo=None, next_photo=None)
 <div class="modal" id="showPhotoModal$photo.id">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -7,13 +7,23 @@ $def with (photo, next_photo=None)
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
             </div>
             <div class="modal-body">
+                <div class="modal-image-previous-btn">
+                    $if prev_photo:
+                        <a href="#" data-toggle="modal" data-dismiss="modal" data-target="#showPhotoModal$prev_photo.id"><</a>
+                </div>
+
                 <div class="modal-image-container">
                     $if next_photo:
                         <a href="#" data-toggle="modal" data-dismiss="modal" data-target="#showPhotoModal$next_photo.id">
-                            <img src="$(photo.resized_url)" />
+                            <img src="$(photo.original_url)" />
                         </a>
                     $else:
-                    <img src="$photo.original_url" />
+                        <img src="$photo.original_url" />
+                </div>
+
+                <div class="modal-image-next-btn">
+                    $if next_photo:
+                        <a href="#" data-toggle="modal" data-dismiss="modal" data-target="#showPhotoModal$next_photo.id">></a>
                 </div>
                 $if 'logged_in' in sess and photo.user_id == sess.user_id:
                     <div class="modal-buttons">
