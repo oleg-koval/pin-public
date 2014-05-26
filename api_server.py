@@ -71,6 +71,14 @@ urls = (
         api.views.social.SocialQueryMessages,
     "/social/query/conversations", \
         api.views.social.SocialQueryConversations,
+    "/social/photo/add_comment", \
+        api.views.social.AddCommentToPhoto,
+    "/social/photo/like_dislike", \
+        api.views.social.LikeDislikePhoto,
+    "/social/photo/get_comments", \
+        api.views.social.GetCommentsToPhoto,
+    "/social/photo/get_likes", \
+        api.views.social.GetLikesToPhoto,
 
     # API for search: items and users
     "/search/items", api.views.search.SearchItems,

@@ -474,3 +474,208 @@ class SocialQueryMessages(BaseAPI):
                                 csid_from_client=csid_from_client,
                                 csid_from_server=csid_from_server)
         return response
+
+
+class AddCommentToPhoto(BaseAPI):
+    """
+    API method that adds comment to photo
+    """
+    def POST(self):
+        request_data = web.input(
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from request
+        comment = request_data.get("comment")
+        photo_id = request_data.get("photo_id")
+
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        if not comment:
+            status = 400
+            error_code = "Comment cannot be empty"
+
+        if not photo_id:
+            status = 400
+            error_code = "photo_id cannot be empty"
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        from_user_id = user['id']
+
+        if status == 200:
+            db.insert('profile_photo_comments',
+                      photo_id=photo_id,
+                      user_id=from_user_id,
+                      comment=comment)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+
+class LikeDislikePhoto(BaseAPI):
+    """
+    API method that adds likes to photo
+    """
+    def POST(self):
+        request_data = web.input(
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from request
+        photo_id = request_data.get("photo_id")
+        action = request_data.get("action", "like")
+
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
+            
+        if not photo_id:
+            status = 400
+            error_code = "photo_id cannot be empty"
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        user_id = user['id']
+
+        if status == 200:
+            if not action or action == "like":
+                likes = db.select(
+                    'profile_photo_likes',
+                    where='photo_id = $photo_id and user_id = $user_id',
+                    vars={'photo_id': photo_id, 'user_id': user_id}
+                ).list()
+
+                if len(likes) == 0:
+                    db.insert('profile_photo_likes',
+                              photo_id=photo_id,
+                              user_id=user_id)
+                    data['action'] = 'like'
+            else:
+                db.delete(
+                    'profile_photo_likes',
+                    where='photo_id = $photo_id and user_id = $user_id',
+                    vars={'photo_id': photo_id, 'user_id': user_id}
+                )
+                data['action'] = 'dislike'
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+
+class GetCommentsToPhoto(BaseAPI):
+    """
+    API method that allows to get comments to photo
+    """
+    def POST(self):
+        request_data = web.input(
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from
+        photo_id = request_data.get("photo_id")
+
+        csid_from_client = request_data.get('csid_from_client')
+
+        if not photo_id:
+            status = 400
+            error_code = "photo_id cannot be empty"
+
+        if status == 200:
+            comments = db.query('''
+                select profile_photo_comments.*,
+                users.name, photos.*
+                from profile_photo_comments
+                join users
+                on users.id = profile_photo_comments.user_id
+                join photos
+                on photos.id = users.pic
+                where profile_photo_comments.photo_id = $id''',
+                vars={'id': photo_id})\
+                .list()
+            if len(comments) > 0:
+                data['comments'] = comments
+            else:
+                data['comments'] = []
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+
+class GetLikesToPhoto(BaseAPI):
+    """
+    API method that allows to get likes to photo
+    """
+    def POST(self):
+        request_data = web.input(
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from
+        photo_id = request_data.get("photo_id")
+
+        csid_from_client = request_data.get('csid_from_client')
+
+        if not photo_id:
+            status = 400
+            error_code = "photo_id cannot be empty"
+
+        if status == 200:
+            likes = db.query('''
+                select profile_photo_likes.*,
+                users.name, photos.*
+                from profile_photo_likes
+                join users
+                on users.id = profile_photo_likes.user_id
+                join photos
+                on photos.id = users.pic
+                where profile_photo_likes.photo_id = $id''',
+                vars={'id': photo_id})\
+                .list()
+            if len(likes) > 0:
+                data['likes'] = likes
+            else:
+                data['likes'] = []
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
