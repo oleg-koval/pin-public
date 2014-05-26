@@ -15,6 +15,14 @@
                     pinsCount++;
                 });
 
+                if (pinsCount < 30) {
+                    var pcFix = 30 - pinsCount, pcCount = pinsCount;
+                    for (var i = pcCount; i < pcFix + pcCount; i++) {
+                        arrPin.push(arrPin[i - pcCount]);
+                        pinsCount++;
+                    };
+                }
+
 
                 for (var i = 0; i < pinsCount; i++) {
                     $("#firstRow").append('<div class="pinRollItem">' + arrPin[i].html() + '</div>');
@@ -64,11 +72,12 @@
         };
 
         if ($("#inSess").length !== 0) {
-            $("#mainPage").css({ 'display': 'none' });
+            //$("#mainPage").css({ 'display': 'none' });
             $("#mainForm").css({ 'display': 'none' });
-            $('#pin-box-wrapper').css({ 'display': 'block' });
+            // $('#pin-box-wrapper').css({ 'display': 'block' });
+            $('#pin-box-wrapper').css({ 'display': 'none' });
         } else {
-            $('#pin-box-wrapper').css({ 'display': 'none' }); 
+            $('#pin-box-wrapper').css({ 'display': 'none' });
         }
 
         if ($("#menu1").length !== 0) {
