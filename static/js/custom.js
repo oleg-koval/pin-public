@@ -67,7 +67,9 @@
             $("#mainPage").css({ 'display': 'none' });
             $("#mainForm").css({ 'display': 'none' });
             $('#pin-box-wrapper').css({ 'display': 'block' });
-        };
+        } else {
+            $('#pin-box-wrapper').css({ 'display': 'none' }); 
+        }
 
         if ($("#menu1").length !== 0) {
             var menuCat = [], menuCatCount = 0, mcPoint = 0;
