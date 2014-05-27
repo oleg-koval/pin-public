@@ -514,3 +514,38 @@
 .modal-image-previous-btn a:hover, .modal-image-next-btn a:hover {
     text-decoration: none;
 }
+
+.modal-bottom {
+      margin: 20px auto;
+      width: 455px;
+      text-align: left; 
+}
+
+.modal-bottom a {
+    font-weight: bold;
+}
+
+.modal-bottom .links {
+    color: #888888; }
+.modal-bottom .links a, .modal-bottom .links .link {
+    font-weight: bold;
+    color: #223344; }
+.modal-bottom .links label {
+    color: #223344;
+    font-weight: bold;
+    cursor: pointer; }
+.modal-bottom .links label:hover {
+    text-decoration: underline; }
+.modal-bottom .comment {
+    padding: 15px 0;
+    border-bottom: solid 1px #bbbbcc; }
+.modal-bottom .comment:last-of-type {
+    border-bottom-style: none; }
+.modal-bottom form {
+    width: 415px;
+    padding: 0;
+    background: none;
+    border-style: none;
+    box-shadow: none; }
+.modal-bottom form textarea {
+    width: 455px; }
