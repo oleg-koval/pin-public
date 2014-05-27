@@ -1326,11 +1326,18 @@ class PageUsers:
 
 
 class PageNotifications:
+    """ Responsible for rendering a list of notifications for user profile"""
     def GET(self):
+        """ Renders notifications """
         force_login(sess)
-        params = dict(where='user_id = $id', vars={'id': sess.user_id})
-        notifs = db.select('notifs', **params)
-
+        logintoken = convert_to_logintoken(sess.user_id)
+        url = "/api/query/notification"
+        context = {
+            "logintoken": logintoken,
+            "csid_from_client": "1"
+        }
+        response_data = api_request(url, data=context).get("data")
+        notifs = [pin_utils.dotdict(notif) for notif in response_data]
         return ltpl('notifs', notifs)
 
 
