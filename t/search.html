@@ -7,12 +7,12 @@ $def with (pins, query)
         jQuery(websearch_add_images);
     </script>
     <div id="search_results"></div>
-    <button id="more_results" onclick="add_images()">More results</button>
+    <button id="more_results" onclick="websearch_add_images()">More results</button>
     $if None != pins:
         <div class='left horz-pins'>
             $:tpl('pins', pins, 'horzpin')
         </div>
-        <div class='left categories bold'>
+        <div class='content categories bold'>
             <h1>Search for..</h1>
             <a href='/search/items?q=$query'>Pins</a>
             <a href='/search/people?q=$query'>People</a>
