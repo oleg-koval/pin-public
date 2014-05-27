@@ -427,9 +427,31 @@ $(document).ready(function() {
 
 }).call(this);
 
-function add_image(url) {
+/* ----- Images web search ----- */
+function load_image_from_url(url) {
     //console.log(url);
     $('#url').val(url);
     $('#web_getlist_link').click();
     $('#fetch-images').click();
 }
+
+var offset = 0;
+function websearch_add_images() {
+    $.getJSON('/api/websearch/images?q=' + query + '&offset=' + offset)
+        .success(function(results) {
+            var row;
+            for(var i=0; i < results.length; i++) {
+                if (i%4 == 0)
+                    row = $('<div></div>').appendTo('#search_results');
+                var result = results[i];
+                $('<div></div>')
+                    .append($('<img/>').attr('src', result.thumb))
+                    .append($('<div></div>').html(result.title))
+                    .append($('<div></div>').html(result.desc))
+                    .click(load_image_from_url.bind(this, result.image))
+                .appendTo(row);
+            }
+            offset += results.length;
+        });
+}
+

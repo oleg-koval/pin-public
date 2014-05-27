@@ -41,26 +41,34 @@
     vertical-align:middle;
 }
 
-#google_results {
+/* ----- Images web search ----- */
+#search_results {
+    display: table;
+}
+
+#search_results > div {
     display: table-row;
-    text-align: justify;
 }
 
-#google_results > div {
+#search_results > div > div {
     display: table-cell;
-    border: 1px solid lightgray;
-    cursor: pointer;
-    /*vertical-align: middle;*/
-    padding: 1mm;
-    margin: 1mm;
-    max-width: 200px;
     text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    border: 1px solid transparent;
+    padding: 1mm;
 }
 
-#google_results > div:hover {
+#search_results > div > div:hover {
     border-color: #000000;
 }
 
-#google_results > div > div:last-child {
-    font-style: italic;
+#search_results img {
+    max-width: 200px;
+    padding: 1mm 0;
+}
+
+#more_results {
+    display: block;
+    margin: 2mm auto;
 }

@@ -40,6 +40,7 @@ import mypinnings.profile_settings
 import admin
 import glob
 import api_server
+from settings import SEARCH_PINS
 
 from mypinnings.api import api_request, convert_to_id, convert_to_logintoken
 
@@ -2062,51 +2063,47 @@ class PageSearchItems:
         force_login(sess)
 
         orig = web.input(q='').q
-        hashtag = web.input(h='').h
-        offset = int(web.input(offset=1).offset)
-        ajax = int(web.input(ajax=0).ajax)
+        if SEARCH_PINS:
+            hashtag = web.input(h='').h
+            offset = int(web.input(offset=1).offset)
+            ajax = int(web.input(ajax=0).ajax)
 
-        logintoken = convert_to_logintoken(sess.get('user_id'))
-        data = {
-            "csid_from_client": '',
-            "logintoken": logintoken,
-            "page": offset,
-            "items_per_page": PIN_COUNT
-        }
-
-        if hashtag:
-            data['hashtag'] = hashtag
-            url = "api/image/query/get_by_hashtags"
-        else:
-            data['query'] = orig
-            url = "api/search/items"
-
-        pins = []
-
-        data = api_request(url, "POST", data)
-        if data['status'] == 200:
-            data_for_image_query = {
+            logintoken = convert_to_logintoken(sess.get('user_id'))
+            data = {
                 "csid_from_client": '',
                 "logintoken": logintoken,
-                "query_params": data['data']['image_id_list']
+                "page": offset,
+                "items_per_page": PIN_COUNT
             }
-            data_from_image_query = api_request("api/image/query",
-                                                "POST",
-                                                data_for_image_query)
 
-            if data_from_image_query['status'] == 200:
-                pins = data_from_image_query['data']['image_data_list']
+            if hashtag:
+                data['hashtag'] = hashtag
+                url = "api/image/query/get_by_hashtags"
+            else:
+                data['query'] = orig
+                url = "api/search/items"
 
-        pins = [pin_utils.dotdict(pin) for pin in pins]
+            pins = []
 
-        if ajax:
-            return json_pins(pins, 'horzpin')
-        #google search
-        google_images = urllib.urlopen(
-            'http://ajax.googleapis.com/ajax/services/search/images?v=1.0&rsz=8&q=%s' % orig).read()
-        google_images = json.loads(google_images)
-        google_images = google_images['responseData']['results']
-        return ltpl('search', pins, orig, google_images)
+            data = api_request(url, "POST", data)
+            if data['status'] == 200:
+                data_for_image_query = {
+                    "csid_from_client": '',
+                    "logintoken": logintoken,
+                    "query_params": data['data']['image_id_list']
+                }
+                data_from_image_query = api_request("api/image/query",
+                                                    "POST",
+                                                    data_for_image_query)
+
+                if data_from_image_query['status'] == 200:
+                    pins = data_from_image_query['data']['image_data_list']
+
+            pins = [pin_utils.dotdict(pin) for pin in pins]
+
+            if ajax:
+                return json_pins(pins, 'horzpin')
+        return ltpl('search', pins, orig)
 
 
 class PageSearchPeople:

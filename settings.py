@@ -25,6 +25,11 @@ GOOGLE = {'client_id': '985703411904-602sd2jgsl6v5ad8k3fb6tanc46a0v88.apps.googl
           'client_secret': os.environ['GPLUS_APPLICATION_SECRET'],
           }
 
+BING = {
+    'customer_id': '7e41d6a8-1914-4354-bf31-3abd36cb0179',
+    'account_key': os.environ['BING_APPLICATION_SECRET']
+}
+
 LANGUAGES = (('en', 'English'),
              ('fr', 'Français'),
              ('es', 'Español'),
@@ -52,6 +57,7 @@ COUNTRIES = [
 ]
 
 PIN_COUNT = 100
+SEARCH_PINS = True
 
 API_URL = "http://mypinnings.com/"
 PIN_NEW_DAYS = 7
