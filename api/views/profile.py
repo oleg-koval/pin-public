@@ -72,12 +72,12 @@ class SetPrivacy(BaseUserProfile):
     Allows to set privacy level of the profile.
     """
     def POST(self):
-        """
-        Updates profile with fields sent from the client, returns saved fields.
+        """ Updates profile with fields sent from the client,
+        returns saved fields.
 
-        Can be tested in the following way:
-        curl --data "logintoken=UaNxct7bJZ&twitter=1&csid_from_client=1" \
-        http://localhost:8080/api/profile/userinfo/update
+        :args: None.
+        :returns: BaseApi response.
+        :to test: curl --data "logintoken=UaNxct7bJZ&twitter=1&csid_from_client=1" http://localhost:8080/api/profile/userinfo/update
         """
         request_data = web.input()
 
