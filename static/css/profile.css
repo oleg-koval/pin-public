@@ -485,6 +485,10 @@
     float: left;
 }
 
+.modal-image-bg-container {
+    width: 100%;
+}
+
 .modal-buttons {
     text-align: center;
     width: 100%;

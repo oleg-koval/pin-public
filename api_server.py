@@ -80,6 +80,15 @@ urls = (
         api.views.social.GetCommentsToPhoto,
     "/social/photo/get_likes", \
         api.views.social.GetLikesToPhoto,
+    "/social/background/add_comment", \
+        api.views.social.AddCommentToBackground,
+    "/social/background/like_dislike", \
+        api.views.social.LikeDislikeBackground,
+    "/social/background/get_comments", \
+        api.views.social.GetCommentsToBackground,
+    "/social/background/get_likes", \
+        api.views.social.GetLikesToBackground,
+
 
     # API for search: items and users
     "/search/items", api.views.search.SearchItems,

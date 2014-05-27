@@ -124,6 +124,9 @@ urls = (
     '/photo/(\d*)/like', 'PageLikePhoto',
     '/photo/(\d*)/dislike', 'PageDislikePhoto',
     '/photo/(\d*)/comment', 'PageCommentPhoto',
+    '/background/(\d*)/like', 'PageLikeBackground',
+    '/background/(\d*)/dislike', 'PageDislikeBackground',
+    '/background/(\d*)/comment', 'PageCommentBackground',
     '/setprofilepic/(\d*)', 'PageSetProfilePic',
     '/setprivacy/(\d*)', 'PageSetPrivacy',
 
@@ -1000,6 +1003,32 @@ class PageProfile2:
 
         photos = [pin_utils.dotdict(photo) for photo in photos]
         user['photos'] = photos
+
+        likes_data = {
+            "csid_from_client": "",
+            "bg_id": user['id']}
+
+        if logintoken:
+            likes_data['logintoken'] = logintoken
+
+        likes_data = api_request("/api/social/background/get_likes",
+                             data=likes_data)\
+            .get("data", {})
+        user['bg_likes'] = pin_utils.dotdict(likes_data)
+
+        comments_data = {
+            "csid_from_client": "",
+            "bg_id": user['id']}
+
+        if logintoken:
+            comments_data['logintoken'] = logintoken
+
+        comments_data = api_request("/api/social/background/get_comments",
+                             data=comments_data)\
+            .get("data", {})
+        user['bg_comments'] = pin_utils.dotdict(comments_data)
+
+
         user = pin_utils.dotdict(user)
 
         # Updating api_request data with user_id
@@ -1668,15 +1697,15 @@ class PageDefaultPhoto:
 
 class PageLikePhoto:
     def GET(self, pid):
-        return like_dislike(pid, "like")
+        return like_dislike_photo(pid, "like")
 
 
 class PageDislikePhoto:
     def GET(self, pid):
-        return like_dislike(pid, "dislike")
+        return like_dislike_photo(pid, "dislike")
 
 
-def like_dislike(pid, action):
+def like_dislike_photo(pid, action):
     # force_login(sess)
     pid = int(pid)
     logintoken = convert_to_logintoken(sess.user_id)
@@ -1717,6 +1746,68 @@ class PageCommentPhoto:
             "comment": comment}
 
         data = api_request("/api/social/photo/add_comment",
+                             data=photo_comment_context)
+
+        comment = None
+
+        if data['status'] == 200:
+            data = data.get('data', {})
+            comment = data.get('comment', None)
+
+        return tpl('comment', comment)
+
+
+class PageLikeBackground:
+    def GET(self, bg_id):
+        return like_dislike_background(bg_id, "like")
+
+
+class PageDislikeBackground:
+    def GET(self, bg_id):
+        return like_dislike_background(bg_id, "dislike")
+
+
+def like_dislike_background(bg_id, action):
+    # force_login(sess)
+    bg_id = int(bg_id)
+    logintoken = convert_to_logintoken(sess.user_id)
+
+    photos_context = {
+        "csid_from_client": "",
+        "bg_id": bg_id,
+        "logintoken": logintoken,
+        "action": action}
+
+    data = api_request("/api/social/background/like_dislike",
+                         data=photos_context)
+
+    return_data = {}
+
+    if data['status'] == 200:
+        data = data.get('data', {})
+        if data['count_likes'] > 0:
+            return_data['likes'] = str(data['count_likes']) + \
+                " like" + ('s' if data['count_likes'] != 1 else '')
+        else:
+            return_data['likes'] = ""
+
+    return json.dumps(return_data)
+
+
+class PageCommentBackground:
+    def POST(self, bg_id):
+        comment = web.input(comment='').comment
+
+        bg_id = int(bg_id)
+        logintoken = convert_to_logintoken(sess.user_id)
+
+        photo_comment_context = {
+            "csid_from_client": "",
+            "bg_id": bg_id,
+            "logintoken": logintoken,
+            "comment": comment}
+
+        data = api_request("/api/social/background/add_comment",
                              data=photo_comment_context)
 
         comment = None
