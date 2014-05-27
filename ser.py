@@ -1342,16 +1342,22 @@ class PageNotifications:
 
 
 class PageNotif:
+    """ View responsible for rendering individual notifications pages """
     def GET(self, nid):
         force_login(sess)
-        notif = dbget('notifs', nid)
-        print notif
-        if int(notif.user_id) != int(sess.user_id):
-            return 'Page not found.'
 
-        url = notif.link
-        db.delete('notifs', where='id = $id', vars={'id': nid})
-        raise web.seeother(url)
+        url = "/api/notification/%s" % (nid)
+        context = {
+            "logintoken": convert_to_logintoken(sess.user_id),
+            "csid_from_client": "1"
+        }
+        response = api_request(url, data=context)
+        if response.get("status") != 200:
+            msg = "It was not possible to open this notification"
+            raise web.seeother("/notifications?msg=%s" % msg)
+        notif = response.get("data")
+        raise web.seeother(notif.get("link"))
+
 
 
 # class PageChangePw:

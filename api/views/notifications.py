@@ -3,7 +3,7 @@ import web
 from api.utils import api_response, save_api_request
 from api.views.base import BaseAPI
 
-from mypinnings.database import connect_db
+from mypinnings.database import connect_db, dbget
 
 db = connect_db()
 
@@ -55,3 +55,41 @@ class CreateNotification(BaseAPI):
         return api_response(data={"status": "success"},
                             csid_from_client=csid_from_client,
                             csid_from_server="")
+
+class GetNotification(BaseAPI):
+    """
+    Allows to get individual notifications
+    """
+    def POST(self, notification_id):
+        """ Method responsible for retuning individual notifications
+
+        :args: logintoken, csid_from_client, notification_id.
+        :returns: notification_or_404
+        :to_test: curl --data "csid_from_client=1&logintoken=zs4jxj0yM2"\
+        http://localhost:8080/api/notification/177
+        """
+        request_data = web.input()
+        save_api_request(request_data)
+
+        logintoken = request_data.get('logintoken')
+        csid_from_client = request_data.get('csid_from_client')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        # User id contains error code
+        if not user_status:
+            return api_response(data={}, status=405,
+                                error_code="User was not found")
+
+        csid_from_server = user['seriesid']
+        notif = dbget('notifs', notification_id)
+
+        # Do not allow to read notification related to other users
+        if int(notif.user_id) != int(user.id):
+            return api_response(data={}, status=405,
+                                error_code="Access denied")
+
+        # Remove notification which was already reviewed
+        db.delete('notifs', where='id = $id', vars={'id': notification_id})
+        return api_response(data=notif,
+                            csid_from_client=csid_from_client,
+                            csid_from_server=csid_from_server)

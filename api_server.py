@@ -23,6 +23,7 @@ urls = (
     "/(.*)/", 'redirect', # Handle urls with slash and without it
     "/query/notification", api.views.notifications.Notification, # API handler for notifications
     "/notification/add", api.views.notifications.CreateNotification,
+    "/notification/(?P<notification_id>\d+)", api.views.notifications.GetNotification,
 
     # API to user signup: authenticate user
     "/auth", api.views.signup.Auth,
