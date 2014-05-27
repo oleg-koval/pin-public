@@ -1332,25 +1332,38 @@ class PageUsers:
 
 
 class PageNotifications:
+    """ Responsible for rendering a list of notifications for user profile"""
     def GET(self):
+        """ Renders notifications """
         force_login(sess)
-        params = dict(where='user_id = $id', vars={'id': sess.user_id})
-        notifs = db.select('notifs', **params)
-
+        logintoken = convert_to_logintoken(sess.user_id)
+        url = "/api/query/notification"
+        context = {
+            "logintoken": logintoken,
+            "csid_from_client": "1"
+        }
+        response_data = api_request(url, data=context).get("data")
+        notifs = [pin_utils.dotdict(notif) for notif in response_data]
         return ltpl('notifs', notifs)
 
 
 class PageNotif:
+    """ View responsible for rendering individual notifications pages """
     def GET(self, nid):
         force_login(sess)
-        notif = dbget('notifs', nid)
-        print notif
-        if int(notif.user_id) != int(sess.user_id):
-            return 'Page not found.'
 
-        url = notif.link
-        db.delete('notifs', where='id = $id', vars={'id': nid})
-        raise web.seeother(url)
+        url = "/api/notification/%s" % (nid)
+        context = {
+            "logintoken": convert_to_logintoken(sess.user_id),
+            "csid_from_client": "1"
+        }
+        response = api_request(url, data=context)
+        if response.get("status") != 200:
+            msg = "It was not possible to open this notification"
+            raise web.seeother("/notifications?msg=%s" % msg)
+        notif = response.get("data")
+        raise web.seeother(notif.get("link"))
+
 
 
 # class PageChangePw:
