@@ -8,7 +8,7 @@ from datetime import datetime
 from api.utils import api_response, save_api_request, api_response, \
     photo_id_to_url
 from api.views.base import BaseAPI
-from api.views.social import share
+from api.views.social import share, get_comments_to_photo
 from api.entities import UserProfile
 
 from mypinnings import auth
@@ -899,6 +899,17 @@ class GetProfilePictures(BaseAPI):
 
         csid_from_client = request_data.get('csid_from_client')
 
+        select_str = "0 AS self_like_count,"
+        join_str = ""
+        logintoken = request_data.get('logintoken', None)
+        if logintoken:
+            user_status, user = self.authenticate_by_token(logintoken)
+            if user_status:
+                select_str = "count(distinct l2) as self_like_count,"
+                join_str = "LEFT JOIN profile_photo_likes l2 \
+                            ON l2.photo_id = photos.id \
+                            AND l2.user_id = %s" % user['id']
+
         if not user_id:
             status = 400
             error_code = "Invalid input data"
@@ -907,13 +918,23 @@ class GetProfilePictures(BaseAPI):
 
         if status == 200:
             photos = db.query("SELECT photos.*, users.id as user_id, \
-                        users.pic as user_pic FROM photos \
+                        users.pic as user_pic, \
+                        " + select_str + " \
+                        count(distinct l1) as like_count \
+                        FROM photos \
                         LEFT JOIN users ON photos.album_id = users.id \
+                        LEFT JOIN profile_photo_likes l1 \
+                        ON l1.photo_id = photos.id \
+                        " + join_str + " \
                         WHERE photos.album_id=%s \
+                        GROUP BY photos.id, users.id \
                         ORDER BY photos.id desc" % (user_id))\
             .list()
 
-            data['photos'] = photos
+            data['photos'] = []
+            for photo in photos:
+                photo['comments'] = get_comments_to_photo(photo['id'])
+                data['photos'].append(photo)
 
         response = api_response(data=data,
                                 status=status,

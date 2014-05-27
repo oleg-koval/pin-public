@@ -31,6 +31,41 @@ $def with (photo, prev_photo=None, next_photo=None)
                         $if photo.id != photo.user_pic:
                             <a href='/photo/$(photo.id)/default' class='button small-pad'>Set as profile picture</a>
                     </div>
+
+               <div class='clearfix'>
+                    <div class='links left'>
+                      $if 'logged_in' in sess:
+                        $if photo.self_like_count and photo.self_like_count > 0:
+                          $ like_style = "display: none;"
+                          $ dislike_style = ""
+                        $else:
+                          $ like_style = ""
+                          $ dislike_style = "display: none;"
+
+                        <a href='#' data-url='/photo/$photo.id/dislike' data-id='$photo.id' data-action="dislike" class="dislike" style="$dislike_style">Unlike</a>
+                        <a href='#' data-url='/photo/$photo.id/like' data-id='$photo.id' data-action="like" class="like" style="$like_style">Like</a> &middot;
+                    </div>
+                    <div class='right'>
+                        <b id="likes_count_$photo.id">
+                        $if photo.like_count > 0:
+                            $photo.like_count like$('s' if photo.like_count != 1 else '')
+                        </b>
+                    </div>
+                </div>
+                <hr/>
+                <div id="comments_$photo.id">
+                $for comment in photo.comments:
+                    $:tpl('comment', comment)
+                </div>
+                $if 'logged_in' in sess:
+                    <div class="modal-buttons">
+                        <p>
+                            <textarea id='input_comment_$photo.id' name='comment' placeholder='Write a comment...'></textarea>
+                        </p>
+                        <p>
+                            <a href='#' data-url='/photo/$photo.id/comment' data-id='$photo.id' class="button send_comment">Comment</a>
+                        </p>
+                    </div>
             </div>
         </div>
     </div>

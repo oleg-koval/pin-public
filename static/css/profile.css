@@ -489,6 +489,7 @@
     text-align: center;
     width: 100%;
     clear: both;
+    padding: 5px 0;
 }
 
 .modal-image-container img {

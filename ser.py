@@ -121,6 +121,9 @@ urls = (
     '/photo/(\d*)', 'PagePhoto',
     '/photo/(\d*)/remove', 'PageRemovePhoto',
     '/photo/(\d*)/default', 'PageDefaultPhoto',
+    '/photo/(\d*)/like', 'PageLikePhoto',
+    '/photo/(\d*)/dislike', 'PageDislikePhoto',
+    '/photo/(\d*)/comment', 'PageCommentPhoto',
     '/setprofilepic/(\d*)', 'PageSetProfilePic',
     '/setprivacy/(\d*)', 'PageSetPrivacy',
 
@@ -988,9 +991,12 @@ class PageProfile2:
             "csid_from_client": "",
             "user_id": user['id']}
 
+        if logintoken:
+            photos_context['logintoken'] = logintoken
+
         photos = api_request("/api/profile/userinfo/get_photos",
                              data=photos_context)\
-            .get("data", []).get("photos", [])
+            .get("data", {}).get("photos", [])
 
         photos = [pin_utils.dotdict(photo) for photo in photos]
         user['photos'] = photos
@@ -1645,6 +1651,68 @@ class PageDefaultPhoto:
             .get("data", [])
 
         return web.redirect('/%s' % (user['username']))
+
+
+class PageLikePhoto:
+    def GET(self, pid):
+        return like_dislike(pid, "like")
+
+
+class PageDislikePhoto:
+    def GET(self, pid):
+        return like_dislike(pid, "dislike")
+
+
+def like_dislike(pid, action):
+    # force_login(sess)
+    pid = int(pid)
+    logintoken = convert_to_logintoken(sess.user_id)
+
+    photos_context = {
+        "csid_from_client": "",
+        "photo_id": pid,
+        "logintoken": logintoken,
+        "action": action}
+
+    data = api_request("/api/social/photo/like_dislike",
+                         data=photos_context)
+
+    return_data = {}
+
+    if data['status'] == 200:
+        data = data.get('data', {})
+        if data['count_likes'] > 0:
+            return_data['likes'] = str(data['count_likes']) + \
+                " like" + ('s' if data['count_likes'] != 1 else '')
+        else:
+            return_data['likes'] = ""
+
+    return json.dumps(return_data)
+
+
+class PageCommentPhoto:
+    def POST(self, pid):
+        comment = web.input(comment='').comment
+
+        pid = int(pid)
+        logintoken = convert_to_logintoken(sess.user_id)
+
+        photo_comment_context = {
+            "csid_from_client": "",
+            "photo_id": pid,
+            "logintoken": logintoken,
+            "comment": comment}
+
+        data = api_request("/api/social/photo/add_comment",
+                             data=photo_comment_context)
+
+        comment = None
+
+        if data['status'] == 200:
+            data = data.get('data', {})
+            comment = data.get('comment', None)
+
+        return tpl('comment', comment)
 
 
 class PageSetProfilePic:

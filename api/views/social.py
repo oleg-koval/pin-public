@@ -513,10 +513,25 @@ class AddCommentToPhoto(BaseAPI):
         from_user_id = user['id']
 
         if status == 200:
-            db.insert('profile_photo_comments',
-                      photo_id=photo_id,
-                      user_id=from_user_id,
-                      comment=comment)
+            comment_id = db.insert('profile_photo_comments',
+                                   photo_id=photo_id,
+                                   user_id=from_user_id,
+                                   comment=comment)
+
+            comments = db.query('''
+                select profile_photo_comments.*,
+                users.id as user_id, users.name, photos.*
+                from profile_photo_comments
+                LEFT join users
+                on users.id = profile_photo_comments.user_id
+                LEFT join photos
+                on photos.id = users.pic
+                where profile_photo_comments.id = $id''',
+                vars={'id': comment_id})\
+                .list()
+
+            if len(comments) > 0:
+                data['comment'] = comments[0]
 
         response = api_response(data=data,
                                 status=status,
@@ -579,6 +594,20 @@ class LikeDislikePhoto(BaseAPI):
                 )
                 data['action'] = 'dislike'
 
+            likes = db.query('''
+                select profile_photo_likes.*,
+                users.name, photos.*
+                from profile_photo_likes
+                LEFT join users
+                on users.id = profile_photo_likes.user_id
+                LEFT join photos
+                on photos.id = users.pic
+                where profile_photo_likes.photo_id = $id''',
+                vars={'id': photo_id})\
+                .list()
+            data['likes'] = likes
+            data['count_likes'] = len(likes)
+
         response = api_response(data=data,
                                 status=status,
                                 error_code=error_code,
@@ -610,21 +639,10 @@ class GetCommentsToPhoto(BaseAPI):
             error_code = "photo_id cannot be empty"
 
         if status == 200:
-            comments = db.query('''
-                select profile_photo_comments.*,
-                users.name, photos.*
-                from profile_photo_comments
-                join users
-                on users.id = profile_photo_comments.user_id
-                join photos
-                on photos.id = users.pic
-                where profile_photo_comments.photo_id = $id''',
-                vars={'id': photo_id})\
-                .list()
-            if len(comments) > 0:
-                data['comments'] = comments
-            else:
-                data['comments'] = []
+            
+            data['comments'] = get_comments_to_photo(photo_id)
+                
+            data['count_likes'] = len(likes)
 
         response = api_response(data=data,
                                 status=status,
@@ -633,6 +651,21 @@ class GetCommentsToPhoto(BaseAPI):
                                 csid_from_server=csid_from_server)
         return response
 
+
+def get_comments_to_photo(photo_id):
+    comments = db.query('''
+        select profile_photo_comments.*,
+        users.id as user_id, users.name, photos.*
+        from profile_photo_comments
+        LEFT join users
+        on users.id = profile_photo_comments.user_id
+        LEFT join photos
+        on photos.id = users.pic
+        where profile_photo_comments.photo_id = $id''',
+        vars={'id': photo_id})\
+        .list()
+
+    return comments
 
 class GetLikesToPhoto(BaseAPI):
     """
