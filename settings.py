@@ -59,6 +59,6 @@ COUNTRIES = [
 PIN_COUNT = 100
 SEARCH_PINS = True
 
-API_URL = "http://mypinnings.com/"
+API_URL = os.environ['API_URL'] if 'API_URL' in os.environ else "http://mypinnings.com/"
 PIN_NEW_DAYS = 7
 MEDIA_PATH = "static/tmp"

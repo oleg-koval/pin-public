@@ -2061,6 +2061,7 @@ def make_query(q):
 class PageSearchItems:
     def GET(self):
         force_login(sess)
+	pins = None
 
         orig = web.input(q='').q
         if SEARCH_PINS:
