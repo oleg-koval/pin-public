@@ -122,6 +122,9 @@ urls = (
     '/photo/(\d*)', 'PagePhoto',
     '/photo/(\d*)/remove', 'PageRemovePhoto',
     '/photo/(\d*)/default', 'PageDefaultPhoto',
+    '/photo/(\d*)/like', 'PageLikePhoto',
+    '/photo/(\d*)/dislike', 'PageDislikePhoto',
+    '/photo/(\d*)/comment', 'PageCommentPhoto',
     '/setprofilepic/(\d*)', 'PageSetProfilePic',
     '/setprivacy/(\d*)', 'PageSetPrivacy',
 
@@ -159,7 +162,7 @@ urls = (
     '/recover_password_sent/?', 'mypinnings.recover_password.EmailSentPage',
     '/pwreset/(\d*)/(\d*)/(.*)/', 'mypinnings.recover_password.PasswordReset',
     '/recover_password_complete/', 'mypinnings.recover_password.RecoverPasswordComplete',
-    '/getuserpins/(.*?)', 'GetUserPins', 
+    '/getuserpins/(.*?)', 'GetUserPins',
     '/(.*?)', 'PageProfile2',
     '/(.*?)/(.*?)', 'PageConnect2',
 
@@ -969,6 +972,7 @@ class PageProfile2:
         """
         Returns user profile information by username
         """
+        force_login(sess)
         logintoken = convert_to_logintoken(sess.user_id)
         data = {"csid_from_client": ""}
 
@@ -988,9 +992,12 @@ class PageProfile2:
             "csid_from_client": "",
             "user_id": user['id']}
 
+        if logintoken:
+            photos_context['logintoken'] = logintoken
+
         photos = api_request("/api/profile/userinfo/get_photos",
                              data=photos_context)\
-            .get("data", []).get("photos", [])
+            .get("data", {}).get("photos", [])
 
         photos = [pin_utils.dotdict(photo) for photo in photos]
         user['photos'] = photos
@@ -1095,7 +1102,7 @@ class PageProfile2:
         hashed = rs()
 
         # Getting link to edit profile...
-        if logged_in(sess):
+        if show_private:
             get_input = web.input(_method='get')
             edit_profile = edit_profile_done = None
             if 'editprofile' in get_input:
@@ -1326,25 +1333,38 @@ class PageUsers:
 
 
 class PageNotifications:
+    """ Responsible for rendering a list of notifications for user profile"""
     def GET(self):
+        """ Renders notifications """
         force_login(sess)
-        params = dict(where='user_id = $id', vars={'id': sess.user_id})
-        notifs = db.select('notifs', **params)
-
+        logintoken = convert_to_logintoken(sess.user_id)
+        url = "/api/query/notification"
+        context = {
+            "logintoken": logintoken,
+            "csid_from_client": "1"
+        }
+        response_data = api_request(url, data=context).get("data")
+        notifs = [pin_utils.dotdict(notif) for notif in response_data]
         return ltpl('notifs', notifs)
 
 
 class PageNotif:
+    """ View responsible for rendering individual notifications pages """
     def GET(self, nid):
         force_login(sess)
-        notif = dbget('notifs', nid)
-        print notif
-        if int(notif.user_id) != int(sess.user_id):
-            return 'Page not found.'
 
-        url = notif.link
-        db.delete('notifs', where='id = $id', vars={'id': nid})
-        raise web.seeother(url)
+        url = "/api/notification/%s" % (nid)
+        context = {
+            "logintoken": convert_to_logintoken(sess.user_id),
+            "csid_from_client": "1"
+        }
+        response = api_request(url, data=context)
+        if response.get("status") != 200:
+            msg = "It was not possible to open this notification"
+            raise web.seeother("/notifications?msg=%s" % msg)
+        notif = response.get("data")
+        raise web.seeother(notif.get("link"))
+
 
 
 # class PageChangePw:
@@ -1647,6 +1667,68 @@ class PageDefaultPhoto:
         return web.redirect('/%s' % (user['username']))
 
 
+class PageLikePhoto:
+    def GET(self, pid):
+        return like_dislike(pid, "like")
+
+
+class PageDislikePhoto:
+    def GET(self, pid):
+        return like_dislike(pid, "dislike")
+
+
+def like_dislike(pid, action):
+    # force_login(sess)
+    pid = int(pid)
+    logintoken = convert_to_logintoken(sess.user_id)
+
+    photos_context = {
+        "csid_from_client": "",
+        "photo_id": pid,
+        "logintoken": logintoken,
+        "action": action}
+
+    data = api_request("/api/social/photo/like_dislike",
+                         data=photos_context)
+
+    return_data = {}
+
+    if data['status'] == 200:
+        data = data.get('data', {})
+        if data['count_likes'] > 0:
+            return_data['likes'] = str(data['count_likes']) + \
+                " like" + ('s' if data['count_likes'] != 1 else '')
+        else:
+            return_data['likes'] = ""
+
+    return json.dumps(return_data)
+
+
+class PageCommentPhoto:
+    def POST(self, pid):
+        comment = web.input(comment='').comment
+
+        pid = int(pid)
+        logintoken = convert_to_logintoken(sess.user_id)
+
+        photo_comment_context = {
+            "csid_from_client": "",
+            "photo_id": pid,
+            "logintoken": logintoken,
+            "comment": comment}
+
+        data = api_request("/api/social/photo/add_comment",
+                             data=photo_comment_context)
+
+        comment = None
+
+        if data['status'] == 200:
+            data = data.get('data', {})
+            comment = data.get('comment', None)
+
+        return tpl('comment', comment)
+
+
 class PageSetProfilePic:
     def GET(self, pid):
         force_login(sess)
@@ -1781,7 +1863,7 @@ class PageChangeBG:
 
         with open(new_filename, 'w') as f:
             f.write(file_data.file.read())
-        
+
         files = {'file': open(new_filename)}
 
         logintoken = convert_to_logintoken(sess.user_id)
@@ -1850,7 +1932,7 @@ class PageChangeProfile:
 
         with open(new_filename, 'w') as f:
             f.write(file_data.file.read())
-        
+
         files = {'file': open(new_filename)}
 
         data = api_request("api/profile/userinfo/upload_pic",
@@ -2145,4 +2227,3 @@ def csrf_protected(f):
 if __name__ == '__main__':
 
     app.run()
-

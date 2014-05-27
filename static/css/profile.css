@@ -438,6 +438,11 @@
     font-size: 11px;
     padding: 5px;
 }
+.dwType p a
+{display: inline-block; margin-bottom: 15px;}
+
+.dwType
+{height: 24px; overflow: hidden;}
 
 .dwLike
 {
@@ -476,14 +481,71 @@
 
 .modal-image-container {
     text-align: center;
-    width: 100%;
+    width: 80%;
+    float: left;
 }
 
 .modal-buttons {
     text-align: center;
     width: 100%;
+    clear: both;
+    padding: 5px 0;
 }
 
 .modal-image-container img {
-    max-width: 500px;
+    max-width: 400px;
 }
+
+.modal-image-previous-btn, .modal-image-next-btn {
+    width: 10%;
+    float: left;
+    text-align: right;
+}
+.modal-image-next-btn {
+    text-align: left;
+}
+.modal-image-previous-btn a, .modal-image-next-btn a {
+    font-size: 52px;
+    height: 300px;
+    line-height: 300px;
+    display: block;
+}
+
+.modal-image-previous-btn a:hover, .modal-image-next-btn a:hover {
+    text-decoration: none;
+}
+
+.modal-bottom {
+      margin: 20px auto;
+      width: 455px;
+      text-align: left; 
+}
+
+.modal-bottom a {
+    font-weight: bold;
+}
+
+.modal-bottom .links {
+    color: #888888; }
+.modal-bottom .links a, .modal-bottom .links .link {
+    font-weight: bold;
+    color: #223344; }
+.modal-bottom .links label {
+    color: #223344;
+    font-weight: bold;
+    cursor: pointer; }
+.modal-bottom .links label:hover {
+    text-decoration: underline; }
+.modal-bottom .comment {
+    padding: 15px 0;
+    border-bottom: solid 1px #bbbbcc; }
+.modal-bottom .comment:last-of-type {
+    border-bottom-style: none; }
+.modal-bottom form {
+    width: 415px;
+    padding: 0;
+    background: none;
+    border-style: none;
+    box-shadow: none; }
+.modal-bottom form textarea {
+    width: 455px; }

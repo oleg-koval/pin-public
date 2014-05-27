@@ -1127,3 +1127,48 @@ alter table categories add position integer not null default 0;
 
 ALTER TABLE users ADD COLUMN bg_original_url text;
 ALTER TABLE users ADD COLUMN bg_resized_url text;
+
+
+CREATE TABLE profile_photo_comments (
+    id integer NOT NULL,
+    photo_id integer,
+    user_id integer,
+    comment text,
+    "timestamp" integer DEFAULT date_part('epoch'::text, now())
+);
+
+
+ALTER TABLE public.profile_photo_comments OWNER TO postgres;
+
+
+CREATE SEQUENCE profile_photo_comments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.profile_photo_comments_id_seq OWNER TO postgres;
+
+
+ALTER SEQUENCE profile_photo_comments_id_seq OWNED BY comments.id;
+
+
+ALTER TABLE ONLY profile_photo_comments ALTER COLUMN id SET DEFAULT nextval('profile_photo_comments_id_seq'::regclass);
+
+
+ALTER TABLE ONLY profile_photo_comments
+    ADD CONSTRAINT profile_photo_comments_pkey PRIMARY KEY (id);
+
+
+CREATE TABLE profile_photo_likes (
+    user_id integer NOT NULL,
+    photo_id integer NOT NULL
+);
+
+
+ALTER TABLE public.profile_photo_likes OWNER TO postgres;
+
+ALTER TABLE ONLY profile_photo_likes
+    ADD CONSTRAINT profile_photo_likes_pkey PRIMARY KEY (user_id, photo_id);

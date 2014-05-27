@@ -359,3 +359,44 @@ jQuery(function() {
     cache: false
   });
 });
+
+$('.dislike, .like').click(function() {
+  var url = $(this).attr("data-url");
+  var action = $(this).attr("data-action");
+  var photo_id = $(this).attr("data-id");
+
+  if(action == "like") {
+    $(this).hide();
+    $(this).parent().find('.dislike').show();
+  }
+  if(action == "dislike") {
+    $(this).hide();
+    $(this).parent().find('.like').show();
+  }
+
+  $.get( url, function( data ) {
+    data = jQuery.parseJSON(data);
+    console.log($( "#likes_count_" + photo_id ));
+    $( "#likes_count_" + photo_id ).text(data.likes);
+  });
+  return false;
+});
+
+$('.send_comment').click(function() {
+  var url = $(this).attr("data-url");
+  var photo_id = $(this).attr("data-id");
+  var comment = $( "#input_comment_" + photo_id ).val()
+
+  if(comment == "") {
+    alert("Comment cannot be empty!");
+    return false;
+  }
+  $( "#input_comment_" + photo_id ).val("")
+
+  $.post( url, { comment: comment }, 
+    function( data ) {
+      $( "#comments_" + photo_id ).append(data);
+    }
+  );
+  return false;
+});

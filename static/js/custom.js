@@ -15,6 +15,14 @@
                     pinsCount++;
                 });
 
+                if (pinsCount < 30) {
+                    var pcFix = 30 - pinsCount, pcCount = pinsCount;
+                    for (var i = pcCount; i < pcFix + pcCount; i++) {
+                        arrPin.push(arrPin[i - pcCount]);
+                        pinsCount++;
+                    };
+                }
+
 
                 for (var i = 0; i < pinsCount; i++) {
                     $("#firstRow").append('<div class="pinRollItem">' + arrPin[i].html() + '</div>');
@@ -56,21 +64,24 @@
                     posItemLeft = posItemLeft + $(this).width() + 20;
                     rollRowCount++;
                 });
+            }, 2000);
+            $('#firstRow').animate({ left: ($('#firstRow').position().left - $('#firstRow').width()) + 'px' }, 50000);
+            $('#secondRow').animate({ left: ($('#secondRow').position().left + $('#secondRow').width()) + 'px' }, 80000);
+            $('#thirdRow').animate({ left: ($('#thirdRow').position().left - $('#thirdRow').width()) + 'px' }, 60000);
+            $('#fourthRow').animate({ left: ($('#fourthRow').position().left + $('#fourthRow').width()) + 'px' }, 50000);
 
-                $('#firstRow').animate({ left: ($('#firstRow').position().left - $('#firstRow').width()) + 'px' }, 50000);
-                $('#secondRow').animate({ left: ($('#secondRow').position().left + $('#secondRow').width()) + 'px' }, 80000);
-                $('#thirdRow').animate({ left: ($('#thirdRow').position().left - $('#thirdRow').width()) + 'px' }, 60000);
-                $('#fourthRow').animate({ left: ($('#fourthRow').position().left + $('#fourthRow').width()) + 'px' }, 50000);
 
-
-            }, 1000);
+            if ($("#inSess").length !== 0) {
+                //$("#mainPage").css({ 'display': 'none' });
+                $("#mainForm").css({ 'display': 'none' });
+                // $('#pin-box-wrapper').css({ 'display': 'block' });
+                $('#pin-box-wrapper').css({ 'display': 'none' });
+            } else {
+                $('#pin-box-wrapper').css({ 'display': 'none' });
+            }
         };
 
-        if ($("#inSess").length !== 0) {
-            // $("#mainPage").css({ 'display': 'none' });
-            // $("#mainForm").css({ 'display': 'none' });
-            // $('#pin-box-wrapper').css({ 'display': 'block' });
-        };
+
 
         if ($("#menu1").length !== 0) {
             var menuCat = [], menuCatCount = 0, mcPoint = 0;
@@ -99,7 +110,7 @@
 
     });
 
-    
+
     $("#signShow").click(function () {
         $("#mainForm .signForm form").slideToggle("slow", function () {
             // Animation complete.
@@ -110,8 +121,19 @@
         if ($("#signShow p").html() == "Signup") {
             $("#signShow p").html("Social signup");
         } else {
-            $("#signShow p").html("Signup"); 
+            $("#signShow p").html("Signup");
         };
 
     });
+
+
+    if ($("#myTab").length !== 0) {
+        var $body = $("body");
+
+        $(document).on({
+            ajaxStart: function () { $body.addClass("loading"); },
+            ajaxStop: function () { $body.removeClass("loading"); }
+        });
+    };
+
 });

@@ -8,7 +8,7 @@ from datetime import datetime
 from api.utils import api_response, save_api_request, api_response, \
     photo_id_to_url
 from api.views.base import BaseAPI
-from api.views.social import share
+from api.views.social import share, get_comments_to_photo
 from api.entities import UserProfile
 
 from mypinnings import auth
@@ -72,12 +72,14 @@ class SetPrivacy(BaseUserProfile):
     Allows to set privacy level of the profile.
     """
     def POST(self):
-        """
-        Updates profile with fields sent from the client, returns saved fields.
+        """ Updates profile with fields sent from the client,
+        returns saved fields.
 
-        Can be tested in the following way:
-        curl --data "logintoken=UaNxct7bJZ&twitter=1&csid_from_client=1" \
-        http://localhost:8080/api/profile/userinfo/update
+        :param str csid_from_client: csid from client key
+        :param str getlist_privacy_level/private: controls privacy level
+        :param str logintoken: logintoken
+        :response_data: Returns api response with 'getlist_privacy_level/private.'
+        :to test: curl --data "logintoken=UaNxct7bJZ&twitter=1&csid_from_client=1" http://localhost:8080/api/profile/userinfo/update
         """
         request_data = web.input()
 
@@ -118,15 +120,17 @@ class SetPrivacy(BaseUserProfile):
 
 class UserInfoUpdate(BaseUserProfile):
     """
-    Defines a class responsible for updating user data, inide the profile
+    Defines a class responsible for updating user data, inside the profile
     """
     def POST(self):
-        """
-        Updates profile with fields sent from the client, returns saved fields.
+        """  Updates profile with fields sent from the client,
+        returns saved fields.
 
-        Can be tested in the following way:
-        curl --data "logintoken=UaNxct7bJZ&twitter=1&csid_from_client=1" \
-        http://localhost:8080/api/profile/userinfo/update
+        :param str csid_from_client: Csid string from client
+        :param str logintoken: Logintoken
+        :param str <field>: The field which will be changed
+        :response_data: returns changed field
+        :to test: curl --data "logintoken=UaNxct7bJZ&twitter=1&csid_from_client=1" http://localhost:8080/api/profile/userinfo/update
         """
         request_data = web.input()
 
@@ -166,21 +170,14 @@ class UserInfoUpdate(BaseUserProfile):
 
 
 class GetProfileInfo(BaseUserProfile):
-    """
-    Returns profile information.
-
-    Can be tested this way:
-    curl --data "logintoken=UaNxct7bJZ&csid_from_client=123" \
-    http://localhost:8080/api/profile/userinfo/get
-    """
+    """ Allows to render profile information, by token """
     def POST(self):
         """
-        Returns profile information, requires logintoken
+        :param str csid_from_client: Csid string from client
+        :param str logintoken: Logintoken
 
-        Can be tested in the following way:
-        curl --data "logintoken=UaNxct7bJZ&csid_from_client=123" \
-        http://localhost:8080/api/profile/userinfo/get
-
+        :response_data: 'id', 'name', 'about', 'city', 'country','hometown', 'about', 'email', 'pic', 'website', 'facebook', 'twitter', 'getlist_privacy_level', 'private', 'bg', 'bgx', 'bgy', 'show_views', 'views', 'username', 'zip', 'linkedin', 'gplus', 'bg_resized_url', 'headerbgy', 'headerbgx'
+        :to test: curl --data "logintoken=UaNxct7bJZ&csid_from_client=123" http://localhost:8080/api/profile/userinfo/get
         """
         request_data = web.input()
         if not self.is_request_valid(request_data):
@@ -204,24 +201,19 @@ class GetProfileInfo(BaseUserProfile):
 
 class ProfileInfo(BaseUserProfile):
     """
-    Returns publically available profile information
+    Returns public profile information
     """
-
     def POST(self):
-        """ Returns profile information. This function requires either
-        profile or id in order to work
+        """
+        :param str csid_from_client: Csid string from client
+        :param str logintoken: Logintoken
+        :param str username: Username
+        :param str username: id
+        :response_data: 'id', 'name', 'about', 'city', 'country','hometown', 'about', 'email', 'pic', 'website', 'facebook', 'twitter', 'getlist_privacy_level', 'private', 'bg', 'bgx', 'bgy', 'show_views', 'views', 'username', 'zip', 'linkedin', 'gplus', 'bg_resized_url', 'headerbgy', 'headerbgx'
 
-        Required fields:
-        - username
-        - id
-        - csid_from_client
-
-        Example usage:
-        curl --data "csid_from_client=11&id=78&logintoken=RxPu7fLYgv"\
-        http://localhost:8080/api/profile/userinfo/info
-
-        curl --data "csid_from_client=11&username=Oleg&logintoken=RxPu7fLYgv"\
-        http://localhost:8080/api/profile/userinfo/info
+        :to test:
+        - curl --data "csid_from_client=11&id=78&logintoken=RxPu7fLYgv" http://localhost:8080/api/profile/userinfo/info
+        - curl --data "csid_from_client=11&username=Oleg&logintoken=RxPu7fLYgv" http://localhost:8080/api/profile/userinfo/info
         """
         request_data = web.input()
         profile = request_data.get("username", "")
@@ -283,15 +275,11 @@ class UpdateProfileViews(BaseUserProfile):
     Responsible for updating count of pofile views
     """
     def POST(self, profile):
-        """ Returns profile information
-
-        Required fields:
-        - profile (sent via url)
-        - csid_from_client
-
-        Example usage:
-        curl --data "csid_from_client=11&logintoken=RxPu7fLYgv" \
-        http://localhost:8080/api/profile/updateviews/oleg
+        """
+        :param str csid_from_client: Csid string from client
+        :param str profile: must be in url
+        :response_data: returns a dict with 'status' key
+        :to test: curl --data "csid_from_client=11&logintoken=RxPu7fLYgv" http://localhost:8080/api/profile/updateviews/oleg
         """
         request_data = web.input()
 
@@ -324,9 +312,10 @@ class ManageGetList(BaseAPI):
         Manage list of user products: sharing, add, remove
 
         Method for image_id_share_list must additional receive next
-        required params:
-        access_token - access token for social network
-        social_network - name of social network (for example "facebook")
+        :param str csid_from_client: Csid string from client
+        :param str logintoken: Logintoken
+        :param str social_network: e.g. facebook
+        :response_data: returns added/removed/shared getlists
         """
         request_data = web.input(
             image_id_remove_list=[],
@@ -438,8 +427,14 @@ class ManageGetList(BaseAPI):
 
 class ChangePassword(BaseAPI):
     def POST(self):
-        """
-        Change user password and take new client token
+        """ Change user password and get/store new logintoken
+        :param str csid_from_client: Csid string from client
+        :param str logintoken: Logintoken
+        :param str old_password: current password of the user
+        :param str new_password, new_password2: The new password typed 2 times
+
+        :response_data: new clinet token
+        :to test:
         """
         request_data = web.input()
         save_api_request(request_data)
@@ -533,13 +528,10 @@ class QueryBoards(BaseAPI):
     def POST(self):
         """ Returns all boards associated with a given user
 
-        Required parameters:
-        user_id: required parameter, sent via request data
-        csid_from_client
-
-        Can be tested using the following command:
-        curl --data "user_id=2&csid_from_client=1" \
-        http://localhost:8080/api/profile/userinfo/boards
+        :param str csid_from_client: Csid string from client
+        :param str user_id: id of the queried user
+        :response_data: returns all boards of a given user as a list
+        :to test: curl --data "user_id=2&csid_from_client=1" http://localhost:8080/api/profile/userinfo/boards
         """
         request_data = web.input()
         csid_from_client = request_data.get('csid_from_client')
@@ -576,15 +568,12 @@ class QueryPins(BaseAPI):
     def POST(self):
         """ Returns all pins associated with a given user
 
-        Required parameters:
-        user_id: required parameter, sent via request data
-        csid_from_client
+        :param str csid_from_client: Csid string from client
+        :param str user_id: id of the queried user
+        :response_data: Returns list of pins of a current user
 
-        Can be tested using the following command:
-        curl --data "user_id=78&csid_from_client=1" \
-        http://localhost:8080/api/profile/userinfo/pins
+        :to test: curl --data "user_id=78&csid_from_client=1" http://localhost:8080/api/profile/userinfo/pins
         """
-
         query = '''
         select tags.tags, pins.*, users.pic as user_pic,
         users.username as user_username, users.name as user_name,
@@ -666,8 +655,10 @@ class TestUsernameOrEmail(BaseAPI):
     """
     def POST(self):
         """
-        curl --data "csid_from_client=1&username_or_email=oleg"\
-        http://localhost:8080/api/profile/test-username
+        :param str csid_from_client: Csid string from client
+        :param str logintoken: username_or_email
+        :response data: returns 'ok' or 'notfound'
+        :to test: curl --data "csid_from_client=1&username_or_email=oleg" http://localhost:8080/api/profile/test-username
         """
         request_data = web.input()
         username_or_email = request_data.get('username_or_email')
@@ -899,6 +890,17 @@ class GetProfilePictures(BaseAPI):
 
         csid_from_client = request_data.get('csid_from_client')
 
+        select_str = "0 AS self_like_count,"
+        join_str = ""
+        logintoken = request_data.get('logintoken', None)
+        if logintoken:
+            user_status, user = self.authenticate_by_token(logintoken)
+            if user_status:
+                select_str = "count(distinct l2) as self_like_count,"
+                join_str = "LEFT JOIN profile_photo_likes l2 \
+                            ON l2.photo_id = photos.id \
+                            AND l2.user_id = %s" % user['id']
+
         if not user_id:
             status = 400
             error_code = "Invalid input data"
@@ -907,13 +909,23 @@ class GetProfilePictures(BaseAPI):
 
         if status == 200:
             photos = db.query("SELECT photos.*, users.id as user_id, \
-                        users.pic as user_pic FROM photos \
+                        users.pic as user_pic, \
+                        " + select_str + " \
+                        count(distinct l1) as like_count \
+                        FROM photos \
                         LEFT JOIN users ON photos.album_id = users.id \
+                        LEFT JOIN profile_photo_likes l1 \
+                        ON l1.photo_id = photos.id \
+                        " + join_str + " \
                         WHERE photos.album_id=%s \
+                        GROUP BY photos.id, users.id \
                         ORDER BY photos.id desc" % (user_id))\
             .list()
 
-            data['photos'] = photos
+            data['photos'] = []
+            for photo in photos:
+                photo['comments'] = get_comments_to_photo(photo['id'])
+                data['photos'].append(photo)
 
         response = api_response(data=data,
                                 status=status,
