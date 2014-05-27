@@ -386,17 +386,8 @@ jQuery(function() {
       error: function(x, textStatus, errorThrown) {
         console.log("Error:" + textStatus + ', ' + errorThrown);
       }
-/*<<<<<<< HEAD */
-      return sep.join(' ');
-    };
-  });
-
-}).call(this);
-
-
-/*=======
     });
-  };*/
+  };
   separate_link_to_fit_small_space = function(url) {
     var i, last_val, sep, slice, _i, _ref;
     sep = Array();
@@ -564,4 +555,3 @@ jQuery(function() {
     });
   };
 });
-/*>>>>>>> 700e48b51a916845e5c81855b4e6daffffcffacf*/
