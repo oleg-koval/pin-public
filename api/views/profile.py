@@ -707,6 +707,7 @@ class TestUsernameOrEmail(BaseAPI):
                             csid_from_server=csid_from_server,
                             csid_from_client=csid_from_client)
 
+
 class PicUpload(BaseAPI):
     """ Upload profile picture and save it in database """
     def POST(self):
@@ -956,4 +957,59 @@ class GetProfilePictures(BaseAPI):
                                 error_code=error_code,
                                 csid_from_client=csid_from_client,
                                 csid_from_server=csid_from_server)
+        return response
+
+
+class PicRemove(BaseAPI):
+    """ Remove profile picture and save changes in database """
+    def POST(self):
+        """
+        Picture remove main handler
+        """
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        request_data = web.input()
+        logintoken = request_data.get('logintoken')
+        photo_id = request_data.get('photo_id')
+
+        user_status, user = self.authenticate_by_token(logintoken)
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        csid_from_client = request_data.get("csid_from_client")
+
+        photos = db.select('photos',
+                           where='id = $id and album_id = $album_id',
+                           vars={'id': photo_id, 'album_id': user['id']})
+
+        if len(photos) > 0:
+            db.delete('photos',
+                      where='id = $id',
+                      vars={'id': photo_id})
+            import ipdb; ipdb.set_trace()
+            if str(user['pic']) == photo_id:
+                photos = db.select('photos',
+                                   where='album_id = $album_id',
+                                   vars={'album_id': user['id']})
+                if len(photos) > 0:
+                    pid = photos[0]['id']
+                else:
+                    pid = None
+
+                db.update('users',
+                          where='id = $id',
+                          vars={'id': user['id']},
+                          pic=pid)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+
         return response

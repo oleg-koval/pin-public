@@ -3,13 +3,16 @@ import json
 import urlparse
 from mypinnings import database
 from mypinnings.conf import settings
-
+import time
 
 def api_request(url, method="POST", data=None, files=None):
     """
     Sends http request to api server and returns server response in json,
     or none, if http status_code of the response is not 200
     """
+
+    start_time = time.time()
+
     url = urlparse.urljoin(settings.API_URL, url)
 
     if method == "GET":
@@ -33,6 +36,9 @@ def api_request(url, method="POST", data=None, files=None):
         data = {}
         data['status'] = 500
         data['error_code'] = "Internal server error."
+
+    print ">>>API LOG>>> Request to " + url + ": " + \
+        str(time.time() - start_time) + "s."
 
     return data
 
