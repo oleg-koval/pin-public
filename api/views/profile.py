@@ -70,6 +70,8 @@ class BaseUserProfile(BaseAPI):
 class SetPrivacy(BaseUserProfile):
     """
     Allows to set privacy level of the profile.
+
+    :link: /api/profile/userinfo/update
     """
     def POST(self):
         """ Updates profile with fields sent from the client,
@@ -121,6 +123,8 @@ class SetPrivacy(BaseUserProfile):
 class UserInfoUpdate(BaseUserProfile):
     """
     Defines a class responsible for updating user data, inside the profile
+
+    :link: /api/profile/userinfo/update
     """
     def POST(self):
         """  Updates profile with fields sent from the client,
@@ -131,6 +135,7 @@ class UserInfoUpdate(BaseUserProfile):
         :param str <field>: The field which will be changed
         :response_data: returns changed field
         :to test: curl --data "logintoken=UaNxct7bJZ&twitter=1&csid_from_client=1" http://localhost:8080/api/profile/userinfo/update
+
         """
         request_data = web.input()
 
@@ -170,7 +175,10 @@ class UserInfoUpdate(BaseUserProfile):
 
 
 class GetProfileInfo(BaseUserProfile):
-    """ Allows to render profile information, by token """
+    """ Allows to render profile information, by token
+
+    :url: /api/profile/userinfo/get
+    """
     def POST(self):
         """
         :param str csid_from_client: Csid string from client
@@ -202,6 +210,8 @@ class GetProfileInfo(BaseUserProfile):
 class ProfileInfo(BaseUserProfile):
     """
     Returns public profile information
+
+    :url: /api/profile/userinfo/info
     """
     def POST(self):
         """
@@ -273,6 +283,8 @@ class ProfileInfo(BaseUserProfile):
 class UpdateProfileViews(BaseUserProfile):
     """
     Responsible for updating count of pofile views
+
+    :link: /api/profile/updateviews/<username>
     """
     def POST(self, profile):
         """
@@ -307,6 +319,9 @@ class UpdateProfileViews(BaseUserProfile):
 
 
 class ManageGetList(BaseAPI):
+    """
+    :link: /api/profile/mgl
+    """
     def POST(self):
         """
         Manage list of user products: sharing, add, remove
@@ -426,6 +441,9 @@ class ManageGetList(BaseAPI):
 
 
 class ChangePassword(BaseAPI):
+    """
+    :link: /api/profile/pwd
+    """
     def POST(self):
         """ Change user password and get/store new logintoken
         :param str csid_from_client: Csid string from client
@@ -524,6 +542,8 @@ class ChangePassword(BaseAPI):
 class QueryBoards(BaseAPI):
     """
     Class responsible for getting boards of a given user
+
+    :link: /api/profile/userinfo/boards
     """
     def POST(self):
         """ Returns all boards associated with a given user
@@ -564,6 +584,8 @@ class QueryBoards(BaseAPI):
 class QueryPins(BaseAPI):
     """
     Responsible for getting pins of a given user
+
+    :url: /api/profile/userinfo/pins
     """
     def POST(self):
         """ Returns all pins associated with a given user
@@ -652,6 +674,8 @@ class TestUsernameOrEmail(BaseAPI):
     """
     Checks if given username or email is already added to database.
     in case if a username
+
+    :link: /api/profile/test-username
     """
     def POST(self):
         """

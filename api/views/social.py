@@ -17,15 +17,19 @@ class PostingOnUserPage(BaseAPI):
     """
     Provides sharing pins to social networks
 
-    Method PostingOnUserPage must receive next required params:
-
-    share_list - list of pin's ids
-    access_token - access token for social network
-    social_network - name of social network (for example "facebook")
+    :link: /api/social/poup
     """
     def POST(self):
         """
         Share pins to social network
+        Method PostingOnUserPage must receive next required params:
+
+        :param str share_list: list of pin's ids
+        :param str access_token: access token for social network
+        :param str social_network: name of social network
+        (for example 'facebook')
+        :response data: list of pin ids to share, e.g. [10, 20, 30]
+
         """
         request_data = web.input(
             share_list=[],
@@ -77,9 +81,6 @@ class PostingOnUserPage(BaseAPI):
 
 
 def share(access_token, share_list, social_network="facebook"):
-    """
-    Share pins to social network, using access token
-    """
     # Initialize default access token status
     access_token_status = True
 
@@ -160,9 +161,6 @@ def check_linkedin_access_token(access_token):
 
 
 def share_via_facebook(access_token, message, link, image_url):
-    """
-    Share pin to facebook
-    """
     if link:
         message += link + "\n"
 
@@ -179,9 +177,6 @@ def share_via_facebook(access_token, message, link, image_url):
 
 
 def share_via_linkedin(access_token, message, link, image_url):
-    """
-    Share pin to Linkedin
-    """
     try:
         url = 'https://api.linkedin.com/v1/people/~/shares' + \
             '?oauth2_access_token=%s' % access_token
@@ -219,22 +214,21 @@ def share_via_linkedin(access_token, message, link, image_url):
 class QueryFollows(BaseAPI):
     """
     Class responsible for providing access to followers of a given user
+
+    :link: /api/social/query/following
+    :link: /api/social/query/followed-by
     """
     def POST(self, query_type):
-        """ Depending on query_type (which can be follow or followers) returns
-        a list of users (ids), following or followed by current user
+        """ Depending on query_type returns
+        a list of users, following or followed by current user
 
-        Can be tested this way:
+        :param str logintoken: Login token to authenticate current user
+        :param str user_id: Quieried user id.
 
-        curl --data "csid_from_client=1&user_id=78&logintoken=RxPu7fLYgv" \
-        http://localhost:8080/api/social/query/following
-        returns all users who followed by user oleg
-
-        curl --data "csid_from_client=1&user_id=78&logintoken=RxPu7fLYgv" \
-        http://localhost:8080/api/social/query/followed-by
-        returns all users who follow user oleg
+        :to test: curl --data "csid_from_client=1&user_id=78&logintoken=RxPu7fLYgv" http://localhost:8080/api/social/query/following
+        :to test: curl --data "csid_from_client=1&user_id=78&logintoken=RxPu7fLYgv" http://localhost:8080/api/social/query/followed-by
+        :response data: list of users
         """
-
         data = web.input()
         uid = data.get("user_id")
         logintoken = data.get("logintoken", "")
@@ -255,8 +249,18 @@ class QueryFollows(BaseAPI):
 class SocialMessage(BaseAPI):
     """
     API method that sends message to user
+    :link: /api/social/message
     """
     def POST(self):
+        """
+        :param str logintoken: Logintoken used fo authentication
+        :param str content: Content of the message
+        :param str user_id_list: List of user ids
+        :param str csid_from_client: CSID from client
+
+        :response data: empty
+        """
+
         request_data = web.input(
             user_id_list=[],
         )
@@ -312,8 +316,18 @@ class SocialMessage(BaseAPI):
 class SocialMessageToConversation(BaseAPI):
     """
     API method that sends message to conversation
+
+    :link: /api/social/message_to_conversation
     """
     def POST(self):
+        """
+        :param str logintoken: Logintoken used fo authentication
+        :param str content: Content of the message
+        :param str user_id_list: List of conversation ids
+        :param str csid_from_client: CSID from client
+
+        :response data: empty
+        """
         request_data = web.input(
             conversation_id_list=[],
         )
@@ -366,8 +380,16 @@ class SocialMessageToConversation(BaseAPI):
 class SocialQueryConversations(BaseAPI):
     """
     API method that allows to get conversations
+
+    :link: /api/social/query/conversations
     """
     def POST(self):
+        """
+        :param str logintoken: Logintoken used fo authentication
+        :param str csid_from_client: CSID from client
+
+        :response data: returns a list of conversations
+        """
         request_data = web.input(
         )
 
@@ -376,7 +398,7 @@ class SocialQueryConversations(BaseAPI):
         csid_from_server = None
         error_code = ""
 
-        # Get data from 
+        # Get data from
         csid_from_client = request_data.get('csid_from_client')
         logintoken = request_data.get('logintoken')
         user_status, user = self.authenticate_by_token(logintoken)
@@ -415,6 +437,13 @@ class SocialQueryMessages(BaseAPI):
     API method that allows to get messages from conversation
     """
     def POST(self):
+        """
+        :param str logintoken: Logintoken used fo authentication
+        :param str conversation_id: Conversation id
+        :param str csid_from_client: CSID from client
+
+        :response data: list of all messages, for a given conversation
+        """
         request_data = web.input(
         )
 
@@ -423,7 +452,7 @@ class SocialQueryMessages(BaseAPI):
         csid_from_server = None
         error_code = ""
 
-        # Get data from 
+        # Get data from
         conversation_id = request_data.get('conversation_id', False)
         csid_from_client = request_data.get('csid_from_client')
         logintoken = request_data.get('logintoken')
@@ -479,8 +508,18 @@ class SocialQueryMessages(BaseAPI):
 class AddCommentToPhoto(BaseAPI):
     """
     API method that adds comment to photo
+
+    :link: /api/social/photo/add_comment
     """
     def POST(self):
+        """
+        :param str logintoken: Logintoken used fo authentication
+        :param str comment: Comment body
+        :param str photo_id: Id if the photo to comment
+        :param str csid_from_client: CSID from client
+
+        :response data: echoes given comment
+        """
         request_data = web.input(
         )
 
@@ -561,7 +600,7 @@ class LikeDislikePhoto(BaseAPI):
         csid_from_client = request_data.get('csid_from_client')
         logintoken = request_data.get('logintoken')
         user_status, user = self.authenticate_by_token(logintoken)
-            
+
         if not photo_id:
             status = 400
             error_code = "photo_id cannot be empty"
@@ -809,7 +848,7 @@ class LikeDislikeBackground(BaseAPI):
         csid_from_client = request_data.get('csid_from_client')
         logintoken = request_data.get('logintoken')
         user_status, user = self.authenticate_by_token(logintoken)
-            
+
         if not bg_id:
             status = 400
             error_code = "bg_id cannot be empty"
@@ -969,4 +1008,3 @@ class GetLikesToBackground(BaseAPI):
                                 csid_from_client=csid_from_client,
                                 csid_from_server=csid_from_server)
         return response
-

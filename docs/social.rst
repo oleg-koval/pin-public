@@ -3,5 +3,5 @@
 Social API
 ==========
 
-.. autoclass:: api.views.social.PostingOnUserPage
+.. automodule:: api.views.social
    :members:
