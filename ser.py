@@ -279,40 +279,41 @@ class PageIndex:
         ajax = int(web.input(ajax=0).ajax)
         pins = []
 
-        data_to_send = {
-            'csid_from_client': '',
-            'page': offset,
-            # 'items_per_page': PIN_COUNT
-            'items_per_page': 100
-        }
-
-        # if logged_in(sess):
-        #     data_to_send['user_id'] = sess.user_id
-        #     url = "api/profile/userinfo/pins"
-        # else:
-        data_to_send['query_type'] = "range"
-        data_to_send['not_private'] = True
-        url = "api/image/query/category"
-
-        data = api_request(url, "POST", data_to_send)
-        if data['status'] == 200:
-            image_id_list = data['data'].get('image_id_list', None)
-            if image_id_list is None:
-                pins_list = data['data'].get('pins_list', [])
-                image_id_list = [pin['id'] for pin in pins_list]
-
-            data_for_image_query = {
-                "csid_from_client": '',
-                "query_params": image_id_list
+        if logged_in(sess):
+            data_to_send = {
+                'csid_from_client': '',
+                'page': offset,
+                # 'items_per_page': PIN_COUNT
+                'items_per_page': 100
             }
-            data_from_image_query = api_request("api/image/query",
-                                                "POST",
-                                                data_for_image_query)
 
-            if data_from_image_query['status'] == 200:
-                pins = data_from_image_query['data']['image_data_list']
+            # if logged_in(sess):
+            #     data_to_send['user_id'] = sess.user_id
+            #     url = "api/profile/userinfo/pins"
+            # else:
+            data_to_send['query_type'] = "range"
+            data_to_send['not_private'] = True
+            url = "api/image/query/category"
 
-        pins = [pin_utils.dotdict(pin) for pin in pins]
+            data = api_request(url, "POST", data_to_send)
+            if data['status'] == 200:
+                image_id_list = data['data'].get('image_id_list', None)
+                if image_id_list is None:
+                    pins_list = data['data'].get('pins_list', [])
+                    image_id_list = [pin['id'] for pin in pins_list]
+
+                data_for_image_query = {
+                    "csid_from_client": '',
+                    "query_params": image_id_list
+                }
+                data_from_image_query = api_request("api/image/query",
+                                                    "POST",
+                                                    data_for_image_query)
+
+                if data_from_image_query['status'] == 200:
+                    pins = data_from_image_query['data']['image_data_list']
+
+            pins = [pin_utils.dotdict(pin) for pin in pins]
 
         # query = (query1 if logged_in(sess) else query2) % (offset * PIN_COUNT, PIN_COUNT)
         # qvars = {}
