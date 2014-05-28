@@ -42,7 +42,7 @@ class BaseAPI(object):
         if len(user) > 0:
             success = True
             user = user.list()[0]
-            user['pic'] = photo_id_to_url(user['pic'])
+            # user['pic'] = photo_id_to_url(user['pic'])
             return success, user
         else:
             if logintoken is None:
