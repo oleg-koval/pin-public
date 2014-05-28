@@ -59,6 +59,7 @@ urls = (
     "/profile/userinfo/upload_bg", api.views.profile.BgUpload,
     "/profile/userinfo/get_photos", api.views.profile.GetProfilePictures,
     "/profile/userinfo/remove_pic", api.views.profile.PicRemove,
+    "/profile/userinfo/remove_bg", api.views.profile.BgRemove,
 
     # API to user profile: change user password
     "/profile/pwd", api.views.profile.ChangePassword,

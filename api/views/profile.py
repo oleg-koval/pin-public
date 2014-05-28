@@ -753,9 +753,7 @@ class PicUpload(BaseAPI):
         db.update('users',
                   where='id = $id',
                   vars={'id': user['id']},
-                  pic=pid,
-                  bgx=0,
-                  bgy=0)
+                  pic=pid)
 
         data['pid'] = pid
         data['original_url'] = photo_kwargs['original_url']
@@ -1005,6 +1003,50 @@ class PicRemove(BaseAPI):
                           where='id = $id',
                           vars={'id': user['id']},
                           pic=pid)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+
+        return response
+
+
+class BgRemove(BaseAPI):
+    """ Remove profile picture and save changes in database """
+    def POST(self):
+        """
+        Picture remove main handler
+        """
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        request_data = web.input()
+        logintoken = request_data.get('logintoken')
+
+        user_status, user = self.authenticate_by_token(logintoken)
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        csid_from_client = request_data.get("csid_from_client")
+
+        bg_kwargs = {
+            'bg_original_url': None,
+            'bg_resized_url': None,
+            'bg': False,
+            'bgx': 0,
+            'bgy': 0
+        }
+
+        db.update('users',
+                  where='id = $id',
+                  vars={'id': user['id']},
+                  **bg_kwargs)
 
         response = api_response(data=data,
                                 status=status,
