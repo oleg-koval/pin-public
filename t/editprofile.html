@@ -69,7 +69,7 @@ $def with (user, countries, name, msg=None)
               <div class="pull-left">
               $if user.pic:
                  <a href='/$user.username' id="user_avatar_placeholder_wrapper">
-                 <img  src='$(user.pic)' style="width:44px;" />
+                 <img  src='$(user.resized_url)' style="width:44px;" />
                 $else:
                   <a href='/$user.username' >
                   <img  src='/static/default-avatar.png' style="width:44px;" />
@@ -117,7 +117,7 @@ $def with (user, countries, name, msg=None)
         <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu2">
         <li role="presentation"><a href='#' data-toggle="modal" data-target="#uploadBackgroundImageModal">Upload background photo</a></li>
                $if user.bg:
-                    <li role="presentation"><a href='/bg/remove' id="remove_bg_photo">Remove</a></li>
+                    <li role="presentation"><a href='/background/$(user.id)/remove' id="remove_bg_photo">Remove</a></li>
         </ul>
         </div>
 

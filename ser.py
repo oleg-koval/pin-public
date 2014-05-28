@@ -127,6 +127,7 @@ urls = (
     '/background/(\d*)/like', 'PageLikeBackground',
     '/background/(\d*)/dislike', 'PageDislikeBackground',
     '/background/(\d*)/comment', 'PageCommentBackground',
+    '/background/(\d*)/remove', 'PageRemoveBackground',
     '/setprofilepic/(\d*)', 'PageSetProfilePic',
     '/setprivacy/(\d*)', 'PageSetPrivacy',
 
@@ -1638,23 +1639,25 @@ class PageRemovePhoto:
     def GET(self, pid):
         force_login(sess)
         pid = int(pid)
+        logintoken = convert_to_logintoken(sess.user_id)
 
-        photo = db.query('''
-            select album_id from photos where photos.id = $id AND album_id = $album_id ''', vars={'id': pid, 'album_id':sess.user_id})
-        if not photo:
-            return 'no such photo'
+        photos_context = {
+            "csid_from_client": "",
+            "photo_id": pid,
+            "logintoken": logintoken}
 
-        photo = photo[0]
-        user = dbget('users', sess.user_id)
-        if photo.album_id != sess.user_id:
-            return 'no such photo'
-        else:
-            db.delete('photos', where="id = %s" % (pid))
-            user = dbget('users', sess.user_id)
-            '''if this is an avatar update to null'''
-            if user.pic == pid:
-                db.update('users', where='id = $id', vars={'id': sess.user_id}, pic=None, bgx=0, bgy=0)
-        return web.redirect('/%s' % (user.username))
+        data = api_request("/api/profile/userinfo/remove_pic",
+                           data=photos_context)
+
+        profile_url = "/api/profile/userinfo/info"
+        profile_owner_context = {
+            "csid_from_client": "",
+            "id": sess.user_id,
+            "logintoken": logintoken}
+        user = api_request(profile_url, data=profile_owner_context)\
+            .get("data", [])
+
+        return web.redirect('/%s' % (user['username']))
 
 
 class PageDefaultPhoto:
@@ -1818,6 +1821,30 @@ class PageCommentBackground:
             comment = data.get('comment', None)
 
         return tpl('comment', comment)
+
+
+class PageRemoveBackground:
+    def GET(self, pid):
+        force_login(sess)
+        pid = int(pid)
+        logintoken = convert_to_logintoken(sess.user_id)
+
+        photos_context = {
+            "csid_from_client": "",
+            "logintoken": logintoken}
+
+        data = api_request("/api/profile/userinfo/remove_bg",
+                           data=photos_context)
+
+        profile_url = "/api/profile/userinfo/info"
+        profile_owner_context = {
+            "csid_from_client": "",
+            "id": sess.user_id,
+            "logintoken": logintoken}
+        user = api_request(profile_url, data=profile_owner_context)\
+            .get("data", [])
+
+        return web.redirect('/%s' % (user['username']))
 
 
 class PageSetProfilePic:

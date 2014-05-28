@@ -13,6 +13,7 @@ $def with (user)
                 $if 'logged_in' in sess and user.id == sess.user_id:
                     <div class="modal-buttons">
                         <a data-target="#uploadBackgroundImageModal" data-toggle="modal" href="#" class='button small-pad'>Upload new background</a>
+                        <a href='/background/$(user.id)/remove' class='button small-pad'>Remove</a>
                     </div>
                 <div class="modal-bottom">
                     <div class='clearfix'>

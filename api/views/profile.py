@@ -199,6 +199,7 @@ class GetProfileInfo(BaseUserProfile):
             return response_or_user
 
         response = {field: response_or_user[field] for field in self._fields}
+        response['resized_url'] = photo_id_to_url(response['pic'])
         csid_from_client = request_data.pop('csid_from_client')
         csid_from_server = response_or_user['seriesid']
         self.format_birthday(response_or_user, response)
@@ -989,7 +990,6 @@ class PicRemove(BaseAPI):
             db.delete('photos',
                       where='id = $id',
                       vars={'id': photo_id})
-            import ipdb; ipdb.set_trace()
             if str(user['pic']) == photo_id:
                 photos = db.select('photos',
                                    where='album_id = $album_id',

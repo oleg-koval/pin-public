@@ -30,6 +30,8 @@ $def with (photo, prev_photo=None, next_photo=None)
                         <a href='#' id="upload_thumbnail" data-toggle="modal" data-target="#uploadImageModal" class='button small-pad'>Upload new picture</a>
                         $if photo.id != photo.user_pic:
                             <a href='/photo/$(photo.id)/default' class='button small-pad'>Set as profile picture</a>
+
+                        <a href='/photo/$(photo.id)/remove' class='button small-pad'>Remove</a>
                     </div>
                 <div class="modal-bottom">
                     <div class='clearfix'>
