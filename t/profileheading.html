@@ -11,7 +11,7 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
       $else:
         data-nobg='true'
         style='background: #333842;position:relative;'
-    >
+>
     <div class="userHolder">
         <div class="userPic">
             $ user_pic = None
@@ -47,6 +47,9 @@ $def with (user, hashed, edit_profile=None, edit_profile_done=None)
 
           $if user_pic:
             <a class='button' href='#' data-toggle="modal" data-target="#showPhotoModal$user_pic.id">View album</a>
+
+          $if user.bg:
+            <a class='button' href='#' data-toggle="modal" data-target="#showBackgroundModal$user.id">View background</a>
 
           $if 'logged_in' in sess and user.id == sess.user_id:
             <a class="button" data-target="#uploadBackgroundImageModal" data-toggle="modal" href="#">
@@ -103,3 +106,6 @@ $for i, photo in enumerate(user.photos):
 
   $if photo.resized_url:
     $:tpl('profile_photo_modal', photo, prev_photo, next_photo)
+
+$if user.bg:
+  $:tpl('profile_bg_modal', user)

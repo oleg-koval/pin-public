@@ -362,21 +362,19 @@ jQuery(function() {
 
 $('.dislike, .like').click(function() {
   var url = $(this).attr("data-url");
-  var action = $(this).attr("data-action");
   var photo_id = $(this).attr("data-id");
 
-  if(action == "like") {
+  if($(this).hasClass("like")) {
     $(this).hide();
     $(this).parent().find('.dislike').show();
   }
-  if(action == "dislike") {
+  if($(this).hasClass("dislike")) {
     $(this).hide();
     $(this).parent().find('.like').show();
   }
 
   $.get( url, function( data ) {
     data = jQuery.parseJSON(data);
-    console.log($( "#likes_count_" + photo_id ));
     $( "#likes_count_" + photo_id ).text(data.likes);
   });
   return false;
@@ -396,6 +394,45 @@ $('.send_comment').click(function() {
   $.post( url, { comment: comment }, 
     function( data ) {
       $( "#comments_" + photo_id ).append(data);
+    }
+  );
+  return false;
+});
+
+$('.dislike_bg, .like_bg').click(function() {
+  var url = $(this).attr("data-url");
+  var bg_id = $(this).attr("data-id");
+
+  if($(this).hasClass('like_bg')) {
+    $(this).hide();
+    $(this).parent().find('.dislike_bg').show();
+  }
+  if($(this).hasClass('dislike_bg')) {
+    $(this).hide();
+    $(this).parent().find('.like_bg').show();
+  }
+
+  $.get( url, function( data ) {
+    data = jQuery.parseJSON(data);
+    $( "#bg_likes_count_" + bg_id ).text(data.likes);
+  });
+  return false;
+});
+
+$('.send_comment_bg').click(function() {
+  var url = $(this).attr("data-url");
+  var bg_id = $(this).attr("data-id");
+  var comment = $( "#input_bg_comment_" + bg_id ).val()
+
+  if(comment == "") {
+    alert("Comment cannot be empty!");
+    return false;
+  }
+  $( "#input_bg_comment_" + bg_id ).val("")
+
+  $.post( url, { comment: comment }, 
+    function( data ) {
+      $( "#comments_bg_" + bg_id ).append(data);
     }
   );
   return false;

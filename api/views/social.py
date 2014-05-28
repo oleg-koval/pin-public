@@ -17,15 +17,19 @@ class PostingOnUserPage(BaseAPI):
     """
     Provides sharing pins to social networks
 
-    Method PostingOnUserPage must receive next required params:
-
-    share_list - list of pin's ids
-    access_token - access token for social network
-    social_network - name of social network (for example "facebook")
+    :link: /api/social/poup
     """
     def POST(self):
         """
         Share pins to social network
+        Method PostingOnUserPage must receive next required params:
+
+        :param str share_list: list of pin's ids
+        :param str access_token: access token for social network
+        :param str social_network: name of social network
+        (for example 'facebook')
+        :response data: list of pin ids to share, e.g. [10, 20, 30]
+
         """
         request_data = web.input(
             share_list=[],
@@ -77,9 +81,6 @@ class PostingOnUserPage(BaseAPI):
 
 
 def share(access_token, share_list, social_network="facebook"):
-    """
-    Share pins to social network, using access token
-    """
     # Initialize default access token status
     access_token_status = True
 
@@ -160,9 +161,6 @@ def check_linkedin_access_token(access_token):
 
 
 def share_via_facebook(access_token, message, link, image_url):
-    """
-    Share pin to facebook
-    """
     if link:
         message += link + "\n"
 
@@ -179,9 +177,6 @@ def share_via_facebook(access_token, message, link, image_url):
 
 
 def share_via_linkedin(access_token, message, link, image_url):
-    """
-    Share pin to Linkedin
-    """
     try:
         url = 'https://api.linkedin.com/v1/people/~/shares' + \
             '?oauth2_access_token=%s' % access_token
@@ -219,22 +214,21 @@ def share_via_linkedin(access_token, message, link, image_url):
 class QueryFollows(BaseAPI):
     """
     Class responsible for providing access to followers of a given user
+
+    :link: /api/social/query/following
+    :link: /api/social/query/followed-by
     """
     def POST(self, query_type):
-        """ Depending on query_type (which can be follow or followers) returns
-        a list of users (ids), following or followed by current user
+        """ Depending on query_type returns
+        a list of users, following or followed by current user
 
-        Can be tested this way:
+        :param str logintoken: Login token to authenticate current user
+        :param str user_id: Quieried user id.
 
-        curl --data "csid_from_client=1&user_id=78&logintoken=RxPu7fLYgv" \
-        http://localhost:8080/api/social/query/following
-        returns all users who followed by user oleg
-
-        curl --data "csid_from_client=1&user_id=78&logintoken=RxPu7fLYgv" \
-        http://localhost:8080/api/social/query/followed-by
-        returns all users who follow user oleg
+        :to test: curl --data "csid_from_client=1&user_id=78&logintoken=RxPu7fLYgv" http://localhost:8080/api/social/query/following
+        :to test: curl --data "csid_from_client=1&user_id=78&logintoken=RxPu7fLYgv" http://localhost:8080/api/social/query/followed-by
+        :response data: list of users
         """
-
         data = web.input()
         uid = data.get("user_id")
         logintoken = data.get("logintoken", "")
@@ -255,8 +249,18 @@ class QueryFollows(BaseAPI):
 class SocialMessage(BaseAPI):
     """
     API method that sends message to user
+    :link: /api/social/message
     """
     def POST(self):
+        """
+        :param str logintoken: Logintoken used fo authentication
+        :param str content: Content of the message
+        :param str user_id_list: List of user ids
+        :param str csid_from_client: CSID from client
+
+        :response data: empty
+        """
+
         request_data = web.input(
             user_id_list=[],
         )
@@ -312,8 +316,18 @@ class SocialMessage(BaseAPI):
 class SocialMessageToConversation(BaseAPI):
     """
     API method that sends message to conversation
+
+    :link: /api/social/message_to_conversation
     """
     def POST(self):
+        """
+        :param str logintoken: Logintoken used fo authentication
+        :param str content: Content of the message
+        :param str user_id_list: List of conversation ids
+        :param str csid_from_client: CSID from client
+
+        :response data: empty
+        """
         request_data = web.input(
             conversation_id_list=[],
         )
@@ -366,8 +380,16 @@ class SocialMessageToConversation(BaseAPI):
 class SocialQueryConversations(BaseAPI):
     """
     API method that allows to get conversations
+
+    :link: /api/social/query/conversations
     """
     def POST(self):
+        """
+        :param str logintoken: Logintoken used fo authentication
+        :param str csid_from_client: CSID from client
+
+        :response data: returns a list of conversations
+        """
         request_data = web.input(
         )
 
@@ -376,7 +398,7 @@ class SocialQueryConversations(BaseAPI):
         csid_from_server = None
         error_code = ""
 
-        # Get data from 
+        # Get data from
         csid_from_client = request_data.get('csid_from_client')
         logintoken = request_data.get('logintoken')
         user_status, user = self.authenticate_by_token(logintoken)
@@ -415,6 +437,13 @@ class SocialQueryMessages(BaseAPI):
     API method that allows to get messages from conversation
     """
     def POST(self):
+        """
+        :param str logintoken: Logintoken used fo authentication
+        :param str conversation_id: Conversation id
+        :param str csid_from_client: CSID from client
+
+        :response data: list of all messages, for a given conversation
+        """
         request_data = web.input(
         )
 
@@ -423,7 +452,7 @@ class SocialQueryMessages(BaseAPI):
         csid_from_server = None
         error_code = ""
 
-        # Get data from 
+        # Get data from
         conversation_id = request_data.get('conversation_id', False)
         csid_from_client = request_data.get('csid_from_client')
         logintoken = request_data.get('logintoken')
@@ -479,8 +508,18 @@ class SocialQueryMessages(BaseAPI):
 class AddCommentToPhoto(BaseAPI):
     """
     API method that adds comment to photo
+
+    :link: /api/social/photo/add_comment
     """
     def POST(self):
+        """
+        :param str logintoken: Logintoken used fo authentication
+        :param str comment: Comment body
+        :param str photo_id: Id if the photo to comment
+        :param str csid_from_client: CSID from client
+
+        :response data: echoes given comment
+        """
         request_data = web.input(
         )
 
@@ -561,7 +600,7 @@ class LikeDislikePhoto(BaseAPI):
         csid_from_client = request_data.get('csid_from_client')
         logintoken = request_data.get('logintoken')
         user_status, user = self.authenticate_by_token(logintoken)
-            
+
         if not photo_id:
             status = 400
             error_code = "photo_id cannot be empty"
@@ -639,10 +678,7 @@ class GetCommentsToPhoto(BaseAPI):
             error_code = "photo_id cannot be empty"
 
         if status == 200:
-            
             data['comments'] = get_comments_to_photo(photo_id)
-                
-            data['count_likes'] = len(likes)
 
         response = api_response(data=data,
                                 status=status,
@@ -685,6 +721,13 @@ class GetLikesToPhoto(BaseAPI):
 
         csid_from_client = request_data.get('csid_from_client')
 
+        user_id = None
+        logintoken = request_data.get('logintoken', None)
+        if logintoken:
+            user_status, user = self.authenticate_by_token(logintoken)
+            if user_status:
+                user_id = user['id']
+
         if not photo_id:
             status = 400
             error_code = "photo_id cannot be empty"
@@ -694,17 +737,270 @@ class GetLikesToPhoto(BaseAPI):
                 select profile_photo_likes.*,
                 users.name, photos.*
                 from profile_photo_likes
-                join users
+                left join users
                 on users.id = profile_photo_likes.user_id
-                join photos
+                left join photos
                 on photos.id = users.pic
                 where profile_photo_likes.photo_id = $id''',
                 vars={'id': photo_id})\
                 .list()
-            if len(likes) > 0:
-                data['likes'] = likes
+
+            data['likes'] = likes
+            data['count_likes'] = len(likes)
+
+            data['liked'] = False
+            if user_id:
+                for like in likes:
+                    if like['user_id'] == user_id:
+                        data['liked'] = True
+                        break
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+
+class AddCommentToBackground(BaseAPI):
+    """
+    API method that adds comment to background
+    """
+    def POST(self):
+        request_data = web.input(
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from request
+        comment = request_data.get("comment")
+        bg_id = request_data.get("bg_id")
+
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        if not comment:
+            status = 400
+            error_code = "Comment cannot be empty"
+
+        if not bg_id:
+            status = 400
+            error_code = "bg_id cannot be empty"
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        user_id = user['id']
+
+        if status == 200:
+            comment_id = db.insert('profile_bg_comments',
+                                   bg_id=bg_id,
+                                   user_id=user_id,
+                                   comment=comment)
+
+            comments = db.query('''
+                select profile_bg_comments.*,
+                users.id as user_id, users.name, photos.*
+                from profile_bg_comments
+                LEFT join users
+                on users.id = profile_bg_comments.user_id
+                LEFT join photos
+                on photos.id = users.pic
+                where profile_bg_comments.id = $id''',
+                vars={'id': comment_id})\
+                .list()
+
+            if len(comments) > 0:
+                data['comment'] = comments[0]
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+
+class LikeDislikeBackground(BaseAPI):
+    """
+    API method that adds likes to background
+    """
+    def POST(self):
+        request_data = web.input(
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from request
+        bg_id = request_data.get("bg_id")
+        action = request_data.get("action", "like")
+
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken')
+        user_status, user = self.authenticate_by_token(logintoken)
+
+        if not bg_id:
+            status = 400
+            error_code = "bg_id cannot be empty"
+
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        user_id = user['id']
+
+        if status == 200:
+            if not action or action == "like":
+                likes = db.select(
+                    'profile_bg_likes',
+                    where='bg_id = $bg_id and user_id = $user_id',
+                    vars={'bg_id': bg_id, 'user_id': user_id}
+                ).list()
+
+                if len(likes) == 0:
+                    db.insert('profile_bg_likes',
+                              bg_id=bg_id,
+                              user_id=user_id)
+                    data['action'] = 'like'
             else:
-                data['likes'] = []
+                db.delete(
+                    'profile_bg_likes',
+                    where='bg_id = $bg_id and user_id = $user_id',
+                    vars={'bg_id': bg_id, 'user_id': user_id}
+                )
+                data['action'] = 'dislike'
+
+            likes = db.query('''
+                select profile_bg_likes.*,
+                users.name, photos.*
+                from profile_bg_likes
+                LEFT join users
+                on users.id = profile_bg_likes.user_id
+                LEFT join photos
+                on photos.id = users.pic
+                where profile_bg_likes.bg_id = $id''',
+                vars={'id': bg_id})\
+                .list()
+            data['likes'] = likes
+            data['count_likes'] = len(likes)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+
+class GetCommentsToBackground(BaseAPI):
+    """
+    API method that allows to get comments to background
+    """
+    def POST(self):
+        request_data = web.input(
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from
+        bg_id = request_data.get("bg_id")
+
+        csid_from_client = request_data.get('csid_from_client')
+
+        if not bg_id:
+            status = 400
+            error_code = "bg_id cannot be empty"
+
+        if status == 200:
+            data['comments'] = get_comments_to_background(bg_id)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+        return response
+
+
+def get_comments_to_background(bg_id):
+    comments = db.query('''
+        select profile_bg_comments.*,
+        users.id as user_id, users.name, photos.*
+        from profile_bg_comments
+        LEFT join users
+        on users.id = profile_bg_comments.user_id
+        LEFT join photos
+        on photos.id = users.pic
+        where profile_bg_comments.bg_id = $id''',
+        vars={'id': bg_id})\
+        .list()
+
+    return comments
+
+class GetLikesToBackground(BaseAPI):
+    """
+    API method that allows to get likes to background
+    """
+    def POST(self):
+        request_data = web.input(
+        )
+
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        # Get data from
+        bg_id = request_data.get("bg_id")
+
+        csid_from_client = request_data.get('csid_from_client')
+
+        user_id = None
+        logintoken = request_data.get('logintoken', None)
+        if logintoken:
+            user_status, user = self.authenticate_by_token(logintoken)
+            if user_status:
+                user_id = user['id']
+
+        if not bg_id:
+            status = 400
+            error_code = "bg_id cannot be empty"
+
+        if status == 200:
+            likes = db.query('''
+                select profile_bg_likes.*,
+                users.name, photos.*
+                from profile_bg_likes
+                left join users
+                on users.id = profile_bg_likes.user_id
+                left join photos
+                on photos.id = users.pic
+                where profile_bg_likes.bg_id = $id''',
+                vars={'id': bg_id})\
+                .list()
+            data['likes'] = likes
+            data['count_likes'] = len(likes)
+
+            data['liked'] = False
+            if user_id:
+                for like in likes:
+                    if like['user_id'] == user_id:
+                        data['liked'] = True
+                        break
 
         response = api_response(data=data,
                                 status=status,

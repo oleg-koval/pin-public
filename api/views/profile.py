@@ -70,6 +70,8 @@ class BaseUserProfile(BaseAPI):
 class SetPrivacy(BaseUserProfile):
     """
     Allows to set privacy level of the profile.
+
+    :link: /api/profile/userinfo/update
     """
     def POST(self):
         """ Updates profile with fields sent from the client,
@@ -121,6 +123,8 @@ class SetPrivacy(BaseUserProfile):
 class UserInfoUpdate(BaseUserProfile):
     """
     Defines a class responsible for updating user data, inside the profile
+
+    :link: /api/profile/userinfo/update
     """
     def POST(self):
         """  Updates profile with fields sent from the client,
@@ -131,6 +135,7 @@ class UserInfoUpdate(BaseUserProfile):
         :param str <field>: The field which will be changed
         :response_data: returns changed field
         :to test: curl --data "logintoken=UaNxct7bJZ&twitter=1&csid_from_client=1" http://localhost:8080/api/profile/userinfo/update
+
         """
         request_data = web.input()
 
@@ -170,7 +175,10 @@ class UserInfoUpdate(BaseUserProfile):
 
 
 class GetProfileInfo(BaseUserProfile):
-    """ Allows to render profile information, by token """
+    """ Allows to render profile information, by token
+
+    :url: /api/profile/userinfo/get
+    """
     def POST(self):
         """
         :param str csid_from_client: Csid string from client
@@ -191,6 +199,7 @@ class GetProfileInfo(BaseUserProfile):
             return response_or_user
 
         response = {field: response_or_user[field] for field in self._fields}
+        response['resized_url'] = photo_id_to_url(response['pic'])
         csid_from_client = request_data.pop('csid_from_client')
         csid_from_server = response_or_user['seriesid']
         self.format_birthday(response_or_user, response)
@@ -202,6 +211,8 @@ class GetProfileInfo(BaseUserProfile):
 class ProfileInfo(BaseUserProfile):
     """
     Returns public profile information
+
+    :url: /api/profile/userinfo/info
     """
     def POST(self):
         """
@@ -273,6 +284,8 @@ class ProfileInfo(BaseUserProfile):
 class UpdateProfileViews(BaseUserProfile):
     """
     Responsible for updating count of pofile views
+
+    :link: /api/profile/updateviews/<username>
     """
     def POST(self, profile):
         """
@@ -307,6 +320,9 @@ class UpdateProfileViews(BaseUserProfile):
 
 
 class ManageGetList(BaseAPI):
+    """
+    :link: /api/profile/mgl
+    """
     def POST(self):
         """
         Manage list of user products: sharing, add, remove
@@ -426,6 +442,9 @@ class ManageGetList(BaseAPI):
 
 
 class ChangePassword(BaseAPI):
+    """
+    :link: /api/profile/pwd
+    """
     def POST(self):
         """ Change user password and get/store new logintoken
         :param str csid_from_client: Csid string from client
@@ -524,6 +543,8 @@ class ChangePassword(BaseAPI):
 class QueryBoards(BaseAPI):
     """
     Class responsible for getting boards of a given user
+
+    :link: /api/profile/userinfo/boards
     """
     def POST(self):
         """ Returns all boards associated with a given user
@@ -564,6 +585,8 @@ class QueryBoards(BaseAPI):
 class QueryPins(BaseAPI):
     """
     Responsible for getting pins of a given user
+
+    :url: /api/profile/userinfo/pins
     """
     def POST(self):
         """ Returns all pins associated with a given user
@@ -652,6 +675,8 @@ class TestUsernameOrEmail(BaseAPI):
     """
     Checks if given username or email is already added to database.
     in case if a username
+
+    :link: /api/profile/test-username
     """
     def POST(self):
         """
@@ -682,6 +707,7 @@ class TestUsernameOrEmail(BaseAPI):
         return api_response(data=status,
                             csid_from_server=csid_from_server,
                             csid_from_client=csid_from_client)
+
 
 class PicUpload(BaseAPI):
     """ Upload profile picture and save it in database """
@@ -728,9 +754,7 @@ class PicUpload(BaseAPI):
         db.update('users',
                   where='id = $id',
                   vars={'id': user['id']},
-                  pic=pid,
-                  bgx=0,
-                  bgy=0)
+                  pic=pid)
 
         data['pid'] = pid
         data['original_url'] = photo_kwargs['original_url']
@@ -932,4 +956,102 @@ class GetProfilePictures(BaseAPI):
                                 error_code=error_code,
                                 csid_from_client=csid_from_client,
                                 csid_from_server=csid_from_server)
+        return response
+
+
+class PicRemove(BaseAPI):
+    """ Remove profile picture and save changes in database """
+    def POST(self):
+        """
+        Picture remove main handler
+        """
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        request_data = web.input()
+        logintoken = request_data.get('logintoken')
+        photo_id = request_data.get('photo_id')
+
+        user_status, user = self.authenticate_by_token(logintoken)
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        csid_from_client = request_data.get("csid_from_client")
+
+        photos = db.select('photos',
+                           where='id = $id and album_id = $album_id',
+                           vars={'id': photo_id, 'album_id': user['id']})
+
+        if len(photos) > 0:
+            db.delete('photos',
+                      where='id = $id',
+                      vars={'id': photo_id})
+            if str(user['pic']) == photo_id:
+                photos = db.select('photos',
+                                   where='album_id = $album_id',
+                                   vars={'album_id': user['id']})
+                if len(photos) > 0:
+                    pid = photos[0]['id']
+                else:
+                    pid = None
+
+                db.update('users',
+                          where='id = $id',
+                          vars={'id': user['id']},
+                          pic=pid)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+
+        return response
+
+
+class BgRemove(BaseAPI):
+    """ Remove profile picture and save changes in database """
+    def POST(self):
+        """
+        Picture remove main handler
+        """
+        data = {}
+        status = 200
+        csid_from_server = None
+        error_code = ""
+
+        request_data = web.input()
+        logintoken = request_data.get('logintoken')
+
+        user_status, user = self.authenticate_by_token(logintoken)
+        # User id contains error code
+        if not user_status:
+            return user
+
+        csid_from_server = user['seriesid']
+        csid_from_client = request_data.get("csid_from_client")
+
+        bg_kwargs = {
+            'bg_original_url': None,
+            'bg_resized_url': None,
+            'bg': False,
+            'bgx': 0,
+            'bgy': 0
+        }
+
+        db.update('users',
+                  where='id = $id',
+                  vars={'id': user['id']},
+                  **bg_kwargs)
+
+        response = api_response(data=data,
+                                status=status,
+                                error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+
         return response

@@ -1,0 +1,57 @@
+$def with (user)
+<div class="modal" id="showBackgroundModal$user.id">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <strong>Background of user</strong>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-image-container modal-image-bg-container">
+                    <img src="$(user.bg_resized_url)" />
+                </div>
+                $if 'logged_in' in sess and user.id == sess.user_id:
+                    <div class="modal-buttons">
+                        <a data-target="#uploadBackgroundImageModal" data-toggle="modal" href="#" class='button small-pad'>Upload new background</a>
+                        <a href='/background/$(user.id)/remove' class='button small-pad'>Remove</a>
+                    </div>
+                <div class="modal-bottom">
+                    <div class='clearfix'>
+                        <div class='links left'>
+                          $if 'logged_in' in sess:
+                            $if user.bg_likes.liked:
+                              $ like_style = "display: none;"
+                              $ dislike_style = ""
+                            $else:
+                              $ like_style = ""
+                              $ dislike_style = "display: none;"
+
+                            <a href='#' data-url='/background/$user.id/dislike' data-id='$user.id' class="dislike_bg" style="$dislike_style">Unlike</a>
+                            <a href='#' data-url='/background/$user.id/like' data-id='$user.id'  class="like_bg" style="$like_style">Like</a> &middot;
+                        </div>
+                        <div class='right'>
+                            <b id="bg_likes_count_$user.id">
+                            $if user.bg_likes.count_likes > 0:
+                                $user.bg_likes.count_likes like$('s' if  user.bg_likes.count_likes != 1 else '')
+                            </b>
+                        </div>
+                    </div>
+                    <hr/>
+                    <div id="comments_bg_$user.id">
+                    $for comment in user.bg_comments.comments:
+                        $:tpl('comment', comment)
+                    </div>
+                    $if 'logged_in' in sess:
+                        <div class="modal-buttons">
+                            <p>
+                                <textarea id='input_bg_comment_$user.id' name='comment' placeholder='Write a comment...'></textarea>
+                            </p>
+                            <p>
+                                <a href='#' data-url='/background/$user.id/comment' data-id='$user.id' class="button send_comment_bg">Comment</a>
+                            </p>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
