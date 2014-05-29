@@ -17,7 +17,7 @@ class Image(BaseAPI):
         web.header('Content-Type', 'application/json')
         if not params.q:
             return '[]'
-        query = re.sub(r"[ \t\"'#&%]+", '+', params.q)
+        query = re.sub(r"[ \t\"'#&%=]+", '+', params.q)
         offset = int(params.offset) if 'offset' in params else 0
         a = []
         google_offset = 64
@@ -35,6 +35,7 @@ class Image(BaseAPI):
                 a.append({
                     'thumb': img[u'tbUrl'],
                     'image': img[u'url'],
+                    'url':   img[u'originalContextUrl'],
                     'title': img[u'titleNoFormatting'],
                     'desc':  img[u'contentNoFormatting'],
                 })
@@ -52,6 +53,7 @@ class Image(BaseAPI):
                 a.append({
                     'thumb': img[u'Thumbnail'][u'MediaUrl'],
                     'image': img[u'MediaUrl'],
+                    'url':   img[u'SourceUrl'],
                     'title': img[u'Title'],
                     'desc':  None,
                 })

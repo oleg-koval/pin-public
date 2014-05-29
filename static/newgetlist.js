@@ -156,7 +156,6 @@ $(document).ready(function() {
 	       var data = jQuery.parseJSON(xhr.responseText);
            if(data.status !== "error"){
 	            $(".progress").hide();
-	            $("#websitelinkweb").val($("#url").val());
 	            // $( "#web_getlist_form" ).clearForm();
                 $("#url").attr("value", "");
 	            $( "#getlist-from-web" ).dialog("close");
@@ -428,17 +427,18 @@ $(document).ready(function() {
 }).call(this);
 
 /* ----- Images web search ----- */
-function load_image_from_url(url, title) {
+function load_image_from_url(image, url, title) {
     //console.log(url);
-    $('#url').val(url);
+    $('#url').val(image);
+    $('#websitelinkweb').val(url);
     $('#titleweb').val(title);
     $('#web_getlist_link').click();
     $('#fetch-images').click();
 }
 
-var offset = 0;
+var image_search_offset = 0;
 function websearch_add_images() {
-    $.getJSON('/api/websearch/images?q=' + query + '&offset=' + offset)
+    $.getJSON('/api/websearch/images?q=' + query + '&offset=' + image_search_offset)
         .success(function(results) {
             var row;
             for(var i=0; i < results.length; i++) {
@@ -451,15 +451,16 @@ function websearch_add_images() {
                     .append($('<div></div>').html(result.desc))
                     .click(load_image_from_url.bind(this,
 				    result.image,
+				    result.url,
 				    decodeHTMLEntities(result.title)))
                 .appendTo(row);
             }
-            offset += results.length;
+            image_search_offset += results.length;
         });
 }
 
 function inverse(obj) {
-	result = {};
+	var result = {};
 	for(var key in obj) result[obj[key]] = key;
 	return result;
 }
@@ -476,7 +477,7 @@ function decodeHTMLEntities(str) {
 	});
 	str = str.replace(/(&\w+;)/g, function(entity) {
 		entity = entity.slice(1, -1);
-		entityCode = htmlEntityCodes[entity];
+		var entityCode = htmlEntityCodes[entity];
 		if ('number' != typeof entityCode) {
 			console.log('Invalid HTML entity &' + entity + ';');
 			return '';
