@@ -22,6 +22,7 @@ from mypinnings import form_controls
 from mypinnings import auth
 from mypinnings.admin.auth import login
 from mypinnings.admin import dataloaders
+from mypinnings import pin_utils
 
 
 logger = logging.getLogger('admin')
@@ -241,7 +242,20 @@ class PageCloseUser:
         login()
         user_id = int(user_id)
         db = database.get_db()
-        db.query('delete from pins where user_id = $id', vars={'id': user_id})
+        db.delete(table='photos', where='album_id in (select id from albums where user_id=$id)', vars={'id': user_id})
+        db.delete(table='albums', where='user_id=$id', vars={'id': user_id})
+        db.delete(table='boards', where='user_id=$id', vars={'id': user_id})
+        db.delete(table='comments', where='user_id=$id', vars={'id': user_id})
+        db.delete(table='messages', where='sender=$id', vars={'id': user_id})
+        db.delete(table='convos', where='id1=$id or id2=$id', vars={'id': user_id})
+        db.delete(table='follows', where='follower=$id or follow=$id', vars={'id': user_id})
+        db.delete(table='friends', where='id1=$id or id2=$id', vars={'id': user_id})
+        db.delete(table='likes', where='user_id=$id', vars={'id': user_id})
+        db.delete(table='notifs', where='user_id=$id', vars={'id': user_id})
+        db.delete(table='password_change_tokens', where='user_id=$id', vars={'id': user_id})
+        db.delete(table='ratings', where='user_id=$id', vars={'id': user_id})
+        db.delete(table='user_prefered_categories', where='user_id=$id', vars={'id': user_id})
+        pin_utils.delete_all_pins_for_user(db, user_id)
         db.query('delete from users where id = $id', vars={'id': user_id})
         raise web.seeother('/')
 

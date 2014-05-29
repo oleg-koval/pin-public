@@ -188,6 +188,18 @@ def _already_exists(id):
         return True
     return False
 
+
+def delete_all_pins_for_user(db, user_id):
+    db.delete(table='likes', where='pin_id in (select id from pins where user_id=$id)', vars={'id': user_id})
+    db.delete(table='tags', where='pin_id in (select id from pins where user_id=$id)', vars={'id': user_id})
+    db.delete(table='pins_categories', where='pin_id in (select id from pins where user_id=$id)', vars={'id': user_id})
+    db.delete(table='comments', where='pin_id in (select id from pins where user_id=$id)', vars={'id': user_id})
+    db.delete(table='cool_pins', where='pin_id in (select id from pins where user_id=$id)', vars={'id': user_id})
+    db.delete(table='ratings', where='pin_id in (select id from pins where user_id=$id)', vars={'id': user_id})
+    db.update(tables='pins', where='repin in (select id from pins where user_id=$id)', vars={'id': user_id}, repin=None)
+    db.delete(table='pins', where='id in (select id from pins where user_id=$id)', vars={'id': user_id})
+
+
 class dotdict(dict):
     '''
     Special dict used for templates compatability
