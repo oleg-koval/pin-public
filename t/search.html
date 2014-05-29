@@ -3,7 +3,8 @@ $def with (pins, query)
 <hr>
 <div class='clearfix category-disp'>
     <script type="text/javascript">
-        var query = '$query'
+        var query = '$query';
+        query = query.replace(/[ \t"'#&%=]+/g, '+');
         jQuery(websearch_add_images);
     </script>
     <div id="search_results"></div>
