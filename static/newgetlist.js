@@ -156,8 +156,9 @@ $(document).ready(function() {
 	       var data = jQuery.parseJSON(xhr.responseText);
            if(data.status !== "error"){
 	            $(".progress").hide();
+                $("#websitelinkweb").val($("#url").val());
 	            // $( "#web_getlist_form" ).clearForm();
-                $("#url").attr("value", "");
+                $("#url").val('');
 	            $( "#getlist-from-web" ).dialog("close");
 	            var percentVal = '100%';
                 barweb.width(percentVal)
@@ -427,10 +428,8 @@ $(document).ready(function() {
 }).call(this);
 
 /* ----- Images web search ----- */
-function load_image_from_url(image, url, title) {
-    //console.log(url);
-    $('#url').val(image);
-    $('#websitelinkweb').val(url);
+function load_image_from_url(url, title) {
+    $('#url').val(url);
     $('#titleweb').val(title);
     $('#web_getlist_link').click();
     $('#fetch-images').click();
@@ -450,7 +449,6 @@ function websearch_add_images() {
                     .append($('<div></div>').html(result.title))
                     .append($('<div></div>').html(result.desc))
                     .click(load_image_from_url.bind(this,
-				    result.image,
 				    result.url,
 				    decodeHTMLEntities(result.title)))
                 .appendTo(row);
