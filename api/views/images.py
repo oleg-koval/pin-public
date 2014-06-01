@@ -530,7 +530,7 @@ class QueryCategory(BaseAPI):
                         ON pins_categories.pin_id = pins.id \
                         LEFT JOIN users ON pins.user_id = users.id \
                         WHERE %s \
-                        ORDER BY pins.timestamp desc" % (where))\
+                        ORDER BY random()" % (where))\
             .list()
 
         for pin in pins:
