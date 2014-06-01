@@ -8,7 +8,8 @@ jQuery(function() {
       'pin_url': $('#pin_url').val(),
       'username': $('#username').val(),
       'name': $('#name').val(),
-      'email': $('#email').val()
+      'email': $('#email').val(),
+      'category': $('#category').val()
     };
     $.ajax({
       data: search_data,
