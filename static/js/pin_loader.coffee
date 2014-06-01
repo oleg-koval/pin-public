@@ -30,6 +30,7 @@ jQuery ->
 	
 	$('#form').submit (e) ->
 		try
+			$('#btn-add').prop("disabled", true)
 			# to see if we can submit this form
 			can_submit = true
 			remove_all_errors()
@@ -46,8 +47,11 @@ jQuery ->
 				$('#wait_for_process_to_finish_layer').height($(window).innerHeight())
 				$('#wait_for_process_to_finish_layer div').css('margin-top', ($(window).innerHeight() / 2) - 150)
 				$('#wait_for_process_to_finish_layer').show()
+			else
+				$('#btn-add').prop("disabled", false)
 			return can_submit
 		catch error
+			$('#btn-add').prop("disabled", false)
 			alert(error)
 			return false
 	
