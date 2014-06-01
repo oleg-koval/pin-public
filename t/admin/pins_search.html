@@ -1,4 +1,4 @@
-$def with()
+$def with(categories)
 <h1>Search items to edit</h1>
 <form id="search_form">
 	<table>
@@ -17,6 +17,16 @@ $def with()
 		<tr>
 			<th>Owner email</th>
 			<td><input id="email" type="text"/></td>
+		</tr>
+		<tr>
+			<th>Category</th>
+			<td>
+				<select id="category">
+					<option value="">Any</option>
+				$for category in categories:
+					<option value="$category.id">$category.name</option>
+				</select>
+			</td>
 		</tr>
 		<tr>
 			<th></th>

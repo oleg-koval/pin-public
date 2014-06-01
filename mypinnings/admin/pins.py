@@ -13,7 +13,9 @@ from mypinnings import pin_utils
 
 class Search(object):
     def GET(self):
-        return template.admin.pins_search()
+        db = database.get_db()
+        categories = db.where(table='categories', order='position desc, name')
+        return template.admin.pins_search(categories)
 
 
 class SearchCriteria(object):
@@ -28,6 +30,7 @@ class SearchCriteria(object):
         sess['search_username'] = data.username
         sess['search_name'] = data.name
         sess['search_email'] = data.email
+        sess['category'] = data.category
         sess['search_reset_offset'] = True
         return ''
 
@@ -49,12 +52,15 @@ class SearchPagination(object):
         self.sort = data.sort
         self.sort_direction = data.dir
         self.pin_url = sess.get('search_pin_url', None)
+        self.category = sess.get('category', False)
+        self.username = sess.get('search_username', False)
+        self.full_name = sess.get('search_name', False)
+        self.email = sess.get('search_email', False)
         if self.pin_url:
             return self.find_by_pin_url()
+        elif self.category:
+            return self.find_within_a_category()
         else:
-            self.username = sess.get('search_username', False)
-            self.full_name = sess.get('search_name', False)
-            self.email = sess.get('search_email', False)
             return self.find_by_user_id()
     
     def find_by_pin_url(self):
@@ -65,6 +71,20 @@ class SearchPagination(object):
             external_id = self.pin_url
         db = database.get_db()
         results = db.where(table='pins', external_id=external_id)
+        pins = []
+        for row in results:
+            pins.append(row)
+        if pins:
+            return web.template.frender('t/admin/pin_search_list.html')(pins, date)
+        else:
+            return web.template.frender('t/admin/pin_search_list.html')(self.empty_results(), date)
+    
+    def find_within_a_category(self):
+        db = database.get_db()
+        results = db.select(tables=['pins, pins_categories'],
+                           what='distinct pins.*',
+                           where='pins.id=pins_categories.pin_id and pins_categories.category_id=$catid',
+                           vars={'catid': self.category})
         pins = []
         for row in results:
             pins.append(row)
@@ -118,7 +138,10 @@ class Pin(object):
     @login_required
     def GET(self, pin_id):
         db = database.get_db()
-        pin = db.where(table='pins', id=pin_id)[0]
+        try:
+            pin = db.where(table='pins', id=pin_id)[0]
+        except IndexError:
+            return "Pin does not exist"
         selected_categories = set([c.category_id for c in db.where(table='pins_categories', pin_id=pin_id)]) 
         tags = db.where(table='tags', pin_id=pin_id)
         categories = [c for c in db.where(table='categories', order='position desc, name')]

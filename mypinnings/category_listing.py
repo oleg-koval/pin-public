@@ -36,6 +36,7 @@ class PageCategory:
         if self.ajax:
             return self.get_more_items_as_json()
         else:
+            self.sess['seen_items'] = set()
             return self.template_for_showing_categories()
 
     # def get_items_query(self):
@@ -116,6 +117,7 @@ class PageCategory:
                              parent)
 
     def get_items(self):
+        sess = session.get_session()
         start = web.input(start=False).start
         if start:
             offset = 1
@@ -156,7 +158,14 @@ class PageCategory:
                                                 data_for_image_query)
 
             if data_from_image_query['status'] == 200:
-                return data_from_image_query['data']['image_data_list']
+                set_of_seen_items = self.sess['seen_items']
+                items_without_duplicates = []
+                for item in data_from_image_query['data']['image_data_list']:
+                    itemid = item['id']
+                    if itemid not in set_of_seen_items:
+                        set_of_seen_items.add(itemid)
+                        items_without_duplicates.append(item)
+                return items_without_duplicates
 
         return []
 
