@@ -138,7 +138,10 @@ class Pin(object):
     @login_required
     def GET(self, pin_id):
         db = database.get_db()
-        pin = db.where(table='pins', id=pin_id)[0]
+        try:
+            pin = db.where(table='pins', id=pin_id)[0]
+        except IndexError:
+            return "Pin does not exist"
         selected_categories = set([c.category_id for c in db.where(table='pins_categories', pin_id=pin_id)]) 
         tags = db.where(table='tags', pin_id=pin_id)
         categories = [c for c in db.where(table='categories', order='position desc, name')]
