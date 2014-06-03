@@ -48,7 +48,8 @@ jQuery ->
 		top = $(window).scrollTop()
 		height = $(window).innerHeight();
 		doc_height = $(document).height()
-		if top + height > doc_height
+		sensitivity = 10
+		if top + height + sensitivity > doc_height
 			get_more_items()
 		return
 
