@@ -18,8 +18,11 @@
 	<% if (name !== '') { %>
 		<div class="category_pin_title"><%= name %></div>
 	<% }
-	   if (description !== '') { %>
+	   if (description !== '' && description.length <= 140) { %>
 	<div class="category_pin_description"><%= description %></div>
+	<% }
+	   if (description !== '' && description.length > 140) { %>
+	<div class="category_pin_description"><%= description.substr(0, 140) %>...</div>
 	<% }
 	   if (tags !== null) { %>
 	<div class="category_pin_tags">

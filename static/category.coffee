@@ -14,20 +14,56 @@ jQuery ->
 					pin['taglist'] = pin['tags']
 				pin['image_loading'] = ''
 				html_text = $.pin_template(pin)
-				$('#category_column_' + $.column_control).append(html_text)
-				if $.column_control is 5
-					$.column_control = 1
-				else
-					$.column_control += 1
+				column_control = get_next_column()
+				$('#category_column_' + column_control).append(html_text)
+				update_next_column(column_control, pin['image_212_height'])
 			$.loading_more = false
 			$('#small_loading_image').show()
 			window.setTimeout($('img.lazy').lazyload({
 				failure_limit: 100}), 100)
 			return
 		return
+	
+	
+	get_next_column = ->
+		columns = [0, 0, 0, 0, 0]
+		$('#category_column_1 div').each ->
+			columns[0] += $(this).height()
+		column1 = 2
+		$('#category_column_2 div').each ->
+			columns[1] += $(this).height()
+		column1 = 3
+		$('#category_column_3 div').each ->
+			columns[2] += $(this).height()
+		column4 = 0
+		$('#category_column_4 div').each ->
+			columns[3] += $(this).height()
+		column5 = 0
+		$('#category_column_5 div').each ->
+			columns[4] += $(this).height()
+		i = columns.indexOf(Math.min.apply(Math, columns));
+		return i + 1
+	
+	
+	get_next_column_2 = ->
+		min_column = 1
+		min_value = $.column_control[1]
+		for i in [2...6]
+			value = $.column_control[i]
+			if value < min_value
+				min_value = value
+				min_column = i
+		return min_column
+	
+	
+	update_next_column = (column, value) ->
+		$.column_control[column] += value
+		return
 
 
 	simplify_url = (url) ->
+		if url is null
+			return ''
 		simplified = url
 		if simplified.indexOf('http:') is 0
 		   simplified = simplified.substring(6, simplified.length - 1)
@@ -166,7 +202,7 @@ jQuery ->
 		
 	
 	$.pin_template = _.template($('#pin_template').html())
-	$.column_control = 1
+	$.column_control = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
 	$.loading_more = false
 	get_more_items(true)
 	
