@@ -18,7 +18,7 @@ jQuery ->
 				$('#category_column_' + column_control).append(html_text)
 				update_next_column(column_control, pin['image_212_height'])
 			$.loading_more = false
-			$('#small_loading_image').show()
+			$('#small_loading_image').hide()
 			window.setTimeout($('img.lazy').lazyload({
 				failure_limit: 100}), 100)
 			return
@@ -86,6 +86,7 @@ jQuery ->
 		doc_height = $(document).height()
 		sensitivity = 10
 		if top + height + sensitivity > doc_height
+			$('#small_loading_image').show()
 			get_more_items()
 		return
 
