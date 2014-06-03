@@ -234,7 +234,7 @@ class PageUser:
             group by users.id''', vars={'id': user_id})
         if not user:
             return 'user not found'
-        return template.admin.user(user[0])
+        return template.admin.user(user[0], datetime)
 
 
 class PageCloseUser:
