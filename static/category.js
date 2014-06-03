@@ -16,6 +16,7 @@ jQuery(function() {
       'start': start
     }, function(data) {
       var html_text, pin, _i, _len;
+      $('#big_loading_image').hide();
       for (_i = 0, _len = data.length; _i < _len; _i++) {
         pin = data[_i];
         pin['simplifiedurl'] = simplify_url(pin['link']);
@@ -32,6 +33,7 @@ jQuery(function() {
         }
       }
       $.loading_more = false;
+      $('#small_loading_image').show();
       window.setTimeout($('img.lazy').lazyload({
         failure_limit: 100
       }), 100);
@@ -59,12 +61,11 @@ jQuery(function() {
     return simplified;
   };
   $(window).scroll(function() {
-    var doc_height, height, sensitivity, top;
+    var doc_height, height, top;
     top = $(window).scrollTop();
     height = $(window).innerHeight();
     doc_height = $(document).height();
-    sensitivity = 1000;
-    if (top + height + sensitivity > doc_height) {
+    if (top + height > doc_height) {
       get_more_items();
     }
   });

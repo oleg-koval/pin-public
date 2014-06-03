@@ -7,6 +7,7 @@ jQuery ->
 			return
 		$.loading_more = true
 		$.getJSON '', {ajax: 1, 'start': start}, (data) =>
+			$('#big_loading_image').hide()
 			for pin in data
 				pin['simplifiedurl'] = simplify_url(pin['link'])
 				if pin['tags'] isnt null
@@ -19,6 +20,7 @@ jQuery ->
 				else
 					$.column_control += 1
 			$.loading_more = false
+			$('#small_loading_image').show()
 			window.setTimeout($('img.lazy').lazyload({
 				failure_limit: 100}), 100)
 			return
@@ -46,8 +48,7 @@ jQuery ->
 		top = $(window).scrollTop()
 		height = $(window).innerHeight();
 		doc_height = $(document).height()
-		sensitivity = 1000
-		if top + height + sensitivity > doc_height
+		if top + height > doc_height
 			get_more_items()
 		return
 
