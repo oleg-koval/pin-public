@@ -12,6 +12,17 @@
     width: 95%;
 }
 
+#web_getlist_form > input[type=text] {
+    width: 100%;
+}
+
+.loading {
+    width: 100%;
+    display: none;
+    text-align: center;
+    margin-top: 2mm;
+}
+
 .c1
 {
    width: 35%;vertical-align:top;display:inline-block;

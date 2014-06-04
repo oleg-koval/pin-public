@@ -34,6 +34,7 @@ class Image(BaseAPI):
             for img in r[u'responseData'][u'results']:
                 a.append({
                     'thumb': img[u'tbUrl'],
+                    'image': img[u'url'],
                     'url':   img[u'originalContextUrl'],
                     'title': img[u'titleNoFormatting'],
                     'desc':  img[u'contentNoFormatting'],
@@ -51,6 +52,7 @@ class Image(BaseAPI):
             for img in r[u'd'][u'results'][0][u'Image']:
                 a.append({
                     'thumb': img[u'Thumbnail'][u'MediaUrl'],
+                    'image': img[u'MediaUrl'],
                     'url':   img[u'SourceUrl'],
                     'title': img[u'Title'],
                     'desc':  None,
