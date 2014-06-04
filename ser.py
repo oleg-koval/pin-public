@@ -2262,11 +2262,11 @@ def make_query(q):
 class PageSearchItems:
     def GET(self):
         force_login(sess)
-	pins = None
+        pins = None
 
         orig = web.input(q='').q
+        hashtag = web.input(h='').h
         if SEARCH_PINS:
-            hashtag = web.input(h='').h
             offset = int(web.input(offset=1).offset)
             ajax = int(web.input(ajax=0).ajax)
 
@@ -2305,7 +2305,7 @@ class PageSearchItems:
 
             if ajax:
                 return json_pins(pins, 'horzpin')
-        return ltpl('search', pins, orig)
+        return ltpl('search', pins, orig or hashtag)
 
 
 class PageSearchPeople:
