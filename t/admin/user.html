@@ -1,4 +1,4 @@
-$def with (user)
+$def with (user, datetime)
 <h1>Viewing user $user.name</h1>
 <hr/>
 <div class="container-fluid">
@@ -8,6 +8,9 @@ $def with (user)
 	<tbody>
 	<tr>
 		<th width="25%">id</th><td width="75%">$user.id</td>
+	</tr>
+	<tr>
+		<th>Date Created</th><td>$datetime.datetime.fromtimestamp(user.timestamp).isoformat(' ')</td>
 	</tr>
 	<tr>
 		<th>Real Name</th><td>$user.name</td>

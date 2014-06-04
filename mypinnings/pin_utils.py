@@ -58,6 +58,8 @@ def create_pin(db, user_id, title, description, link, tags, price, product_url,
 
 def update_base_pin_information(db, pin_id, user_id, title, description, link, tags, price, product_url,
                    price_range, board_id=None):
+    if price == '':
+        price = None
     db.update(tables='pins',
                where='id=$id and user_id=$user_id',
                vars={'id': pin_id, 'user_id': user_id},
