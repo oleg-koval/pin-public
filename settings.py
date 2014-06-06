@@ -13,23 +13,23 @@ except Exception:
         'host': os.environ['DB_HOST'],
         }
 
-FACEBOOK = {'application_id': '1540569082835261',
-            'application_secret': os.environ['FACEBOOK_APPLICATION_SECRET'],
-            }
-
-TWITTER = {'api_key': 'QNcMlvWvVS2ictFpHW3bQ',
-           'api_secret': os.environ['TWITTER_APPLICATION_SECRET'],
-           }
-
-GOOGLE = {'client_id': '985703411904-602sd2jgsl6v5ad8k3fb6tanc46a0v88.apps.googleusercontent.com',
-          'client_secret': os.environ['GPLUS_APPLICATION_SECRET'],
-          }
-
-BING = {
-    'customer_id': '7e41d6a8-1914-4354-bf31-3abd36cb0179',
-    'account_key': os.environ['BING_APPLICATION_SECRET']
-}
-
+# FACEBOOK = {'application_id': '1540569082835261',
+#             'application_secret': os.environ['FACEBOOK_APPLICATION_SECRET'],
+#             }
+# 
+# TWITTER = {'api_key': 'QNcMlvWvVS2ictFpHW3bQ',
+#            'api_secret': os.environ['TWITTER_APPLICATION_SECRET'],
+#            }
+# 
+# GOOGLE = {'client_id': '985703411904-602sd2jgsl6v5ad8k3fb6tanc46a0v88.apps.googleusercontent.com',
+#           'client_secret': os.environ['GPLUS_APPLICATION_SECRET'],
+#           }
+# 
+# BING = {
+#     'customer_id': '7e41d6a8-1914-4354-bf31-3abd36cb0179',
+#     'account_key': os.environ['BING_APPLICATION_SECRET']
+# }
+# 
 LANGUAGES = (('en', 'English'),
              ('fr', 'Français'),
              ('es', 'Español'),

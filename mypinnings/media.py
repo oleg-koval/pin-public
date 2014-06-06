@@ -2,15 +2,15 @@ import random
 import os
 import os.path
 
-import boto.s3.connection
-import boto.s3.key
+# import boto.s3.connection
+# import boto.s3.key
 from PIL import Image
 
 from Queue import Queue
 from threading import Thread
 import multiprocessing
-import threadpool
-import concurrent.futures
+# import threadpool
+# import concurrent.futures
 import shutil
 import os
 

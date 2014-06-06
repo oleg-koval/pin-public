@@ -1,8 +1,10 @@
-$def with (pins, template=None, options=None, edit_profile=None,boards=None,categories_to_select=None, user=None)
+$def with (pins, template=None, options=None, edit_profile=None,boards=None,categories_to_select=None, user=None, feeds=None)
 
 $ options = options or {}
 $ template = template or 'onepin'
 $ pins = list(pins)
+$if feeds:
+    $ feeds_list = list(feeds)
 
 $if edit_profile:
     <div id='pin-box-wrapper' class='tab-pane fade'>
@@ -46,6 +48,31 @@ $if user:
 
     </div>
 </div>
+
+
+$if feeds:
+    <div class="inContentiySmoktunovskiy">
+    <div class='' id='feed-buf'>
+    $ i = 0
+    $ last_date = None
+    $for feed in feeds_list:
+        $ i += 1
+        $ current_date = tpllib.get_dict_timestamp(feed.timestamp)
+        $if last_date is None or current_date['day'] != last_date['day'] or current_date['month'] != last_date['month'] or current_date['year'] != last_date['year']:
+            $if last_date is not None:
+                </div>
+                </div>
+            $ last_date = current_date
+            <div class="dateWrap">
+            <div class="dwDate">
+            <p>$last_date['day'] <span>$last_date['month']</span></p>
+            </div>
+            <div class="dwContent">
+        $if not feed.repin:
+            $:tpl('editaddedpinmodal', feed,categories_to_select, boards)
+        $:tpl(template, feed)
+    </div>
+    </div>
 
     $if not [x for x in pins if x.id]:
       <center>No pins to see here!</center>

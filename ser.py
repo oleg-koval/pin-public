@@ -316,33 +316,24 @@ class PageIndex:
                     pins = data_from_image_query['data']['image_data_list']
 
             pins = [pin_utils.dotdict(pin) for pin in pins]
+            request_data = {}
+            request_data['user_id'] = sess.user_id 
+            logintoken = convert_to_logintoken(sess.user_id)
+            request_data['logintoken'] = logintoken
+            request_data['csid_from_client'] = ''
 
-        # query = (query1 if logged_in(sess) else query2) % (offset * PIN_COUNT, PIN_COUNT)
-        # qvars = {}
-        # if logged_in(sess):
-        #     qvars['id'] = sess.user_id
-
-        # pins = []
-        # results = db.query(query, vars=qvars)
-        # current_pin = None
-        # for row in results:
-        #     if not current_pin or current_pin.id != row.id:
-        #         current_pin = row
-        #         pins.append(current_pin)
-        #         tag = current_pin.tags
-        #         current_pin.tags = []
-        #         if tag:
-        #             current_pin.tags.append(tag)
-        #     else:
-        #         tag = row.tags
-        #         if tag and tag not in current_pin.tags:
-        #             current_pin.tags.append(tag)
+            # Retrieve user feeds
+            data_from_feeds = api_request("/api/profile/feed/get", data=request_data)
+            feeds = None
+            if data_from_feeds['status'] == 200:
+                feeds = data_from_feeds['data']['feeds']
+                feeds = [pin_utils.dotdict(feed) for feed in feeds]
 
         if ajax:
             return json_pins(pins)
 
         form = self._form()
-        return ltpl('index', pins, first_time, form)
+        return ltpl('index', feeds, first_time, form)
 
 class PageLogin:
     _form = form.Form(
@@ -1124,6 +1115,22 @@ class PageProfile2:
 
         pins = [pin_utils.dotdict(pin) for pin in pins]
 
+        data_for_feeds = {
+            'csid_from_client': '',
+            'logintoken': logintoken,
+            'user_id': user.id,
+            'limit': 0,
+            'offset': 0,
+            'use_redis': True
+        }
+
+        data_from_feeds = api_request("api/profile/feed/get", "POST", data_for_feeds)
+        feeds = None
+        if data_from_feeds['status'] == 200:
+            feeds = data_from_feeds['data']['feeds']
+            feeds = [pin_utils.dotdict(feed) for feed in feeds]
+
+
         # Handle ajax request to pins
         ajax = int(web.input(ajax=0).ajax)
         if ajax:
@@ -1142,8 +1149,8 @@ class PageProfile2:
                     edit_profile_done = True
             return ltpl('profile', user, pins, offset, PIN_COUNT, hashed,
                         edit_profile, edit_profile_done, boards,
-                        categories_to_select, boards_first_pins, total, total_owned)
-        return ltpl('profile', user, pins, offset, PIN_COUNT, hashed)
+                        categories_to_select, boards_first_pins, total, total_owned, feeds)
+        return ltpl('profile', user, pins, offset, PIN_COUNT, hashed,feeds)
 
 
 class PageFollow:

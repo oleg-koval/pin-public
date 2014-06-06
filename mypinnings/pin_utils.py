@@ -1,7 +1,7 @@
 import random
 import logging
 
-from mypinnings import database
+# from mypinnings import database
 from mypinnings import media
 
 
@@ -18,13 +18,15 @@ class PinError(Exception):
 def create_pin(db, user_id, title, description, link, tags, price, product_url,
                    price_range, image_filename=None, board_id=None, repin=None):
     try:
-        if image_filename:
-            images_dict = media.store_image_from_filename(db, image_filename, widths=(202, 212))
-        else:
-            empty = {'url': None, 'width': None, 'height': None}
-            images_dict = {0: empty, 202: empty, 212: empty}
+#        if image_filename:
+#            images_dict = media.store_image_from_filename(db, image_filename, widths=(202, 212))
+#        else:
+#            empty = {'url': None, 'width': None, 'height': None}
+#            images_dict = {0: empty, 202: empty, 212: empty}
         if not price:
             price = None
+        empty = {'url': None, 'width': None, 'height': None}
+        images_dict = {0: empty, 202: empty, 212: empty}
         external_id = _generate_external_id()
         pin_id = db.insert(tablename='pins',
                            name=title,
@@ -45,16 +47,72 @@ def create_pin(db, user_id, title, description, link, tags, price, product_url,
                            external_id=external_id,
                            board_id=board_id,
                            repin=repin)
+
         if tags:
-            tags = parse_tags(tags)
-            values_to_insert = [{'pin_id':pin_id, 'tags':tag} for tag in tags]
-            db.multiple_insert(tablename='tags', values=values_to_insert)
-        pin = db.where(table='pins', id=pin_id)[0]
+            tags = remove_hash_symbol_from_tags(tags)
+            db.insert(tablename='tags', pin_id=pin_id, tags=tags)
+
+        # Now the redis insert
+
+        # select all friends and people who follows user_id
+        query1 = '''
+            SELECT follows.follow FROM follows WHERE follows.follower = $id
+            UNION
+            SELECT friends.id1 FROM friends WHERE friends.id2 = $id'''
+
+        try:
+            update_users = list(db.query(query1, {'id': user_id}))
+            for update_user in update_users:
+                # There might be better way to pass the details of pin
+                params = {  'id': pin_id,
+                            'name': title,
+                            'description': description,
+                            'user_id': user_id,
+                            'link': link,
+                            'views': 1,
+                            'price': price,
+                            'image_url': images_dict[0]['url'],
+                            'image_width': images_dict[0]['width'],
+                            'image_height': images_dict[0]['height'],
+                            'image_202_url': images_dict[202]['url'],
+                            'image_202_height': images_dict[202]['height'],
+                            'image_212_url': images_dict[212]['url'],
+                            'image_212_height': images_dict[212]['height'],
+                            'product_url': product_url,
+                            'price_range': price_range,
+                            'external_id': external_id,
+                            'board_id': board_id,
+                            'repin': 0}
+
+                create_feed(update_user['follow'], pin_id=pin_id,
+                                      params=storify(params))
+        except:
+            print 'error while adding to redis or query failed'
         return pin
     except:
         logger.error('Cannot insert a pin in the DB', exc_info=True)
         raise
 
+def create_feed(user_id, pin_id, params):
+    """ Creates cached pin and deletes oldest pin if the limit exceedes the user quota """
+    try:
+        create_feed.counter += 1
+        if(redis_has(pin_id) != True):
+            # Start transaction
+            pipe = redis_create_pipe()
+            if(redis_zcount(user_id) > get_user_quota()):
+                item = redis_zget(user_id, 0, 0)
+                redis_remove(user_id, item)
+            redis_set(pin_id, params)
+            redis_zadd(user_id, create_feed.counter, pin_id)
+            # End transaction
+            pipe.execute()
+        else:
+            redis_zadd(user_id, create_feed.counter, pin_id)
+    except:
+        logger.error('Cannot insert feed info in the redis while adding pin',
+                     exc_info=True)
+create_feed.counter = 0
 
 def update_base_pin_information(db, pin_id, user_id, title, description, link, tags, price, product_url,
                    price_range, board_id=None):

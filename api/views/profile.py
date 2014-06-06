@@ -13,9 +13,10 @@ from api.entities import UserProfile
 
 from mypinnings import auth
 from mypinnings import session
-from mypinnings.database import connect_db
+from mypinnings.database import connect_db, redis_get_user_pins
 from mypinnings.conf import settings
 from mypinnings.media import store_image_from_filename
+from mypinnings import pin_utils
 
 
 db = connect_db()
@@ -1051,6 +1052,107 @@ class BgRemove(BaseAPI):
         response = api_response(data=data,
                                 status=status,
                                 error_code=error_code,
+                                csid_from_client=csid_from_client,
+                                csid_from_server=csid_from_server)
+
+        return response
+
+
+class UserFeed(BaseAPI):
+    def POST(self):
+        request_data = web.input()
+
+        update_data = {}
+        data = {}
+        default_limit = 50
+        status = 200
+        csid_from_server = None
+        error_code = ""
+        csid_from_client = request_data.get('csid_from_client')
+
+        # Get user id from data from request
+        user_id = request_data.get('user_id')
+        csid_from_client = request_data.get('csid_from_client')
+        logintoken = request_data.get('logintoken', None)
+        limit = int(request_data.get('limit', default_limit))
+        offset = int(request_data.get('offset', 0))
+        use_redis = request_data.get('use_redis', False)
+
+        if logintoken:
+            user_status, user = self.authenticate_by_token(logintoken)
+            
+        if not user_id:
+            status = 400
+            error_code = "Invalid input data"
+
+        data['user_id'] = user_id
+        data['feeds'] = list()
+        feeds = None
+
+        if status == 200:
+
+            feed_query = '''
+                SELECT pins.*, tags.tags, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+                        count(distinct p1) as repin_count, count(distinct l1) as like_count
+                FROM pins
+                LEFT JOIN tags on tags.pin_id = pins.id
+                LEFT JOIN pins p1 on p1.repin = pins.id
+                LEFT JOIN likes l1 on l1.pin_id = pins.id
+                LEFT JOIN users on users.id = pins.user_id
+                LEFT JOIN follows on follows.follow = users.id
+                LEFT JOIN categories on categories.id in
+                    (SELECT category_id FROM pins_categories WHERE pin_id = pins.id limit 1)
+                WHERE pins.user_id IN (
+                    SELECT follows.follow FROM follows WHERE follows.follower = $id
+                    UNION
+                    SELECT friends.id1 FROM friends WHERE friends.id2 = $id
+                )
+                GROUP BY tags.tags, categories.id, pins.id, users.id
+                LIMIT $limit OFFSET $offset'''
+
+            if use_redis == 'True':
+                if limit == 0 and offset == 0:
+                    # Get all feed
+                    feeds = redis_get_user_pins(user_id)
+                    data['solution'] = 'REDIS'
+                    check_feeds = [pin_utils.dotdict(feed) for feed in feeds]
+                else:
+                    # Get limited count of feed
+                    if limit <= 0:
+                        limit = default_limit
+
+                    feeds = redis_get_user_pins(user_id, offset, limit+offset-1, True)
+                    data['solution'] = 'REDIS with options'
+                    # redis_get_user_pins returns in the last element count of
+                    # items, so feeds.pop() returns and delete the last item
+                    # from the list
+                    feed_len = feeds.pop()
+
+                    # if the redis don't have all element trigger db query as a
+                    # fallback
+                    if feed_len < limit:
+                        qvars = {'id': user_id, 'limit': int(limit), 'offset': int(offset)}
+                        feeds = db.query(feed_query, vars=qvars)
+                        data['solution'] = 'POSTGRES'
+            else:
+                if limit <= 0:
+                    limit = default_limit
+
+                qvars = {'id': user_id, 'limit': int(limit), 'offset': int(offset)}
+                feeds = db.query(feed_query, vars=qvars)
+                data['solution'] = 'POSTGRES'
+
+            # offset = int(web.input(offset=0).offset)
+            # ajax = int(web.input(ajax=0).ajax)
+            if feeds is not None:
+                for feed in feeds:
+                    data['feeds'].append(feed)
+            else:
+                print 'No results'
+
+        response = api_response(data=data, 
+                                status=status, 
+                                error_code=error_code, 
                                 csid_from_client=csid_from_client,
                                 csid_from_server=csid_from_server)
 
