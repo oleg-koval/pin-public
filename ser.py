@@ -18,8 +18,9 @@ import BeautifulSoup
 import cStringIO
 import urllib2
 
-from mypinnings.database import connect_db, dbget
+from mypinnings.database import connect_db, dbget, redis_connect, refresh_individual_user
 db = connect_db()
+rd = redis_connect()
 
 from mypinnings import auth
 from mypinnings.auth import authenticate_user_email, force_login, logged_in, \
@@ -787,6 +788,7 @@ class PagePin:
 
         if logged and sess.user_id != pin.user_id:
             db.update('pins', where='id = $id', vars={'id': pin.id}, views=web.SQLLiteral('views + 1'))
+            refresh_individual_user(sess.user_id, pin.id)
 
         results = db.where(table='tags', pin_id=pin.id)
         pin.tags = [row.tags for row in results]
@@ -1343,6 +1345,8 @@ class PageLike:
 
         try:
             db.insert('likes', user_id=sess.user_id, pin_id=pin_id)
+            #Update redis
+            refresh_individual_user(sess.user_id, pin_id)
         except:
             pass
         results = db.where(table='pins', id=pin_id)
@@ -1359,6 +1363,9 @@ class PageUnlike:
         db.delete('likes', where='user_id = $uid and pin_id = $pid',
                   vars={'uid': sess.user_id, 'pid': pin_id})
         results = db.where(table='pins', id=pin_id)
+        #Update redis
+        refresh_individual_user(sess.user_id, pin_id)
+
         for row in results:
             external_id = row.external_id
         raise web.seeother('/p/%s' % external_id)

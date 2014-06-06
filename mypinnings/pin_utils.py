@@ -132,6 +132,8 @@ def update_base_pin_information(db, pin_id, user_id, title, description, link, t
     values_to_insert = [{'pin_id':pin_id, 'tags':tag} for tag in tags]
     db.multiple_insert(tablename='tags', values=values_to_insert)
     pin = db.where('pins', id=pin_id)[0]
+    # Update redis
+    refresh_individual_user(user_id, pin_id)
     return pin
 
 
@@ -148,6 +150,8 @@ def update_pin_images(db, pin_id, user_id, image_filename):
               image_212_url=images_dict[212]['url'],
               image_212_height=images_dict[212]['height'],
               )
+    # Update redis
+    refresh_individual_user(user_id, pin_id)
 
 
 def update_pin_image_urls(db, pin_id, user_id, image_url, image_width, image_height,
@@ -163,6 +167,8 @@ def update_pin_image_urls(db, pin_id, user_id, image_url, image_width, image_hei
               image_212_url=image_212_url,
               image_212_height=image_212_height,
               )
+    # Update redis
+    refresh_individual_user(user_id, pin_id)
 
 
 def delete_pin_from_db(db, pin_id, user_id):
@@ -180,6 +186,9 @@ def delete_pin_from_db(db, pin_id, user_id):
     db.delete(table='ratings', where='pin_id=$id', vars={'id': pin_id})
     db.update(tables='pins', where='repin=$id', vars={'id': pin_id}, repin=None)
     db.delete(table='pins', where='id=$id', vars={'id': pin_id})
+    # Update redis
+    refresh_individual_user(user_id, pin_id)
+
 
 
 def add_pin_to_categories(db, pin_id, category_id_list):
@@ -188,16 +197,22 @@ def add_pin_to_categories(db, pin_id, category_id_list):
         for category_id in category_id_list:
             values_to_insert.append({'pin_id': pin_id, 'category_id': category_id})
         db.multiple_insert(tablename='pins_categories', values=values_to_insert)
+    # Update redis
+    refresh_individual_user(user_id, pin_id)
 
 
 def remove_pin_from__all_categories(db, pin_id):
     db.delete(table='pins_categories', where='pin_id=$pin_id',
                    vars={'pin_id': pin_id})
+    # Update redis
+    refresh_individual_user(user_id, pin_id)
 
 
 def update_pin_into_categories(db, pin_id, category_id_list):
     remove_pin_from__all_categories(db, pin_id)
     add_pin_to_categories(db, pin_id, category_id_list)
+    # Update redis
+    refresh_individual_user(user_id, pin_id)
 
 
 def parse_tags(value):
@@ -256,6 +271,8 @@ def delete_all_pins_for_user(db, user_id):
     db.delete(table='ratings', where='pin_id in (select id from pins where user_id=$id)', vars={'id': user_id})
     db.update(tables='pins', where='repin in (select id from pins where user_id=$id)', vars={'id': user_id}, repin=None)
     db.delete(table='pins', where='id in (select id from pins where user_id=$id)', vars={'id': user_id})
+    # Update redis
+    refresh_individual_user(user_id)
 
 
 class dotdict(dict):
