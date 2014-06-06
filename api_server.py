@@ -10,7 +10,7 @@ import api.views.profile
 import api.views.social
 import api.views.search
 import api.views.categories
-# import api.views.websearch
+import api.views.websearch
 
 
 class redirect:
@@ -104,7 +104,7 @@ urls = (
     "/categories/get", api.views.categories.GetCategories,
 
     # API for Web search: images
-    # "/websearch/images", api.views.websearch.Image
+    "/websearch/images", api.views.websearch.Image
     )
 web.config.debug = True
 api_app = web.application(urls, globals(), autoreload=True)

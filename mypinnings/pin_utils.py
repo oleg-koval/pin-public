@@ -18,11 +18,11 @@ class PinError(Exception):
 def create_pin(db, user_id, title, description, link, tags, price, product_url,
                    price_range, image_filename=None, board_id=None, repin=None):
     try:
-#        if image_filename:
-#            images_dict = media.store_image_from_filename(db, image_filename, widths=(202, 212))
-#        else:
-#            empty = {'url': None, 'width': None, 'height': None}
-#            images_dict = {0: empty, 202: empty, 212: empty}
+        if image_filename:
+            images_dict = media.store_image_from_filename(db, image_filename, widths=(202, 212))
+        else:
+            empty = {'url': None, 'width': None, 'height': None}
+            images_dict = {0: empty, 202: empty, 212: empty}
         if not price:
             price = None
         empty = {'url': None, 'width': None, 'height': None}
