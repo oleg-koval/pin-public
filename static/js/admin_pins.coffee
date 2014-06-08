@@ -21,6 +21,14 @@ jQuery ->
 		pinid = $(this).attr('pinid')
 		window.location.href = '/admin/pin/' + pinid
 		return
+	
+	
+	$('#select_all_pins').on 'click', (event) ->
+		$.pagination_grid.g.selectAll()
+	
+	
+	$('#unselect_all_pins').on 'click', (event) ->
+		$.pagination_grid.g.unSelectAll()
 		
 		
 	$('#delete_pin_button').on 'click', (event) ->

@@ -26,6 +26,12 @@ jQuery(function() {
     pinid = $(this).attr('pinid');
     window.location.href = '/admin/pin/' + pinid;
   });
+  $('#select_all_pins').on('click', function(event) {
+    return $.pagination_grid.g.selectAll();
+  });
+  $('#unselect_all_pins').on('click', function(event) {
+    return $.pagination_grid.g.unSelectAll();
+  });
   $('#delete_pin_button').on('click', function(event) {
     var pinid;
     event.preventDefault();
