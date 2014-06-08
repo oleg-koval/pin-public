@@ -73,6 +73,17 @@ jQuery ->
 			if parent_id is test_id
 				$(this).prop('checked', true)
 		return
+	
+	
+	$(window).scroll ->
+		top = $(window).scrollTop()
+		height = $(window).innerHeight();
+		doc_height = $(document).height()
+		sensitivity = 10
+		if top + height + sensitivity > doc_height
+			$.current_page += 1
+			load_more_items()
+		return
 
 	
 	load_more_items()

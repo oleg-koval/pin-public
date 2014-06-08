@@ -99,6 +99,17 @@ jQuery(function() {
       }
     });
   });
+  $(window).scroll(function() {
+    var doc_height, height, sensitivity, top;
+    top = $(window).scrollTop();
+    height = $(window).innerHeight();
+    doc_height = $(document).height();
+    sensitivity = 10;
+    if (top + height + sensitivity > doc_height) {
+      $.current_page += 1;
+      load_more_items();
+    }
+  });
   load_more_items();
   $('div.category_selection_list').show();
   top = $(window).height() - $('div.category_selection_list').height();
