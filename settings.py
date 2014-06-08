@@ -56,8 +56,8 @@ COUNTRIES = [
     'Virgin Islands, British', 'Virgin Islands, U.s.', 'Wallis and Futuna', 'Western Sahara', 'Yemen', 'Zambia', 'Zimbabwe',
 ]
 
-PIN_COUNT = 30
-SEARCH_PINS = True
+PIN_COUNT = 50
+SEARCH_PINS = False
 
 API_URL = os.environ['API_URL'] if 'API_URL' in os.environ else "http://mypinnings.com/"
 PIN_NEW_DAYS = 7

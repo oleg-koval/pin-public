@@ -6,17 +6,20 @@ jQuery(function() {
   $.current_page = 0;
   $.current_column = 1;
   $.pin_template = _.template($('#pin_template').html());
+  $.no_data = true;
   load_more_items = function() {
     var url;
     if ($.loading_items) {
       return;
     }
     $.loading_items = true;
-    url = '/admin/selection/pending_items?page=' + $.current_page;
+    url = '/admin/remove_from_category/items?page=' + $.current_page;
     $.getJSON(url, function(data) {
       var pin, pin_html, _i, _len;
+      $.no_data = true;
       for (_i = 0, _len = data.length; _i < _len; _i++) {
         pin = data[_i];
+        $.no_data = false;
         if ($.current_column > 4) {
           $.current_column = 1;
         }
@@ -29,6 +32,11 @@ jQuery(function() {
         $.current_column += 1;
       }
       $.loading_items = false;
+      if ($.no_data) {
+        $('#no-items-found-layer').show();
+      } else {
+        $('#no-items-found-layer').hide();
+      }
     });
   };
   simplify_url = function(url) {
@@ -53,54 +61,39 @@ jQuery(function() {
     return simplified;
   };
   $(document).on('click', 'div.category_pin', function(event) {
-    var categories, categories_string, checkbox, data, pin, pin_id, url, _i, _len, _ref;
-    categories = Array();
-    _ref = $('input.category_check:checked');
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      checkbox = _ref[_i];
-      categories.push(checkbox.value);
-    }
-    if (categories.length > 0) {
-      categories_string = categories.join(',');
-      console.log(categories_string);
-      pin = $(this);
-      pin_id = $(this).attr('pin_id');
-      data = {
-        pin_id: pin_id,
-        categories: categories_string
-      };
-      url = '/admin/selection/add_to_categories';
-      console.log(url);
-      $.ajax({
-        dataType: 'json',
-        data: data,
-        url: url,
-        type: 'POST',
-        success: function() {
-          return pin.remove();
-        }
-      });
-    }
+    var pin, pin_id, url;
+    pin = $(this);
+    pin_id = $(this).attr('pin_id');
+    url = '/admin/remove_from_category/' + pin_id;
+    $.ajax({
+      url: url,
+      type: 'delete',
+      success: function() {
+        pin.remove();
+      }
+    });
   });
-  $('input.category_check').on('change', function() {
-    var parent_id;
-    if (!this.checked) {
-      return;
-    }
-    parent_id = $(this).attr('parent');
-    if (parent_id === null) {
-      return;
-    }
-    $('input.category_check').each(function() {
-      var test_id;
-      test_id = $(this).val();
-      if (parent_id === test_id) {
-        return $(this).prop('checked', true);
+  $('a.category_change').on('click', function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    $.ajax({
+      url: '/admin/remove_from_category/set_category/' + $(this).attr('catid'),
+      success: function() {
+        $.current_page = 0;
+        $.current_column = 1;
+        $('#column1').find('*').remove();
+        $('#column2').find('*').remove();
+        $('#column3').find('*').remove();
+        $('#column4').find('*').remove();
+        load_more_items();
       }
     });
   });
   $(window).scroll(function() {
     var doc_height, height, sensitivity, top;
+    if ($.no_data) {
+      return;
+    }
     top = $(window).scrollTop();
     height = $(window).innerHeight();
     doc_height = $(document).height();
@@ -110,7 +103,6 @@ jQuery(function() {
       load_more_items();
     }
   });
-  load_more_items();
   $('div.category_selection_list').show();
   top = $(window).height() - $('div.category_selection_list').height();
   left = ($(window).width() - $('div.category_selection_list').width()) / 2;

@@ -6,6 +6,7 @@ from mypinnings import template
 from mypinnings import database
 from mypinnings import conf
 from mypinnings import pin_utils
+from mypinnings import session
 from mypinnings.admin.auth import login_required
 
 
@@ -73,3 +74,73 @@ class AddPinToCategories(object):
                                                  category_id_list=categories)
             return json.dumps({'status': 'ok'})
         return json.dumps({'status': 'error'})
+    
+
+class RemoveFromCategory(object):
+    @login_required
+    def GET(self):
+        db = database.get_db()
+        categories = db.where('categories', order='name')
+        return template.admin.remove_from_category(categories)
+    
+    @login_required
+    def DELETE(self, pin_id):
+        sess = session.get_session()
+        category = sess['category']
+        db = database.get_db()
+        db.delete(table='pins_categories', where='pin_id=$pinid and category_id=$catid',
+                  vars={'pinid': pin_id, 'catid': category})
+        return 'ok'
+        
+    
+    
+class SetCategoryToRemoveFrom:
+    @login_required
+    def GET(self, category=None):
+        sess = session.get_session()
+        sess['category'] = category
+        
+
+class ItemsToRemoveFromCategory:
+    @login_required
+    def GET(self):
+        page = int(web.input().page)
+        offset = page * conf.settings.PIN_COUNT
+        sess = session.get_session()
+        category = sess['category']
+        if not category:
+            return web.notfound('No category selected')
+        db = database.get_db()
+        pins_result = db.query('''
+            select
+                tags.tags, pins.*, users.pic as user_pic,
+                users.username as user_username, users.name as user_name,
+                count(distinct p1) as repin_count,
+                count(distinct l1) as like_count
+            from pins
+                left join tags on tags.pin_id = pins.id
+                left join pins p1 on p1.repin = pins.id
+                left join likes l1 on l1.pin_id = pins.id
+                left join users on users.id = pins.user_id
+                left join follows on follows.follow = users.id
+                left join boards on pins.board_id = boards.id
+                join pins_categories on pins.id = pins_categories.pin_id
+            where pins_categories.category_id = $catid
+            group by tags.tags, pins.id, users.id
+            order by timestamp desc offset $offset limit $limit''',
+            vars={'catid': category,'offset': offset, 'limit': conf.settings.PIN_COUNT})
+        pins = []
+        current_pin = None
+        for row in pins_result:
+            if not current_pin or current_pin['id'] != row.id:
+                current_pin = dict(row)
+                current_pin['price'] = str(current_pin['price'])
+                pins.append(current_pin)
+                current_pin['tags'] = []
+                if row.tags:
+                    current_pin['tags'].append(row.tags)
+            else:
+                if row.tags and row.tags not in current_pin['tags']:
+                    current_pin['tags'].append(row.tags)
+        print(json.dumps(pins))
+        return json.dumps(pins)

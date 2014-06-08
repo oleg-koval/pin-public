@@ -41,8 +41,10 @@ $def with(categories)
 			<th>Title</th>
 			<th>Description</th>
 			<th>Date</th>
+			<th></th>
 		</thead>
 		<tbody>
+			<td></td>
 			<td></td>
 			<td></td>
 			<td></td>
@@ -50,6 +52,14 @@ $def with(categories)
 		</tbody>
 	</table>
 </div>
+<br>
+<div style="text-align:center">
+	<button id="select_all_pins" class="btn btn-active">Select All</button>
+	<button id="unselect_all_pins" class="btn btn-active">Unselect All</button>
+	| <button id="delete_selected_pins" class="btn btn-danger">Delete Selected</button>
+</div>
+<br>
+<br>
 <script type="text/javascript">
 $$(document).ready(
 	function() {
@@ -57,11 +67,11 @@ $$(document).ready(
 			url: '/admin/pins/search/pagination',
 			initialLoad: true,
 			height: 600,
-			colWidths: [60, 200, 600, 200],
+			colWidths: [60, 200, 500, 100, 100],
 			colSortParams: ['pins.image_url', 'pins.name', 'pins.description', 'pins.timestamp'],
 			sortedCol: 'pins.timestamp',
 			sortedColDir: 'desc',
-			recordsPerPage: 100,
+			recordsPerPage: 50,
 		});
 	}
 ); 

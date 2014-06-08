@@ -7,6 +7,7 @@ $def with(pins, date)
 			<td>$pin.name</td>
 			<td>$pin.description</td>
 			<td>$(date.isoformat(date.fromtimestamp(pin.timestamp)))</td>
+			<td><button class="btn edit-pin" pinid="$pin.id">Edit</button></td>
 		</tr>
 	</tbody>
 </table>

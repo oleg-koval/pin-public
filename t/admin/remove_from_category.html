@@ -1,0 +1,50 @@
+$def with (categories)
+<div class="category_selection_list">
+$for category in categories:
+	<a href='#' catid="$category.id" class="category_change">$category.name</a>
+	$if not loop.last:
+		|
+</div>
+<div class="container-fluid">
+	<div class="row">
+		<div id="column1" class="col-xs-3"></div>
+		<div id="column2" class="col-xs-3"></div>
+		<div id="column3" class="col-xs-3"></div>
+		<div id="column4" class="col-xs-3"></div>
+	</div>
+</div>
+
+<div id="no-items-found-layer">If no items shown, select a category below</div>
+
+<script src="/static/js/admin_remove_from_category.js"></script>
+<script type="text/html" id="pin_template">
+<div class="category_pin" pin_id="<%= id %>">
+	<div class="category_pin_image" pinid="<%= external_id %>">
+		<img src="<%= image_212_url %>" width="212" height="<%= image_212_height %>" class="lazy">
+	</div>
+	<% if (name !== '') { %>
+		<div class="category_pin_title"><%= name %></div>
+	<% }
+	   if (description !== '') { %>
+	<div class="category_pin_description"><%= description %></div>
+	<% }
+	   if (tags !== null) { %>
+	<div class="category_pin_tags">
+		<% for (i = 0; i < taglist.length ; i++) { %>
+			<a href="/search/items?h=<%= taglist[i] %>">#<%= taglist[i] %></a>
+		<% } %>
+	</div>
+	<% } %>
+	<div class="category_pin_likes">
+		<i class="fa fa-thumbs-up"></i> <%= like_count %>
+		&nbsp;&nbsp;
+		<i class="fa fa-thumb-tack"></i> <%= repin_count %>
+	</div>
+	<% if (link !== null) { %>
+	<div class="category_pin_source_url">
+		<div class="pinned_from">pinned from</div>
+		<div class="pinned_link"><a href="<%= link %>"><%= simplifiedurl %></a></div>
+	</div>
+	<% } %>
+</div>
+</script>

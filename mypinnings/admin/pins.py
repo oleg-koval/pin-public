@@ -35,7 +35,7 @@ class SearchCriteria(object):
         return ''
 
 
-PAGE_SIZE = 100
+PAGE_SIZE = 50
 
 
 class SearchPagination(object):
@@ -84,7 +84,8 @@ class SearchPagination(object):
         results = db.select(tables=['pins, pins_categories'],
                            what='distinct pins.*',
                            where='pins.id=pins_categories.pin_id and pins_categories.category_id=$catid',
-                           vars={'catid': self.category})
+                           vars={'catid': self.category},
+                           limit=PAGE_SIZE, offset=(PAGE_SIZE * self.page))
         pins = []
         for row in results:
             pins.append(row)
@@ -196,3 +197,17 @@ class Pin(object):
                                      pin_id=pin_id,
                                      user_id=pin.user_id)
         return 'ok'
+
+
+class MultipleDelete(object):
+    
+    @login_required
+    def POST(self):
+        data = web.input(ids='')
+        ids = [int(x) for x in data.ids.split(',')]
+        db = database.get_db()
+        for pin_id in ids:
+            pin = db.where(table='pins', what='id, user_id', id=pin_id)[0]
+            pin_utils.delete_pin_from_db(db, pin_id, pin.user_id)
+        return 'ok'
+        
