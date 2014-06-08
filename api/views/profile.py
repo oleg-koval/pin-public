@@ -1072,7 +1072,7 @@ class UserFeed(BaseAPI):
 
         # Get user id from data from request
         user_id = request_data.get('user_id')
-        csid_from_client = request_data.get('csid_from_client')
+        csid_from_client = request_data.get('csid_from_client', '')
         logintoken = request_data.get('logintoken', None)
         limit = int(request_data.get('limit', default_limit))
         offset = int(request_data.get('offset', 0))
@@ -1091,24 +1091,53 @@ class UserFeed(BaseAPI):
 
         if status == 200:
 
+#                 SELECT pins.*, tags.tags, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
+#                         count(distinct p1) as repin_count, count(distinct l1) as like_count
+#                 FROM pins
+#                 LEFT JOIN tags on tags.pin_id = pins.id
+#                 LEFT JOIN pins p1 on p1.repin = pins.id
+#                 LEFT JOIN likes l1 on l1.pin_id = pins.id
+#                 LEFT JOIN users on users.id = pins.user_id
+#                 LEFT JOIN follows on follows.follow = users.id
+#                 LEFT JOIN categories on categories.id in
+#                     (SELECT category_id FROM pins_categories WHERE pin_id = pins.id limit 1)
+#                 WHERE pins.user_id IN (
+#                     SELECT follows.follow FROM follows WHERE follows.follower = $id
+#                     UNION
+#                     SELECT friends.id1 FROM friends WHERE friends.id2 = $id
+#                 ) OR pins.id IN (
+#                     SELECT board.id FROM boards WHERE user_id = $id AND public=true  
+#                 )
+#                 GROUP BY tags.tags, categories.id, pins.id, users.id
+#                 LIMIT $limit OFFSET $offset'''
+
             feed_query = '''
                 SELECT pins.*, tags.tags, categories.id as category, categories.name as cat_name, users.pic as user_pic, users.username as user_username, users.name as user_name,
-                        count(distinct p1) as repin_count, count(distinct l1) as like_count
+                count(distinct p1) as repin_count, count(distinct l1) as like_count
                 FROM pins
-                LEFT JOIN tags on tags.pin_id = pins.id
-                LEFT JOIN pins p1 on p1.repin = pins.id
-                LEFT JOIN likes l1 on l1.pin_id = pins.id
-                LEFT JOIN users on users.id = pins.user_id
-                LEFT JOIN follows on follows.follow = users.id
-                LEFT JOIN categories on categories.id in
-                    (SELECT category_id FROM pins_categories WHERE pin_id = pins.id limit 1)
+                    LEFT JOIN tags on tags.pin_id = pins.id
+                    LEFT JOIN pins p1 on p1.repin = pins.id
+                    LEFT JOIN likes l1 on l1.pin_id = pins.id
+                    LEFT JOIN users on users.id = pins.user_id
+                    LEFT JOIN follows on follows.follow = users.id
+                    LEFT JOIN categories on categories.id in
+                        (SELECT category_id FROM pins_categories WHERE pin_id = pins.id limit 1)
                 WHERE pins.user_id IN (
-                    SELECT follows.follow FROM follows WHERE follows.follower = $id
-                    UNION
-                    SELECT friends.id1 FROM friends WHERE friends.id2 = $id
-                )
+                        SELECT follows.follow FROM follows WHERE follows.follower = $id
+                        UNION
+                        SELECT friends.id1 FROM friends WHERE friends.id2 = $id
+                    ) OR pins.board_id IN (
+                        SELECT boards.id FROM boards WHERE user_id IN(
+                            SELECT follows.follow FROM follows WHERE follows.follower = $id
+                        ) AND public=true  
+                    ) OR pins.id IN (
+                        SELECT pins_categories.pin_id FROM pins_categories WHERE category_id IN (
+                            SELECT user_prefered_categories.category_id FROM user_prefered_categories WHERE user_id = $id
+                        )
+                    )
                 GROUP BY tags.tags, categories.id, pins.id, users.id
                 LIMIT $limit OFFSET $offset'''
+
 
             if use_redis == 'True':
                 if limit == 0 and offset == 0:

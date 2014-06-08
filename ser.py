@@ -322,19 +322,20 @@ class PageIndex:
             logintoken = convert_to_logintoken(sess.user_id)
             request_data['logintoken'] = logintoken
             request_data['csid_from_client'] = ''
+            request_data['use_redis'] = False
 
             # Retrieve user feeds
             data_from_feeds = api_request("/api/profile/feed/get", data=request_data)
-            feeds = None
+            pins = None
             if data_from_feeds['status'] == 200:
-                feeds = data_from_feeds['data']['feeds']
-                feeds = [pin_utils.dotdict(feed) for feed in feeds]
+                pins = data_from_feeds['data']['feeds']
+                pins = [pin_utils.dotdict(pin) for pin in pins]
 
         if ajax:
             return json_pins(pins)
 
         form = self._form()
-        return ltpl('index', feeds, first_time, form)
+        return ltpl('index', pins, first_time, form)
 
 class PageLogin:
     _form = form.Form(
@@ -1123,7 +1124,7 @@ class PageProfile2:
             'user_id': user.id,
             'limit': 0,
             'offset': 0,
-            'use_redis': True
+            'use_redis': False
         }
 
         data_from_feeds = api_request("api/profile/feed/get", "POST", data_for_feeds)
