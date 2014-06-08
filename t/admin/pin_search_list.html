@@ -2,11 +2,12 @@ $def with(pins, date)
 <table>
 	<tbody>
 	$for pin in pins:
-		<tr pinid="$pin.id">
-			<td><img src="$pin.image_202_url" style="width:60px;height:auto"></td>
+		<tr>
+			<td><img src="$pin.image_202_url" style="width:60px;height:auto" class="edit-pin" pinid="$pin.id"></td>
 			<td>$pin.name</td>
 			<td>$pin.description</td>
 			<td>$(date.isoformat(date.fromtimestamp(pin.timestamp)))</td>
+			<td><button class="btn edit-pin" pinid="$pin.id">Edit</button></td>
 		</tr>
 	</tbody>
 </table>

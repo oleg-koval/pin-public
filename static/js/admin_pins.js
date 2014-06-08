@@ -19,7 +19,7 @@ jQuery(function() {
       }
     });
   });
-  $('.datagrid').on('click', 'tr', function(event) {
+  $('.datagrid').on('click', '.edit-pin', function(event) {
     var pinid;
     event.preventDefault();
     event.stopPropagation();

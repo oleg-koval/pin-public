@@ -15,7 +15,7 @@ jQuery ->
 				return
 		return
 	
-	$('.datagrid').on 'click', 'tr', (event) ->
+	$('.datagrid').on 'click', '.edit-pin', (event) ->
 		event.preventDefault()
 		event.stopPropagation()
 		pinid = $(this).attr('pinid')
