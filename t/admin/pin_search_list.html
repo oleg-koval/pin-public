@@ -3,7 +3,7 @@ $def with(pins, date)
 	<tbody>
 	$for pin in pins:
 		<tr>
-			<td><img src="$pin.image_202_url" style="width:60px;height:auto" class="edit-pin" pinid="$pin.id"></td>
+			<td><img src="$pin.image_202_url" style="width:60px;height:auto"></td>
 			<td>$pin.name</td>
 			<td>$pin.description</td>
 			<td>$(date.isoformat(date.fromtimestamp(pin.timestamp)))</td>
