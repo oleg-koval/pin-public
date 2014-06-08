@@ -32,6 +32,32 @@ jQuery(function() {
   $('#unselect_all_pins').on('click', function(event) {
     return $.pagination_grid.g.unSelectAll();
   });
+  $('#delete_selected_pins').on('click', function(event) {
+    var ids, x, _i, _len, _ref;
+    if (!confirm('Do you really want to delete these items?')) {
+      return;
+    }
+    ids = '';
+    _ref = $.pagination_grid.g.getSelectedRows();
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      x = _ref[_i];
+      if (ids !== '') {
+        ids += ',';
+      }
+      ids += $(x).attr('pinid');
+    }
+    console.log(ids);
+    $.ajax({
+      method: 'post',
+      url: '/admin/pins/multiple_delete',
+      data: {
+        'ids': ids
+      },
+      success: function() {
+        $.pagination_grid.g.load();
+      }
+    });
+  });
   $('#delete_pin_button').on('click', function(event) {
     var pinid;
     event.preventDefault();

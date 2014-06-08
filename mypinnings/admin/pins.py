@@ -197,3 +197,17 @@ class Pin(object):
                                      pin_id=pin_id,
                                      user_id=pin.user_id)
         return 'ok'
+
+
+class MultipleDelete(object):
+    
+    @login_required
+    def POST(self):
+        data = web.input(ids='')
+        ids = [int(x) for x in data.ids.split(',')]
+        db = database.get_db()
+        for pin_id in ids:
+            pin = db.where(table='pins', what='id, user_id', id=pin_id)[0]
+            pin_utils.delete_pin_from_db(db, pin_id, pin.user_id)
+        return 'ok'
+        

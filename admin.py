@@ -62,6 +62,7 @@ urls = ('', 'admin.PageIndex',
         '/pins/search', 'mypinnings.admin.pins.Search',
         '/pins/search/pagination', 'mypinnings.admin.pins.SearchPagination',
         '/pins/search/set_search_criteria', 'mypinnings.admin.pins.SearchCriteria',
+        '/pins/multiple_delete', 'mypinnings.admin.pins.MultipleDelete',
         '/pin/(\d+)', 'mypinnings.admin.pins.Pin',
         )
 

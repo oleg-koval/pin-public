@@ -2,7 +2,7 @@ $def with(pins, date)
 <table>
 	<tbody>
 	$for pin in pins:
-		<tr>
+		<tr pinid="$pin.id">
 			<td><img src="$pin.image_202_url" style="width:60px;height:auto"></td>
 			<td>$pin.name</td>
 			<td>$pin.description</td>
