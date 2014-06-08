@@ -35,7 +35,7 @@ class SearchCriteria(object):
         return ''
 
 
-PAGE_SIZE = 100
+PAGE_SIZE = 50
 
 
 class SearchPagination(object):
@@ -84,7 +84,8 @@ class SearchPagination(object):
         results = db.select(tables=['pins, pins_categories'],
                            what='distinct pins.*',
                            where='pins.id=pins_categories.pin_id and pins_categories.category_id=$catid',
-                           vars={'catid': self.category})
+                           vars={'catid': self.category},
+                           limit=PAGE_SIZE, offset=(PAGE_SIZE * self.page))
         pins = []
         for row in results:
             pins.append(row)
