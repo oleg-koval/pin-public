@@ -1,15 +1,17 @@
-$def with (user, pins, hashed, edit_profile=None, edit_profile_done=None, boards={}, categories_to_select={}, boards_first_pins={}, total=0, total_owned=0)
+$def with (user, pins, hashed, edit_profile=None, edit_profile_done=None, boards={}, categories_to_select={}, boards_first_pins={}, total=0, total_owned=0, feeds=None)
 
 <div class="profile-tab-navigation">
     <ul id="myTab" class="nav nav-tabs">
       $if edit_profile:
+        <li class=""><a id="pin-feed" href="#feed-box-wrapper" data-toggle="tab">Wall <span></span></a></li>
         <li class=""><a id="pin-not-added" href="#pin-box-wrapper" data-toggle="tab">Fancy'd <span>2485</span></a></li>
         <li class="active"><a href="#profile-about-box" data-toggle="tab">About</a></li>
         <li class=""><a id="pin-added" href="#pin-box-wrapper" data-toggle="tab">Added <span>1345</span></a></li>
 
         <li class=""><a id="list-box-wrapper-link" href="#list-box-wrapper" data-toggle="tab">Lists <span>345</span></a></li>
       $else:
-        <li class="active"><a id="pin-not-added" href="#pin-box-wrapper" data-toggle="tab">Fancy'd <span>$total</span></a></li>
+        <li class="active"><a id="pin-feed" href="#feed-box-wrapper" data-toggle="tab">Wall <span></span></a></li>
+        <li class=""><a id="pin-not-added" href="#pin-box-wrapper" data-toggle="tab">Fancy'd <span>$total</span></a></li>
         <li class=""><a id="pin-added" href="#pin-box-wrapper" data-toggle="tab">Added <span>$total_owned</span></a></li>
 
         <li class=""><a id="list-box-wrapper-link" href="#list-box-wrapper" data-toggle="tab">Lists <span>$len(boards)</span></a></li>
@@ -18,7 +20,7 @@ $def with (user, pins, hashed, edit_profile=None, edit_profile_done=None, boards
 
     <div class="tab-content">
         $:tpl('profileinfo', user, hashed, edit_profile, edit_profile_done)
-        $:tpl('pins', pins, 'horzpin3', None, edit_profile, boards, categories_to_select, user)
+        $:tpl('pins', pins, 'horzpin3', None, edit_profile, boards, categories_to_select, user, feeds)
         $:tpl('my_lists', boards, user, boards_first_pins)
     </div>
 

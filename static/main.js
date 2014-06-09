@@ -32,17 +32,16 @@ $(document).ready(function() {
     }
     e.event.stopPropagation();
   });
+  $("#pin-feed").click(function() {
+      hide_all();
+      show_feeds();
+  });
   $("#pin-not-added").click(function() {
-    show_pins_date();
-    $(".pin-not-added").each(function() {
-      $(this).show();
-    });
+        show_pins_not_added();
   });
   $("#pin-added").click(function() {
-    $(".pin-not-added").each(function() {
-      $(this).hide();
-    });
-    hide_pins_date();
+      show_pins_not_added();
+        hide_pins_date();
   });
   id = $(".carousel2").find(".active").attr("photoid");
   $("#remove_photo").attr("href", "/photo/" + id + "/remove");
@@ -61,6 +60,7 @@ $(document).ready(function() {
     id = xx.find(".active").attr("photoid");
     $("#remove_photo").attr("href", "/photo/" + id + "/remove");
   });
+  show_feeds(); 
 });
 
 function hide_pins_date() {
@@ -75,4 +75,33 @@ function show_pins_date() {
   $(".dateWrap").each(function() {
     $(this).show();
   });
+}
+
+function hide_all() {
+   $("#pin-buf").hide(); 
+   $("#feed-buf").hide();
+}
+
+function show_feeds() {
+    hide_all();
+    $("#feed-buf").show();
+    $(".pin-added").each(function() {
+      $(this).show();
+    });
+    $(".pin-not-added").each(function() {
+      $(this).show();
+    });
+}
+
+function show_pins_not_added() {
+    hide_all();
+    show_pins_date();
+    $(".pin-added").each(function() {
+      $(this).hide();
+    });
+    $(".pin-not-added").each(function() {
+      $(this).show();
+    });
+
+    $("#pin-buf").show();
 }

@@ -62,6 +62,9 @@ urls = (
     "/profile/userinfo/remove_pic", api.views.profile.PicRemove,
     "/profile/userinfo/remove_bg", api.views.profile.BgRemove,
 
+    # API to user feeds: retrieve user feeds
+    "/profile/feed/get", api.views.profile.UserFeed,
+
     # API to user profile: change user password
     "/profile/pwd", api.views.profile.ChangePassword,
 

@@ -12,6 +12,11 @@ except Exception:
         'pw': os.environ['DB_PASSWORD'],
         'host': os.environ['DB_HOST'],
         }
+        redis = {
+        'host': 'localhost',
+        'port': 6379,
+        'db': 3,
+        }
 
 FACEBOOK = {'application_id': '1540569082835261',
             'application_secret': os.environ['FACEBOOK_APPLICATION_SECRET'],

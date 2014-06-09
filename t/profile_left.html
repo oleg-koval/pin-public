@@ -1,7 +1,7 @@
-$def with (user, pins, offset, pin_count, hashed, edit_profile=None, edit_profile_done=None, boards={}, categories_to_select={}, boards_first_pins={}, total=0, total_owned=0)
+$def with (user, pins, offset, pin_count, hashed, edit_profile=None, edit_profile_done=None, boards={}, categories_to_select={}, boards_first_pins={}, total=0, total_owned=0, feeds=None)
 
 <div class="profLeft">
 	$:tpl('profileheading', user, hashed, edit_profile, edit_profile_done)
 
-	$:tpl('profilecontent', user, pins, hashed, edit_profile, edit_profile_done, boards, categories_to_select, boards_first_pins, total, total_owned)
+	$:tpl('profilecontent', user, pins, hashed, edit_profile, edit_profile_done, boards, categories_to_select, boards_first_pins, total, total_owned, feeds)
 </div>
