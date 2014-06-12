@@ -78,7 +78,7 @@ function show_pins_date() {
 }
 
 function hide_all() {
-   $("#pin-buf").hide(); 
+//   $("#pin-buf").hide();
    $("#feed-buf").hide();
 }
 

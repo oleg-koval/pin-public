@@ -10,6 +10,7 @@ from api.views.base import BaseAPI
 from api.utils import api_response, save_api_request
 from mypinnings.database import connect_db
 from mypinnings.conf import settings
+from json import dumps
 
 db = connect_db()
 
@@ -205,3 +206,13 @@ def make_query(q):
         q = q.replace('  ', ' ')
 
     return q.replace(' ', ' | ')
+
+
+class SearchNames(BaseAPI):
+    def GET(self):
+        q = web.input().q
+        response = []
+        if q:
+            query = 'select username from users where username ilike $name order by username asc limit 10'
+            response = [user.username for user in db.query(query, vars={'name': q + '%'})]
+        return dumps(response)

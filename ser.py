@@ -2280,6 +2280,10 @@ class PageSearchItems:
         pins = None
 
         orig = web.input(q='').q
+        users_found = db.query('select count(*) as c from users where username=$name', vars={'name': orig})
+        if 1 == users_found[0].c:
+            return web.seeother('/' + orig)
+
         hashtag = web.input(h='').h
         if SEARCH_PINS:
             offset = int(web.input(offset=1).offset)
@@ -2320,7 +2324,7 @@ class PageSearchItems:
 
             if ajax:
                 return json_pins(pins, 'horzpin')
-        return ltpl('search', pins, orig or hashtag)
+        return ltpl('search', pins, orig, hashtag)
 
 
 class PageSearchPeople:

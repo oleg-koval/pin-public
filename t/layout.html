@@ -60,7 +60,8 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
             </div>
             &nbsp;
             <form method='get' action='/search/items' class='nav-item search'>
-              <input type='text' name='q' placeholder='Search Projects, Posts, and More&hellip;'/>
+              <input list="search_names" name='q' placeholder='Search Projects, Posts, and More&hellip;'/>
+                <datalist id="search_names"></datalist>
             </form>
           </div>
           <div class='right'>
@@ -149,11 +150,11 @@ $def with (content, categories, boards=[], all_albums=None, user=None, acti_need
             <input type="button" id="get_cancel" value="Go Back">
             <input type="button" id="fetch-images" value="Fetch Images">
         </form>
-        <div class="loading">
-            <img src="/static/img/horiz-loading.gif" />
-        </div>
     </div>
-	<div id="dialog-form" style="display:none">
+        <div class="loading">
+            <img src="/static/img/loading_big.gif" />
+        </div>
+    <div id="dialog-form" style="display:none">
 	<form method="post" action="/newaddpin" enctype="multipart/form-data" id="upload_form">
 	<input type="file" name="image" id="image" accept="image/*" placeholder="Please choose a file"><br/>
 	    <input type="button" id="upload_cancel" value="Go Back">

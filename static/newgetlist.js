@@ -137,6 +137,7 @@ $(document).ready(function() {
         url:$("#url").val()
         },
         beforeSend: function(xhr, opts) {
+            $( "#getlist-from-web" ).dialog("close");
             $(".loading").show();
         },
         success: function() {
@@ -145,14 +146,12 @@ $(document).ready(function() {
 	    complete: function(xhr) {
 	       var data = jQuery.parseJSON(xhr.responseText);
            if(data.status !== "error"){
-               $(".loading").hide();
                // $( "#web_getlist_form" ).clearForm();
-               $( "#getlist-from-web" ).dialog("close");
-               //$( "#addpindialogformweb" ).dialog("open");
                //$("#commentsweb").focus();
                initgallery(data);
                if (1 != gallery.lengthTotal)
                    $("#websitelinkweb").val($("#url").val());
+               //$( "#addpindialogformweb" ).dialog("open");
                $("#url").val('');
            } else {
                $("#statusweb").html("please provide a valid image url");
@@ -317,29 +316,27 @@ $(document).ready(function() {
     var gallery = {
         data: new Array(),
         element: $("#slide-imageweb"),
-        setdata: function(data){
-            this.lengthTotal = this.lengthTotal - 1;
-            if(data.w>200 ||data.h>200){
-                this.data.push(data);
-            }
-
+        show: function() {
             if(this.lengthTotal===0){
                 this.len = this.data.length;
+                $(".loading").hide();
                 $( "#addpindialogformweb" ).dialog("open");
                 $("#commentsweb").focus();
                 this.init();
                 this.showitem();
             }
         },
+
+        setdata: function(data){
+            this.lengthTotal = this.lengthTotal - 1;
+            if(data.w>200 ||data.h>200){
+                this.data.push(data);
+            }
+            this.show();
+        },
         loadError: function(){
             this.lengthTotal = this.lengthTotal - 1;
-            if(this.lengthTotal===0){
-                this.len = this.data.length;
-                $( "#addpindialogformweb" ).dialog("open");
-                $("#commentsweb").focus();
-                this.init();
-                this.showitem();
-            }
+            this.show();
         },
         next: function(){
             if (this.current<this.len-1){
@@ -406,6 +403,23 @@ $(document).ready(function() {
         $('#board_name').val('');
         $('#board_creation_layerweb').hide();
         $('#board_selection_layerweb').show();
+    });
+
+    $('[list=search_names]').keyup(function() {
+        var request = new XMLHttpRequest();
+        request.onload = function() {
+            $('#search_names').empty();
+            var names = JSON.parse(request.responseText);
+            for(var i in names)
+                $('<option/>').val(names[i]).appendTo('#search_names');
+        };
+        request.open('GET', '/api/search/names?q=' + this.value);
+        request.send();
+//            $.getJSON('/api/search/names?q=' + this.value, function(names) {
+//                $('#search_names').empty();
+//                for(var i in names)
+//                    $('option').val(names[i]).appendTo('#search_names');
+//            });
     });
 
     });
