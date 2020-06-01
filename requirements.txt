@@ -13,4 +13,4 @@ argparse
 boto==2.27.0
 futures==2.1.6
 threadpool==1.2.7
-Sphinx==1.2.2
+Sphinx==3.0.4
